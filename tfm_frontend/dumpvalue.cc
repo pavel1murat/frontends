@@ -22,10 +22,10 @@
 
 struct _xmlrpc_value;
 
-void dumpValue(const char *           const prefix, struct _xmlrpc_value * const valueP);
+void dumpValue(const char* prefix, struct _xmlrpc_value* const valueP);
 
 //-----------------------------------------------------------------------------
-static void dumpInt(const char*   const prefix, xmlrpc_value* const valueP) {
+static void dumpInt(const char*   prefix, xmlrpc_value* const valueP) {
 
   xmlrpc_env env;
   xmlrpc_int value;
@@ -144,10 +144,9 @@ nextLineSize(const char * const string,
 
 
 
-static void
-dumpMultilineString(const char * const prefix,
-                    const char * const value,
-                    size_t       const length) {
+static void dumpMultilineString(const char * const prefix,
+                                const char * const value,
+                                size_t       const length) {
 
     size_t cursor;  /* Index into value[] */
 
@@ -168,9 +167,8 @@ dumpMultilineString(const char * const prefix,
 
 
 
-static void
-dumpSimpleString(const char * const value,
-                 size_t       const length) {
+static void dumpSimpleString(const char * const value,
+                             size_t       const length) {
 
     const char * const printable = xmlrpc_makePrintable_lp(value, length);
 
@@ -180,10 +178,8 @@ dumpSimpleString(const char * const value,
 }
 
 
-
-static void
-dumpString(const char *   const prefix,
-           xmlrpc_value * const valueP) {
+//-----------------------------------------------------------------------------
+static void dumpString(const char* prefix, const xmlrpc_value* valueP) {
 
     xmlrpc_env env;
     size_t length;
@@ -214,10 +210,8 @@ dumpString(const char *   const prefix,
 }
 
 
-
-static void
-dumpBase64(const char *   const prefix,
-           xmlrpc_value * const valueP) {
+//-----------------------------------------------------------------------------
+static void dumpBase64(const char *   prefix,   xmlrpc_value * const valueP) {
 
     xmlrpc_env env;
     const unsigned char * value;
@@ -331,11 +325,7 @@ dumpStructMember(const char *   const prefix,
     xmlrpc_env_clean(&env);
 }
 
-
-
-static void
-dumpStruct(const char *   const prefix,
-           xmlrpc_value * const structP) {
+static void dumpStruct(const char *   const prefix,     xmlrpc_value * const structP) {
 
     xmlrpc_env env;
     unsigned int structSize;
@@ -446,10 +436,8 @@ dumpUnknown(const char *   const prefix,
 }
 
 
-
-void
-dumpValue(const char *   const prefix,
-          xmlrpc_value * const valueP) {
+//-----------------------------------------------------------------------------
+void dumpValue(const char* const prefix, xmlrpc_value* const valueP) {
 
     switch (xmlrpc_value_type(valueP)) {
     case XMLRPC_TYPE_INT:

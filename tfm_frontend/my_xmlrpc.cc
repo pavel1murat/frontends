@@ -134,7 +134,7 @@ static __inline__ int simpleVasprintf(char **      const resultP,
   int    retval;
   char * buffer;
   size_t bufferSize;
-  bool outOfMemory;
+  bool   outOfMemory;
 
   for (buffer = NULL, bufferSize = 4096, outOfMemory = false; !buffer && !outOfMemory; ) {
 
@@ -941,7 +941,7 @@ static void createServerInfo(xmlrpc_env *          envP,
 }
 
 //-----------------------------------------------------------------------------
-int my_xmlrpc(int argc, const char** argv) {
+int my_xmlrpc(int argc, const char** argv, std::string& Res) {
 
   struct cmdlineInfo  cmdline;
   xmlrpc_env          env;
@@ -976,6 +976,23 @@ int my_xmlrpc(int argc, const char** argv) {
   die_if_fault_occurred(&env);
   
   dumpResult(resultP);
+
+  Res = "undefined";
+  switch (xmlrpc_value_type(resultP)) {
+  case XMLRPC_TYPE_STRING:
+    const char* v1;
+    size_t length;
+    xmlrpc_read_string_lp(&env, resultP, &length, &v1);
+    Res = v1;
+    break;
+  case XMLRPC_TYPE_INT:
+    xmlrpc_int v2;
+    xmlrpc_read_int(&env, resultP, &v2);
+    Res = std::to_string(v2);
+    break;
+  default:
+    break;
+  }
   
   strfree(url);
     

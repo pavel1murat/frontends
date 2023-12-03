@@ -39,7 +39,7 @@
 /*-- Globals -------------------------------------------------------*/
 
 /* The frontend name (client name) as seen by other MIDAS clients   */
-const char *frontend_name = "farm_manager";
+const char *frontend_name = "tfm_frontend";
 /* The frontend file name, don't change it */
 const char *frontend_file_name = __FILE__;
 
@@ -84,7 +84,7 @@ BOOL equipment_common_overwrite = TRUE;
 
 EQUIPMENT equipment[] = {
   {
-    "farm",                              // eq name
+    "trigger_farm",                       // eq name
     EQUIPMENT_INFO {
       2, 0,                               // event ID, trigger mask
       "SYSTEM",                           // event buffer name
@@ -92,8 +92,8 @@ EQUIPMENT equipment[] = {
       0,                                  // event source (LAM/IRQ)
       "MIDAS",                            // data format to produce
       TRUE,                               // enable flag value
-      // combination of Read-On flags R)_xxx - read when running and on transitions 
-      // and on ODB updates
+                                          // combination of Read-On flags R)_xxx - read when running and on transitions 
+                                          // and on ODB updates
       RO_RUNNING | RO_TRANSITIONS | RO_ODB,
       1000,                               // readout interval/polling time in ms (1 sec)
       0,                                  // stop run after this event limit - probably, 0=never
@@ -215,14 +215,14 @@ EQUIPMENT equipment[] = {
 // print message and return FE_ERR_HW if frontend should not be started 
 //-----------------------------------------------------------------------------
 INT frontend_init() {
-  std::string fcl_fn("farm_frontend.fcl");
+  // std::string fcl_fn("farm_frontend.fcl");
 
-	fhicl::ParameterSet ps = LoadParameterSet(fcl_fn);
+	// fhicl::ParameterSet ps = LoadParameterSet(fcl_fn);
 
-  std::unique_ptr<artdaq::Commandable> comm =  std::make_unique<artdaq::Commandable>();
+  // std::unique_ptr<artdaq::Commandable> comm =  std::make_unique<artdaq::Commandable>();
 
-  _commander = artdaq::MakeCommanderPlugin(ps, *comm);
-  _commander->run_server();
+  // _commander = artdaq::MakeCommanderPlugin(ps, *comm);
+  // _commander->run_server();
 
   return SUCCESS;
 }
@@ -240,11 +240,11 @@ INT begin_of_run(INT run_number, char *error) {
   int nw(6);
 
   std::string exec_name = "none";
-
+ 
+  std::string       w    [100];
   const char*       words[100];
-  words[0]   = exec_name.data();  // executable name, not used
 
-  std::string w    [100];
+  words[0]   = exec_name.data();  // executable name, not used
 
   w[0] = "http://localhost:18000/RPC2";
   w[1] = "state_change";
@@ -254,9 +254,14 @@ INT begin_of_run(INT run_number, char *error) {
 //-----------------------------------------------------------------------------
   w[3] = "configuring"; 
 
-  char tmp[100];
-  sprintf(tmp,"\'struct{run_number:i/%i}\'",run_number);
-  w[4] = tmp;
+  printf("tfm_frontend::%s 000: trying to configure\n",__func__);
+
+  // char tmp[100];
+  // //  sprintf(tmp,"\'struct{run_number:i/%i}\'",run_number);
+  // sprintf(tmp,"struct{run_number:i/%i}",run_number);
+  // w[4] = tmp;
+  w[4]  = "struct/{run_number:i/"+std::to_string(run_number);
+  w[4] += "}";
   
   words[1] = w[0].data();
   words[2] = w[1].data();
@@ -264,26 +269,73 @@ INT begin_of_run(INT run_number, char *error) {
   words[4] = w[3].data();
   words[5] = w[4].data();
   
-  my_xmlrpc(nw, words);
+  printf("tfm_frontend::%s 001: trying to configure, nw = %i\n",__func__,nw);
+  for (int i=0; i<nw; i++) {
+    printf("tfm_frontend::%s 001: trying to configure, words[%i] = %s\n",__func__,i,words[i]);
+  }
+
+  std::string res;
+  my_xmlrpc(nw, words, res);
+
+  printf("tfm_frontend::%s 0011: after my_xmlrpc  command: result:%s\n",__func__,res.data());
+//-----------------------------------------------------------------------------
+// now wait till completion
+//-----------------------------------------------------------------------------
+  int completed = 0;
+
+  std::string token;
+
+  w[1] = "get_state";
+  w[2] = "daqint";
+
+  words[1] = w[0].data();
+  words[2] = w[1].data();
+  words[3] = w[2].data();
+  nw       = 4;
+
+  while ((token != "configured") or (completed != 100)) {
+
+    my_xmlrpc(nw, words, res);
+    sleep(1);
+
+    size_t pos = res.find(":");
+    token = res.substr(0, pos);
+    res.erase(0, pos + 1);
+
+    completed = std::stoi(res);
+
+    printf(" --- waiting: token:%s  completed: %i\n",token.data(),completed);
+  }
+
+  printf("tfm_frontend::%s 0011: done to configure\n",__func__);
 //-----------------------------------------------------------------------------
 // how do I know that the configure step suceeded ?
 // have to wait and make sure ? wait for a message from the farm manager
 //
 // // assuming it was OK, 'start'
 //-----------------------------------------------------------------------------
+  w[1] = "state_change";
+  w[2] = "daqint";
   w[3] = "starting"; 
-  w[4] = "\'struct{ignored_variable:i/999}\'";
+  w[4] = "struct/{ignored_variable:i/999}";
 
   words[1] = w[0].data();
   words[2] = w[1].data();
   words[3] = w[2].data();
   words[4] = w[3].data();
   words[5] = w[4].data();
+  nw = 6;
 //-----------------------------------------------------------------------------
 // send 'start' command
 //-----------------------------------------------------------------------------
-  my_xmlrpc(nw, words);
+  printf("tfm_frontend::%s 002: trying to START\n",__func__);
+  for (int i=0; i<nw; i++) {
+    printf("tfm_frontend::%s 002: trying to START, words[%i] = %s\n",__func__,i,words[i]);
+  }
 
+  my_xmlrpc(nw, words,res);
+
+  printf("tfm_frontend::%s 003: done, exiting\n",__func__);
   return SUCCESS;
 }
 
@@ -373,3 +425,12 @@ INT read_periodic_event(char *pevent, INT off) {
 
   return bk_size(pevent);
 }
+
+
+// #ifdef STANDALONE
+int main(int ardc, char** argc) {
+
+  char error[100];
+  begin_of_run(10, error);
+}
+// #endif

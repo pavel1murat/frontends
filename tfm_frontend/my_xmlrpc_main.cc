@@ -85,5 +85,8 @@ int main(int argc, char** argv) {
 
     nw = 6;
   }
-  my_xmlrpc(nw, words); // http://localhost:$port/RPC2 state daqint;
+
+  std::string res;
+
+  my_xmlrpc(nw, words, res); // http://localhost:$port/RPC2 state daqint;
 }
