@@ -78,8 +78,9 @@ INT poll_event(INT source, INT count, BOOL test);
 std::unique_ptr<artdaq::CommanderInterface>  _commander;
 int my_xmlrpc(int argc, const char** argv);
 
-/*-- Equipment list ------------------------------------------------*/
+const std::string rpc_url = "http://localhost:18000/RPC2";
 
+//-----------------------------------------------------------------------------
 BOOL equipment_common_overwrite = TRUE;
 
 EQUIPMENT equipment[] = {
@@ -233,6 +234,44 @@ INT frontend_exit() {
 }
 
 //-----------------------------------------------------------------------------
+// wait until the farm reports reaching a certain state
+//-----------------------------------------------------------------------------
+int wait_for(const char* State, int MaxWaitingTime) {
+  int         rc (0);
+  std::string w  [100];
+  const char* par[100];
+
+  std::string state;
+
+  w[0] = "none"; 
+  w[1] = rpc_url;
+  w[2] = "get_state"; 
+  w[3] = "daqint";
+
+  int nw = 4;
+
+  for (int i=0; i<nw; i++) par[i] = w[i].data();
+
+  int waiting_time = 0;
+
+  while (state != State) {
+    my_xmlrpc(nw, par, state);
+    sleep(1);
+    printf(" --- waiting: state=%s\n",state.data());
+    waiting_time += 1;
+    if (waiting_time > MaxWaitingTime) {
+      rc = -1;
+      break;
+    }
+  }
+
+  printf("tfm_frontend::%s 001: FINISHED, rc=%i\n",__func__,rc);
+
+  return rc;
+}
+
+
+//-----------------------------------------------------------------------------
 // put here clear scalers etc.
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT run_number, char *error) {
@@ -246,7 +285,7 @@ INT begin_of_run(INT run_number, char *error) {
 
   words[0]   = exec_name.data();  // executable name, not used
 
-  w[0] = "http://localhost:18000/RPC2";
+  w[0] = rpc_url;
   w[1] = "state_change";
   w[2] = "daqint";
 //-----------------------------------------------------------------------------
@@ -281,10 +320,6 @@ INT begin_of_run(INT run_number, char *error) {
 //-----------------------------------------------------------------------------
 // now wait till completion
 //-----------------------------------------------------------------------------
-  int completed = 0;
-
-  std::string token;
-
   w[1] = "get_state";
   w[2] = "daqint";
 
@@ -293,21 +328,11 @@ INT begin_of_run(INT run_number, char *error) {
   words[3] = w[2].data();
   nw       = 4;
 
-  while ((token != "configured") or (completed != 100)) {
+  int rc(0);
 
-    my_xmlrpc(nw, words, res);
-    sleep(1);
+  rc = wait_for("configured:100",100);
 
-    size_t pos = res.find(":");
-    token = res.substr(0, pos);
-    res.erase(0, pos + 1);
-
-    completed = std::stoi(res);
-
-    printf(" --- waiting: token:%s  completed: %i\n",token.data(),completed);
-  }
-
-  printf("tfm_frontend::%s 0011: done to configure\n",__func__);
+  printf("tfm_frontend::%s 0011: DONE configuring, rc=%i\n",__func__,rc);
 //-----------------------------------------------------------------------------
 // how do I know that the configure step suceeded ?
 // have to wait and make sure ? wait for a message from the farm manager
@@ -334,14 +359,70 @@ INT begin_of_run(INT run_number, char *error) {
   }
 
   my_xmlrpc(nw, words,res);
+//-----------------------------------------------------------------------------
+// wait till the run start completion
+//-----------------------------------------------------------------------------
+  rc = wait_for("running:100",50);
 
-  printf("tfm_frontend::%s 003: done, exiting\n",__func__);
+  printf("tfm_frontend::%s 003: done starting, rc=%i\n",__func__,rc);
   return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 INT end_of_run(INT run_number, char *error) {
-   return SUCCESS;
+  int nw(6);
+
+  std::string exec_name = "none";
+ 
+  std::string       w    [100];
+  const char*       words[100];
+  
+  words[0]   = exec_name.data();  // executable name, not used
+
+  w[0] = rpc_url;
+  w[1] = "state_change";
+  w[2] = "daqint";
+//-----------------------------------------------------------------------------
+// first 'stop'
+//-----------------------------------------------------------------------------
+  w[3] = "stopping"; 
+
+  printf("tfm_frontend::%s 000: trying to STOP\n",__func__);
+
+  w[4]  = "struct/{ignored_variable:i/999}";
+  
+  words[1] = w[0].data();
+  words[2] = w[1].data();
+  words[3] = w[2].data();
+  words[4] = w[3].data();
+  words[5] = w[4].data();
+  
+  printf("tfm_frontend::%s 001: trying to STOP, nw = %i\n",__func__,nw);
+  for (int i=0; i<nw; i++) {
+    printf("tfm_frontend::%s 001: trying to STOP, words[%i] = %s\n",__func__,i,words[i]);
+  }
+
+  std::string res;
+  my_xmlrpc(nw, words, res);
+
+  printf("tfm_frontend::%s 0011: after my_xmlrpc  command: result:%s\n",__func__,res.data());
+//-----------------------------------------------------------------------------
+// now wait till completion
+//-----------------------------------------------------------------------------
+  w[1] = "get_state";
+  w[2] = "daqint";
+
+  words[1] = w[0].data();
+  words[2] = w[1].data();
+  words[3] = w[2].data();
+  nw       = 4;
+
+  int rc(0);
+
+  rc = wait_for("stopped:100",100);
+
+  printf("tfm_frontend::%s 0011: DONE STOPPING, rc=%i\n",__func__,rc);
+  return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
@@ -427,10 +508,10 @@ INT read_periodic_event(char *pevent, INT off) {
 }
 
 
-// #ifdef STANDALONE
+#ifdef STANDALONE
 int main(int ardc, char** argc) {
 
   char error[100];
   begin_of_run(10, error);
 }
-// #endif
+#endif

@@ -27,7 +27,7 @@ cet_make_exec(NAME tfm_frontend
                    getoptx.cc dumpvalue.cc stripcaseeq.cc
                    LIBRARIES 
                    midas 
-                   # mfe 
+                   mfe 
                    xmlrpc++ xmlrpc_client xmlrpc xmlrpc_util xmlrpc_util++ 
                    pthread rt util stdc++
 
