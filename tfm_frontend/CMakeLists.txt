@@ -16,7 +16,7 @@ cet_make_exec(NAME my_xmlrpc
                    my_xmlrpc_main.cc my_xmlrpc.cc cmdline_parser.cc string_parser.cc 
                    getoptx.cc dumpvalue.cc stripcaseeq.cc
                    LIBRARIES 
-                   midas mfe 
+                   #                   midas mfe 
                    xmlrpc++ xmlrpc_client xmlrpc xmlrpc_util xmlrpc_util++ 
                    pthread rt util stdc++
 )                  
@@ -26,7 +26,8 @@ cet_make_exec(NAME tfm_frontend
                    tfm_frontend.cc my_xmlrpc.cc cmdline_parser.cc string_parser.cc 
                    getoptx.cc dumpvalue.cc stripcaseeq.cc
                    LIBRARIES 
-                   midas mfe 
+                   midas 
+                   # mfe 
                    xmlrpc++ xmlrpc_client xmlrpc xmlrpc_util xmlrpc_util++ 
                    pthread rt util stdc++
 
