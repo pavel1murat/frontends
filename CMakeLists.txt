@@ -32,7 +32,8 @@ cet_set_compiler_flags(
 find_package(canvas_root_io REQUIRED EXPORT QUIET)
 find_package(canvas REQUIRED EXPORT QUIET)
 
-find_package(otsdaq_mu2e 1.02.00 REQUIRED)
+# find_package(otsdaq_mu2e 1.02.00 REQUIRED)
+find_package(PostgreSQL 13.2 REQUIRED)
 
 #------------------------------------------------------------------------------
 # XDAQ Extra setup
@@ -69,7 +70,7 @@ include(BuildPlugins)
 #------------------------------------------------------------------------------
 # Code
 #------------------------------------------------------------------------------
-add_subdirectory(tfm_frontend)
+add_subdirectory(tfm)
 
 # Useful scripts
 #add_subdirectory(tools)
