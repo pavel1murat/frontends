@@ -403,9 +403,8 @@ dumpNil(const char *   const prefix,
 
 
 
-static void
-dumpI8(const char *   const prefix,
-       xmlrpc_value * const valueP) {
+static void dumpI8(const char *   const prefix,
+                   xmlrpc_value * const valueP) {
 
     xmlrpc_env env;
     xmlrpc_int64 value;
