@@ -34,7 +34,11 @@
 #include "artdaq/Application/LoadParameterSet.hh"
 #include "proto/artdaqapp.hh"
 
-#include "tfm/my_xmlrpc.hh"
+#include "xmlrpc-c/config.h"  /* information about this build environment */
+#include <xmlrpc-c/base.h>
+#include <xmlrpc-c/client.h>
+
+// #include "tfm/my_xmlrpc.hh"
 #include "tfm/db_runinfo.hh"
 
 /*-- Globals -------------------------------------------------------*/
@@ -77,10 +81,8 @@ INT poll_event(INT source, INT count, BOOL test);
 // INT interrupt_configure(INT cmd, INT source, POINTER_T adr);
 
 std::unique_ptr<artdaq::CommanderInterface>  _commander;
-int my_xmlrpc(int argc, const char** argv);
 
 const std::string rpc_url = "http://localhost:18000/RPC2";
-
 //-----------------------------------------------------------------------------
 BOOL equipment_common_overwrite = TRUE;
 
@@ -212,23 +214,30 @@ EQUIPMENT equipment[] = {
   resume_run:     When a run is resumed. Should enable trigger events.
 \********************************************************************/
 
-bool           _useRunInfoDB(false);
-db_runinfo*    _db(nullptr);
+static bool           _useRunInfoDB(false);
+static xmlrpc_env     _env;
+
+
+static void die_if_fault_occurred(xmlrpc_env * const envP) {
+  if (envP->fault_occurred) {
+    fprintf(stderr, "XML-RPC Fault: %s (%d)\n",envP->fault_string, envP->fault_code);
+    exit(1);
+  }
+}
+
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the frontend (or not ?)
 // print message and return FE_ERR_HW if frontend should not be started 
 //-----------------------------------------------------------------------------
 INT frontend_init() {
 
-  std::string fcl_fn("tfm_frontend.fcl");
+  std::string dir = getenv("PWD");
+  std::string fcl_fn = dir+"/tfm_frontend.fcl";
 
 	fhicl::ParameterSet top_ps = LoadParameterSet(fcl_fn);
   fhicl::ParameterSet tfm_ps = top_ps.get<fhicl::ParameterSet>("tfm_frontend",fhicl::ParameterSet());
 
   _useRunInfoDB = tfm_ps.get<bool>("useRunInfoDB",false);
-
-  if (_useRunInfoDB) _db = new db_runinfo("aa");
-
 //-----------------------------------------------------------------------------
 // this is for later - when we learn how to communicate with the TF manager
 // properly
@@ -237,13 +246,19 @@ INT frontend_init() {
   // _commander = artdaq::MakeCommanderPlugin(ps, *comm);
   // _commander->run_server();
 
+//-----------------------------------------------------------------------------
+// init XML RPC
+//-----------------------------------------------------------------------------
+  xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS, "tfm_frontend", "v1_0");
+  xmlrpc_env_init(&_env);
+
   return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 INT frontend_exit() {
-
-  if (_db) delete _db;
+  xmlrpc_env_clean(&_env);
+  xmlrpc_client_cleanup();
 
   return SUCCESS;
 }
@@ -253,24 +268,31 @@ INT frontend_exit() {
 //-----------------------------------------------------------------------------
 int wait_for(const char* State, int MaxWaitingTime) {
   int         rc (0);
-  std::string w  [100];
-  const char* par[100];
 
-  std::string state;
+  std::string         state;
 
-  w[0] = "none"; 
-  w[1] = rpc_url;
-  w[2] = "get_state"; 
-  w[3] = "daqint";
+  xmlrpc_value*       resultP;
+  size_t              length;
+  const char*         value;
 
-  int nw = 4;
-
-  for (int i=0; i<nw; i++) par[i] = w[i].data();
-
-  int waiting_time = 0;
+  int                 waiting_time = 0;
 
   while (state != State) {
-    my_xmlrpc(nw, par, state);
+
+    resultP = xmlrpc_client_call(&_env, 
+                                 "http://localhost:18000/RPC2",
+                                 "get_state",
+                                 // "({s:i,s:i})",
+                                 "(s)", 
+                                 "daqint");
+    die_if_fault_occurred(&_env);
+
+    xmlrpc_read_string_lp(&_env, resultP, &length, &value);
+    state = value;
+
+    // xmlrpc_DECREF(resultP);
+    // xmlrpc_env_clean(&_env);
+
     sleep(1);
     printf(" --- waiting: state=%s\n",state.data());
     waiting_time += 1;
@@ -291,54 +313,32 @@ int wait_for(const char* State, int MaxWaitingTime) {
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT RunNumber, char *error) {
 
-  int nw(6);
+  xmlrpc_env    env;
+  xmlrpc_value* resultP;
 
-  std::string exec_name = "none";
- 
-  std::string       w    [100];
-  const char*       words[100];
+  xmlrpc_env_init(&env);
+  resultP = xmlrpc_client_call(&env, 
+                               "http://localhost:18000/RPC2",
+                               "state_change",
+                               // "({s:i,s:i})",
+                               "(ss{s:i})", 
+                               "daqint",
+                               "configuring",
+                               "run_number", RunNumber);
+  die_if_fault_occurred(&_env);
 
-  words[0]   = exec_name.data();  // executable name, not used
+  const char* value;
+  size_t      length;
+  xmlrpc_read_string_lp(&_env, resultP, &length, &value);
+    
+  std::string res = value;
 
-  w[0] = rpc_url;
-  w[1] = "state_change";
-  w[2] = "daqint";
-//-----------------------------------------------------------------------------
-// first 'configure'
-//-----------------------------------------------------------------------------
-  w[3] = "configuring"; 
+  printf("tfm_frontend::%s  after XMLRPC command: result:%s\n",__func__,res.data());
 
-  printf("tfm_frontend::%s 000: trying to configure\n",__func__);
-
-  w[4]  = "struct/{run_number:i/"+std::to_string(RunNumber);
-  w[4] += "}";
-  
-  words[1] = w[0].data();
-  words[2] = w[1].data();
-  words[3] = w[2].data();
-  words[4] = w[3].data();
-  words[5] = w[4].data();
-  
-  printf("tfm_frontend::%s 001: trying to configure, nw = %i\n",__func__,nw);
-  for (int i=0; i<nw; i++) {
-    printf("tfm_frontend::%s 001: trying to configure, words[%i] = %s\n",__func__,i,words[i]);
-  }
-
-  std::string res;
-  my_xmlrpc(nw, words, res);
-
-  printf("tfm_frontend::%s 0011: after my_xmlrpc  command: result:%s\n",__func__,res.data());
+  xmlrpc_DECREF   (resultP);
 //-----------------------------------------------------------------------------
 // now wait till completion
 //-----------------------------------------------------------------------------
-  w[1] = "get_state";
-  w[2] = "daqint";
-
-  words[1] = w[0].data();
-  words[2] = w[1].data();
-  words[3] = w[2].data();
-  nw       = 4;
-
   int rc(0);
 
   rc = wait_for("configured:100",100);
@@ -350,130 +350,114 @@ INT begin_of_run(INT RunNumber, char *error) {
 //
 // // assuming it was OK, 'start'
 //-----------------------------------------------------------------------------
-  w[1] = "state_change";
-  w[2] = "daqint";
-  w[3] = "starting"; 
-  w[4] = "struct/{ignored_variable:i/999}";
-
-  words[1] = w[0].data();
-  words[2] = w[1].data();
-  words[3] = w[2].data();
-  words[4] = w[3].data();
-  words[5] = w[4].data();
-  nw = 6;
-//-----------------------------------------------------------------------------
-// send 'start' command
-//-----------------------------------------------------------------------------
-  printf("tfm_frontend::%s 002: trying to START\n",__func__);
-  for (int i=0; i<nw; i++) {
-    printf("tfm_frontend::%s 002: trying to START, words[%i] = %s\n",__func__,i,words[i]);
-  }
-
-  my_xmlrpc(nw, words,res);
+  resultP = xmlrpc_client_call(&env, 
+                               "http://localhost:18000/RPC2",
+                               "state_change",
+                               // "({s:i,s:i})",
+                               "(ss{s:i})", 
+                               "daqint",
+                               "starting",
+                               "ignored_variable", 9999);
+  die_if_fault_occurred(&_env);
+  xmlrpc_DECREF(resultP);
 //-----------------------------------------------------------------------------
 // wait till the run start completion
 //-----------------------------------------------------------------------------
   rc = wait_for("running:100",50);
-  printf("tfm_frontend::%s ERROR: wait for running rc=%i\n",__func__,rc);
 
-  if (_db) {
-    rc = _db->registerTransition(RunNumber,db_runinfo::START);
+  printf("tfm_frontend::%s ERROR: wait for running run=%6i rc=%i\n",__func__,RunNumber,rc);
+
+  if (_useRunInfoDB) {
+    db_runinfo db("aaa");
+
+    rc = db.registerTransition(RunNumber,db_runinfo::START);
     if (rc < 0) {
       printf("tfm_frontend::%s ERROR: DB access rc=%i\n",__func__,rc);
     }
   }
-  printf("tfm_frontend::%s 003: done starting, rc=%i\n",__func__,rc);
+  printf("tfm_frontend::%s 003: done starting, run=%6i rc=%i\n",__func__,RunNumber,rc);
   return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-INT end_of_run(INT RunNumber, char *error) {
-  int nw(6);
-
-  std::string exec_name = "none";
- 
-  std::string       w    [100];
-  const char*       words[100];
-  
-  words[0]   = exec_name.data();  // executable name, not used
-
-  w[0] = rpc_url;
-  w[1] = "state_change";
-  w[2] = "daqint";
+INT end_of_run(INT RunNumber, char *Error) {
 //-----------------------------------------------------------------------------
 // first 'stop'
 //-----------------------------------------------------------------------------
-  w[3] = "stopping"; 
+  printf("tfm_frontend::%s 000: trying to STOP run=%6i\n",__func__,RunNumber);
 
-  printf("tfm_frontend::%s 000: trying to STOP\n",__func__);
+  xmlrpc_value* resultP;
+  size_t        length;
+  const char*   value;
 
-  w[4]  = "struct/{ignored_variable:i/999}";
-  
-  words[1] = w[0].data();
-  words[2] = w[1].data();
-  words[3] = w[2].data();
-  words[4] = w[3].data();
-  words[5] = w[4].data();
-  
-  printf("tfm_frontend::%s 001: trying to STOP, nw = %i\n",__func__,nw);
-  for (int i=0; i<nw; i++) {
-    printf("tfm_frontend::%s 001: trying to STOP, words[%i] = %s\n",__func__,i,words[i]);
-  }
+  resultP = xmlrpc_client_call(&_env, 
+                               "http://localhost:18000/RPC2",
+                               "state_change",
+                               // "({s:i,s:i})",
+                               "(ss{s:i})", 
+                               "daqint",
+                               "stopping",
+                               "ignored_variable", 9999);
+  die_if_fault_occurred(&_env);
 
-  std::string res;
-  my_xmlrpc(nw, words, res);
+  xmlrpc_read_string_lp(&_env, resultP, &length, &value);
+  std::string result = value;
 
-  printf("tfm_frontend::%s 0011: after my_xmlrpc  command: result:%s\n",__func__,res.data());
+  xmlrpc_DECREF(resultP);
+  //  xmlrpc_env_clean(&_env);
+
+  printf("tfm_frontend::%s after my_xmlrpc command: run=%6i result:%s\n",__func__,RunNumber,result.data());
 //-----------------------------------------------------------------------------
 // now wait till completion
 //-----------------------------------------------------------------------------
-  w[1] = "get_state";
-  w[2] = "daqint";
-
-  words[1] = w[0].data();
-  words[2] = w[1].data();
-  words[3] = w[2].data();
-  nw       = 4;
-
   int rc(0);
+
+  printf("tfm_frontend::%s: wait for completion\n",__func__);
 
   rc = wait_for("stopped:100",100);
 
-  printf("tfm_frontend::%s 0011: DONE STOPPING, rc=%i\n",__func__,rc);
+  printf("tfm_frontend::%s : DONE STOPPING, rc=%i\n",__func__,rc);
 //-----------------------------------------------------------------------------
 // write end of transition into the DB
 //-----------------------------------------------------------------------------
-  _db->updateRunInfo(RunNumber,db_runinfo::STOP);
+  if (_useRunInfoDB) {
+    db_runinfo db("aaa");
+    rc = db.registerTransition(RunNumber,db_runinfo::STOP);
+    if (rc < 0) {
+      printf("tfm_frontend::%s ERROR: failed to regiser STOP transition rc=%i",__func__,rc);
+      sprintf(Error,"tfm_frontend::%s ERROR: line %i failed to regiser STOP transition",__func__,__LINE__);
+    }
+  }
 
   return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 INT pause_run(INT RunNumber, char *error) {
-   return SUCCESS;
+  return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 INT resume_run(INT RunNumber, char *error) {
-   return SUCCESS;
+  return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 INT frontend_loop() {
    /* if frontend_call_loop is true, this routine gets called when
       the frontend is idle or once between every event */
-   return SUCCESS;
+  return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
-   switch (cmd) {
-   case CMD_INTERRUPT_ENABLE  : break;
-   case CMD_INTERRUPT_DISABLE : break;
-   case CMD_INTERRUPT_ATTACH  : break;
-   case CMD_INTERRUPT_DETACH  : break;
-   }
-   return SUCCESS;
+  switch (cmd) {
+  case CMD_INTERRUPT_ENABLE  : break;
+  case CMD_INTERRUPT_DISABLE : break;
+  case CMD_INTERRUPT_ATTACH  : break;
+  case CMD_INTERRUPT_DETACH  : break;
+  }
+  return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------

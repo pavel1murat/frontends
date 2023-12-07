@@ -9,7 +9,7 @@
 #include <boost/algorithm/string.hpp>
 
 //==============================================================================
-db_runinfo::db_runinfo(const char* UID) {
+db_runinfo::db_runinfo(const char* UID, int DebugLevel) {
   _uid      = UID;
 
   dbname_   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE"       ) ? getenv("OTSDAQ_RUNINFO_DATABASE"       ) : "run_info");
@@ -17,9 +17,12 @@ db_runinfo::db_runinfo(const char* UID) {
   dbport_   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_PORT"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_PORT"  ) : "");
   dbuser_   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_USER"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_USER"  ) : "");
   dbpwd_    = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_PWD"   ) ? getenv("OTSDAQ_RUNINFO_DATABASE_PWD"   ) : "");
-	dbSchema_ = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_SCHEMA") ? getenv("OTSDAQ_RUNINFO_DATABASE_SCHEMA") : "test");
+  dbSchema_ = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_SCHEMA") ? getenv("OTSDAQ_RUNINFO_DATABASE_SCHEMA") : "test");
 
-  openConnection();
+  _debugLevel  = DebugLevel;
+
+  int rc = openConnection();
+  if (DebugLevel > 0) printf("db_runinfo::db_runinfo constructor: connection: %i\n",rc);
 }
 
 //==============================================================================
@@ -28,33 +31,35 @@ db_runinfo::~db_runinfo() {
 }
 
 //==============================================================================
-void db_runinfo::openConnection() {
-	//open db connection
-	char runInfoDbConnInfo [1024];
-	sprintf(runInfoDbConnInfo, "dbname=%s host=%s port=%s user=%s password=%s", 
+int db_runinfo::openConnection() {
+  char runInfoDbConnInfo [1024];
+
+  sprintf(runInfoDbConnInfo, "dbname=%s host=%s port=%s user=%s password=%s", 
           dbname_, dbhost_, dbport_, dbuser_, dbpwd_);
-	runInfoDbConn_ = PQconnectdb(runInfoDbConnInfo);
+
+  runInfoDbConn_ = PQconnectdb(runInfoDbConnInfo);
+
+  if (_debugLevel > 0) printf("db_runinfo::%s connecting...\n",__func__);
+
+  if (PQstatus(runInfoDbConn_) == CONNECTION_OK)            return 0;
+
+  printf("ERROR in db_runinfo::%s : Unable to connect to run_info database!\n",__func__);
+  PQfinish(runInfoDbConn_);
+  return -999;
 }
 
 //==============================================================================
 int db_runinfo::checkConnection() {
-  if (PQstatus(runInfoDbConn_) == CONNECTION_BAD) {
+  if (PQstatus(runInfoDbConn_) == CONNECTION_OK) return 0;
 //-----------------------------------------------------------------------------
 // if connection is bad, try one more time to re-open it
 //-----------------------------------------------------------------------------
-		PQfinish(runInfoDbConn_);
-		openConnection();
-		if (PQstatus(runInfoDbConn_) == CONNECTION_BAD) {
-      printf("ERROR in db_runinfo::%s : Unable to connect to run_info database!\n",__func__);
-			PQfinish(runInfoDbConn_);
-      return -999;
-		}
-  }
-  return 0;
+  // PQfinish(runInfoDbConn_);
+  return openConnection();
 }
 
 //==============================================================================
-int db_runinfo::registerTransition(int RunNumber, int TransitionType) {
+int db_runinfo::registerTransition(int RunNumber, uint TransitionType) {
 
   int       rc(0);
   PGresult* res;
@@ -67,15 +72,16 @@ int db_runinfo::registerTransition(int RunNumber, int TransitionType) {
 //-----------------------------------------------------------------------------
   snprintf(buffer,sizeof(buffer),
            "INSERT INTO %s.run_transition(run_number, \
-										                      transition_type, \
-											                    transition_time)    \
-											VALUES (%ld,'%d',CURRENT_TIMESTAMP);",
+                                          transition_type, \
+                                          transition_time)    \
+                      VALUES (%ld,'%d',CURRENT_TIMESTAMP);",
            dbSchema_, (long int) (RunNumber), TransitionType);
 
   res = PQexec(runInfoDbConn_,buffer);
 
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-    std::cout << "INSERT INTO 'run_transition' DATABASE TABLE FAILED!!! PQ ERROR: " << PQresultErrorMessage(res)
+    std::cout << "INSERT INTO 'run_transition' DATABASE TABLE FAILED!!! PQ ERROR: " 
+              << PQresultErrorMessage(res)
               << std::endl;
     rc = -1;
   }
@@ -89,24 +95,11 @@ int db_runinfo::registerTransition(int RunNumber, int TransitionType) {
 int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
   int runNumber = -1;
 
-	// const char* mu2eOwner       = getenv("MU2E_OWNER");
-	const char* hostName        = getenv("HOSTNAME");
-	const char* artadqPartition = getenv("ARTDAQ_PARTITION");
+  // const char* mu2eOwner       = getenv("MU2E_OWNER");
+  const char* hostName        = getenv("HOSTNAME");
+  const char* artadqPartition = getenv("ARTDAQ_PARTITION");
 
   int rc(0);
-
-//   if (PQstatus(runInfoDbConn_) == CONNECTION_BAD) {
-// //-----------------------------------------------------------------------------
-// // if connection is bad, try one more time to re-open it
-// //-----------------------------------------------------------------------------
-// 		PQfinish(runInfoDbConn_);
-// 		openConnection();
-// 		if (PQstatus(runInfoDbConn_) == CONNECTION_BAD) {
-//       printf("Unable to connect to prototype_run_info database for insert new run number and info!\n");
-// 			PQfinish(runInfoDbConn_);
-//       return -999;
-// 		}
-//   }
 
   rc = checkConnection();
   if (rc < 0) return rc;
@@ -125,13 +118,6 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
   std::string runContext = "no_context";
 
   std::string runContextVersion = "0";
-
-  // insert a new row in the run_configuration table
-  // std::cout << "Insert new run info in the run_configuration database table, run configuration is: "
-  //           << runConfiguration
-  //           << " , run context is: "
-  //           << runContext
-  //           << std::endl;
 //-----------------------------------------------------------------------------
 // P.M. one should not pass the runtype via environment, but... 
 //-----------------------------------------------------------------------------
@@ -140,25 +126,24 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
 //-----------------------------------------------------------------------------
 //  at this point run number in the DB gets incremented
 //-----------------------------------------------------------------------------
-  snprintf(buffer,
-           sizeof(buffer),
-           "INSERT INTO %s.run_configuration(					\
-											  run_type				\
-											, host_name				\
-											, artdaq_partition		\
-											, configuration_name	\
-											, configuration_version	\
+  snprintf(buffer,sizeof(buffer),
+           "INSERT INTO %s.run_configuration( \
+                        run_type \
+                      , host_name \
+                      , artdaq_partition \
+                      , configuration_name \
+                      , configuration_version \
                       , trigger_table_name \
                       , trigger_table_version \
-											, commit_time)			\
-											VALUES ('%s','%s','%d','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
+                      , commit_time) \
+                      VALUES ('%s','%s','%d','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
            dbSchema_,
            runType,
            hostName,
            std::stoi(artadqPartition),
            runConfiguration.c_str(),
            runConfigurationVersion.c_str(),
-           "tracker_vst_trigger","1");
+           "tracker_vst_trigger_table","1");
 
   res = PQexec(runInfoDbConn_, buffer);
 
@@ -188,25 +173,18 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
   }
   PQclear(res);
 //-----------------------------------------------------------------------------
-// write run start transition into run_transition table
-//-----------------------------------------------------------------------------
-  // std::cout << "Insert new start run transition in the run_transition database table" << std::endl;
-
-  // int rc = registerTransition(runNumber,TransitionType::START);
-  // if (rc < 0) return -4;
-//-----------------------------------------------------------------------------
-// P.M. hopefully, this part will not be needed
+// P.M. hopefully, the next part will not be needed
 // insert a new row in the run_condition table if 
 // it pk(runConfiguration,runConfigurationVersion, runContext,runContextVersion) doesn't exist yet
 //-----------------------------------------------------------------------------
   snprintf(buffer,
            sizeof(buffer),
            "SELECT configuration_name, configuration_version, context_name, context_version \
-				 FROM %s.run_condition WHERE                                    \
-				 configuration_name 	= '%s' 	AND                               \
-				 configuration_version	= '%s'	AND                             \
-				 context_name			= '%s'	AND                                   \
-				 context_version		= '%s';",
+            FROM   %s.run_condition WHERE \
+            configuration_name  = '%s'  AND \
+            configuration_version = '%s'  AND \
+            context_name      = '%s'  AND \
+            context_version   = '%s';",
            dbSchema_,
            runConfiguration.c_str(),
            runConfigurationVersion.c_str(),
@@ -223,71 +201,49 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
 //-----------------------------------------------------------------------------
 // get primary key in the run_condition table
 //-----------------------------------------------------------------------------
-		if (PQntuples(res) != 1) {
-			std::string pk;
-      int nFields = PQnfields(res);
-			for (int i = 0; i < PQntuples(res); i++) {
-        for (int j = 0; j < nFields; j++) {
-					pk += PQgetvalue(res, i, j);
-        }
+  if (PQntuples(res) != 1) {
+    std::string pk;
+    int nFields = PQnfields(res);
+    for (int i = 0; i < PQntuples(res); i++) {
+      for (int j = 0; j < nFields; j++) {
+        pk += PQgetvalue(res, i, j);
       }
+    }
 
-      std::cout << pk << std::endl;
+    std::cout << pk << std::endl;
 
-			std::string pkRun = runConfiguration + runConfigurationVersion + runContext + runContextVersion;
-			if (strcmp(pk.c_str(), pkRun.c_str())) {
-				PQclear(res);
-				char buffer2[4194304];
-
-				snprintf(buffer2,
-                 sizeof(buffer2),
-                 "INSERT INTO %s.run_condition(						\
-											  configuration_name                \
-											, configuration_version             \
-											, context_name                      \
-											, context_version                   \
-											, condition                         \
-											, commit_time)                                    \
-											VALUES ('%s','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
-                 dbSchema_,
-                 runConfiguration.c_str(),
-                 runConfigurationVersion.c_str(),
-                 runContext.c_str(),
-                 runContextVersion.c_str(),
-                 RunInfoConditions.c_str());
+    std::string pkRun = runConfiguration + runConfigurationVersion + runContext + runContextVersion;
+    if (strcmp(pk.c_str(), pkRun.c_str())) {
+      PQclear(res);
+      char buffer2[4192];
+      snprintf(buffer2,sizeof(buffer2),
+               "INSERT INTO %s.run_condition(configuration_name, configuration_version, context_name, \
+                context_version, condition, commit_time)  VALUES ('%s','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
+               dbSchema_,
+               runConfiguration.c_str(),
+               runConfigurationVersion.c_str(),
+               runContext.c_str(),
+               runContextVersion.c_str(),
+               RunInfoConditions.c_str());
         
-				res = PQexec(runInfoDbConn_, buffer2);
+      res = PQexec(runInfoDbConn_, buffer2);
         
-				if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-					std::cout << "INSERT INTO 'run_condition' DATABASE TABLE FAILED!!! PQ ERROR: " << PQresultErrorMessage(res)
-                 << std::endl;
-					PQclear(res);
-					return -6;;
-				}
-			}
-		}
-		else {
-      //	std::cout << "PRIMARY KEY FROM 'run_condition' DATABASE TABLE EXIST. NOTHING TO DO. NEW CONFIGURATION KEY HAS NOT BEEN REGISTERD" << std::endl;
-		}
+      if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        std::cout << "INSERT INTO 'run_condition' DATABASE TABLE FAILED!!! PQ ERROR: " << PQresultErrorMessage(res)
+                  << std::endl;
+        PQclear(res);
+        return -6;;
+      }
+    }
+  }
     
-		PQclear(res);
+  PQclear(res);
 
-	if (runNumber == -1) {
-		std::cout << "Impossible run number not defined by run info plugin!" << std::endl;
-		return -7;
-	}
+  if (runNumber == -1) {
+    std::cout << "Impossible run number not defined by run info plugin!" << std::endl;
+    return -7;
+  }
 
-	return runNumber;
+  return runNumber;
 }
-
-//-----------------------------------------------------------------------------
-// the name is wrong, need to define the stop type by RunStopType enum
-//-----------------------------------------------------------------------------
-int db_runinfo::updateRunInfo(int RunNumber, int StopType) {
-  
-	if (RunNumber < 0) return -3;
-
-  int rc = registerTransition(StopType,RunNumber);
-
-  return rc;
-}
+ 

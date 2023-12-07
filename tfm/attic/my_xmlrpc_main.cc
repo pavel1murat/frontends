@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
     w[1] = "state_change";
     w[2] = "daqint"; 
     w[3] = "configuring"; 
-    w[4] = "\'struct{run_number:i/"+run_number+"}\'";
+    w[4] = "struct/{run_number:i/"+run_number+"}";
 
     words[1] = w[0].data();
     words[2] = w[1].data();
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     w[1] = "state_change";
     w[2] = "daqint"; 
     w[3] = "starting"; 
-    w[4] = "\'struct{ignored_variable:i/999}\'";
+    w[4] = "struct/{ignored_variable:i/999}";
 
     words[1] = w[0].data();
     words[2] = w[1].data();
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
     w[1] = "state_change";
     w[2] = "daqint"; 
     w[3] = "starting"; 
-    w[4] = "\'struct{ignored_variable:i/999}\'";
+    w[4] = "struct/{ignored_variable:i/999}";
 
     words[1] = w[0].data();
     words[2] = w[1].data();

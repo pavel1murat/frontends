@@ -16,26 +16,25 @@ public:
   };
 
   std::string  _uid;
+  int          _debugLevel;
 
-  const char* dbname_;
-  const char* dbhost_;
-  const char* dbport_;
-  const char* dbuser_;
-  const char* dbpwd_ ;
+  const char*  dbname_;
+  const char*  dbhost_;
+  const char*  dbport_;
+  const char*  dbuser_;
+  const char*  dbpwd_ ;
 
-	const char* dbSchema_;
+	const char*  dbSchema_;
 
-	PGconn*     runInfoDbConn_;
+	PGconn*      runInfoDbConn_;
 
-  db_runinfo (const char* UID);
+  db_runinfo (const char* UID, int DebugLevel = 0);
   ~db_runinfo();
 
-  int nextRunNumber(const std::string& RunInfoConditions = "");
+  int nextRunNumber     (const std::string& RunInfoConditions = "");
+  int registerTransition(int RunNumber, uint TransitionType);
 
-  int registerTransition(int RunNumber, int TransitionType);
-  int updateRunInfo     (int RunNumber, int TransitionType);
-
-	void openConnection ();
+	int  openConnection ();
 	int  checkConnection();
 };
 
