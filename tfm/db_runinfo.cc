@@ -12,14 +12,19 @@
 db_runinfo::db_runinfo(const char* UID, int DebugLevel) {
   _uid      = UID;
 
-  dbname_   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE"       ) ? getenv("OTSDAQ_RUNINFO_DATABASE"       ) : "run_info");
-  dbhost_   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_HOST"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_HOST"  ) : "");
-  dbport_   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_PORT"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_PORT"  ) : "");
-  dbuser_   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_USER"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_USER"  ) : "");
-  dbpwd_    = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_PWD"   ) ? getenv("OTSDAQ_RUNINFO_DATABASE_PWD"   ) : "");
-  dbSchema_ = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_SCHEMA") ? getenv("OTSDAQ_RUNINFO_DATABASE_SCHEMA") : "test");
+  _dbname   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE"       ) ? getenv("OTSDAQ_RUNINFO_DATABASE"       ) : "run_info");
+  _dbhost   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_HOST"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_HOST"  ) : "");
+  _dbport   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_PORT"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_PORT"  ) : "");
+  _dbuser   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_USER"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_USER"  ) : "");
+  _dbpwd    = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_PWD"   ) ? getenv("OTSDAQ_RUNINFO_DATABASE_PWD"   ) : "");
+  _dbSchema = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_SCHEMA") ? getenv("OTSDAQ_RUNINFO_DATABASE_SCHEMA") : "test");
 
   _debugLevel  = DebugLevel;
+
+  if (_dbuser[0] == 0) {
+    printf("ERROR in db_runinfo::db_runinfo : _dbuser is not defined\n");
+    throw("db_runinfo::db_runinfo: Postgres DB user is not defined"); 
+  }
 
   int rc = openConnection();
   if (DebugLevel > 0) printf("db_runinfo::db_runinfo constructor: connection: %i\n",rc);
@@ -27,7 +32,7 @@ db_runinfo::db_runinfo(const char* UID, int DebugLevel) {
 
 //==============================================================================
 db_runinfo::~db_runinfo() {
-  PQfinish(runInfoDbConn_);
+  PQfinish(_runInfoDbConn);
 }
 
 //==============================================================================
@@ -35,26 +40,26 @@ int db_runinfo::openConnection() {
   char runInfoDbConnInfo [1024];
 
   sprintf(runInfoDbConnInfo, "dbname=%s host=%s port=%s user=%s password=%s", 
-          dbname_, dbhost_, dbport_, dbuser_, dbpwd_);
+          _dbname, _dbhost, _dbport, _dbuser, _dbpwd);
 
-  runInfoDbConn_ = PQconnectdb(runInfoDbConnInfo);
+  _runInfoDbConn = PQconnectdb(runInfoDbConnInfo);
 
   if (_debugLevel > 0) printf("db_runinfo::%s connecting...\n",__func__);
 
-  if (PQstatus(runInfoDbConn_) == CONNECTION_OK)            return 0;
+  if (PQstatus(_runInfoDbConn) == CONNECTION_OK)            return 0;
 
   printf("ERROR in db_runinfo::%s : Unable to connect to run_info database!\n",__func__);
-  PQfinish(runInfoDbConn_);
+  PQfinish(_runInfoDbConn);
   return -999;
 }
 
 //==============================================================================
 int db_runinfo::checkConnection() {
-  if (PQstatus(runInfoDbConn_) == CONNECTION_OK) return 0;
+  if (PQstatus(_runInfoDbConn) == CONNECTION_OK) return 0;
 //-----------------------------------------------------------------------------
 // if connection is bad, try one more time to re-open it
 //-----------------------------------------------------------------------------
-  // PQfinish(runInfoDbConn_);
+  PQfinish(_runInfoDbConn);
   return openConnection();
 }
 
@@ -75,9 +80,9 @@ int db_runinfo::registerTransition(int RunNumber, uint TransitionType) {
                                           transition_type, \
                                           transition_time)    \
                       VALUES (%ld,'%d',CURRENT_TIMESTAMP);",
-           dbSchema_, (long int) (RunNumber), TransitionType);
+           _dbSchema, (long int) (RunNumber), TransitionType);
 
-  res = PQexec(runInfoDbConn_,buffer);
+  res = PQexec(_runInfoDbConn,buffer);
 
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     std::cout << "INSERT INTO 'run_transition' DATABASE TABLE FAILED!!! PQ ERROR: " 
@@ -137,7 +142,7 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
                       , trigger_table_version \
                       , commit_time) \
                       VALUES ('%s','%s','%d','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
-           dbSchema_,
+           _dbSchema,
            runType,
            hostName,
            std::stoi(artadqPartition),
@@ -145,7 +150,7 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
            runConfigurationVersion.c_str(),
            "tracker_vst_trigger_table","1");
 
-  res = PQexec(runInfoDbConn_, buffer);
+  res = PQexec(_runInfoDbConn, buffer);
 
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     PQclear(res);
@@ -153,9 +158,9 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
   }
   PQclear(res);
 
-  snprintf(buffer,sizeof(buffer),"select max(run_number) from %s.run_configuration;",dbSchema_);
+  snprintf(buffer,sizeof(buffer),"select max(run_number) from %s.run_configuration;",_dbSchema);
 
-  res = PQexec(runInfoDbConn_, buffer);
+  res = PQexec(_runInfoDbConn, buffer);
 
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {
     printf("RUN INFO SELECT FROM DATABASE TABLE FAILED!!! PQ ERROR: %s",PQresultErrorMessage(res));
@@ -185,13 +190,13 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
             configuration_version = '%s'  AND \
             context_name      = '%s'  AND \
             context_version   = '%s';",
-           dbSchema_,
+           _dbSchema,
            runConfiguration.c_str(),
            runConfigurationVersion.c_str(),
            runContext.c_str(),
            runContextVersion.c_str());
   
-  res = PQexec(runInfoDbConn_, buffer);
+  res = PQexec(_runInfoDbConn, buffer);
 
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {
     std::cout << "SELECT FROM 'run_condition' DATABASE TABLE FAILED!!! PQ ERROR: " << PQresultErrorMessage(res) << std::endl;
@@ -219,14 +224,14 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
       snprintf(buffer2,sizeof(buffer2),
                "INSERT INTO %s.run_condition(configuration_name, configuration_version, context_name, \
                 context_version, condition, commit_time)  VALUES ('%s','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
-               dbSchema_,
+               _dbSchema,
                runConfiguration.c_str(),
                runConfigurationVersion.c_str(),
                runContext.c_str(),
                runContextVersion.c_str(),
                RunInfoConditions.c_str());
         
-      res = PQexec(runInfoDbConn_, buffer2);
+      res = PQexec(_runInfoDbConn, buffer2);
         
       if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         std::cout << "INSERT INTO 'run_condition' DATABASE TABLE FAILED!!! PQ ERROR: " << PQresultErrorMessage(res)

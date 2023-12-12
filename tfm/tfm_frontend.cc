@@ -27,7 +27,7 @@
 #include <assert.h> // assert()
 
 #include "midas.h"
-#include "experim.h"
+// #include "experim.h"
 
 #include "mfe.h"
 #include "artdaq/ExternalComms/MakeCommanderPlugin.hh"
@@ -38,7 +38,6 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
-// #include "tfm/my_xmlrpc.hh"
 #include "tfm/db_runinfo.hh"
 
 /*-- Globals -------------------------------------------------------*/
@@ -228,16 +227,25 @@ static void die_if_fault_occurred(xmlrpc_env * const envP) {
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the frontend (or not ?)
 // print message and return FE_ERR_HW if frontend should not be started 
+// P.M. use _argc and _argv provided by Stefan
 //-----------------------------------------------------------------------------
 INT frontend_init() {
+  int    argc;
+  char** argv;
 
-  std::string dir = getenv("PWD");
-  std::string fcl_fn = dir+"/tfm_frontend.fcl";
+  mfe_get_args(&argc,&argv);
+  
+  if ((argc == 3) and (strcmp(argv[1],"-c") == 0)) {
+//-----------------------------------------------------------------------------
+// assume FCL file : 'tfm_frontend -c xxx.fcl'
+//-----------------------------------------------------------------------------
+    std::string fcl_fn = argv[2];
 
-	fhicl::ParameterSet top_ps = LoadParameterSet(fcl_fn);
-  fhicl::ParameterSet tfm_ps = top_ps.get<fhicl::ParameterSet>("tfm_frontend",fhicl::ParameterSet());
+    fhicl::ParameterSet top_ps = LoadParameterSet(fcl_fn);
+    fhicl::ParameterSet tfm_ps = top_ps.get<fhicl::ParameterSet>("tfm_frontend",fhicl::ParameterSet());
 
-  _useRunInfoDB = tfm_ps.get<bool>("useRunInfoDB",false);
+    _useRunInfoDB = tfm_ps.get<bool>("useRunInfoDB",false);
+  }
 //-----------------------------------------------------------------------------
 // this is for later - when we learn how to communicate with the TF manager
 // properly
@@ -368,11 +376,12 @@ INT begin_of_run(INT RunNumber, char *error) {
   printf("tfm_frontend::%s ERROR: wait for running run=%6i rc=%i\n",__func__,RunNumber,rc);
 
   if (_useRunInfoDB) {
-    db_runinfo db("aaa");
-
-    rc = db.registerTransition(RunNumber,db_runinfo::START);
-    if (rc < 0) {
-      printf("tfm_frontend::%s ERROR: DB access rc=%i\n",__func__,rc);
+    try { 
+      db_runinfo db("aaa");
+      rc = db.registerTransition(RunNumber,db_runinfo::START);
+    }
+    catch(char* err) {
+      printf("tfm_frontend::%s : %s\n",__func__,err);
     }
   }
   printf("tfm_frontend::%s 003: done starting, run=%6i rc=%i\n",__func__,RunNumber,rc);

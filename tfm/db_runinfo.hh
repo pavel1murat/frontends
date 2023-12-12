@@ -18,15 +18,15 @@ public:
   std::string  _uid;
   int          _debugLevel;
 
-  const char*  dbname_;
-  const char*  dbhost_;
-  const char*  dbport_;
-  const char*  dbuser_;
-  const char*  dbpwd_ ;
+  const char*  _dbname;
+  const char*  _dbhost;
+  const char*  _dbport;
+  const char*  _dbuser;
+  const char*  _dbpwd ;
 
-	const char*  dbSchema_;
+	const char*  _dbSchema;
 
-	PGconn*      runInfoDbConn_;
+	PGconn*      _runInfoDbConn;
 
   db_runinfo (const char* UID, int DebugLevel = 0);
   ~db_runinfo();
