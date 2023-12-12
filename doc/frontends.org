@@ -1,0 +1,9 @@
+#+startup:fold
+* ------------------------------------------------------------------------------
+* trigger farm (TFM) frontend : tfm_frontend                                 
+
+- can take input from FCL, if no FCL on the command line, doesn't use it
+#+begin_src
+tfm_frontend -c xxx.fcl 
+#+end_src
+* ------------------------------------------------------------------------------
