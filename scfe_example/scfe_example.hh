@@ -4,6 +4,9 @@
 #ifndef __scfe_example_equipment_hh__
 #define __scfe_example_equipment_hh__
 
+#include "bus/null.h"
+#include "class/hv.h"
+#include "class/multi.h"
 #include "scfe_example/drv_example.hh"
 
 /*-- Equipment list ------------------------------------------------*/
