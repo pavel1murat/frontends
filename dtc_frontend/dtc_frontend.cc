@@ -26,7 +26,7 @@
 // #include "class/hv.h"
 // #include "class/multi.h"
 // #include "bus/null.h"
-#include "sc_frontend_dtc/sc_frontend_dtc.hh"
+#include "dtc_frontend/dtc_frontend.hh"
 //-----------------------------------------------------------------------------
 // Globals
 // The frontend name (client name) as seen by other MIDAS clients

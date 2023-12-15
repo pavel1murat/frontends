@@ -215,15 +215,18 @@ void monica_var_link_config(DTCLib::DTC* Dtc, int Link) {
 
 //-----------------------------------------------------------------------------
 void parse_spi_data(uint16_t* dat, int nw, float* val) {
-  const char* keys[] = {
-    "I3.3","I2.5","I1.8HV","IHV5.0","VDMBHV5.0","V1.8HV","V3.3HV" ,"V2.5"    , 
-    "A0"  ,"A1"  ,"A2"    ,"A3"    ,"I1.8CAL"  ,"I1.2"  ,"ICAL5.0","ADCSPARE",
-    "V3.3","VCAL5.0","V1.8CAL","V1.0","ROCPCBTEMP","HVPCBTEMP","CALPCBTEMP","RTD",
-    "ROC_RAIL_1V(mV)","ROC_RAIL_1.8V(mV)","ROC_RAIL_2.5V(mV)","ROC_TEMP(CELSIUS)",
-    "CAL_RAIL_1V(mV)","CAL_RAIL_1.8V(mV)","CAL_RAIL_2.5V(mV)","CAL_TEMP(CELSIUS)",
-    "HV_RAIL_1V(mV)","HV_RAIL_1.8V(mV)","HV_RAIL_2.5V(mV)","HV_TEMP(CELSIUS)"
-  };
-//-----------------------------------------------------------------------------
+  // const char* keys[] = {
+  //   "I3.3"           ,"I2.5"             ,"I1.8HV"           ,"IHV5.0"           , //  0:ROC_000
+  //   "VDMBHV5.0"      ,"V1.8HV"           ,"V3.3HV"           ,"V2.5"             , //  4:ROC_001
+  //   "A0"             ,"A1"               ,"A2"               ,"A3"               , //  8:
+  //   "I1.8CAL"        ,"I1.2"             ,"ICAL5.0"          ,"ADCSPARE"         , // 12:ROC_003
+  //   "V3.3"           ,"VCAL5.0"          ,"V1.8CAL"          ,"V1.0"             , // 16:ROC_004
+  //   "ROCPCBTEMP"     ,"HVPCBTEMP"        ,"CALPCBTEMP"       ,"RTD"              , // 20:ROC_005
+  //   "ROC_RAIL_1V(mV)","ROC_RAIL_1.8V(mV)","ROC_RAIL_2.5V(mV)","ROC_TEMP(CELSIUS)", // 24:ROC_006
+  //   "CAL_RAIL_1V(mV)","CAL_RAIL_1.8V(mV)","CAL_RAIL_2.5V(mV)","CAL_TEMP(CELSIUS)", // 28:ROC_007
+  //   "HV_RAIL_1V(mV)" ,"HV_RAIL_1.8V(mV)" ,"HV_RAIL_2.5V(mV)" ,"HV_TEMP(CELSIUS)"   // 32:ROC_008
+  // };
+OC1_//-----------------------------------------------------------------------------
 // primary source : https://github.com/bonventre/trackerScripts/blob/master/constants.py#L99
 //-----------------------------------------------------------------------------
   struct constants_t {
@@ -263,7 +266,7 @@ void parse_spi_data(uint16_t* dat, int nw, float* val) {
       else             val[i] = dat[i]/16.-273.15;
     }
 
-    printf("%-20s : %10.3f\n",keys[i],val[i]);
+    // printf("%-20s : %10.3f\n",keys[i],val[i]);
   }
 }
 
