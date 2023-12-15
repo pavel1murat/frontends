@@ -30,10 +30,3 @@ cet_make_exec(NAME      scfe_example
 # install_fhicl(SUBDIRS fcl)
 # install_headers()
 # install_source()
-
-set(BUILD_ROOT_INTERFACE   $ENV{BUILD_ROOT_INTERFACE}  )
-
-if(${BUILD_ROOT_INTERFACE})
-  message(-- frontends/tfm: BUILD_ROOT_INTERFACE=${BUILD_ROOT_INTERFACE})
-  add_subdirectory(root)
-endif()
