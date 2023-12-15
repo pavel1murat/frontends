@@ -7,12 +7,12 @@
 #include "drivers/class/hv.h"
 #include "drivers/class/multi.h"
 #include "drivers/bus/null.h"
-#include "dtc_frontend/nulldev.h"
+#include "dtc_frontend/dtc_driver.hh"
 /*-- Equipment list ------------------------------------------------*/
 
 /* device driver list */
 DEVICE_DRIVER driver_list[] = {
-  {"sc_dtc_driver", nulldev ,  4, null, DF_INPUT},
+  {"dtc_driver", dtc_driver,  4, null, DF_INPUT},
   {""}
 };
 
@@ -20,7 +20,7 @@ BOOL equipment_common_overwrite = TRUE;
 
 EQUIPMENT equipment[] = {
 
-  {"DTC",                      /* equipment name */
+  {"DTC%02i",                  /* equipment name */
    {3, 0,                      /* event ID, trigger mask */
     "SYSTEM",                  /* event buffer */
     EQ_SLOW,                   /* equipment type */
@@ -31,7 +31,7 @@ EQUIPMENT equipment[] = {
     10000,                     /* read every 10 sec */
     0,                         /* stop run after this event limit */
     0,                         /* number of sub events */
-    1,                         /* log history at most every two seconds */
+    60,                        /* log history at most every 60 seconds */
     "", "", ""} ,
    cd_multi_read,              /* readout routine */
    cd_multi,                   /* class driver main routine */

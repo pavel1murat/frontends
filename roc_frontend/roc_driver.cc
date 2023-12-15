@@ -226,7 +226,7 @@ void parse_spi_data(uint16_t* dat, int nw, float* val) {
   //   "CAL_RAIL_1V(mV)","CAL_RAIL_1.8V(mV)","CAL_RAIL_2.5V(mV)","CAL_TEMP(CELSIUS)", // 28:ROC_007
   //   "HV_RAIL_1V(mV)" ,"HV_RAIL_1.8V(mV)" ,"HV_RAIL_2.5V(mV)" ,"HV_TEMP(CELSIUS)"   // 32:ROC_008
   // };
-OC1_//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // primary source : https://github.com/bonventre/trackerScripts/blob/master/constants.py#L99
 //-----------------------------------------------------------------------------
   struct constants_t {

@@ -31,7 +31,7 @@
 // Globals
 // The frontend name (client name) as seen by other MIDAS clients
 //-----------------------------------------------------------------------------
-const char* frontend_name;  // = "SC_FE_DTC";
+const char* frontend_name;
 
 namespace {
   class FeName {
@@ -43,7 +43,7 @@ namespace {
     }
   }; 
 
-  FeName xx("FC_FE_DTC");
+  FeName xx("mu2edaq09_dtc");
 }
 
 /* The frontend file name, don't change it */
@@ -74,8 +74,12 @@ INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
   return 1;
 };
 
-/*-- Frontend Init -------------------------------------------------*/
+//-----------------------------------------------------------------------------
+// Frontend Init
+// use 'channel' as the DTC ID
+//----------------------------------------------------------------------------- 
 INT frontend_init() {
+  // dtc_driver_init(CMD_INIT,dtc_driver_info,channel,bus_driver);
   return CM_SUCCESS;
 }
 
