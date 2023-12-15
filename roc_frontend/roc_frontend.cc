@@ -31,7 +31,7 @@
 // Globals
 // The frontend name (client name) as seen by other MIDAS clients
 //-----------------------------------------------------------------------------
-const char* frontend_name;  // = "SC_FE_DTC";
+const char* frontend_name;
 
 namespace {
   class FeName {
@@ -45,7 +45,7 @@ namespace {
 //-----------------------------------------------------------------------------
 // need to figure how to get name, but that doesn't seem overwhelmingly difficult
 //-----------------------------------------------------------------------------
-  FeName xx("ROC_1");
+  FeName xx("mu2edaq09_dtc1_roc1");
 }
 
 /* The frontend file name, don't change it */

@@ -21,7 +21,7 @@ cet_set_compiler_flags(
         -pthread 
 )
 cet_make_exec(NAME      dtc_frontend
-              SOURCE    dtc_frontend.cc nulldev.cc 
+              SOURCE    dtc_frontend.cc dtc_driver.cc 
 #                       $ENV{MIDASSYS}/drivers/class/hv.cxx
                         $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx

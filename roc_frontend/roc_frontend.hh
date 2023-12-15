@@ -14,7 +14,7 @@
 
 /* device driver list */
 DEVICE_DRIVER driver_list[] = {
-  {"roc_sc_driver", driver ,  36, null, DF_INPUT},
+  {"roc_driver", driver ,  36, null, DF_INPUT},
   {""}
 };
 
@@ -22,7 +22,7 @@ BOOL equipment_common_overwrite = TRUE;
 
 EQUIPMENT equipment[] = {
 
-  {"ROC_1",                    /* equipment name */
+  {"DTC1_ROC1",                /* equipment name */
    {4,                         // event ID
     0,                         // trigger mask
     "SYSTEM",                  /* event buffer */
@@ -34,7 +34,7 @@ EQUIPMENT equipment[] = {
     10000,                     /* read every 10 sec */
     0,                         /* stop run after this event limit */
     0,                         /* number of sub events */
-    2,                         /* log history at most every two seconds */
+    60,                        /* log history at most every 60 seconds */
     "", "", ""} ,
    cd_multi_read,              /* readout routine */
    cd_multi,                   /* class driver main routine */
