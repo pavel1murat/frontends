@@ -21,8 +21,7 @@ cet_set_compiler_flags(
         -pthread 
 )
 cet_make_exec(NAME      sc_frontend_dtc
-              SOURCE    sc_frontend_dtc.cc driver.cc 
-                        $ENV{MIDASSYS}/drivers/class/multi.cxx
+              SOURCE    sc_frontend_dtc.cc nulldev.cc 
                         $ENV{MIDASSYS}/drivers/class/hv.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
               LIBRARIES mu2e_pcie_utils::DTCInterface
@@ -33,10 +32,3 @@ cet_make_exec(NAME      sc_frontend_dtc
 # install_fhicl(SUBDIRS fcl)
 # install_headers()
 # install_source()
-
-set(BUILD_ROOT_INTERFACE   $ENV{BUILD_ROOT_INTERFACE}  )
-
-if(${BUILD_ROOT_INTERFACE})
-  message(-- frontends/tfm: BUILD_ROOT_INTERFACE=${BUILD_ROOT_INTERFACE})
-  add_subdirectory(root)
-endif()
