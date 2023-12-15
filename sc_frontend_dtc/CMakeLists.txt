@@ -22,7 +22,8 @@ cet_set_compiler_flags(
 )
 cet_make_exec(NAME      sc_frontend_dtc
               SOURCE    sc_frontend_dtc.cc nulldev.cc 
-                        $ENV{MIDASSYS}/drivers/class/hv.cxx
+#                        $ENV{MIDASSYS}/drivers/class/hv.cxx
+                        $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
               LIBRARIES mu2e_pcie_utils::DTCInterface
                         mfe midas 

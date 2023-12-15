@@ -71,9 +71,10 @@ include(BuildPlugins)
 # Code
 #------------------------------------------------------------------------------
 add_subdirectory(tfm)
-add_subdirectory(history1)
-add_subdirectory(scfe_example)
+# add_subdirectory(history1)
+# add_subdirectory(scfe_example)
 add_subdirectory(sc_frontend_dtc)
+add_subdirectory(roc_frontend)
 
 # Useful scripts
 #add_subdirectory(tools)
