@@ -1,13 +1,13 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 //////////////////////////////////////////////////////////////////////////////
-#ifndef __sc_frontend_dtc_equipment_hh__
-#define __sc_frontend_dtc_equipment_hh__
+#ifndef __dtc_frontend_hh__
+#define __dtc_frontend_hh__
 
 #include "drivers/class/hv.h"
 #include "drivers/class/multi.h"
 #include "drivers/bus/null.h"
-#include "sc_frontend_dtc/nulldev.h"
+#include "dtc_frontend/nulldev.h"
 /*-- Equipment list ------------------------------------------------*/
 
 /* device driver list */
