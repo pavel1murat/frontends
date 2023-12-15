@@ -1,6 +1,6 @@
-# ----------------------------------------------------------------------
-# Build this project's executables:
-
+#------------------------------------------------------------------------------
+# Build this project's executables
+#------------------------------------------------------------------------------
 find_package(messagefacility REQUIRED)
 
 include_directories($ENV{TRACE_INC})
@@ -20,9 +20,9 @@ cet_set_compiler_flags(
         # -g -O0 # Equivalent to debug qualifier, for testing
         -pthread 
 )
-cet_make_exec(NAME      sc_frontend_dtc
-              SOURCE    sc_frontend_dtc.cc nulldev.cc 
-#                        $ENV{MIDASSYS}/drivers/class/hv.cxx
+
+cet_make_exec(NAME      roc_frontend
+              SOURCE    roc_frontend.cc roc_driver.cc 
                         $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
               LIBRARIES mu2e_pcie_utils::DTCInterface
