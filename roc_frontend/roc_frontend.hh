@@ -14,7 +14,7 @@
 
 /* device driver list */
 DEVICE_DRIVER driver_list[] = {
-  {"roc_driver", driver ,  36, null, DF_INPUT},
+  {"roc", driver ,  36, null, DF_INPUT},
   {""}
 };
 
@@ -22,8 +22,8 @@ BOOL equipment_common_overwrite = TRUE;
 
 EQUIPMENT equipment[] = {
 
-  {"DTC1_ROC1",                /* equipment name */
-   {4,                         // event ID
+  {"DTC01_ROC1",               /* equipment name */
+   {11,                         // event ID
     0,                         // trigger mask
     "SYSTEM",                  /* event buffer */
     EQ_SLOW,                   // equipment type

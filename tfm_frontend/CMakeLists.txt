@@ -1,15 +1,24 @@
 # ----------------------------------------------------------------------
 # Build this project's executables:
 
-include_directories($ENV{MIDASSYS}/include)
-include_directories($ENV{MRB_BUILDDIR}/xmlrpc-c/include/xmlrpc-c)
+include_directories($ENV{MIDASSYS} $ENV{MIDASSYS}/include)
+# include_directories($ENV{MRB_BUILDDIR}/xmlrpc-c/include/xmlrpc-c)
 include_directories($ENV{XMLRPC_C_INCLUDE_DIR})
 include_directories(${PostgreSQL_INCLUDE_DIRS})
 
-# include_directories($ENV{MRB_TOP}/xmlrpc-c/lib/util/include)
-
 link_directories($ENV{MIDASSYS}/lib)
 link_directories($ENV{XMLRPC_C_FQ_DIR}/lib)
+
+cet_set_compiler_flags(
+        DIAGS VIGILANT
+        # WERROR          
+        NO_UNDEFINED
+        EXTRA_FLAGS -pedantic -Wno-unused-parameter -Wdeprecated-declarations 
+        -Wmissing-field-initializers
+        # -v
+        -g -O0 # Equivalent to debug qualifier, for testing
+        -pthread 
+)
 
 cet_make_library(LIBRARY_NAME frontends_tfm 
                  SOURCE       db_runinfo.cc 
@@ -33,15 +42,17 @@ cet_make_exec(NAME      client
 
 cet_make_exec(NAME      tfm_frontend 
               SOURCE    tfm_frontend.cc 
+                        tfm_driver.cc
+                        $ENV{MIDASSYS}/drivers/class/multi.cxx
+                        $ENV{MIDASSYS}/drivers/bus/null.cxx
               LIBRARIES frontends_tfm midas mfe 
-
-              artdaq_plugin_support::commanderMaker
-              artdaq::Application                       # needed for messagefacility
-              artdaq::DAQrate
-              artdaq::DAQdata
-              artdaq::BuildInfo
-              artdaq_core::artdaq-core_Utilities
-              artdaq_core::artdaq-core_Plugins
+                        artdaq_plugin_support::commanderMaker
+                        artdaq::Application                       # needed for messagefacility
+                        artdaq::DAQrate
+                        artdaq::DAQdata
+                        artdaq::BuildInfo
+                        artdaq_core::artdaq-core_Utilities
+                        artdaq_core::artdaq-core_Plugins
 )                  
 
 cet_make_exec(NAME        db_runinfo_main

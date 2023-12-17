@@ -17,7 +17,7 @@
 using namespace DTCLib; 
 
 int         _link(1);
-DTC_Link_ID _roc                  = DTC_Link_ID(_link);  // ROC =1
+DTC_Link_ID _roc          = DTC_Link_ID(_link);  // ROC =1
 int         _dtcID(1);  
 
 int const   _sleepTimeDTC     ( 200);
@@ -36,11 +36,13 @@ DTC*        _dtc(nullptr);
    this could be crate and station for example. */
 
 typedef struct {
-   int address;
+  int link;
+  int active;
 } DRIVER_SETTINGS;
 
 #define DRIVER_SETTINGS_STR "\
-Address = INT : 1\n\
+link   = INT : 0\n\
+active = INT : 0\n\
 "
 
 /* following structure contains private variables to the device
