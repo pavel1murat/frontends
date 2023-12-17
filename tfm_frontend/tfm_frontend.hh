@@ -10,7 +10,7 @@
 //-----------------------------------------------------------------------------
 /* device driver list */
 DEVICE_DRIVER driver_list[] = {
-  {"farm_driver", driver ,  2 , null, DF_INPUT},
+  {"tfm_driver", tfm_driver ,  2 , null, DF_INPUT},
   {""}
 };
 
@@ -22,17 +22,18 @@ EQUIPMENT equipment[] = {
     EQUIPMENT_INFO {
       2, 0,                               // event ID, trigger mask
       "SYSTEM",                           // event buffer name
-      EQ_PERIODIC,                        // one of EQ_xx (equipment type)
+      //      EQ_PERIODIC,                        // one of EQ_xx (equipment type)
+      EQ_SLOW,                            // one of EQ_xx (equipment type)
       0,                                  // event source (LAM/IRQ)
-      "MIDAS",                            // data format to produce
+      "FIXED",                            // data format to produce
       TRUE,                               // enable flag value
                                           // combination of Read-On flags R)_xxx - read when running and on transitions 
                                           // and on ODB updates
-      RO_RUNNING | RO_TRANSITIONS | RO_ODB,
-      1000,                               // readout interval/polling time in ms (1 sec)
+      RO_ALWAYS,
+      10000,                              // readout interval/polling time in ms (1 sec)
       0,                                  // stop run after this event limit - probably, 0=never
       0,                                  // number of sub events
-      10,                                 // log history every ten seconds
+      20,                                 // log history every 20 seconds
       "",                                 // host on which frontend is running
       "",                                 // frontend name
       "",                                 // source file ised for user FE
