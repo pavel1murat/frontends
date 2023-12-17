@@ -51,17 +51,18 @@ const char *frontend_file_name = __FILE__;
 /* frontend_loop is called periodically if this variable is TRUE    */
 BOOL frontend_call_loop = FALSE;
 
-/* a frontend status page is displayed with this frequency in ms */
-INT display_period = 3000;
+// display frequency in ms for the frontend status page
+INT display_period      = 3000;
 
 /* maximum event size produced by this frontend */
-INT max_event_size = 1024 * 1024; // 1 MB
+// INT max_event_size = 1024 * 1024; // 1 MB
+INT max_event_size = 1000; // 1 MB
 
 /* maximum event size for fragmented events (EQ_FRAGMENTED) */
 INT max_event_size_frag = 5 * 1024 * 1024; // 5 MB
 
 /* buffer size to hold events */
-INT event_buffer_size = 10 * 1024 * 1024; // 10 MB, must be > 2 * max_event_size
+INT event_buffer_size = 10 * max_event_size; // 10 MB, must be > 2 * max_event_size
 
 /*-- Function declarations -----------------------------------------*/
 
@@ -265,7 +266,7 @@ INT begin_of_run(INT RunNumber, char *error) {
 //-----------------------------------------------------------------------------
 // wait till the run start completion
 //-----------------------------------------------------------------------------
-  rc = wait_for("running:100",50);
+  rc = wait_for("running:100",70);
 
   printf("tfm_frontend::%s ERROR: wait for running run=%6i rc=%i\n",__func__,RunNumber,rc);
 
@@ -353,42 +354,19 @@ INT frontend_loop() {
 }
 
 //-----------------------------------------------------------------------------
-INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
-  switch (cmd) {
-  case CMD_INTERRUPT_ENABLE  : break;
-  case CMD_INTERRUPT_DISABLE : break;
-  case CMD_INTERRUPT_ATTACH  : break;
-  case CMD_INTERRUPT_DETACH  : break;
-  }
-  return SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
 // Readout routines for different event types
 //-----------------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------------
-// trigger events
-// Polling routine for events. Returns TRUE if event is available. 
-// If test equals TRUE, don't return. The test flag is used to time the polling
-//-----------------------------------------------------------------------------
+/*-- Dummy routines ------------------------------------------------*/
 INT poll_event(INT source, INT count, BOOL test) {
-  DWORD flag;
+  return 1;
+};
 
-  /* poll hardware and set flag to TRUE if new event is available */
-  for (int i = 0; i < count; i++) {
-    flag = TRUE;
-    
-    if (flag) {
-      if (!test) {
-        return TRUE;
-      }
-    }
-  }
-  
-  return 0;
-}
+
+//-----------------------------------------------------------------------------
+INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
+  return 1;
+};
+
 
 /*-- Event readout -------------------------------------------------*/
 // This function gets called whenever poll_event() returns TRUE (the
@@ -399,23 +377,23 @@ INT poll_event(INT source, INT count, BOOL test) {
 // This function gets called periodically by the MFE framework (the
 // period is set in the EQUIPMENT structs at the top of the file).
 //-----------------------------------------------------------------------------
-INT read_periodic_event(char *pevent, INT off) {
-  UINT32 *pdata;
+// INT read_periodic_event(char *pevent, INT off) {
+//   UINT32 *pdata;
 
-  /* init bank structure */
-  bk_init(pevent);
+//   /* init bank structure */
+//   bk_init(pevent);
 
-  /* create a bank called PRDC */
-  bk_create(pevent, "FARM", TID_UINT32, (void **)&pdata);
+//   /* create a bank called PRDC */
+//   bk_create(pevent, "FARM", TID_UINT32, (void **)&pdata);
 
-  /* following code "simulates" some values in sine wave form */
-  for (int i = 0; i < 16; i++)
-    *pdata++ = 100*sin(M_PI*time(NULL)/60+i/2.0)+100;
+//   /* following code "simulates" some values in sine wave form */
+//   for (int i = 0; i < 16; i++)
+//     *pdata++ = 100*sin(M_PI*time(NULL)/60+i/2.0)+100;
 
-  bk_close(pevent, pdata);
+//   bk_close(pevent, pdata);
 
-  return bk_size(pevent);
-}
+//   return bk_size(pevent);
+// }
 
 
 #ifdef STANDALONE
