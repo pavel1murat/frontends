@@ -12,7 +12,7 @@
 
 /* device driver list */
 DEVICE_DRIVER driver_list[] = {
-  {"dtc_driver", dtc_driver,  4, null, DF_INPUT},
+  {"dtc" , dtc_driver,  4, null, DF_INPUT},
   {""}
 };
 

@@ -17,7 +17,7 @@ cet_set_compiler_flags(
         EXTRA_FLAGS -pedantic -Wno-unused-parameter -Wdeprecated-declarations 
         -Wmissing-field-initializers
         # -v
-        # -g -O0 # Equivalent to debug qualifier, for testing
+        -g -O0 # Equivalent to debug qualifier, for testing
         -pthread 
 )
 

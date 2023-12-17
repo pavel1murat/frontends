@@ -8,7 +8,7 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
-#include "config.h"  /* information about this build environment */
+// #include "config.h"  /* information about this build environment */
 
 #define NAME "XML-RPC C Test Client synch_client"
 #define VERSION "1.0"

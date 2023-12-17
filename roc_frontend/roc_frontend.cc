@@ -45,7 +45,7 @@ namespace {
 //-----------------------------------------------------------------------------
 // need to figure how to get name, but that doesn't seem overwhelmingly difficult
 //-----------------------------------------------------------------------------
-  FeName xx("mu2edaq09_dtc1_roc1");
+  FeName xx("mu2edaq09_dtc01_roc%i");
 }
 
 /* The frontend file name, don't change it */
