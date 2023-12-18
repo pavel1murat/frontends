@@ -81,8 +81,10 @@ INT poll_event(INT source, INT count, BOOL test);
 
 std::unique_ptr<artdaq::CommanderInterface>  _commander;
 
-const std::string rpc_url = "http://localhost:18000/RPC2";
+// TODO : need to get the port out of the ODB (or from FCL)
+// for now - fix manually
 
+std::string _rpcUrl = "http://localhost:15000/RPC2";
 /********************************************************************\
               Callback routines for system transitions
 
@@ -139,8 +141,12 @@ INT frontend_init() {
     fhicl::ParameterSet top_ps = LoadParameterSet(fcl_fn);
     fhicl::ParameterSet tfm_ps = top_ps.get<fhicl::ParameterSet>("tfm_frontend",fhicl::ParameterSet());
 
-    _useRunInfoDB = tfm_ps.get<bool>("useRunInfoDB",false);
+    _useRunInfoDB = tfm_ps.get<bool>("useRunInfoDB" ,false);
+    _rpcUrl       = tfm_ps.get<std::string>("rpcUrl","undefined");
   }
+
+  printf("_useRunInfoDB=%d\n",_useRunInfoDB);
+  printf("_rpcUrl      =%s\n",_rpcUrl.data());
 //-----------------------------------------------------------------------------
 // this is for later - when we learn how to communicate with the TF manager
 // properly
@@ -183,7 +189,7 @@ int wait_for(const char* State, int MaxWaitingTime) {
   while (state != State) {
 
     resultP = xmlrpc_client_call(&_env, 
-                                 "http://localhost:18000/RPC2",
+                                 _rpcUrl.data(),
                                  "get_state",
                                  // "({s:i,s:i})",
                                  "(s)", 
@@ -221,7 +227,7 @@ INT begin_of_run(INT RunNumber, char *error) {
 
   xmlrpc_env_init(&env);
   resultP = xmlrpc_client_call(&env, 
-                               "http://localhost:18000/RPC2",
+                               _rpcUrl.data(),
                                "state_change",
                                // "({s:i,s:i})",
                                "(ss{s:i})", 
@@ -254,7 +260,7 @@ INT begin_of_run(INT RunNumber, char *error) {
 // // assuming it was OK, 'start'
 //-----------------------------------------------------------------------------
   resultP = xmlrpc_client_call(&env, 
-                               "http://localhost:18000/RPC2",
+                               _rpcUrl.data(),
                                "state_change",
                                // "({s:i,s:i})",
                                "(ss{s:i})", 
@@ -295,7 +301,7 @@ INT end_of_run(INT RunNumber, char *Error) {
   const char*   value;
 
   resultP = xmlrpc_client_call(&_env, 
-                               "http://localhost:18000/RPC2",
+                               _rpcUrl.data(),
                                "state_change",
                                // "({s:i,s:i})",
                                "(ss{s:i})", 
