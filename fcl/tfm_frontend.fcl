@@ -1,10 +1,12 @@
 # -*- mode:tcl -*-
-
 #------------------------------------------------------------------------------
-# not used yet
+# to use RunInfoDB need to setup an ssh tunnel to the PG database and 
+# all passwords etc
+# also : need a patch to artdaq_core/Utilities/configureMessageFacility.cc
 #------------------------------------------------------------------------------
-commanderPluginType : "xmlrpc"
+# commanderPluginType : "xmlrpc"
 
 tfm_frontend : {
-    useRunInfoDB : true
+    useRunInfoDB : false # true
+    rpcUrl       : "http://localhost:15000/RPC2"
 }
