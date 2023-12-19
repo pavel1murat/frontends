@@ -84,7 +84,7 @@ std::unique_ptr<artdaq::CommanderInterface>  _commander;
 // TODO : need to get the port out of the ODB (or from FCL)
 // for now - fix manually
 
-std::string _rpcUrl = "http://localhost:15000/RPC2";
+std::string _xmlrpcUrl = "http://localhost:15000/RPC2";
 /********************************************************************\
               Callback routines for system transitions
 
@@ -127,8 +127,10 @@ static void die_if_fault_occurred(xmlrpc_env * const envP) {
 // P.M. use _argc and _argv provided by Stefan
 //-----------------------------------------------------------------------------
 INT frontend_init() {
-  int    argc;
-  char** argv;
+  int         argc;
+  char**      argv;
+  std::string fcl_fn;
+  HNDLE       hDB; // , hKey;
 
   mfe_get_args(&argc,&argv);
   
@@ -136,17 +138,33 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 // assume FCL file : 'tfm_frontend -c xxx.fcl'
 //-----------------------------------------------------------------------------
-    std::string fcl_fn = argv[2];
+    fcl_fn = argv[2];
+  }
+  else {
+//-----------------------------------------------------------------------------
+// figure out configuration in ODB
+// active configuration ahs to be stored
+//-----------------------------------------------------------------------------
+    cm_get_experiment_database(&hDB, NULL);
+    char  active_conf[100];
+    int   sz = sizeof(active_conf);
 
-    fhicl::ParameterSet top_ps = LoadParameterSet(fcl_fn);
-    fhicl::ParameterSet tfm_ps = top_ps.get<fhicl::ParameterSet>("tfm_frontend",fhicl::ParameterSet());
-
-    _useRunInfoDB = tfm_ps.get<bool>("useRunInfoDB" ,false);
-    _rpcUrl       = tfm_ps.get<std::string>("rpcUrl","undefined");
+    db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
+    fcl_fn = "./config/";
+    fcl_fn += active_conf;
+    fcl_fn += "/tfm_frontend.fcl";
   }
 
-  printf("_useRunInfoDB=%d\n",_useRunInfoDB);
-  printf("_rpcUrl      =%s\n",_rpcUrl.data());
+  printf("tfm_frontend::%s fcl_fn=%s\n",__func__,fcl_fn.data());
+
+  fhicl::ParameterSet top_ps = LoadParameterSet(fcl_fn);
+  fhicl::ParameterSet tfm_ps = top_ps.get<fhicl::ParameterSet>("tfm_frontend",fhicl::ParameterSet());
+
+  _useRunInfoDB = tfm_ps.get<bool>("useRunInfoDB" ,false);
+  _xmlrpcUrl    = tfm_ps.get<std::string>("xmlrpcUrl","undefined");
+
+  printf("tfm_frontend::%s _useRunInfoDB=%d\n",__func__,_useRunInfoDB);
+  printf("tfm_frontend::%s _xmlrpcUrl   =%s\n",__func__,_xmlrpcUrl.data());
 //-----------------------------------------------------------------------------
 // this is for later - when we learn how to communicate with the TF manager
 // properly
@@ -189,7 +207,7 @@ int wait_for(const char* State, int MaxWaitingTime) {
   while (state != State) {
 
     resultP = xmlrpc_client_call(&_env, 
-                                 _rpcUrl.data(),
+                                 _xmlrpcUrl.data(),
                                  "get_state",
                                  // "({s:i,s:i})",
                                  "(s)", 
@@ -227,7 +245,7 @@ INT begin_of_run(INT RunNumber, char *error) {
 
   xmlrpc_env_init(&env);
   resultP = xmlrpc_client_call(&env, 
-                               _rpcUrl.data(),
+                               _xmlrpcUrl.data(),
                                "state_change",
                                // "({s:i,s:i})",
                                "(ss{s:i})", 
@@ -260,7 +278,7 @@ INT begin_of_run(INT RunNumber, char *error) {
 // // assuming it was OK, 'start'
 //-----------------------------------------------------------------------------
   resultP = xmlrpc_client_call(&env, 
-                               _rpcUrl.data(),
+                               _xmlrpcUrl.data(),
                                "state_change",
                                // "({s:i,s:i})",
                                "(ss{s:i})", 
@@ -301,7 +319,7 @@ INT end_of_run(INT RunNumber, char *Error) {
   const char*   value;
 
   resultP = xmlrpc_client_call(&_env, 
-                               _rpcUrl.data(),
+                               _xmlrpcUrl.data(),
                                "state_change",
                                // "({s:i,s:i})",
                                "(ss{s:i})", 
