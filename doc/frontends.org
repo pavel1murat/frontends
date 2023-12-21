@@ -1,8 +1,11 @@
 #+startup:fold
 * ------------------------------------------------------------------------------
 * trigger farm (TFM) frontend : tfm_frontend                                 
-
-- can take input from FCL, if no FCL on the command line, doesn't use it
+- takes input from ODB
+-   /Experiment/ARTDAQ_PARTITION_NUMBER    : partition to use
+-   conf = /Experiment/ActiveConfiguration : use to form the name of the FCL file
+-   /Experiment/RunConfigurations/$conf/   : contains the configuration parameters, not used yet
+- can also take input from FCL, if no FCL on the command line, doesn't use it
 #+begin_src
 tfm_frontend -c xxx.fcl 
 #+end_src
