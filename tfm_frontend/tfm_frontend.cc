@@ -143,7 +143,7 @@ INT frontend_init() {
   else {
 //-----------------------------------------------------------------------------
 // figure out configuration in ODB
-// active configuration ahs to be stored
+// active configuration has to be stored
 //-----------------------------------------------------------------------------
     cm_get_experiment_database(&hDB, NULL);
     char  active_conf[100];
@@ -154,14 +154,24 @@ INT frontend_init() {
     fcl_fn += active_conf;
     fcl_fn += "/tfm_frontend.fcl";
   }
-
   printf("tfm_frontend::%s fcl_fn=%s\n",__func__,fcl_fn.data());
+//-----------------------------------------------------------------------------
+// ARTDAQ_PARTITION_NUMBER also comes from ODB
+//-----------------------------------------------------------------------------
+  int partition;
+  int sz = sizeof(int);
+  db_get_value(hDB, 0, "/Experiment/ARTDAQ_PARTITION_NUMBER", &partition, &sz, TID_INT32, TRUE);
+  int port_number = 10000+1000*partition;
+
+  char url[100];
+  sprintf(url,"http://localhost:%i/RPC2",port_number);
+  _xmlrpcUrl = url;
 
   fhicl::ParameterSet top_ps = LoadParameterSet(fcl_fn);
   fhicl::ParameterSet tfm_ps = top_ps.get<fhicl::ParameterSet>("tfm_frontend",fhicl::ParameterSet());
 
   _useRunInfoDB = tfm_ps.get<bool>("useRunInfoDB" ,false);
-  _xmlrpcUrl    = tfm_ps.get<std::string>("xmlrpcUrl","undefined");
+  // _xmlrpcUrl    = tfm_ps.get<std::string>("xmlrpcUrl","undefined");
 
   printf("tfm_frontend::%s _useRunInfoDB=%d\n",__func__,_useRunInfoDB);
   printf("tfm_frontend::%s _xmlrpcUrl   =%s\n",__func__,_xmlrpcUrl.data());
