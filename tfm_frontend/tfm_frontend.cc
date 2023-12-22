@@ -110,7 +110,7 @@ std::string _xmlrpcUrl = "http://localhost:15000/RPC2";
   resume_run:     When a run is resumed. Should enable trigger events.
 \********************************************************************/
 
-static bool           _useRunInfoDB(false);
+static uint           _useRunInfoDB(0);
 static xmlrpc_env     _env;
 
 
@@ -130,7 +130,8 @@ INT frontend_init() {
   int         argc;
   char**      argv;
   std::string fcl_fn;
-  HNDLE       hDB; // , hKey;
+  HNDLE       hDB, hKey;
+  char        active_conf[100];
 
   mfe_get_args(&argc,&argv);
   
@@ -146,7 +147,6 @@ INT frontend_init() {
 // active configuration has to be stored
 //-----------------------------------------------------------------------------
     cm_get_experiment_database(&hDB, NULL);
-    char  active_conf[100];
     int   sz = sizeof(active_conf);
 
     db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
@@ -167,10 +167,17 @@ INT frontend_init() {
   sprintf(url,"http://localhost:%i/RPC2",port_number);
   _xmlrpcUrl = url;
 
-  fhicl::ParameterSet top_ps = LoadParameterSet(fcl_fn);
-  fhicl::ParameterSet tfm_ps = top_ps.get<fhicl::ParameterSet>("tfm_frontend",fhicl::ParameterSet());
+  char key[200];
+  sprintf(key,"/Experiment/RunConfigurations/%s",active_conf);
+	db_find_key(hDB, 0, key, &hKey);
 
-  _useRunInfoDB = tfm_ps.get<bool>("useRunInfoDB" ,false);
+  sz = sizeof(_useRunInfoDB);
+  db_get_value(hDB, hKey, "UseRunInfoDB", &_useRunInfoDB, &sz, TID_BOOL, TRUE);
+
+  // fhicl::ParameterSet top_ps = LoadParameterSet(fcl_fn);
+  // fhicl::ParameterSet tfm_ps = top_ps.get<fhicl::ParameterSet>("tfm_frontend",fhicl::ParameterSet());
+
+  // _useRunInfoDB = tfm_ps.get<bool>("useRunInfoDB" ,false);
   // _xmlrpcUrl    = tfm_ps.get<std::string>("xmlrpcUrl","undefined");
 
   printf("tfm_frontend::%s _useRunInfoDB=%d\n",__func__,_useRunInfoDB);

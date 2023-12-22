@@ -22,7 +22,7 @@ EQUIPMENT equipment[] = {
     EQUIPMENT_INFO {
       2, 0,                               // event ID, trigger mask
       "SYSTEM",                           // event buffer name
-      //      EQ_PERIODIC,                        // one of EQ_xx (equipment type)
+      // EQ_PERIODIC,                        // one of EQ_xx (equipment type)
       EQ_SLOW,                            // one of EQ_xx (equipment type)
       0,                                  // event source (LAM/IRQ)
       "FIXED",                            // data format to produce
