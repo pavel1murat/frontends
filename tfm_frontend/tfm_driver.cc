@@ -2,6 +2,9 @@
 // P.Murat: cloned from nulldev.cc by Stefan Ritt
 // ROC slow control driver
 ///////////////////////////////////////////////////////////////////////////////
+#include "TRACE/tracemf.h"
+#define TRACE_NAME "tfm_driver"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +12,19 @@
 #include <string.h>
 #include "midas.h"
 
+#include <vector>
+#include <boost/algorithm/string.hpp>
+
+#include "xmlrpc-c/config.h"  /* information about this build environment */
+#include <xmlrpc-c/base.h>
+#include <xmlrpc-c/client.h>
+
 #include "tfm_frontend/tfm_driver.hh"
+
+using std::vector, std::string;
+
+// static string _fn("tfm_driver.log");
+// static FILE*  _f;
 
 /*---- globals -----------------------------------------------------*/
 
@@ -72,6 +87,8 @@ INT tfm_driver_init(HNDLE hkey, TFM_DRIVER_INFO **pinfo, INT channels, func_t *b
   
   /* initialization of device, something like ... */
   BD_PUTS("init");
+
+  //  _f = fopen(_fn.data(),"w");
   
   return FE_SUCCESS;
 }
@@ -89,6 +106,8 @@ INT tfm_driver_exit(TFM_DRIVER_INFO * info) {
   free(info);
 
   //   delete _dtc;
+
+  //  fclose(_f);
   
   return FE_SUCCESS;
 }
@@ -110,14 +129,162 @@ INT tfm_driver_set(TFM_DRIVER_INFO * info, INT channel, float value) {
   return FE_SUCCESS;
 }
 
+
+//-----------------------------------------------------------------------------
+int get_boardreader_data(const char* Url, float* Data) {
+  // two words per process - N(segments/sec) and the data rate, MB/sec
+
+  xmlrpc_env    env;
+  xmlrpc_value* resultP;
+
+  xmlrpc_env_init(&env);
+                               // "({s:i,s:i})",
+  resultP = xmlrpc_client_call(&env,Url,"daq.report","(s)","stats");
+  // die_if_fault_occurred(&env);
+  if (env.fault_occurred) {
+    fprintf(stderr, "XML-RPC Fault: %s (%d)\n",env.fault_string, env.fault_code);
+    exit(1);
+  }
+    // }
+
+
+  const char* value;
+  size_t      length;
+  xmlrpc_read_string_lp(&env, resultP, &length, &value);
+    
+  std::string res = value;
+  //  fprintf(_f,"%s",res.data());
+//-----------------------------------------------------------------------------
+//  now the output string needs to be parsed. it should look as follows
+//  boardreader01 run number = 55, Sent Fragment count = 2308boardreader01 statistics:\n
+//    Fragments read: 599 fragments generated at 9.98229 getNext calls/sec, fragment rate = 9.98229 fragments/sec, monitor window = 60.0063 sec, min::max read size = 1::1 fragments  Average times per fragment:  elapsed time = 0.100177 sec\n
+//    Fragment output statistics: 599 fragments sent at 9.98229 fragments/sec, effective data rate = 0.00121854 MB/sec, monitor window = 60.0063 sec, min::max event size = 0.00012207::0.00012207 MB\n
+//    Input wait time = 0.100128 s/fragment, buffer wait time = 3.90003e-05 s/fragment, request wait time = 0.100101 s/fragment, output wait time = 5.47901e-05 s/fragment
+//-----------------------------------------------------------------------------
+  vector<string> s1;
+  boost::split(s1,res,boost::is_any_of("\n"));
+
+  // now, split the second line by ',' : 
+  vector<string> s2;
+  boost::split(s2,s1[1],boost::is_any_of(","));
+
+  // at this point, expect s2[1]:  'fragment rate = 9.98229 fragments/sec' 
+  vector<string> s3;
+  boost::split(s3,s2[1],boost::is_any_of("="));
+
+  // at this point, expect s3[1]:  ' 9.98229 fragments/sec'
+  vector<string> s4;
+  boost::split(s4,s3[1],boost::is_any_of(" "));
+
+  // s4[1] = '9.98229'
+
+  float f = std::stof(s4[1]); // number of fragments per second, first boardreader
+
+  Data[0] = f;
+//-----------------------------------------------------------------------------
+// now, split the 3rd line by ',' to extract the rate
+//-----------------------------------------------------------------------------
+  s2.clear();
+  boost::split(s2,s1[2],boost::is_any_of(","));
+
+  // at this point, expect s2[1]:  'effective data rate = 0.00121854 MB/sec' 
+  s3.clear();
+  boost::split(s3,s2[1],boost::is_any_of("="));
+
+  // at this point, expect s3[1]:  ' 0.00121854 MB/sec'
+  s4.clear();
+  boost::split(s4,s3[1],boost::is_any_of(" "));
+  
+  // s4[1] = '0.00121854'
+  
+  Data[1] = std::stof(s4[1]);
+
+  TLOG(TLVL_INFO+10) << "Data:" << Data[0] << " " << Data[1];
+  
+  xmlrpc_DECREF   (resultP);
+
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+int get_datalogger_data(const char* Url, float* Data) {
+  // two words per process - N(segments/sec) and the data rate, MB/sec
+
+  xmlrpc_env    env;
+  xmlrpc_value* resultP;
+
+  xmlrpc_env_init(&env);
+                               // "({s:i,s:i})",
+  resultP = xmlrpc_client_call(&env,Url,"daq.report","(s)","stats");
+  if (env.fault_occurred) {
+    fprintf(stderr, "XML-RPC Fault: %s (%d)\n",env.fault_string, env.fault_code);
+    exit(1);
+  }
+
+  const char* value;
+  size_t      length;
+  xmlrpc_read_string_lp(&env, resultP, &length, &value);
+    
+  std::string res = value;
+  //  fprintf(_f,"%s",res.data());
+//-----------------------------------------------------------------------------
+//  now the output string needs to be parsed. it should look as follows
+//  datalogger01 statistics:\n
+//    Event statistics: 598 events released at 9.96565 events/sec, effective data rate = 0.0158907 MB/sec, monitor window = 60.0061 sec, min::max event size = 0.00159454::0.00159454 MB\n
+//    Average time per event:  elapsed time = 0.100345 sec\n
+//    Fragment statistics: 598 fragments received at 9.96565 fragments/sec, effective data rate = 0.0155105 MB/sec, monitor window = 60.0061 sec, min::max fragment size = 0.0015564::0.0015564 MB\n
+//    Event counts: Run -- 953 Total, 0 Incomplete.  Subrun -- 0 Total, 0 Incomplete. \n
+//-----------------------------------------------------------------------------
+  TLOG(TLVL_INFO + 10) << "res:" << res;
+
+  vector<string> s1;
+  boost::split(s1,res,boost::is_any_of("\n"));
+
+  // now, split the second line by ' ' : 
+  vector<string> s2;
+  boost::split(s2,s1[1],boost::is_any_of("\ "));
+
+  TLOG(TLVL_INFO + 10) << "s1[1]:" << s1[1];
+  TLOG(TLVL_INFO + 10) << "s2[8]:" << s2[8] << " s2[14]:" << s2[14];
+  // there are leading spaces ! 
+  Data[0] = std::stof(s2[ 8]);
+  Data[1] = std::stof(s2[14]);
+
+  TLOG(TLVL_INFO + 10) << "Data:" << Data[0] << " " << Data[1];
+
+  xmlrpc_DECREF   (resultP);
+
+  return 0;
+}
+
 //-----------------------------------------------------------------------------
 // this is the function which reads the registers
 // ----------------------------------------------
 INT tfm_driver_get(TFM_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
 //-----------------------------------------------------------------------------
 // assume success for now and implement handling of timeouts/errors etc later
+// start with the first boardreader, the rest will come after that
 //-----------------------------------------------------------------------------
-   return FE_SUCCESS;
+  std::string   br1Url("http://localhost:21100/RPC2");
+  std::string   dl1Url("http://localhost:21104/RPC2");
+
+  if (Channel == 0) {
+    // float data[2];
+//-----------------------------------------------------------------------------
+// read once for all channels
+//-----------------------------------------------------------------------------
+    get_boardreader_data(br1Url.data(),&Info->array[0]);
+    get_datalogger_data (dl1Url.data(),&Info->array[2]);
+
+    TLOG(TLVL_DEBUG+10) << "Data:" << Info->array[0] << " " << Info->array[1] ;
+  }
+
+  if (Channel < 4) *Pvalue = Info->array[Channel];
+  else {
+    printf("driver_get TFM_DRIVER: channel = %i. IN TROUBLE\n",Channel);
+  }
+
+  return FE_SUCCESS;
 }
 
 /*---- device driver entry point -----------------------------------*/

@@ -27,7 +27,8 @@ EQUIPMENT equipment[] = {
     0,                         /* event source */
     "FIXED",                   /* format */
     TRUE,                      /* enabled */
-    RO_ALWAYS,                 /* read when running and on transitions */
+    // RO_ALWAYS,                 /* read when running and on transitions */
+    RO_TRANSITIONS, // | RO_RUNNING , // RO_ALWAYS,
     10000,                     /* read every 10 sec */
     0,                         /* stop run after this event limit */
     0,                         /* number of sub events */
