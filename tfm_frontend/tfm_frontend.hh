@@ -10,7 +10,7 @@
 //-----------------------------------------------------------------------------
 /* device driver list */
 DEVICE_DRIVER driver_list[] = {
-  {"tfm_driver", tfm_driver ,  2 , null, DF_INPUT},
+  {"tfm_driver", tfm_driver ,  4 , null, DF_INPUT},
   {""}
 };
 
@@ -29,7 +29,7 @@ EQUIPMENT equipment[] = {
       TRUE,                               // enable flag value
                                           // combination of Read-On flags R)_xxx - read when running and on transitions 
                                           // and on ODB updates
-      RO_ALWAYS,
+      RO_RUNNING | RO_TRANSITIONS, // RO_ALWAYS,
       10000,                              // readout interval/polling time in ms (1 sec)
       0,                                  // stop run after this event limit - probably, 0=never
       0,                                  // number of sub events

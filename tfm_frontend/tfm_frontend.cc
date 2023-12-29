@@ -18,7 +18,6 @@
                 be viewed in the history system.
 
 \********************************************************************/
-
 #undef NDEBUG // midas required assert() to be always enabled
 
 #include <stdio.h>
@@ -134,7 +133,13 @@ INT frontend_init() {
   char        active_conf[100];
 
   mfe_get_args(&argc,&argv);
-  
+//-----------------------------------------------------------------------------
+// figure out the active configuration from ODB
+//-----------------------------------------------------------------------------
+  cm_get_experiment_database(&hDB, NULL);
+  int   sz = sizeof(active_conf);
+  db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
+
   if ((argc == 3) and (strcmp(argv[1],"-c") == 0)) {
 //-----------------------------------------------------------------------------
 // assume FCL file : 'tfm_frontend -c xxx.fcl'
@@ -146,26 +151,11 @@ INT frontend_init() {
 // figure out configuration in ODB
 // active configuration has to be stored
 //-----------------------------------------------------------------------------
-    cm_get_experiment_database(&hDB, NULL);
-    int   sz = sizeof(active_conf);
-
-    db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
     fcl_fn = "./config/";
     fcl_fn += active_conf;
     fcl_fn += "/tfm_frontend.fcl";
   }
   printf("tfm_frontend::%s fcl_fn=%s\n",__func__,fcl_fn.data());
-//-----------------------------------------------------------------------------
-// ARTDAQ_PARTITION_NUMBER also comes from ODB
-//-----------------------------------------------------------------------------
-  int partition;
-  int sz = sizeof(int);
-  db_get_value(hDB, 0, "/Experiment/ARTDAQ_PARTITION_NUMBER", &partition, &sz, TID_INT32, TRUE);
-  int port_number = 10000+1000*partition;
-
-  char url[100];
-  sprintf(url,"http://localhost:%i/RPC2",port_number);
-  _xmlrpcUrl = url;
 
   char key[200];
   sprintf(key,"/Experiment/RunConfigurations/%s",active_conf);
@@ -173,6 +163,17 @@ INT frontend_init() {
 
   sz = sizeof(_useRunInfoDB);
   db_get_value(hDB, hKey, "UseRunInfoDB", &_useRunInfoDB, &sz, TID_BOOL, TRUE);
+//-----------------------------------------------------------------------------
+// ARTDAQ_PARTITION_NUMBER also comes from the active configuration ODB
+//-----------------------------------------------------------------------------
+  int partition;
+  sz = sizeof(int);
+  db_get_value(hDB, hKey, "ARTDAQ_PARTITION_NUMBER", &partition, &sz, TID_INT32, TRUE);
+  int port_number = 10000+1000*partition;
+
+  char url[100];
+  sprintf(url,"http://localhost:%i/RPC2",port_number);
+  _xmlrpcUrl = url;
 
   // fhicl::ParameterSet top_ps = LoadParameterSet(fcl_fn);
   // fhicl::ParameterSet tfm_ps = top_ps.get<fhicl::ParameterSet>("tfm_frontend",fhicl::ParameterSet());
