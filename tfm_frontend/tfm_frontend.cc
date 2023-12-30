@@ -20,6 +20,9 @@
 \********************************************************************/
 #undef NDEBUG // midas required assert() to be always enabled
 
+#include "TRACE/tracemf.h"
+#define  TRACE_NAME "tfm_frontend"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -111,14 +114,6 @@ std::string _xmlrpcUrl = "http://localhost:15000/RPC2";
 
 static uint           _useRunInfoDB(0);
 static xmlrpc_env     _env;
-
-
-static void die_if_fault_occurred(xmlrpc_env * const envP) {
-  if (envP->fault_occurred) {
-    fprintf(stderr, "XML-RPC Fault: %s (%d)\n",envP->fault_string, envP->fault_code);
-    exit(1);
-  }
-}
 
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the frontend (or not ?)
@@ -216,38 +211,46 @@ int wait_for(const char* State, int MaxWaitingTime) {
 
   std::string         state;
 
+  xmlrpc_env          env;
   xmlrpc_value*       resultP;
   size_t              length;
   const char*         value;
 
   int                 waiting_time = 0;
 
+  xmlrpc_env_init(&env);
+
   while (state != State) {
 
-    resultP = xmlrpc_client_call(&_env, 
+    resultP = xmlrpc_client_call(&env, 
                                  _xmlrpcUrl.data(),
                                  "get_state",
                                  // "({s:i,s:i})",
                                  "(s)", 
                                  "daqint");
-    die_if_fault_occurred(&_env);
+    if (env.fault_occurred) {
+      TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING...";
+      return env.fault_code;
+      exit(1);
+    }
 
-    xmlrpc_read_string_lp(&_env, resultP, &length, &value);
+    xmlrpc_read_string_lp(&env, resultP, &length, &value);
     state = value;
 
     // xmlrpc_DECREF(resultP);
     // xmlrpc_env_clean(&_env);
 
     sleep(1);
-    printf(" --- waiting: state=%s\n",state.data());
+
+    TLOG(TLVL_DEBUG) << "000:WAITING state=" << state;
+
     waiting_time += 1;
     if (waiting_time > MaxWaitingTime) {
       rc = -1;
       break;
     }
   }
-
-  printf("tfm_frontend::%s 001: FINISHED, rc=%i\n",__func__,rc);
+  TLOG(TLVL_DEBUG) << "001 FINISHED rc=" << rc;
 
   return rc;
 }
@@ -270,11 +273,14 @@ INT begin_of_run(INT RunNumber, char *error) {
                                "daqint",
                                "configuring",
                                "run_number", RunNumber);
-  die_if_fault_occurred(&_env);
+  if (env.fault_occurred) {
+    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING...";
+    exit(1);
+  }
 
   const char* value;
   size_t      length;
-  xmlrpc_read_string_lp(&_env, resultP, &length, &value);
+  xmlrpc_read_string_lp(&env, resultP, &length, &value);
     
   std::string res = value;
 
@@ -298,12 +304,16 @@ INT begin_of_run(INT RunNumber, char *error) {
   resultP = xmlrpc_client_call(&env, 
                                _xmlrpcUrl.data(),
                                "state_change",
-                               // "({s:i,s:i})",
+                                                           // "({s:i,s:i})",
                                "(ss{s:i})", 
                                "daqint",
                                "starting",
                                "ignored_variable", 9999);
-  die_if_fault_occurred(&_env);
+  if (env.fault_occurred) {
+    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string;
+    return env.fault_code;
+  }
+
   xmlrpc_DECREF(resultP);
 //-----------------------------------------------------------------------------
 // wait till the run start completion
@@ -318,7 +328,7 @@ INT begin_of_run(INT RunNumber, char *error) {
       rc = db.registerTransition(RunNumber,db_runinfo::START);
     }
     catch(char* err) {
-      printf("tfm_frontend::%s : %s\n",__func__,err);
+      TLOG(TLVL_ERROR) << "failed to register START transition rc=" << rc;
     }
   }
   printf("tfm_frontend::%s 003: done starting, run=%6i rc=%i\n",__func__,RunNumber,rc);
@@ -332,10 +342,13 @@ INT end_of_run(INT RunNumber, char *Error) {
 //-----------------------------------------------------------------------------
   printf("tfm_frontend::%s 000: trying to STOP run=%6i\n",__func__,RunNumber);
 
+  xmlrpc_env    env;
   xmlrpc_value* resultP;
+
   size_t        length;
   const char*   value;
 
+  xmlrpc_env_init(&env);
   resultP = xmlrpc_client_call(&_env, 
                                _xmlrpcUrl.data(),
                                "state_change",
@@ -344,25 +357,28 @@ INT end_of_run(INT RunNumber, char *Error) {
                                "daqint",
                                "stopping",
                                "ignored_variable", 9999);
-  die_if_fault_occurred(&_env);
+  if (env.fault_occurred) {
+    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING...";
+    exit(1);
+  }
 
-  xmlrpc_read_string_lp(&_env, resultP, &length, &value);
+  xmlrpc_read_string_lp(&env, resultP, &length, &value);
   std::string result = value;
 
   xmlrpc_DECREF(resultP);
   //  xmlrpc_env_clean(&_env);
 
-  printf("tfm_frontend::%s after my_xmlrpc command: run=%6i result:%s\n",__func__,RunNumber,result.data());
+  TLOG(TLVL_INFO) << "after my_xmlrpc command run=" << RunNumber << "result:" << result;
 //-----------------------------------------------------------------------------
 // now wait till completion
 //-----------------------------------------------------------------------------
   int rc(0);
 
-  printf("tfm_frontend::%s: wait for completion\n",__func__);
+  TLOG(TLVL_DEBUG) << "wait for completion";
 
   rc = wait_for("stopped:100",100);
 
-  printf("tfm_frontend::%s : DONE STOPPING, rc=%i\n",__func__,rc);
+  TLOG(TLVL_DEBUG) << "DONE stopping rc=" << rc;
 //-----------------------------------------------------------------------------
 // write end of transition into the DB
 //-----------------------------------------------------------------------------
@@ -370,7 +386,7 @@ INT end_of_run(INT RunNumber, char *Error) {
     db_runinfo db("aaa");
     rc = db.registerTransition(RunNumber,db_runinfo::STOP);
     if (rc < 0) {
-      printf("tfm_frontend::%s ERROR: failed to regiser STOP transition rc=%i",__func__,rc);
+      TLOG(TLVL_ERROR) << "failed to register STOP transition rc=" << rc;
       sprintf(Error,"tfm_frontend::%s ERROR: line %i failed to regiser STOP transition",__func__,__LINE__);
     }
   }
