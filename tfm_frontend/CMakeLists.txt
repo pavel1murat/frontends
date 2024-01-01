@@ -5,7 +5,12 @@ include_directories($ENV{MIDASSYS} $ENV{MIDASSYS}/include)
 # include_directories($ENV{MRB_BUILDDIR}/xmlrpc-c/include/xmlrpc-c)
 include_directories($ENV{XMLRPC_C_INCLUDE_DIR})
 include_directories(${PostgreSQL_INCLUDE_DIRS})
+include_directories($ENV{TRACE_INC})
+include_directories($ENV{MESSAGEFACILITY_INC})
+include_directories($ENV{CETLIB_EXCEPT_INC})
 
+link_directories($ENV{TRACE_LIB})
+link_directories($ENV{MESSAGEFACILITY_LIB})
 link_directories($ENV{MIDASSYS}/lib)
 link_directories($ENV{XMLRPC_C_FQ_DIR}/lib)
 
@@ -26,7 +31,10 @@ cet_make_library(LIBRARY_NAME frontends_tfm
                  # my_xmlrpc.cc  cmdline_parser.cc string_parser.cc 
                  # getoptx.cc stripcaseeq.cc
                  LIBRARIES PUBLIC 
+                 midas
                  ${PostgreSQL_LIBRARIES} 
+                 tracelib
+                 MF_MessageLogger
                  xmlrpc++ xmlrpc_client xmlrpc 
                  xmlrpc_util xmlrpc_util++ 
                  pthread rt util

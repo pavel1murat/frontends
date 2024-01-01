@@ -1,6 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
+// P.M. 
+// - the ODB connection should be established by the caller, 
+// - the same is true for disconnecting from ODB
 ///////////////////////////////////////////////////////////////////////////////
+#include "TRACE/tracemf.h"
+#define  TRACE_NAME "db_runinfo"
+
+#include "midas.h"
+
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -22,12 +29,12 @@ db_runinfo::db_runinfo(const char* UID, int DebugLevel) {
   _debugLevel  = DebugLevel;
 
   if (_dbuser[0] == 0) {
-    printf("ERROR in db_runinfo::db_runinfo : _dbuser is not defined\n");
-    throw("db_runinfo::db_runinfo: Postgres DB user is not defined"); 
+    TLOG(TLVL_ERROR) << " Postgresql DB user is not defined";
+    throw("db_runinfo::db_runinfo: Postgresql DB user is not defined"); 
   }
 
   int rc = openConnection();
-  if (DebugLevel > 0) printf("db_runinfo::db_runinfo constructor: connection: %i\n",rc);
+  TLOG(TLVL_DEBUG) << "after openConnection rc=" << rc;
 }
 
 //==============================================================================
@@ -44,11 +51,11 @@ int db_runinfo::openConnection() {
 
   _runInfoDbConn = PQconnectdb(runInfoDbConnInfo);
 
-  if (_debugLevel > 0) printf("db_runinfo::%s connecting...\n",__func__);
+  TLOG(TLVL_DEBUG) << "connecting to Postgresql";
 
   if (PQstatus(_runInfoDbConn) == CONNECTION_OK)            return 0;
 
-  printf("ERROR in db_runinfo::%s : Unable to connect to run_info database!\n",__func__);
+  TLOG(TLVL_ERROR) << "Unable to connect to run_info database!";
   PQfinish(_runInfoDbConn);
   return -999;
 }
@@ -85,9 +92,8 @@ int db_runinfo::registerTransition(int RunNumber, uint TransitionType) {
   res = PQexec(_runInfoDbConn,buffer);
 
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-    std::cout << "INSERT INTO 'run_transition' DATABASE TABLE FAILED!!! PQ ERROR: " 
-              << PQresultErrorMessage(res)
-              << std::endl;
+    TLOG(TLVL_ERROR) << "INSERT INTO 'run_transition' DATABASE TABLE FAILED!!! PQ ERROR: " 
+                     << PQresultErrorMessage(res);
     rc = -1;
   }
 
@@ -96,38 +102,50 @@ int db_runinfo::registerTransition(int RunNumber, uint TransitionType) {
   return rc;
 }
 
-//==============================================================================
-int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
-  int runNumber = -1;
+//-----------------------------------------------------------------------------
+// integrate with ODB
+//-----------------------------------------------------------------------------
+int db_runinfo::nextRunNumber(const char* RunConfiguration, int StoreInODB) { // int RunType, const std::string& RunInfoConditions) {
+  int   runNumber(-1);
+  int   runType  (-1);
+  int   partition_number(-1); 
 
-  // const char* mu2eOwner       = getenv("MU2E_OWNER");
-  const char* hostName        = getenv("HOSTNAME");
-  const char* artadqPartition = getenv("ARTDAQ_PARTITION");
-
-  int rc(0);
-
+  char  trigger_table_name[100]; // trigger table version is a "_vXX" stub in the end, ok to have just one string
+  int   rc(0);
+//-----------------------------------------------------------------------------
   rc = checkConnection();
   if (rc < 0) return rc;
+//-----------------------------------------------------------------------------
+// retrieve from ODB parameters to be stored in Postgresql
+//-----------------------------------------------------------------------------
+  HNDLE       hDB, hKey;
+  rc = cm_get_experiment_database(&hDB, NULL);
+  if (rc != CM_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to connect to ODB";
+    return rc;
+  }
+
+  char run_conf_key[200];
+  sprintf(run_conf_key,"/Experiment/RunConfigurations/%s",RunConfiguration);
+	db_find_key(hDB, 0, run_conf_key, &hKey);
+
+  int sz = sizeof(runType);
+  db_get_value(hDB, hKey, "RunType", &runType, &sz, TID_INT, FALSE);
+
+  sz = sizeof(partition_number);
+  db_get_value(hDB, hKey, "ARTDAQ_PARTITION_NUMBER", &partition_number, &sz, TID_INT, FALSE);
+
+  sz = sizeof(trigger_table_name);
+  db_get_value(hDB, hKey, "TriggerTable", trigger_table_name, &sz, TID_STRING, FALSE);
+
+  const char* hostName        = getenv("HOSTNAME");
 //-----------------------------------------------------------------------------
 // write run info into db
 //-----------------------------------------------------------------------------
   PGresult* res;
   char      buffer[1024];
 
-  // extract configuration name and version from runInfoConditions
-  std::string runConfiguration = "vst_001";
-
   std::string runConfigurationVersion = "1";
-
-  // extract context name and version from runInfoConditions
-  std::string runContext = "no_context";
-
-  std::string runContextVersion = "0";
-//-----------------------------------------------------------------------------
-// P.M. one should not pass the runtype via environment, but... 
-//-----------------------------------------------------------------------------
-  const char* rt      = getenv("MU2E_RUNTYPE");
-  const char* runType =  ( rt ? rt : "1");
 //-----------------------------------------------------------------------------
 //  at this point run number in the DB gets incremented
 //-----------------------------------------------------------------------------
@@ -141,14 +159,14 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
                       , trigger_table_name \
                       , trigger_table_version \
                       , commit_time) \
-                      VALUES ('%s','%s','%d','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
+                      VALUES ('%d','%s','%d','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
            _dbSchema,
            runType,
            hostName,
-           std::stoi(artadqPartition),
-           runConfiguration.c_str(),
+           partition_number,
+           RunConfiguration,
            runConfigurationVersion.c_str(),
-           "tracker_vst_trigger_table","1");
+           trigger_table_name,"1");
 
   res = PQexec(_runInfoDbConn, buffer);
 
@@ -163,7 +181,8 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
   res = PQexec(_runInfoDbConn, buffer);
 
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-    printf("RUN INFO SELECT FROM DATABASE TABLE FAILED!!! PQ ERROR: %s",PQresultErrorMessage(res));
+    TLOG(TLVL_ERROR) << "RUN INFO SELECT FROM PG run_configuration TABLE FAILED!!! PQ message:" 
+                     << PQresultErrorMessage(res);
     PQclear(res);
     return -2;
   }
@@ -172,7 +191,7 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
     runNumber = atoi(PQgetvalue(res, 0, 0));
   }
   else {
-    printf("RUN NUMBER retrieval FROM the DB FAILED!!! PQ ERROR: %s",PQresultErrorMessage(res));
+    TLOG(TLVL_ERROR) << "RUN NUMBER retrieval FROM the DB FAILED!!! PQ ERROR:" << PQresultErrorMessage(res);
     PQclear(res);
     return -3;
   }
@@ -182,6 +201,12 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
 // insert a new row in the run_condition table if 
 // it pk(runConfiguration,runConfigurationVersion, runContext,runContextVersion) doesn't exist yet
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// these are going away
+//-----------------------------------------------------------------------------
+  std::string runContext        = "no_context";
+  std::string runContextVersion = "0";
+
   snprintf(buffer,
            sizeof(buffer),
            "SELECT configuration_name, configuration_version, context_name, context_version \
@@ -191,7 +216,7 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
             context_name      = '%s'  AND \
             context_version   = '%s';",
            _dbSchema,
-           runConfiguration.c_str(),
+           RunConfiguration,
            runConfigurationVersion.c_str(),
            runContext.c_str(),
            runContextVersion.c_str());
@@ -217,7 +242,8 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
 
     std::cout << pk << std::endl;
 
-    std::string pkRun = runConfiguration + runConfigurationVersion + runContext + runContextVersion;
+    std::string runInfoConditions = "unknown";
+    std::string pkRun = RunConfiguration + runConfigurationVersion + runContext + runContextVersion;
     if (strcmp(pk.c_str(), pkRun.c_str())) {
       PQclear(res);
       char buffer2[4192];
@@ -225,11 +251,11 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
                "INSERT INTO %s.run_condition(configuration_name, configuration_version, context_name, \
                 context_version, condition, commit_time)  VALUES ('%s','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
                _dbSchema,
-               runConfiguration.c_str(),
+               RunConfiguration,
                runConfigurationVersion.c_str(),
                runContext.c_str(),
                runContextVersion.c_str(),
-               RunInfoConditions.c_str());
+               runInfoConditions.c_str());
         
       res = PQexec(_runInfoDbConn, buffer2);
         
@@ -237,16 +263,29 @@ int db_runinfo::nextRunNumber(const std::string& RunInfoConditions) {
         std::cout << "INSERT INTO 'run_condition' DATABASE TABLE FAILED!!! PQ ERROR: " << PQresultErrorMessage(res)
                   << std::endl;
         PQclear(res);
-        return -6;;
+        return -6;
       }
     }
   }
     
   PQclear(res);
+  
+  if (StoreInODB) {
+//-----------------------------------------------------------------------------
+// instead of printing, store the next run number directly in ODB
+// MIDAS increments the next run number, so subtract one in advance
+//-----------------------------------------------------------------------------
+    int rn = runNumber-1;
+    rc = db_set_value(hDB, 0, "/Runinfo/Run number",&rn, sizeof(rn), 1, TID_INT32);
+    if (rc != CM_SUCCESS) {
+      TLOG(TLVL_ERROR) << "couldnt store the new run number=" << runNumber << "in ODB";
+      return -7;
+    }
+  }
 
   if (runNumber == -1) {
-    std::cout << "Impossible run number not defined by run info plugin!" << std::endl;
-    return -7;
+    TLOG(TLVL_ERROR) << "couldnt get new run number from Postgresql";
+    return -8;
   }
 
   return runNumber;

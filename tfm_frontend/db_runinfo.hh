@@ -31,7 +31,11 @@ public:
   db_runinfo (const char* UID, int DebugLevel = 0);
   ~db_runinfo();
 
-  int nextRunNumber     (const std::string& RunInfoConditions = "");
+//-----------------------------------------------------------------------------
+// run configuration should contain all needed information. By default, store 
+// the new run number in ODB
+//-----------------------------------------------------------------------------
+  int nextRunNumber     (const char* RunConfiguration, int StoreInODB=1);
   int registerTransition(int RunNumber, uint TransitionType);
 
 	int  openConnection ();
