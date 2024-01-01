@@ -7,12 +7,19 @@
 # ======================================================================
 cmake_minimum_required (VERSION 3.19 FATAL_ERROR)
 
-find_package(cetmodules 3.16.00 REQUIRED)
+# find_package(otsdaq_mu2e 1.02.00 REQUIRED)
+find_package(PostgreSQL 13.2 REQUIRED)
 
-project(otsdaq_mu2e_tracker VERSION 1.03.02)
+
+# project(otsdaq_mu2e_tracker VERSION 1.03.02)
+
+find_package(cetmodules 3.16.00 REQUIRED)
+project(frontends VERSION 1.01.01)
 
 include(CetCMakeEnv)
 cet_cmake_env()
+
+cet_cmake_module_directories(Modules BINARY)
 
 cet_set_compiler_flags(
         DIAGS VIGILANT
@@ -27,19 +34,19 @@ cet_set_compiler_flags(
 #endif()
 
 #cet_report_compiler_flags()
+# find_package(TRACE  3.17.04 REQUIRED EXPORT)
 
 # these are minimum required versions, not the actual product versions
-find_package(canvas_root_io REQUIRED EXPORT QUIET)
-find_package(canvas REQUIRED EXPORT QUIET)
+find_package(canvas_root_io  REQUIRED EXPORT QUIET)
+find_package(canvas          REQUIRED EXPORT QUIET)
+find_package(messagefacility REQUIRED EXPORT QUIET)
 
-# find_package(otsdaq_mu2e 1.02.00 REQUIRED)
-find_package(PostgreSQL 13.2 REQUIRED)
 
 #------------------------------------------------------------------------------
 # XDAQ Extra setup
 #------------------------------------------------------------------------------x
-include_directories($ENV{XDAQ_INC} $ENV{XDAQ_INC}/linux)
-link_directories($ENV{XDAQ_LIB})
+# include_directories($ENV{XDAQ_INC} $ENV{XDAQ_INC}/linux)
+# link_directories   ($ENV{XDAQ_LIB})
 
 message(>>> OTSDAQ_MU2E_TRACKER: XDAQ_INC=$ENV{XDAQ_INC})
 
