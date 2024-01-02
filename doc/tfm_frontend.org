@@ -1,0 +1,17 @@
+#startup:fold
+* ------------------------------------------------------------------------------
+* trigger farm (TFM) frontend : tfm_frontend                                 
+- interfaces MIDAS with ARTDAQ vis tfm 
+- tfm_frontend gets all its configuration parameters from the experiment ODB
+- to start interactively: 
+#+begin_src
+tfm_frontend
+#+end_src
+*** [/Experiment/ActiveConfiguration] : the active configuration name        
+- assumed to be set interactively when starting a new run
+*** [/Experiment/RunConfigurations/$conf] : folder containing configuration parameters 
+for different run configurations
+- [[file:run_configuration.org][format of the RunConfiguration table]]
+* ------------------------------------------------------------------------------
+* back to [[file:frontends.org]]
+* ------------------------------------------------------------------------------
