@@ -2,17 +2,18 @@
 
 parameters describing run configuration are stored in the [/Experiment/RunConfigurations] folder
 
-**** [/Experiment/RunConfigurations/$conf/ARTDAQ_PARTITION_NUMBER]           
+*** */Experiment/RunConfigurations/$conf/ARTDAQ_PARTITION_NUMBER*          
 the partition number used by artdaq, the same as os.getenv("ARTDAQ_PARTITION_NUMBER")
-**** [/Experiment/RunConfigurations/$conf/UseRunInfoDB]                      
+*** */Experiment/RunConfigurations/$conf/UseRunInfoDB*                      
 - if "Yes", gets next run number from Postgresql DB
 - if not, as in the demo example, gets next run number from local run_info
-**** [/Experiment/RunConfigurations/$conf/TriggerTable]                      
+*** */Experiment/RunConfigurations/$conf/TriggerTable*                      
 - at present, encodes both the name and the version of the trigger table, like 'trkvst_tt_v01'
 - version - the last four characters - '_v01'
-**** [/Experiment/RunConfigurations/$conf/RunType]                           
+*** */Experiment/RunConfigurations/$conf/RunType*                           
 - the type of the corresponding run, use to select data of a given type
 - see 'run_configuration_type' PG table
+|----------+-----------------|
 | run type | description     |
 |----------+-----------------|
 |        1 | tracker VST     |
