@@ -268,7 +268,7 @@ INT begin_of_run(INT RunNumber, char *error) {
   resultP = xmlrpc_client_call(&env, 
                                _xmlrpcUrl.data(),
                                "state_change",
-                               // "({s:i,s:i})",
+                                                         // "({s:i,s:i})",
                                "(ss{s:i})", 
                                "daqint",
                                "configuring",
