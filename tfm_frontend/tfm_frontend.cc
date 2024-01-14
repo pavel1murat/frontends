@@ -51,7 +51,7 @@ const char *frontend_name = "tfm_frontend";
 const char *frontend_file_name = __FILE__;
 
 /* frontend_loop is called periodically if this variable is TRUE    */
-BOOL frontend_call_loop = FALSE;
+BOOL frontend_call_loop = TRUE;
 
 // display frequency in ms for the frontend status page
 INT display_period      = 3000;
@@ -177,7 +177,9 @@ INT frontend_init() {
   // _xmlrpcUrl    = tfm_ps.get<std::string>("xmlrpcUrl","undefined");
 
   printf("tfm_frontend::%s _useRunInfoDB=%d\n",__func__,_useRunInfoDB);
-  printf("tfm_frontend::%s _xmlrpcUrl   =%s\n",__func__,_xmlrpcUrl.data());
+
+  TLOG(TLVL_DEBUG+4) << "farm_manager _useRunInfoDB:" << _useRunInfoDB;
+  TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
 //-----------------------------------------------------------------------------
 // this is for later - when we learn how to communicate with the TF manager
 // properly
@@ -186,6 +188,9 @@ INT frontend_init() {
   // _commander = artdaq::MakeCommanderPlugin(ps, *comm);
   // _commander->run_server();
 
+//-----------------------------------------------------------------------------
+// launch the farm manager
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // init XML RPC
 //-----------------------------------------------------------------------------
@@ -352,7 +357,7 @@ INT end_of_run(INT RunNumber, char *Error) {
   resultP = xmlrpc_client_call(&_env, 
                                _xmlrpcUrl.data(),
                                "state_change",
-                               // "({s:i,s:i})",
+                                                                                // "({s:i,s:i})",
                                "(ss{s:i})", 
                                "daqint",
                                "stopping",
@@ -408,6 +413,7 @@ INT resume_run(INT RunNumber, char *error) {
 INT frontend_loop() {
    /* if frontend_call_loop is true, this routine gets called when
       the frontend is idle or once between every event */
+  ss_sleep(1);
   return SUCCESS;
 }
 

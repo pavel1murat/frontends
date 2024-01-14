@@ -1,15 +1,27 @@
 ///////////////////////////////////////////////////////////////////////////////
 // P.Murat: cloned from nulldev.cc by Stefan Ritt
-// ROC slow control driver
+// TFM slow control driver
+// for now it stores 7 parameters:
+// -------------------------------
+// 0: boardreader : N (getNext calls)/sec 
+// 1: boardreader : N fragments/sec
+// 2: boardreader : data rate (MBytes/sec)
+// 3: eventbuilder: N events/sec
+// 4: eventbuilder: data rate (MBytes/sec)
+// 5: datalogger  : N events/sec
+// 6: datalogger  : data rate (MBytes/sec)
 ///////////////////////////////////////////////////////////////////////////////
 #include "TRACE/tracemf.h"
 #define TRACE_NAME "tfm_driver"
 
+#include <time.h>  
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <iostream>
+
 #include "midas.h"
 
 #include <vector>
@@ -23,7 +35,7 @@
 
 using std::vector, std::string;
 
-// static string _fn("tfm_driver.log");
+// static strings _fn("tfm_driver.log");
 // static FILE*  _f;
 
 /*---- globals -----------------------------------------------------*/
@@ -37,13 +49,16 @@ active = INT : 0\n\
 
 typedef INT(func_t) (INT cmd, ...);
 
+static int _partition;
+static int _base_port_number;
+
 /*---- device driver routines --------------------------------------*/
 /* the init function creates a ODB record which contains the
    settings and initialized it variables as well as the bus driver */
 //-----------------------------------------------------------------------------
 INT tfm_driver_init(HNDLE hkey, TFM_DRIVER_INFO **pinfo, INT channels, func_t *bd) {
   int             status, size;
-  HNDLE           hDB   , hkeydd;
+  HNDLE           hDB   , hkeydd, hConfKey;
   TFM_DRIVER_INFO *info;
 
    /* allocate info structure */
@@ -51,6 +66,18 @@ INT tfm_driver_init(HNDLE hkey, TFM_DRIVER_INFO **pinfo, INT channels, func_t *b
   *pinfo = info;
 
   cm_get_experiment_database(&hDB, NULL);
+
+  char        active_conf[100];
+  int   sz = sizeof(active_conf);
+  db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
+
+  char key[200];
+  sprintf(key,"/Experiment/RunConfigurations/%s",active_conf);
+	db_find_key(hDB, 0, key, &hConfKey);
+
+  sz = sizeof(int);
+  db_get_value(hDB, hConfKey, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
+  _base_port_number = 10000+1000*_partition;
 
    /* create DRIVER settings record */
   status = db_create_record(hDB, hkey, "DD", TFM_DRIVER_SETTINGS_STR);
@@ -171,22 +198,30 @@ int get_boardreader_data(const char* Url, float* Data) {
     vector<string> s1;
     boost::split(s1,res,boost::is_any_of("\n"));
 
-    // now, split the third line by ' ' : 
+    // now, split the second line by ' ' : 
 
+    boost::trim(s1[1]); 
+    TLOG(TLVL_INFO + 10) << "s1[1]:" << s1[1];
+
+    vector<string> s2;
+    boost::split(s2,s1[1],boost::is_any_of(" "));
+
+    vector<string> s3;
     boost::trim(s1[2]); 
     TLOG(TLVL_INFO + 10) << "s1[2]:" << s1[2];
 
-    vector<string> s2;
-    boost::split(s2,s1[2],boost::is_any_of(" "));
+    boost::split(s3,s1[2],boost::is_any_of(" "));
 
-    TLOG(TLVL_INFO + 10) << "s2[7]:" << s2[7] << " s2[13]:" << s2[13];
-    // there are leading spaces ! 
-    Data[0] = std::stof(s2[ 7]);
-    Data[1] = std::stof(s2[13]);
+    TLOG(TLVL_INFO + 10) << "s2[6]:" << s2[6] << "s3[7]:" << s3[7] << " s3[13]:" << s3[13];
+
+    Data[0] = std::stof(s2[ 6]);        // N(getNext calls)
+    Data[1] = std::stof(s3[ 7]);        // N(fragments/sec)
+    Data[2] = std::stof(s3[13]);        // data rate, MB/sec
   }
   catch (...) {
     Data[0] = 0;
     Data[1] = 0;
+    Data[2] = 0;
     rc      = -2;
   }
 
@@ -196,7 +231,7 @@ int get_boardreader_data(const char* Url, float* Data) {
 }
 
 //-----------------------------------------------------------------------------
-int get_datalogger_data(const char* Url, float* Data) {
+int get_receiver_data(const char* Url, float* Data) {
   // two words per process - N(segments/sec) and the data rate, MB/sec
   int rc (0);
 
@@ -265,29 +300,53 @@ int get_datalogger_data(const char* Url, float* Data) {
 
 //-----------------------------------------------------------------------------
 // this is the function which reads the registers
-// ----------------------------------------------
+// ----------------------------------------------------------------------------
 INT tfm_driver_get(TFM_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
 //-----------------------------------------------------------------------------
 // assume success for now and implement handling of timeouts/errors etc later
 // start with the first boardreader, the rest will come after that
+// limit the readout frequency
 //-----------------------------------------------------------------------------
-  std::string   br1Url("http://localhost:21100/RPC2");
-  std::string   dl1Url("http://localhost:21104/RPC2");
+  static time_t previous_timer(0);
+  time_t        timer;
 
-  if (Channel == 0) {
-    // float data[2];
+  TLOG(TLVL_DEBUG+10) << "driver called";
+
+  timer = time(NULL); 
+  double time_diff = difftime(timer,previous_timer);
+  if ((time_diff > 5) and (Channel == 0)) { 
+    previous_timer=timer;
+
+    // if (Channel == 0) { 
+    const char* trace_file = std::getenv("TRACE_FILE");
+
+    //    TLOG(TLVL_DEBUG) << "reading channel:" << Channel << "TRACE_FILE=" << trace_file;
+
+    int br1_port = _base_port_number + 100 +  0;
+    int eb1_port = _base_port_number + 100 +  1;
+    int dl1_port = _base_port_number + 100 +  2;
+
+    std::string   br1Url = "http://localhost:"+std::to_string(br1_port)+"/RPC2";
+    std::string   eb1Url = "http://localhost:"+std::to_string(eb1_port)+"/RPC2";
+    std::string   dl1Url = "http://localhost:"+std::to_string(dl1_port)+"/RPC2";
+
+    if (Channel == 0) {
 //-----------------------------------------------------------------------------
 // read once for all channels
 //-----------------------------------------------------------------------------
-    get_boardreader_data(br1Url.data(),&Info->array[0]);
-    get_datalogger_data (dl1Url.data(),&Info->array[2]);
+      get_boardreader_data(br1Url.data(),&Info->array[0]);
+      get_receiver_data   (eb1Url.data(),&Info->array[3]);
+      get_receiver_data   (dl1Url.data(),&Info->array[5]);
 
-    TLOG(TLVL_DEBUG+10) << "Data:" << Info->array[0] << " " << Info->array[1] ;
+      TLOG(TLVL_DEBUG+10) << "Data:" << Info->array[0] << " " << Info->array[1] ;
+    }
   }
-
-  if (Channel < 4) *Pvalue = Info->array[Channel];
+//-----------------------------------------------------------------------------
+// so far, 7 parameters
+//-----------------------------------------------------------------------------
+  if (Channel < 7) *Pvalue = Info->array[Channel];
   else {
-    printf("driver_get TFM_DRIVER: channel = %i. IN TROUBLE\n",Channel);
+    TLOG(TLVL_INFO+4) << "channel = " << Channel <<" outside the limits. TROUBLE";
   }
 
   return FE_SUCCESS;

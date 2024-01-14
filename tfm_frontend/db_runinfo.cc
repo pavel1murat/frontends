@@ -19,21 +19,40 @@
 db_runinfo::db_runinfo(const char* UID, int DebugLevel) {
   _uid      = UID;
 
-  _dbname   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE"       ) ? getenv("OTSDAQ_RUNINFO_DATABASE"       ) : "run_info");
-  _dbhost   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_HOST"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_HOST"  ) : "");
-  _dbport   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_PORT"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_PORT"  ) : "");
-  _dbuser   = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_USER"  ) ? getenv("OTSDAQ_RUNINFO_DATABASE_USER"  ) : "");
-  _dbpwd    = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_PWD"   ) ? getenv("OTSDAQ_RUNINFO_DATABASE_PWD"   ) : "");
-  _dbSchema = (const char*) (getenv("OTSDAQ_RUNINFO_DATABASE_SCHEMA") ? getenv("OTSDAQ_RUNINFO_DATABASE_SCHEMA") : "test");
+  HNDLE       hDB, hKey;
+  int rc = cm_get_experiment_database(&hDB, NULL);
+  if (rc != CM_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to connect to ODB";
+    return;
+  }
 
-  _debugLevel  = DebugLevel;
+	db_find_key(hDB, 0, "/Runinfo/PostgresqlDB", &hKey);
+ 
+  int  sz;
+  char database[32], host[32], port[32], user[32], pwd[32], schema[32];
+
+  sz = sizeof(database); db_get_value(hDB, hKey, "Database", database, &sz, TID_STRING, FALSE);
+  sz = sizeof(host    ); db_get_value(hDB, hKey, "Host"    , host    , &sz, TID_STRING, FALSE);
+  sz = sizeof(port    ); db_get_value(hDB, hKey, "Port"    , port    , &sz, TID_STRING, FALSE);
+  sz = sizeof(user    ); db_get_value(hDB, hKey, "User"    , user    , &sz, TID_STRING, FALSE);
+  sz = sizeof(pwd     ); db_get_value(hDB, hKey, "Pwd"     , pwd     , &sz, TID_STRING, FALSE);
+  sz = sizeof(schema  ); db_get_value(hDB, hKey, "Schema"  , schema  , &sz, TID_STRING, FALSE);
+
+  _dbname     = database;
+  _dbhost     = host    ;
+  _dbport     = port    ;
+  _dbuser     = user    ; 
+  _dbpwd      = pwd     ;
+  _dbSchema   = schema  ;
+
+  _debugLevel = DebugLevel;
 
   if (_dbuser[0] == 0) {
     TLOG(TLVL_ERROR) << " Postgresql DB user is not defined";
     throw("db_runinfo::db_runinfo: Postgresql DB user is not defined"); 
   }
 
-  int rc = openConnection();
+  rc = openConnection();
   TLOG(TLVL_DEBUG) << "after openConnection rc=" << rc;
 }
 
@@ -47,11 +66,11 @@ int db_runinfo::openConnection() {
   char runInfoDbConnInfo [1024];
 
   sprintf(runInfoDbConnInfo, "dbname=%s host=%s port=%s user=%s password=%s", 
-          _dbname, _dbhost, _dbport, _dbuser, _dbpwd);
+          _dbname.data(), _dbhost.data(), _dbport.data(), _dbuser.data(), _dbpwd.data());
 
   _runInfoDbConn = PQconnectdb(runInfoDbConnInfo);
 
-  TLOG(TLVL_DEBUG) << "connecting to Postgresql";
+  TLOG(TLVL_DEBUG) << "connecting to Postgresql:" << runInfoDbConnInfo ;
 
   if (PQstatus(_runInfoDbConn) == CONNECTION_OK)            return 0;
 
@@ -87,7 +106,7 @@ int db_runinfo::registerTransition(int RunNumber, uint TransitionType) {
                                           transition_type, \
                                           transition_time)    \
                       VALUES (%ld,'%d',CURRENT_TIMESTAMP);",
-           _dbSchema, (long int) (RunNumber), TransitionType);
+           _dbSchema.data(), (long int) (RunNumber), TransitionType);
 
   res = PQexec(_runInfoDbConn,buffer);
 
@@ -149,24 +168,29 @@ int db_runinfo::nextRunNumber(const char* RunConfiguration, int StoreInODB) { //
 //-----------------------------------------------------------------------------
 //  at this point run number in the DB gets incremented
 //-----------------------------------------------------------------------------
-  snprintf(buffer,sizeof(buffer),
-           "INSERT INTO %s.run_configuration( \
-                        run_type \
-                      , host_name \
-                      , artdaq_partition \
-                      , configuration_name \
-                      , configuration_version \
-                      , trigger_table_name \
-                      , trigger_table_version \
-                      , commit_time) \
-                      VALUES ('%d','%s','%d','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
-           _dbSchema,
+  std::string format = "INSERT INTO %s.run_configuration(run_type, host_name, ";
+  format            += "artdaq_partition, configuration_name, configuration_version, ";
+  format            += "trigger_table_name, trigger_table_version, commit_time) ";
+  format            += "VALUES ('%d','%s','%d','%s','%s','%s','%s',CURRENT_TIMESTAMP);";
+
+           // "INSERT INTO %s.run_configuration(run_type, host_name, artdaq_partition 
+           //            , configuration_name    
+           //            , configuration_version 
+           //            , trigger_table_name 
+           //            , trigger_table_version 
+           //            , commit_time) 
+           // VALUES ('%d','%s','%d','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
+
+  snprintf(buffer,sizeof(buffer),format.data(),
+           _dbSchema.data(),
            runType,
            hostName,
            partition_number,
            RunConfiguration,
            runConfigurationVersion.c_str(),
            trigger_table_name,"1");
+
+  TLOG(TLVL_DEBUG) << "line:" << __LINE__ << " query:\n" << buffer;
 
   res = PQexec(_runInfoDbConn, buffer);
 
@@ -176,7 +200,7 @@ int db_runinfo::nextRunNumber(const char* RunConfiguration, int StoreInODB) { //
   }
   PQclear(res);
 
-  snprintf(buffer,sizeof(buffer),"select max(run_number) from %s.run_configuration;",_dbSchema);
+  snprintf(buffer,sizeof(buffer),"select max(run_number) from %s.run_configuration;",_dbSchema.data());
 
   res = PQexec(_runInfoDbConn, buffer);
 
@@ -215,7 +239,7 @@ int db_runinfo::nextRunNumber(const char* RunConfiguration, int StoreInODB) { //
             configuration_version = '%s'  AND \
             context_name      = '%s'  AND \
             context_version   = '%s';",
-           _dbSchema,
+           _dbSchema.data(),
            RunConfiguration,
            runConfigurationVersion.c_str(),
            runContext.c_str(),
@@ -250,7 +274,7 @@ int db_runinfo::nextRunNumber(const char* RunConfiguration, int StoreInODB) { //
       snprintf(buffer2,sizeof(buffer2),
                "INSERT INTO %s.run_condition(configuration_name, configuration_version, context_name, \
                 context_version, condition, commit_time)  VALUES ('%s','%s','%s','%s','%s',CURRENT_TIMESTAMP);",
-               _dbSchema,
+               _dbSchema.data(),
                RunConfiguration,
                runConfigurationVersion.c_str(),
                runContext.c_str(),
