@@ -10,7 +10,7 @@
 //-----------------------------------------------------------------------------
 /* device driver list */
 DEVICE_DRIVER driver_list[] = {
-  {"tfm_driver", tfm_driver ,  4 , null, DF_INPUT},
+  {"tfm_driver", tfm_driver ,  20 , null, DF_INPUT},  // reserve the array larger than the immediate need
   {""}
 };
 

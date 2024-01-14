@@ -27,9 +27,6 @@ cet_set_compiler_flags(
 
 cet_make_library(LIBRARY_NAME frontends_tfm 
                  SOURCE       db_runinfo.cc 
-                 # dumpvalue.cc 
-                 # my_xmlrpc.cc  cmdline_parser.cc string_parser.cc 
-                 # getoptx.cc stripcaseeq.cc
                  LIBRARIES PUBLIC 
                  midas
                  ${PostgreSQL_LIBRARIES} 
@@ -52,6 +49,21 @@ cet_make_exec(NAME      tfm_frontend
               SOURCE    tfm_frontend.cc 
                         tfm_driver.cc
                         $ENV{MIDASSYS}/drivers/class/multi.cxx
+                        $ENV{MIDASSYS}/drivers/bus/null.cxx
+              LIBRARIES frontends_tfm midas mfe 
+                        artdaq_plugin_support::commanderMaker
+                        artdaq::Application                       # needed for messagefacility
+                        artdaq::DAQrate
+                        artdaq::DAQdata
+                        artdaq::BuildInfo
+                        artdaq_core::artdaq-core_Utilities
+                        artdaq_core::artdaq-core_Plugins
+)                  
+
+cet_make_exec(NAME      tfm_fe_launch 
+              SOURCE    tfm_fe_launch.cc 
+                        $ENV{MIDASSYS}/drivers/class/multi.cxx
+                        $ENV{MIDASSYS}/drivers/device/nulldev.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
               LIBRARIES frontends_tfm midas mfe 
                         artdaq_plugin_support::commanderMaker

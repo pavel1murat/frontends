@@ -5,3 +5,5 @@
 ** [[file:dtc_frontend][dtc_frontend]] : DTC slow monitoring frontend
 ** [[file:roc_frontend.org][roc_frontend]] : ROC slow monitoring frontend, presently - a tracker ROC frontend
 * ------------------------------------------------------------------------------
+* additional documentation on MIDAS: file:midas.org
+* ------------------------------------------------------------------------------

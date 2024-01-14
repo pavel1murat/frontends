@@ -50,7 +50,7 @@ namespace {
 const char *frontend_file_name = __FILE__;
 
 /* frontend_loop is called periodically if this variable is TRUE    */
-BOOL frontend_call_loop = FALSE;
+BOOL frontend_call_loop = TRUE;
 
 /* a frontend status page is displayed with this frequency in ms    */
 INT display_period = 1000;
@@ -90,11 +90,13 @@ INT frontend_exit() {
 
 /*-- Frontend Loop -------------------------------------------------*/
 INT frontend_loop() {
+  ss_sleep(2);
   return CM_SUCCESS;
 }
 
-/*-- Begin of Run --------------------------------------------------*/
-
+//-----------------------------------------------------------------------------
+// at begin run want to clear all DTC counters
+//-----------------------------------------------------------------------------
 INT begin_of_run(INT run_number, char *error) {
   return CM_SUCCESS;
 }

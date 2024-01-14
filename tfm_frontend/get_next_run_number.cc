@@ -36,7 +36,7 @@ int main(int argc, const char** argv) {
   rc = cm_get_experiment_database(&hDB, NULL);
   if (rc != CM_SUCCESS) {
     TLOG(TLVL_ERROR) << "couldnt connect to  ODB";
-    return -2;
+    return -2;                  // no need to disconnect
   }
 //-----------------------------------------------------------------------------
 // open new connection to Postgresql
@@ -52,9 +52,8 @@ int main(int argc, const char** argv) {
 //-----------------------------------------------------------------------------
     rc = rn;
     TLOG(TLVL_ERROR) << "couldnt define new run number, rc=" << rc;
-    return rc;
   }
 
   cm_disconnect_experiment();
-  return 0;
+  return rc;
 }

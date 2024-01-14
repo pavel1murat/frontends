@@ -1,0 +1,17 @@
+#+startup:fold
+#
+# this is a set of short notes complementing the MIDAS documentation at 
+
+            https://daq00.triumf.ca/MidasWiki/index.php
+
+# ------------------------------------------------------------------------------
+** elog                                                                      
+*** built-in elog                                                            
+- The built-in elog data are stored in the directory defined by the "/Logger/Elog dir" ODB key. 
+- If that is not defined, the built-in elog directory is defined by the "/Logger/Data dir" ODB key.
+** Equipment update thresholds - slow controls                               
+- in the "Equipment/XXX/Settings/Update Threshold" the defaults are set to 0.1
+- for low voltages, the update thresholds may need to be customized
+* ------------------------------------------------------------------------------
+* back to file:frontends.org
+* ------------------------------------------------------------------------------
