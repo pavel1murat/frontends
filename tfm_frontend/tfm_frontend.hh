@@ -9,8 +9,13 @@
 #include "tfm_frontend/tfm_driver.hh"
 //-----------------------------------------------------------------------------
 /* device driver list */
+//-----------------------------------------------------------------------------
+// it is possible that having separate drivers for a boardreader, datareceiver and a file
+// is a good idea, "multi" would by a natural choice
+// but how would that play with the total number of threads ?
+//-----------------------------------------------------------------------------
 DEVICE_DRIVER driver_list[] = {
-  {"tfm_driver", tfm_driver ,  20 , null, DF_INPUT},  // reserve the array larger than the immediate need
+  {"tfm_driver", tfm_driver , 100 , null, DF_INPUT},  // reserve the array larger than the immediate need
   {""}
 };
 

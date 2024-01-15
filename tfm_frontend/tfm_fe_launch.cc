@@ -138,7 +138,7 @@ INT frontend_init() {
 // launch the farm manager via dbus-console
 //-----------------------------------------------------------------------------
   char cmd[200];
-  sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e start/start_farm_manager %s %i",
+  sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e daq_scripts/start_farm_manager %s %i",
           _artdaq_conf,_partition);
 
   TLOG(TLVL_DEBUG+4) << "before launching: cmd=" << cmd;
