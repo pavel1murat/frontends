@@ -3,7 +3,7 @@
 // make sure the TRACE name is the same as the 
 //-----------------------------------------------------------------------------
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "tfm_fe_launch"
+#define  TRACE_NAME "tfm_launch_fe"
 
 #undef NDEBUG // midas required assert() to be always enabled
 
@@ -24,7 +24,7 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
-#include "tfm_frontend/tfm_fe_launch.hh"
+#include "tfm_frontend/tfm_launch_fe.hh"
 
 /*-- Globals -------------------------------------------------------*/
 

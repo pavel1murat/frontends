@@ -1,0 +1,5 @@
+COMMENT "new sequence"
+
+RUNDESCRIPTION "new sequence"
+
+script ./aaa_001.sh

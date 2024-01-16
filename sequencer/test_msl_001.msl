@@ -1,0 +1,9 @@
+# -*- mode:text -*-
+#
+# and example of calling an external shell script and passing to it a value stored in ODB  
+#
+v=0
+odbget /Experiment/ActiveConfiguration, v
+script /home/mu2etrk/test_stand/pasha_020/test_msl.sh, $v
+
+

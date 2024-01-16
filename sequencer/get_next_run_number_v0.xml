@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<RunSequence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="">
+<ODBGet l="11" path="/Experiment/ActiveConfiguration/RunType">run_type</ODBGet>
+<Script l="13" params="$run_type">./get_next_run_number.sh</Script>
+<ODBSet l="19" path="/Runinfo/Run number">$SCRIPT_RESULT-1</ODBSet>
+</RunSequence>

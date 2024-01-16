@@ -7,11 +7,117 @@
 #+begin_src
 tfm_frontend
 #+end_src
-*** */Experiment/ActiveConfiguration]* : the active configuration name        
+*** */Experiment/ActiveConfiguration]* : the active configuration name       
 - assumed to be set interactively when starting a new run
 *** */Experiment/RunConfigurations/$conf* : folder containing configuration parameters 
 for different run configurations
-- [[file:run_configuration.org][format of the RunConfiguration table]]
+- [[file:run_configuration.org][format of the RunConfiguration table]] 
+** <2024-01-15 Mon> monitored quantities (will change in time)               
+|-------+----------------------------+----------|
+| index | name                       | comments |
+|-------+----------------------------+----------|
+|     0 | "BR1 RunNumber",           |          |
+|     1 | "BR1 NFragTot",            |          |
+|     2 | "BR1 NFragRead",           |          |
+|     3 | "BR1 GetNextRate",         |          |
+|     4 | "BR1 FragRate",            |          |
+|     5 | "BR1 TimeWindow",          |          |
+|     6 | "BR1 MinNFrag",            |          |
+|     7 | "BR1 MaxNFrag",            |          |
+|     8 | "BR1 ElapsedTime",         |          |
+|     9 | "BR1 DataRate,MB/sec",     |          |
+|    10 | "BR1 MinEventSize",        |          |
+|    11 | "BR1 MaxEventSize",        |          |
+|    12 | "BR1 InputWaitTime",       |          |
+|    13 | "BR1 BufferWaitTime",      |          |
+|    14 | "BR1 RequestWaitTime",     |          |
+|    15 | "BR1 OutputWaitTime",      |          |
+|    16 | "BR1 FragID[0]",           |          |
+|    17 | "BR1 NFragsID[0]",         |          |
+|    18 | "BR1 NBytesID[0]",         |          |
+|    19 | "BR1 FragID[1]",           |          |
+|    20 | "BR1 NFragsID[1]",         |          |
+|    21 | "BR1 NBytesID[1]",         |          |
+|    22 | "BR1 FragID[2]",           |          |
+|    23 | "BR1 NFragsID[2]",         |          |
+|    24 | "BR1 NBytesID[2]",         |          |
+|    25 | "BR1 FragID[3]",           |          |
+|    26 | "BR1 NFragsID[3]",         |          |
+|    27 | "BR1 NBytesID[3]",         |          |
+|    28 | "BR1 FragID[4]",           |          |
+|    29 | "BR1 NFragsID[4]",         |          |
+|    30 | "BR1 NBytesID[4]",         |          |
+|    31 | "BR1 Input Channel 31",    |          |
+|    32 | "BR1 Input Channel 32",    |          |
+|    33 | "BR1 Input Channel 33",    |          |
+|    34 | "BR1 Input Channel 34",    |          |
+|    35 | "BR1 Input Channel 35",    |          |
+|    36 | "BR1 Input Channel 36",    |          |
+|    37 | "BR1 Input Channel 37",    |          |
+|    38 | "BR1 Input Channel 38",    |          |
+|    39 | "BR1 Input Channel 39",    |          |
+|    40 | "EB1 NEventsRead",         |          |
+|    41 | "EB1 EventRate",           |          |
+|    42 | "EB1 DataRateEv,MB/sec",   |          |
+|    43 | "EB1 TimeWindow",          |          |
+|    44 | "EB1 MinEventSize,MB",     |          |
+|    45 | "EB1 MaxEventSize,MB",     |          |
+|    46 | "EB1 ElapsedTIme",         |          |
+|    47 | "EB1 NFragRead",           |          |
+|    48 | "EB1 FragRate",            |          |
+|    49 | "EB1 DataRateFrag,MB/sec", |          |
+|    50 | "EB1 MinFragSize,MB",      |          |
+|    51 | "EB1 MaxFragSize,MB",      |          |
+|    52 | "EB1 NEvTotRun",           |          |
+|    53 | "EB1 NEvBadRun",           |          |
+|    54 | "EB1 NEvTotSubrun",        |          |
+|    55 | "EB1 NEvBadSubrun",        |          |
+|    56 | "EB1 NShmBufTot",          |          |
+|    57 | "EB1 NShmBufSize",         |          |
+|    58 | "EB1 NShmBufEmpty",        |          |
+|    59 | "EB1 NShmBufWrite",        |          |
+|    60 | "EB1 NShmBufFull",         |          |
+|    61 | "EB1 NShmBugRead",         |          |
+|    62 | "EB1 Input Channel 62",    |          |
+|    63 | "EB1 Input Channel 63",    |          |
+|    64 | "EB1 Input Channel 64",    |          |
+|    65 | "EB1 Input Channel 65",    |          |
+|    66 | "EB1 Input Channel 66",    |          |
+|    67 | "EB1 Input Channel 67",    |          |
+|    68 | "EB1 Input Channel 68",    |          |
+|    69 | "EB1 Input Channel 69",    |          |
+|    70 | "DL1 NEventsRead",         |          |
+|    71 | "DL1 EventRate",           |          |
+|    72 | "DL1 DataRateEv,MB/sec",   |          |
+|    73 | "DL1 TimeWindow",          |          |
+|    74 | "DL1 MinEventSize,MB",     |          |
+|    75 | "DL1 MaxEventSize,MB",     |          |
+|    76 | "DL1 ElapsedTIme",         |          |
+|    77 | "DL1 NFragRead",           |          |
+|    78 | "DL1 FragRate",            |          |
+|    79 | "DL1 DataRateFrag,MB/sec", |          |
+|    80 | "DL1 MinFragSize,MB",      |          |
+|    81 | "DL1 MaxFragSize,MB",      |          |
+|    82 | "DL1 NEvTotRun",           |          |
+|    83 | "DL1 NEvBadRun",           |          |
+|    84 | "DL1 NEvTotSubrun",        |          |
+|    85 | "DL1 NEvBadSubrun",        |          |
+|    86 | "DL1 NShmBufTot",          |          |
+|    87 | "DL1 NShmBufSize",         |          |
+|    88 | "DL1 NShmBufEmpty",        |          |
+|    89 | "DL1 NShmBufWrite",        |          |
+|    90 | "DL1 NShmBufFull",         |          |
+|    91 | "DL1 NShmBugRead",         |          |
+|    92 | "DL1 Input Channel 92",    |          |
+|    93 | "DL1 Input Channel 93",    |          |
+|    94 | "DL1 Input Channel 94",    |          |
+|    95 | "DL1 Input Channel 95",    |          |
+|    96 | "DL1 Input Channel 96",    |          |
+|    97 | "DL1 Input Channel 97",    |          |
+|    98 | "OutputFileSize,MB",       |          |
+|    99 | "OutputFileWRate,MB/sec"   |          |
+|-------+----------------------------+----------|
+
 * ------------------------------------------------------------------------------
 * back to [[file:frontends.org]]
 * ------------------------------------------------------------------------------

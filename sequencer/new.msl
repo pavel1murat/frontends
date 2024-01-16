@@ -1,0 +1,9 @@
+COMMENT "new sequence"
+
+RUNDESCRIPTION "new sequence"
+
+SCRIPT emoe.sh
+include aaa_001
+call aaa_001
+
+

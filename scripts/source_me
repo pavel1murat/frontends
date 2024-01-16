@@ -1,0 +1,31 @@
+#!/usr/bin/bash
+
+source setup_ots.sh
+export DTCLIB_DTC=1
+source Setup_DTC.sh
+source setup_midas.sh test_001
+source srcs/tfm/bin/tfm_configure /home/mu2etrk/test_stand/pasha_020/config/vst_001 8 
+ssh -f -KX -N -o ExitOnForwardFailure=yes -L 5434:mu2e-dcs-01:5434 -J mu2eshift@mu2egateway01.fnal.gov mu2eshift@mu2e-dcs-01.fnal.gov
+#------------------------------------------------------------------------------
+# how to automate this ? check if the ssh connection is functional
+#------------------------------------------------------------------------------
+# postgresql://$DB_USER:$DB_PWD@$DB_SERVER/$DB_NAME"
+# psql  -h localhost -p 5434  run_info -U  run_user -W
+# psql  'postgresql://run_user:Prot0User2020!@localhost:5434/run_info' -q a.sql
+# ssh -l mu2eshift -W mu2e-dcs-01.fnal.gov:22 mu2egateway01.fnal.gov
+# ssh -f -KX -N -L 27017:localhost:27017 -J mu2edaq-gateway.fnal.gov mu2edaq13.fnal.gov
+# ssh -f -KX -N -L 27017:localhost:27017 mu2edaq13.fnal.gov
+
+# export      DCS_ARCHIVE_DATABASE="dcs_archive"
+# export DCS_ARCHIVE_DATABASE_HOST="localhost"
+# export DCS_ARCHIVE_DATABASE_PORT="5434"
+# export DCS_ARCHIVE_DATABASE_USER="dcs_writer"
+# export DCS_ARCHIVE_DATABASE_PWD=Write4Dcs
+# 
+# export         OTSDAQ_COMPILE_RUNINFO="1"
+# export        OTSDAQ_RUNINFO_DATABASE="run_info"
+# export   OTSDAQ_RUNINFO_DATABASE_HOST="localhost"
+# export   OTSDAQ_RUNINFO_DATABASE_PORT="5434"
+# export   OTSDAQ_RUNINFO_DATABASE_USER="run_user"
+# export OTSDAQ_RUNINFO_DATABASE_SCHEMA="test"
+# export OTSDAQ_RUNINFO_DATABASE_PWD=Prot0User2020!

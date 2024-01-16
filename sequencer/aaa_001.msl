@@ -1,0 +1,8 @@
+COMMENT "new sequence"
+
+RUNDESCRIPTION "new sequence"
+
+script ./aaa_001.sh
+
+include aaa_001.msl
+call aaa_001
