@@ -1,0 +1,22 @@
+# -*- mode:text -*-
+#------------------------------------------------------------------------------------
+# last step before starting a run
+# get next run number from the run info DB. 
+# the shell script is supposed to register the next run and print its number (and only the run number) 
+# then it propagates to MIDAS
+# need to protect things so the new run could not be started w/o registering,
+# for example, the end_run would write into the ODB some flag, w/o which one couldn't start the run 
+# get_run_number adds a new run_configuration record, so it needs to know the run_type
+#------------------------------------------------------------------------------------
+# odbget /Experiment/ActiveConfiguration/RunType, run_type
+# script ./get_next_run_number.sh , $run_type
+#------------------------------------------------------------------------------------
+# MIDAS increments the run number, so subtract one from it....
+#------------------------------------------------------------------------------------
+# odbset /Runinfo/Run number, $SCRIPT_RESULT-1
+#------------------------------------------------------------------------------------
+# new version of the executable takes the run configuration name as a parameter
+#------------------------------------------------------------------------------------
+odbget /Experiment/ActiveConfiguration, conf
+script get_next_run_number, $conf
+

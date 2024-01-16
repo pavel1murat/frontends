@@ -2,7 +2,6 @@
 # Build this project's executables:
 
 include_directories($ENV{MIDASSYS} $ENV{MIDASSYS}/include)
-# include_directories($ENV{MRB_BUILDDIR}/xmlrpc-c/include/xmlrpc-c)
 include_directories($ENV{XMLRPC_C_INCLUDE_DIR})
 include_directories(${PostgreSQL_INCLUDE_DIRS})
 include_directories($ENV{TRACE_INC})
@@ -45,8 +44,8 @@ cet_make_exec(NAME      client
                         pthread rt util
 )                  
 
-cet_make_exec(NAME      tfm_frontend 
-              SOURCE    tfm_frontend.cc 
+cet_make_exec(NAME      tfm_mon_fe
+              SOURCE    tfm_mon_fe.cc 
                         tfm_driver.cc
                         $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
@@ -60,8 +59,8 @@ cet_make_exec(NAME      tfm_frontend
                         artdaq_core::artdaq-core_Plugins
 )                  
 
-cet_make_exec(NAME      tfm_fe_launch 
-              SOURCE    tfm_fe_launch.cc 
+cet_make_exec(NAME      tfm_launch_fe 
+              SOURCE    tfm_launch_fe.cc 
                         $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/device/nulldev.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx

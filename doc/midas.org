@@ -12,6 +12,14 @@
 ** Equipment update thresholds - slow controls                               
 - in the "Equipment/XXX/Settings/Update Threshold" the defaults are set to 0.1
 - for low voltages, the update thresholds may need to be customized
+** sequencer                                                                 
+- location of the sequencer scripts: key="/Sequencer/State/Path"
+- proposed for Mu2e: $experiment/online/sequencer
+- scripts should be copied there from [[file:../sequencer][frontends/sequencer]] directory, which is 
+  a revision-controled area
+** history                                                                   
+- location of the files:                                                     
+- key="/Logger/History dir"
 * ------------------------------------------------------------------------------
 * back to file:frontends.org
 * ------------------------------------------------------------------------------

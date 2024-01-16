@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<RunSequence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="">
+<ODBGet l="20" path="/Experiment/ActiveConfiguration">conf</ODBGet>
+<Script l="21" params="$conf">get_next_run_number</Script>
+</RunSequence>

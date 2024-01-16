@@ -285,8 +285,8 @@ int get_boardreader_data(const char* Url, float* Data) {
 
     vector<string> n2;
     boost::split(n2,words[24],boost::is_any_of(":"));
-    brs.minEventSize = std::stof(n1[ 0]);
-    brs.maxEventSize = std::stof(n1[ 2]);
+    brs.minEventSize = std::stof(n2[ 0]);
+    brs.maxEventSize = std::stof(n2[ 2]);
 
     TLOG(TLVL_INFO + 10) << "words[13]:" << words[13] << " words[24]:" << words[24] << " n2[0]:" << n2[0] << " n2[2]:" << n2[2];
 //-----------------------------------------------------------------------------
@@ -410,9 +410,9 @@ int get_receiver_data(const char* Url, float* Data) {
     int    maxFragSize;                 // per getNext call , end of line 3
 
     int    nEvTotRun;                   // 
-    int    nEvIncRun;                   // 
+    int    nEvBadRun;                   // 
     int    nEvTotSubrun;                // 
-    int    nEvIncSubrun;                // end of line 4
+    int    nEvBadSubrun;                // end of line 4
 
     int    nShmBufTot;                  // total number of allocated SHM buffers
     int    nShmBufEmpty;                // n empty (free) buffers
@@ -512,9 +512,9 @@ int get_receiver_data(const char* Url, float* Data) {
                          << " words[11]:" << words[11] << " words[13]:" << words[13] ;
 
     rs.nEvTotRun    = std::stoi(words[ 4]);
-    rs.nEvIncRun    = std::stoi(words[ 6]);
+    rs.nEvBadRun    = std::stoi(words[ 6]);
     rs.nEvTotSubrun = std::stoi(words[11]);
-    rs.nEvIncSubrun = std::stoi(words[13]);
+    rs.nEvBadSubrun = std::stoi(words[13]);
 //-----------------------------------------------------------------------------
 // line #5:
 // shm_nbb :10:1048576:0:0:10:0\n
@@ -546,9 +546,9 @@ int get_receiver_data(const char* Url, float* Data) {
     Data[10] = rs.minFragSize;
     Data[11] = rs.maxFragSize;
     Data[12] = rs.nEvTotRun;
-    Data[13] = rs.nEvIncRun;
+    Data[13] = rs.nEvBadRun;
     Data[14] = rs.nEvTotSubrun;
-    Data[15] = rs.nEvIncSubrun;
+    Data[15] = rs.nEvBadSubrun;
     Data[16] = rs.nShmBufTot;
     Data[17] = rs.nShmBufEmpty;
     Data[18] = rs.nShmBufWrite;

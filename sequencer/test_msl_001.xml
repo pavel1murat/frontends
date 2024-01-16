@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<RunSequence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="">
+<Set l="5" name="v">0</Set>
+<ODBGet l="6" path="/Experiment/ActiveConfiguration">v</ODBGet>
+<Script l="7" params="$v">/home/mu2etrk/test_stand/pasha_020/test_msl.sh</Script>
+</RunSequence>

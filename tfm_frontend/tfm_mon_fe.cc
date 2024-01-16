@@ -21,7 +21,7 @@
 #undef NDEBUG // midas required assert() to be always enabled
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "tfm_frontend"
+#define  TRACE_NAME "tfm_mon_fe"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,12 +41,13 @@
 #include <xmlrpc-c/client.h>
 
 #include "tfm_frontend/db_runinfo.hh"
-#include "tfm_frontend/tfm_frontend.hh"
+#include "tfm_frontend/tfm_mon_fe.hh"
 
 /*-- Globals -------------------------------------------------------*/
 
 /* The frontend name (client name) as seen by other MIDAS clients   */
-const char *frontend_name = "tfm_frontend";
+const char *frontend_name = TRACE_NAME;
+
 /* The frontend file name, don't change it */
 const char *frontend_file_name = __FILE__;
 
@@ -413,7 +414,7 @@ INT resume_run(INT RunNumber, char *error) {
 INT frontend_loop() {
    /* if frontend_call_loop is true, this routine gets called when
       the frontend is idle or once between every event */
-  ss_sleep(1);
+  ss_sleep(3);
   return SUCCESS;
 }
 

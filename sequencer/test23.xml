@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<RunSequence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="">
+<Comment l="1">23 lines test</Comment>
+<RunDescription l="3">23 lines test</RunDescription>
+<Loop l="5" le="23" n="5">
+<Transition l="6">start</Transition>
+<Wait l="7" for="seconds">3</Wait>
+<Wait l="8" for="seconds">3</Wait>
+<Wait l="9" for="seconds">3</Wait>
+<Wait l="10" for="seconds">3</Wait>
+<Wait l="11" for="seconds">3</Wait>
+<Wait l="12" for="seconds">3</Wait>
+<Wait l="13" for="seconds">3</Wait>
+<Wait l="14" for="seconds">3</Wait>
+<Wait l="15" for="seconds">3</Wait>
+<Wait l="16" for="seconds">3</Wait>
+<Wait l="17" for="seconds">3</Wait>
+<Wait l="18" for="seconds">3</Wait>
+<Wait l="19" for="seconds">3</Wait>
+<Wait l="20" for="seconds">3</Wait>
+<Wait l="21" for="seconds">3</Wait>
+<Transition l="22">stop</Transition>
+</Loop>
+</RunSequence>

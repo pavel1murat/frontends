@@ -1,17 +1,21 @@
 //////////////////////////////////////////////////////////////////////////////
 // 
 //////////////////////////////////////////////////////////////////////////////
-#ifndef __tfm_fe_launch_hh_
-#define __tfm_fe_launch_hh_
+#ifndef __tfm_mon_fe_hh_
+#define __tfm_mon_fe_hh_
 
-#include "drivers/device/nulldev.h"
 #include "drivers/bus/null.h"
 #include "drivers/class/multi.h"
-// #include "tfm_frontend/tfm_driver.hh"
+#include "tfm_frontend/tfm_driver.hh"
 //-----------------------------------------------------------------------------
 /* device driver list */
+//-----------------------------------------------------------------------------
+// it is possible that having separate drivers for a boardreader, datareceiver and a file
+// is a good idea, "multi" would by a natural choice
+// but how would that play with the total number of threads ?
+//-----------------------------------------------------------------------------
 DEVICE_DRIVER driver_list[] = {
-  {"tfm_fe_launch_driver", nulldev ,  1 , null, DF_INPUT},  // reserve the array larger than the immediate need
+  {"tfm_driver", tfm_driver , 100 , null, DF_INPUT},  // reserve the array larger than the immediate need
   {""}
 };
 
@@ -19,7 +23,7 @@ BOOL equipment_common_overwrite = TRUE;
 
 EQUIPMENT equipment[] = {
   {
-    "tfm_launch",                         // eq name
+    "trigger_farm",                       // eq name
     EQUIPMENT_INFO {
       2, 0,                               // event ID, trigger mask
       "SYSTEM",                           // event buffer name

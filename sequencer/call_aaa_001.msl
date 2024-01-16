@@ -1,0 +1,5 @@
+COMMENT "new sequence"
+
+RUNDESCRIPTION "new sequence"
+
+odbload /home/mu2etrk/test_stand/pasha_020/runinfo.odb
