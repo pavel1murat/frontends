@@ -24,6 +24,7 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
+#include "tfm_frontend/db_runinfo.hh"
 #include "tfm_frontend/tfm_launch_fe.hh"
 
 /*-- Globals -------------------------------------------------------*/
@@ -91,7 +92,7 @@ std::unique_ptr<artdaq::CommanderInterface>  _commander;
 
   resume_run:     When a run is resumed. Should enable trigger events.
 \********************************************************************/
-
+static uint          _useRunInfoDB(0);
 static int           _partition(0);
 static int           _port(0);
 static char          _artdaq_conf[100];
@@ -124,6 +125,11 @@ INT frontend_init() {
   sprintf(key,"/Experiment/RunConfigurations/%s",active_conf);
 	db_find_key(hDB, 0, key, &hKey);
 //-----------------------------------------------------------------------------
+// check whether or not use run number from the DB
+//-----------------------------------------------------------------------------
+  sz = sizeof(_useRunInfoDB);
+  db_get_value(hDB, hKey, "UseRunInfoDB", &_useRunInfoDB, &sz, TID_BOOL, TRUE);
+//-----------------------------------------------------------------------------
 // ARTDAQ_PARTITION_NUMBER and configuration name are defined in the active run configuration
 // TF manager port is defined by the partition number
 //-----------------------------------------------------------------------------
@@ -134,6 +140,9 @@ INT frontend_init() {
 
   sz = sizeof(_artdaq_conf);
   db_get_value(hDB, hKey, "ArtdaqConfiguration", _artdaq_conf, &sz, TID_STRING, TRUE);
+
+  TLOG(TLVL_DEBUG+4) << "farm_manager _useRunInfoDB:" << _useRunInfoDB;
+  TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
 //-----------------------------------------------------------------------------
 // launch the farm manager via dbus-console
 //-----------------------------------------------------------------------------
@@ -184,14 +193,193 @@ INT frontend_exit() {
 }
 
 //-----------------------------------------------------------------------------
-// put here clear scalers etc.
+// wait until the farm reports reaching a certain state
+//-----------------------------------------------------------------------------
+int wait_for(const char* State, int MaxWaitingTime) {
+  int         rc (0);
+
+  std::string         state;
+
+  xmlrpc_env          env;
+  xmlrpc_value*       resultP;
+  size_t              length;
+  const char*         value;
+
+  int                 waiting_time = 0;
+
+  xmlrpc_env_init(&env);
+
+  while (state != State) {
+
+    resultP = xmlrpc_client_call(&env, 
+                                 _xmlrpcUrl,
+                                 "get_state",
+                                 // "({s:i,s:i})",
+                                 "(s)", 
+                                 "daqint");
+    if (env.fault_occurred) {
+      TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING...";
+      return env.fault_code;
+      exit(1);
+    }
+
+    xmlrpc_read_string_lp(&env, resultP, &length, &value);
+    state = value;
+
+    // xmlrpc_DECREF(resultP);
+    // xmlrpc_env_clean(&_env);
+
+    sleep(1);
+
+    TLOG(TLVL_DEBUG) << "000:WAITING state=" << state;
+
+    waiting_time += 1;
+    if (waiting_time > MaxWaitingTime) {
+      rc = -1;
+      break;
+    }
+  }
+  TLOG(TLVL_DEBUG) << "001 FINISHED rc=" << rc;
+
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+// move begin run functionality here
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT RunNumber, char *error) {
+
+  xmlrpc_env    env;
+  xmlrpc_value* resultP;
+
+  xmlrpc_env_init(&env);
+  resultP = xmlrpc_client_call(&env, 
+                               _xmlrpcUrl,
+                               "state_change",
+                                                         // "({s:i,s:i})",
+                               "(ss{s:i})", 
+                               "daqint",
+                               "configuring",
+                               "run_number", RunNumber);
+  if (env.fault_occurred) {
+    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING...";
+    exit(1);
+  }
+
+  const char* value;
+  size_t      length;
+  xmlrpc_read_string_lp(&env, resultP, &length, &value);
+    
+  std::string res = value;
+
+  printf("tfm_frontend::%s  after XMLRPC command: result:%s\n",__func__,res.data());
+
+  xmlrpc_DECREF   (resultP);
+//-----------------------------------------------------------------------------
+// now wait till completion
+//-----------------------------------------------------------------------------
+  int rc(0);
+
+  rc = wait_for("configured:100",100);
+
+  printf("tfm_frontend::%s 0011: DONE configuring, rc=%i\n",__func__,rc);
+//-----------------------------------------------------------------------------
+// how do I know that the configure step suceeded ?
+// have to wait and make sure ? wait for a message from the farm manager
+//
+// // assuming it was OK, 'start'
+//-----------------------------------------------------------------------------
+  resultP = xmlrpc_client_call(&env, 
+                               _xmlrpcUrl,
+                               "state_change",
+                                                           // "({s:i,s:i})",
+                               "(ss{s:i})", 
+                               "daqint",
+                               "starting",
+                               "ignored_variable", 9999);
+  if (env.fault_occurred) {
+    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string;
+    return env.fault_code;
+  }
+
+  xmlrpc_DECREF(resultP);
+//-----------------------------------------------------------------------------
+// wait till the run start completion
+//-----------------------------------------------------------------------------
+  rc = wait_for("running:100",70);
+
+  printf("tfm_frontend::%s ERROR: wait for running run=%6i rc=%i\n",__func__,RunNumber,rc);
+
+  if (_useRunInfoDB) {
+    try { 
+      db_runinfo db("aaa");
+      rc = db.registerTransition(RunNumber,db_runinfo::START);
+    }
+    catch(char* err) {
+      TLOG(TLVL_ERROR) << "failed to register START transition rc=" << rc;
+    }
+  }
+  printf("tfm_frontend::%s 003: done starting, run=%6i rc=%i\n",__func__,RunNumber,rc);
+
   return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
 INT end_of_run(INT RunNumber, char *Error) {
+//-----------------------------------------------------------------------------
+// first 'stop'
+//-----------------------------------------------------------------------------
+  TLOG(TLVL_DEBUG) << "000: trying to STOP run=" << RunNumber;
+
+  xmlrpc_env    env;
+  xmlrpc_value* resultP;
+
+  size_t        length;
+  const char*   value;
+
+  xmlrpc_env_init(&env);
+  resultP = xmlrpc_client_call(&_env, 
+                               _xmlrpcUrl,
+                               "state_change",
+                                                                                // "({s:i,s:i})",
+                               "(ss{s:i})", 
+                               "daqint",
+                               "stopping",
+                               "ignored_variable", 9999);
+  if (env.fault_occurred) {
+    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING...";
+    exit(1);
+  }
+
+  xmlrpc_read_string_lp(&env, resultP, &length, &value);
+  std::string result = value;
+
+  xmlrpc_DECREF(resultP);
+  //  xmlrpc_env_clean(&_env);
+
+  TLOG(TLVL_INFO) << "after my_xmlrpc command run=" << RunNumber << "result:" << result;
+//-----------------------------------------------------------------------------
+// now wait till completion
+//-----------------------------------------------------------------------------
+  int rc(0);
+
+  TLOG(TLVL_DEBUG) << "wait for completion";
+
+  rc = wait_for("stopped:100",100);
+
+  TLOG(TLVL_DEBUG) << "DONE stopping rc=" << rc;
+//-----------------------------------------------------------------------------
+// write end of transition into the DB
+//-----------------------------------------------------------------------------
+  if (_useRunInfoDB) {
+    db_runinfo db("aaa");
+    rc = db.registerTransition(RunNumber,db_runinfo::STOP);
+    if (rc < 0) {
+      TLOG(TLVL_ERROR) << "failed to register STOP transition rc=" << rc;
+      sprintf(Error,"tfm_frontend::%s ERROR: line %i failed to regiser STOP transition",__func__,__LINE__);
+    }
+  }
+
   return SUCCESS;
 }
 
@@ -209,7 +397,7 @@ INT resume_run(INT RunNumber, char *error) {
 INT frontend_loop() {
    /* if frontend_call_loop is true, this routine gets called when
       the frontend is idle or once between every event */
-  ss_sleep(1);
+  ss_sleep(3);
   return SUCCESS;
 }
 
