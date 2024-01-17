@@ -7,15 +7,18 @@
 #include "drivers/bus/null.h"
 #include "drivers/class/multi.h"
 #include "tfm_frontend/tfm_driver.hh"
+#include "tfm_frontend/tfm_br_driver.hh"
 //-----------------------------------------------------------------------------
 /* device driver list */
 //-----------------------------------------------------------------------------
 // it is possible that having separate drivers for a boardreader, datareceiver and a file
 // is a good idea, "multi" would by a natural choice
 // but how would that play with the total number of threads ?
+// in both cases, reserve array sizes > than immediate needs for driver internal buffers 
 //-----------------------------------------------------------------------------
 DEVICE_DRIVER driver_list[] = {
-  {"tfm_driver", tfm_driver , 100 , null, DF_INPUT},  // reserve the array larger than the immediate need
+  {"tfm_driver"   , tfm_driver   , 100, null, DF_INPUT},
+  {"tfm_br_driver", tfm_br_driver,  30, null, DF_INPUT},
   {""}
 };
 
