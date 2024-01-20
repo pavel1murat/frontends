@@ -98,6 +98,7 @@ static int           _port(0);
 static char          _artdaq_conf[100];
 static char          _xmlrpcUrl  [100];
 static xmlrpc_env    _env;
+static int           _init(0);
 
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the monitoring frontend
@@ -111,6 +112,7 @@ INT frontend_init() {
   HNDLE       hDB, hKey;
   char        active_conf[100];
 
+  set_equipment_status(equipment[0].name, "Initializing...", "yellow");
   TLOG(TLVL_DEBUG+4) << "starting";
 
   mfe_get_args(&argc,&argv);
@@ -146,6 +148,8 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 // launch the farm manager via dbus-console
 //-----------------------------------------------------------------------------
+  cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s', artdaq config '%s', partition %i", 
+         active_conf, _artdaq_conf, _partition);
   char cmd[200];
   sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e daq_scripts/start_farm_manager %s %i",
           _artdaq_conf,_partition);
@@ -160,6 +164,8 @@ INT frontend_init() {
   xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS, frontend_name, "v1_0");
   xmlrpc_env_init(&_env);
 
+  set_equipment_status(equipment[0].name, "OK", "green");
+  _init = 1;
   return SUCCESS;
 }
 
@@ -167,11 +173,13 @@ INT frontend_init() {
 // on exit, shutdown the farm_manager
 //-----------------------------------------------------------------------------
 INT frontend_exit() {
-
+  _init = 0;
   xmlrpc_value* resultP;
   size_t        length;
   const char*   value;
-
+ 
+  cm_msg(MINFO, "tfm_manager", "Shuting down the farm manager.");
+  //cm_disconnect_experiment();
   resultP = xmlrpc_client_call(&_env,_xmlrpcUrl,"shutdown","(s)","daqint");
 
   if (_env.fault_occurred) {
@@ -188,6 +196,7 @@ INT frontend_exit() {
 
   xmlrpc_env_clean(&_env);
   xmlrpc_client_cleanup();
+
 
   return SUCCESS;
 }
@@ -232,6 +241,8 @@ int wait_for(const char* State, int MaxWaitingTime) {
     sleep(1);
 
     TLOG(TLVL_DEBUG) << "000:WAITING state=" << state;
+    set_equipment_status(equipment[0].name, state.c_str(), "yellow");
+
 
     waiting_time += 1;
     if (waiting_time > MaxWaitingTime) {
@@ -248,9 +259,10 @@ int wait_for(const char* State, int MaxWaitingTime) {
 // move begin run functionality here
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT RunNumber, char *error) {
-
   xmlrpc_env    env;
   xmlrpc_value* resultP;
+
+  set_equipment_status(equipment[0].name, "Run starting...", "yellow");
 
   xmlrpc_env_init(&env);
   resultP = xmlrpc_client_call(&env, 
@@ -331,6 +343,8 @@ INT end_of_run(INT RunNumber, char *Error) {
 //-----------------------------------------------------------------------------
   TLOG(TLVL_DEBUG) << "000: trying to STOP run=" << RunNumber;
 
+  set_equipment_status(equipment[0].name, "Run stopping...", "yellow");
+
   xmlrpc_env    env;
   xmlrpc_value* resultP;
 
@@ -380,6 +394,9 @@ INT end_of_run(INT RunNumber, char *Error) {
     }
   }
 
+
+  set_equipment_status(equipment[0].name, "OK", "green");
+
   return SUCCESS;
 }
 
@@ -397,7 +414,40 @@ INT resume_run(INT RunNumber, char *error) {
 INT frontend_loop() {
    /* if frontend_call_loop is true, this routine gets called when
       the frontend is idle or once between every event */
-  ss_sleep(3);
+  if(_init > 0) {
+
+  int         rc (0);
+
+  std::string         state;
+
+  xmlrpc_env          env;
+  xmlrpc_value*       resultP;
+  size_t              length;
+  const char*         value;
+
+  int                 waiting_time = 0;
+
+  xmlrpc_env_init(&env);
+  resultP = xmlrpc_client_call(&env, 
+                               _xmlrpcUrl,
+                               "get_state",
+                               // "({s:i,s:i})",
+                               "(s)", 
+                               "daqint");
+  if (env.fault_occurred) {
+    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
+    //cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string); 
+    set_equipment_status(equipment[0].name, "booting", "greenLight");
+  } else {
+
+    xmlrpc_read_string_lp(&env, resultP, &length, &value);
+    state = value;
+  
+    set_equipment_status(equipment[0].name, state.c_str(), "greenLight");
+    //cm_msg(MINFO,"tfm", "TFM state: '%s'", state.c_str()); 
+  }
+  } 
+  ss_sleep(1000);
   return SUCCESS;
 }
 
