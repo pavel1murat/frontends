@@ -99,6 +99,7 @@ static char          _artdaq_conf[100];
 static char          _xmlrpcUrl  [100];
 static xmlrpc_env    _env;
 static int           _init(0);
+static bool          _use_screen(false);
 
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the monitoring frontend
@@ -143,6 +144,11 @@ INT frontend_init() {
   sz = sizeof(_artdaq_conf);
   db_get_value(hDB, hKey, "ArtdaqConfiguration", _artdaq_conf, &sz, TID_STRING, TRUE);
 
+  sz = sizeof(_use_screen);
+  sprintf(key,"/Equipment/%s/UseScreen", equipment[0].name);
+  db_get_value(hDB, 0, key, &_use_screen, &sz, TID_BOOL, TRUE);
+
+  cm_msg(MINFO,"debug","_use_screen: %i", _use_screen);
   TLOG(TLVL_DEBUG+4) << "farm_manager _useRunInfoDB:" << _useRunInfoDB;
   TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
 //-----------------------------------------------------------------------------
@@ -153,7 +159,10 @@ INT frontend_init() {
   char cmd[200];
   sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e daq_scripts/start_farm_manager %s %i",
           _artdaq_conf,_partition);
-
+  if(_use_screen) {
+    sprintf(cmd,"screen -dmS tfm bash -c \"daq_scripts/start_farm_manager %s %i\"",
+            _artdaq_conf,_partition); 
+  }
   TLOG(TLVL_DEBUG+4) << "before launching: cmd=" << cmd;
   system(cmd);
   TLOG(TLVL_DEBUG+4) << "after launching: cmd=" << cmd;
@@ -437,7 +446,7 @@ INT frontend_loop() {
   if (env.fault_occurred) {
     TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
     //cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string); 
-    set_equipment_status(equipment[0].name, "booting", "greenLight");
+    set_equipment_status(equipment[0].name, "booting", "yellow");
   } else {
 
     xmlrpc_read_string_lp(&env, resultP, &length, &value);
