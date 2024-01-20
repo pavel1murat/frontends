@@ -575,6 +575,7 @@ INT tfm_driver_get(TFM_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
 //-----------------------------------------------------------------------------
   static time_t previous_timer(0);
   time_t        timer;
+  const char*   default_trace_file = "/proc/trace/buffer";
 
   TLOG(TLVL_DEBUG+20) << "driver called";
 
@@ -582,12 +583,23 @@ INT tfm_driver_get(TFM_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
   double time_diff = difftime(timer,previous_timer);
   if ((time_diff > 5) and (Channel == 0)) { 
     previous_timer=timer;
-
-    // if (Channel == 0) { 
+//-----------------------------------------------------------------------------
+// debugging-only:
+// sometimes it is important to make sure that one is looking at 
+// the right TRACE file - there could be many
+// have the name printed out
+//-----------------------------------------------------------------------------
     const char* trace_file = std::getenv("TRACE_FILE");
+    if (trace_file == nullptr) trace_file = default_trace_file;
 
     TLOG(TLVL_DEBUG) << "reading channel:" << Channel << "TRACE_FILE=" << trace_file;
-
+//-----------------------------------------------------------------------------
+// in a rush, the component names were hardcoded 
+// need to extract them from ODB 
+// it might make sense to have everything on a per-component basis,
+// so there would be a driver for the boardreader and a separate driver 
+// the event builder/data logger which format report is different 
+//-----------------------------------------------------------------------------
     int br1_port = _base_port_number + 100 +  0;
     int eb1_port = _base_port_number + 100 +  1;
     int dl1_port = _base_port_number + 100 +  2;

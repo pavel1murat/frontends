@@ -278,57 +278,57 @@ export           USER_WEB_PATH=$otsdir/srcs/$repository/UserWebGUI
 dataFilesDir=$OTSDAQ_DATA
 export  FHICL_FILE_PATH=$FHICL_FILE_PATH:$USER_DATA:$offlineFhiclDir:$triggerEpilogDir:$dataFilesDir:/mu2e/DataFiles
 export MU2E_SEARCH_PATH=$MU2E_SEARCH_PATH:/cvmfs/mu2e.opensciencegrid.org/DataFiles:$MRB_TOP/srcs
-#------------------------------------------------------------------------------
-# make sure links are pointing to the right place
-#------------------------------------------------------------------------------
-linkPath=$(readlink $USER_DATA/Logs)
-if [ "$linkPath" != "${OTS_SCRATCH}/Logs" ] ; then
-    echo -e "setup [${LINENO}]  \t Fixing found link path as ... found {${linkPath}} expecting {${OTS_SCRATCH}/Logs}"
-    rm $USER_DATA/Logs
-    ln -s $OTS_SCRATCH/Logs $USER_DATA/Logs
-fi
-linkPath=$(readlink $USER_DATA/ARTDAQConfigurations)
-if [ "$linkPath" != "$OTS_SCRATCH/ARTDAQConfigurations" ] ; then
-    echo -e "setup [$LINENO]  \t Fixing found link path as ... found {$linkPath} expecting {$OTS_SCRATCH/ARTDAQConfigurations}"
-    rm $USER_DATA/ARTDAQConfigurations
-    ln -s $OTS_SCRATCH/ARTDAQConfigurations $USER_DATA/ARTDAQConfigurations
-fi
-linkPath=$(readlink $USER_DATA/TriggerConfigurations)
-if [ "$linkPath" != "${OTS_SCRATCH}/TriggerConfigurations" ] ; then
-    echo -e "setup [$LINENO]  \t Fixing found link path as ... found {$linkPath} expecting {$OTS_SCRATCH/TriggerConfigurations}"
-    rm $USER_DATA/TriggerConfigurations
-    ln -s $OTS_SCRATCH/TriggerConfigurations $USER_DATA/TriggerConfigurations
-fi
-linkPath=$(readlink $USER_DATA/OutputData)
-if [ "$linkPath" != "$OTS_SCRATCH/OutputData" ] ; then
-    echo -e "setup [$LINENO]  \t Fixing found link path as ... found {$linkPath} expecting {$OTS_SCRATCH/OutputData}"
-    rm $USER_DATA/OutputData
-    ln -s $OTS_SCRATCH/OutputData $USER_DATA/OutputData
-fi
+# #------------------------------------------------------------------------------
+# # make sure links are pointing to the right place
+# #------------------------------------------------------------------------------
+# linkPath=$(readlink $USER_DATA/Logs)
+# if [ "$linkPath" != "${OTS_SCRATCH}/Logs" ] ; then
+#     echo -e "setup [${LINENO}]  \t Fixing found link path as ... found {${linkPath}} expecting {${OTS_SCRATCH}/Logs}"
+#     rm $USER_DATA/Logs
+#     ln -s $OTS_SCRATCH/Logs $USER_DATA/Logs
+# fi
+# linkPath=$(readlink $USER_DATA/ARTDAQConfigurations)
+# if [ "$linkPath" != "$OTS_SCRATCH/ARTDAQConfigurations" ] ; then
+#     echo -e "setup [$LINENO]  \t Fixing found link path as ... found {$linkPath} expecting {$OTS_SCRATCH/ARTDAQConfigurations}"
+#     rm $USER_DATA/ARTDAQConfigurations
+#     ln -s $OTS_SCRATCH/ARTDAQConfigurations $USER_DATA/ARTDAQConfigurations
+# fi
+# linkPath=$(readlink $USER_DATA/TriggerConfigurations)
+# if [ "$linkPath" != "${OTS_SCRATCH}/TriggerConfigurations" ] ; then
+#     echo -e "setup [$LINENO]  \t Fixing found link path as ... found {$linkPath} expecting {$OTS_SCRATCH/TriggerConfigurations}"
+#     rm $USER_DATA/TriggerConfigurations
+#     ln -s $OTS_SCRATCH/TriggerConfigurations $USER_DATA/TriggerConfigurations
+# fi
+# linkPath=$(readlink $USER_DATA/OutputData)
+# if [ "$linkPath" != "$OTS_SCRATCH/OutputData" ] ; then
+#     echo -e "setup [$LINENO]  \t Fixing found link path as ... found {$linkPath} expecting {$OTS_SCRATCH/OutputData}"
+#     rm $USER_DATA/OutputData
+#     ln -s $OTS_SCRATCH/OutputData $USER_DATA/OutputData
+# fi
 
-echo -e "setup [$LINENO]   Now your user data path   is USER_DATA           : $USER_DATA"
-echo -e "setup [$LINENO]   Now your database path    is ARTDAQ_DATABASE_URI : $ARTDAQ_DATABASE_URI"
-echo -e "setup [$LINENO]   Now your output data path is OTSDAQ_DATA         : $OTSDAQ_DATA"
-echo -e "setup [$LINENO]   Now your user web path    is USER_WEB_PATH       : $USER_WEB_PATH"
-echo
-if [ -z $ARTDAQ_PARTITION ]; then
-    echo -e "setup [${LINENO}] \t WARNING: You have not set an ARTDAQ Partition!"
-else
-    echo -e "setup [${LINENO}] \t Your ARTDAQ Partition is ARTDAQ_PARTITION \t = ${ARTDAQ_PARTITION}"
-fi
-
-echo
+# echo -e "setup [$LINENO]   Now your user data path   is USER_DATA           : $USER_DATA"
+# echo -e "setup [$LINENO]   Now your database path    is ARTDAQ_DATABASE_URI : $ARTDAQ_DATABASE_URI"
+# echo -e "setup [$LINENO]   Now your output data path is OTSDAQ_DATA         : $OTSDAQ_DATA"
+# echo -e "setup [$LINENO]   Now your user web path    is USER_WEB_PATH       : $USER_WEB_PATH"
+# echo
+# if [ -z $ARTDAQ_PARTITION ]; then
+#     echo -e "setup [${LINENO}] \t WARNING: You have not set an ARTDAQ Partition!"
+# else
+#     echo -e "setup [${LINENO}] \t Your ARTDAQ Partition is ARTDAQ_PARTITION \t = ${ARTDAQ_PARTITION}"
+# fi
+# 
+# echo
 
 alias rawEventDump="art -c ${otsdir}/srcs/otsdaq/artdaq-ots/ArtModules/fcl/rawEventDump.fcl"
-alias kx='ots -k'
+# alias kx='ots -k'
 
-echo
-echo -e "setup [$LINENO]   use 'ots --wiz' to configure otsdaq"
-echo -e "setup [$LINENO]   use 'ots' to start otsdaq"
-echo -e "setup [$LINENO]   use 'ots --help' for more options"
-echo
-echo -e "setup [$LINENO]   use 'kx' to kill otsdaq processes"
-echo
+# echo
+# echo -e "setup [$LINENO]   use 'ots --wiz' to configure otsdaq"
+# echo -e "setup [$LINENO]   use 'ots' to start otsdaq"
+# echo -e "setup [$LINENO]   use 'ots --help' for more options"
+# echo
+# echo -e "setup [$LINENO]   use 'kx' to kill otsdaq processes"
+# echo
 #------------------------------------------------------------------------------
 # setup ninja generator : v1_11_0 instead of latest
 #============================
@@ -344,12 +344,6 @@ echo
  alias mii='mrb i --generator ninja'
 
 shopt -u progcomp #let environment variables be tabbed
-
-if [ "$userinput" == "HWDev" ]; then
-    # Todo come up with a better way of distinguishing user's databases during setup
-    #source ${otsdir}/mongodb_setup.sh
-    echo -e "setup [${LINENO}]  \t     fixme to enable mongodb"
-fi
 #------------------------------------------------------------------------------
 # Trace setup and helpful commented lines
 #------------------------------------------------------------------------------

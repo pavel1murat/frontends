@@ -91,7 +91,6 @@ std::string _xmlrpcUrl = "http://localhost:15000/RPC2";
 \********************************************************************/
 
 static xmlrpc_env     _env;
-
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the frontend (or not ?)
 // print message and return FE_ERR_HW if frontend should not be started 
@@ -174,7 +173,7 @@ INT resume_run(INT RunNumber, char *error) {
 INT frontend_loop() {
    /* if frontend_call_loop is true, this routine gets called when
       the frontend is idle or once between every event */
-  ss_sleep(3);
+  ss_sleep(10);
   return SUCCESS;
 }
 

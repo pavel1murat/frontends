@@ -1,0 +1,39 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# the farm manager doesn't need to know about MIDAS..
+#
+# call signature: 
+# 
+#   start_farm_manager artdaq_config partition [ debug ]
+#
+# experiment   : MIDAS experiment
+# artdaq_config: name of the ARTDAQ configuration
+# partition    : ARTDAQ_PARTITION_NUMBER
+#
+# assumes :
+# - presence of the $PWD/setup_ots.sh 
+# - presence of the $PWD/config/$artdaq_config
+#
+# ?? what is needed from setup_ots.sh ? 
+# - setting up TFM_DIR and ARTDAQ_PARTITION_NUMBER
+#------------------------------------------------------------------------------
+artdaq_config=$1
+    partition=$2
+
+debug=0 ; if [ -n $3 ] ; then debug=$3 ; fi
+
+source ./setup_ots.sh $partition
+#------------------------------------------------------------------------------
+# 
+# source ./setup_midas.sh $experiment
+
+config_dir=$PWD/config/$artdaq_config
+
+if [ $debug != 0 ] ; then echo [$0:$LINENO] config_dir=$config_dir ; fi
+
+source $TFM_DIR/bin/tfm_configure $config_dir $ARTDAQ_PARTITION_NUMBER
+
+if [ $debug != 0 ] ; then echo [$0:$LINENO] starting farm_manager.py ; fi
+$TFM_DIR/rc/control/farm_manager.py --config-dir=$config_dir
+
+# sleep 10

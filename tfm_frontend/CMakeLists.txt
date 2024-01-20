@@ -47,6 +47,7 @@ cet_make_exec(NAME      client
 cet_make_exec(NAME      tfm_mon_fe
               SOURCE    tfm_mon_fe.cc 
                         tfm_driver.cc
+                        tfm_br_driver.cc
                         $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
               LIBRARIES frontends_tfm midas mfe 
