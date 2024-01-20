@@ -1,0 +1,11 @@
+#!/usr/bin/bash
+#------------------------------------------------------------------------------
+# returns time in milliseconds and the file size
+# assumes that $TFM_TOP_OUTPUT_DIR/data directory exists and that 
+# the output module label is 'RootDAQOut'
+#------------------------------------------------------------------------------
+tm_msec=`date +%s%N | cut -b1-13`
+sz=`ls -altr $TFM_TOP_OUTPUT_DIR/data | grep RootDAQOut | tail -n 1 | awk '{print $5}'`
+if [ -z $sz ] ; then sz=0 ; fi
+
+echo $tm_msec $sz
