@@ -46,7 +46,7 @@ namespace {
 //-----------------------------------------------------------------------------
 // need to figure how to get name, but that doesn't seem overwhelmingly difficult
 //-----------------------------------------------------------------------------
-  FeName xx("roc%i_crv");
+  FeName xx("roc1_crv");
 }
 
 /* The frontend file name, don't change it */
@@ -119,16 +119,15 @@ INT frontend_loop() {
 INT begin_of_run(INT run_number, char *error) {
  
   int32_t val(0);
-  set_register(32, 100);
-
   get_register(0x35, &val);
-  cm_msg(MINFO,"roc-crv","Read back %i", val); 
+  cm_msg(MINFO,"roc-crv","Read back test %i", val); 
   return CM_SUCCESS;
 }
 
 /*-- End of Run ----------------------------------------------------*/
 INT end_of_run(INT run_number, char *error) {
-   return CM_SUCCESS;
+  set_register(0x35, 0); 
+  return CM_SUCCESS;
 }
 
 /*-- Pause Run -----------------------------------------------------*/
