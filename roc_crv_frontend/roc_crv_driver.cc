@@ -17,7 +17,7 @@
 using namespace DTCLib; 
 
 int         _link(0);
-DTC_Link_ID _roc          = DTC_Link_ID(_link);  // ROC =1
+DTC_Link_ID _roc          = DTC_Link_ID(_link);
 int         _dtcID(0);  
 
 int const   _sleepTimeDTC     ( 200);
@@ -115,6 +115,10 @@ INT roc_crv_driver_init(HNDLE hkey, DRIVER_INFO **pinfo, INT channels, func_t *b
   BD_PUTS("init");
  
   bd(CMD_DEBUG, TRUE);
+
+
+  /* set up DTC for CRV ROC DCS */
+  _dtc->GetDevice()->write_register(0x93e0,100,0x00400000); // ROC DCS Response Timer Preset
  
   return FE_SUCCESS;
 }
@@ -138,13 +142,38 @@ INT roc_crv_driver_exit(DRIVER_INFO * info) {
 
 /*----------------------------------------------------------------------------*/
 INT roc_crv_driver_set(DRIVER_INFO * info, INT channel, float value) {
-  char str[80];
+  const int adds[] = {0x1044, // FPGA 0, Bias 0
+                      0x1045, // FPGA 0, Bias 0
+                      0x1444, // FPGA 0, Bias 0
+                      0x1445, // FPGA 0, Bias 0
+                      0x1844, // FPGA 0, Bias 0
+                      0x1845, // FPGA 0, Bias 0
+                      0x1c44, // FPGA 0, Bias 0
+                      0x1c45  // FPGA 0, Bias 0
+                     };
+   size_t adds_size = adds_size = sizeof(adds)/sizeof(adds[0]);
 
+   int ivalue = static_cast<int>(value);
+   if(channel < adds_size) {
+       _dtc->WriteROCRegister(_roc, adds[channel], ivalue, false, 100);
+   } else {
+     // channel not yet implemented
+   }
+
+
+  /* Simon
+   * Bypassing the Bus Driver because we use the _dtc here in the device 
+   * driver. Our DTC class is the equivalent of a bus driver but I belive
+   * its not worth to match the midas bus driver concept.
+   */
+   
+  char str[80];
+  
   /* set channel to a specific value, something like ... */
-  sprintf(str, "SET %d %lf", channel, value);
+  sprintf(str, "SET %d %i", channel, ivalue);
   BD_PUTS(str);
   BD_GETS(str, sizeof(str), ">", DEFAULT_TIMEOUT);
-
+  
   /* simulate writing by storing value in local array, has to be removed
      in a real driver */
   if (channel < info->num_channels)
@@ -156,6 +185,8 @@ INT roc_crv_driver_set(DRIVER_INFO * info, INT channel, float value) {
 
 /*----------------------------------------------------------------------------*/
 INT roc_crv_driver_set_register(DRIVER_INFO * info, INT add, int32_t value) {
+  _dtc->WriteROCRegister(_roc, add, value, false, 100);
+
   char str[80];
 
   /* set channel to a specific value, something like ... */
@@ -170,16 +201,45 @@ INT roc_crv_driver_set_register(DRIVER_INFO * info, INT add, int32_t value) {
 // this is the function which reads the channels, which are apped registers
 // ----------------------------------------------
 INT roc_crv_driver_get(DRIVER_INFO* Info, INT Channel, float *Pvalue) {
-   int val;
+   int32_t val;
+ 
+   const int adds[] = {0x0035, // ROC counter
+                       0x8004, // number of active FEBs
+                       0x8021, // ROC port 1 voltage
+                       0x8041, // ROC port 1 amps
+                       0x8401, // FEB 1: serial number
+                       0x8421, // FEB 1: spill cycle counter
+                       0x8461, // FEB 1: temperature
+                       0x8481, // FEB 1, ADC  0: 1.2v_Pos 
+                       0x84a1, // FEB 1, ADC  1: 1.8v_Pos
+                       0x84c1, // FEB 1, ADC  2: 5.0v_Pos
+                       0x84e1, // FEB 1, ADC  3: 10v_Pos
+                       0x8501, // FEB 1, ADC  4: 2.5v_Pos
+                       0x8521, // FEB 1, ADC  5: 5.0v_Neg
+                       0x8541, // FEB 1, ADC  6: 15v_Pos
+                       0x8661, // SOMETHING IS OFF WITH THE ORDER?
+                       0x8561, // FEB 1, ADC  7: 3.3v_Pos
+                       0x8581, // FEB 1, ADC  8: Bias_0
+                       0x85a1, // FEB 1, ADC  9: Bias_1
+                       0x85c1, // FEB 1, ADC 10: Bias_2
+                       0x85e1, // FEB 1, ADC 11: Bias_3
+                       0x8601, // FEB 1, ADC 12: Bias_4
+                       0x8621, // FEB 1, ADC 13: Bias_5
+                       0x8641  // FEB 1, ADC 14: Bias_6
+                       //0x8661  // FEB 1, ADC 15: Bias_7
+                       };
 
-   if(Channel==0) {
-      try { 
-          val = _dtc->ReadROCRegister(_roc, 0x35, _DCSTimeoutROC);
-          *Pvalue = val;
-      } catch (const std::exception &exc) {
-          cm_msg(MERROR, "roc_crv_driver_get", exc.what());
-          *Pvalue = -1;
-      }
+   size_t adds_size = sizeof(adds)/sizeof(adds[0]);
+   if(Channel < adds_size) {
+      //for(size_t i=0; i < adds_size; ++i) {
+          try { 
+              val = _dtc->ReadROCRegister(_roc, adds[Channel], _DCSTimeoutROC);
+              *Pvalue = val;
+          } catch (const std::exception &exc) {
+              cm_msg(MERROR, "roc_crv_driver_get", exc.what());
+              *Pvalue = -1;
+          }
+       //}
    } else {
       *Pvalue = Channel;
    }
