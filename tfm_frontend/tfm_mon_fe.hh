@@ -15,10 +15,11 @@
 // is a good idea, "multi" would by a natural choice
 // but how would that play with the total number of threads ?
 // in both cases, reserve array sizes > than immediate needs for driver internal buffers 
+// *_NWORDS are defined in the corresponding include files respectively
 //-----------------------------------------------------------------------------
 DEVICE_DRIVER driver_list[] = {
-  {"tfm_driver"   , tfm_driver   , 100, null, DF_INPUT},
-  {"tfm_br_driver", tfm_br_driver,  30, null, DF_INPUT},
+  {"tfm_driver"   , tfm_driver   , TFM_DRIVER_NWORDS   , null, DF_INPUT},
+  {"tfm_br_driver", tfm_br_driver, TFM_BR_DRIVER_NWORDS, null, DF_INPUT},
   {""}
 };
 

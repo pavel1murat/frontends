@@ -7,6 +7,8 @@
    contains usually the address of the device. For a CAMAC device
    this could be crate and station for example. */
 
+int const TFM_BR_DRIVER_NWORDS =  40;
+
 typedef struct {
   int link;
   int active;

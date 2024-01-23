@@ -243,7 +243,6 @@ int wait_for(const char* State, int MaxWaitingTime) {
     TLOG(TLVL_DEBUG) << "000:WAITING state=" << state;
     set_equipment_status(equipment[0].name, state.c_str(), "yellow");
 
-
     waiting_time += 1;
     if (waiting_time > MaxWaitingTime) {
       rc = -1;
@@ -414,38 +413,37 @@ INT resume_run(INT RunNumber, char *error) {
 INT frontend_loop() {
    /* if frontend_call_loop is true, this routine gets called when
       the frontend is idle or once between every event */
-  if(_init > 0) {
+  if (_init > 0) {
 
-  int         rc (0);
+    int         rc (0);
 
-  std::string         state;
+    std::string         state;
+    xmlrpc_env          env;
+    xmlrpc_value*       resultP;
+    size_t              length;
+    const char*         value;
 
-  xmlrpc_env          env;
-  xmlrpc_value*       resultP;
-  size_t              length;
-  const char*         value;
+    try {
+      xmlrpc_env_init(&env);
+                                        // "({s:i,s:i})",
+      resultP = xmlrpc_client_call(&env,_xmlrpcUrl,"get_state","(s)","daqint");
 
-  int                 waiting_time = 0;
-
-  xmlrpc_env_init(&env);
-  resultP = xmlrpc_client_call(&env, 
-                               _xmlrpcUrl,
-                               "get_state",
-                               // "({s:i,s:i})",
-                               "(s)", 
-                               "daqint");
-  if (env.fault_occurred) {
-    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
-    //cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string); 
-    set_equipment_status(equipment[0].name, "booting", "greenLight");
-  } else {
-
-    xmlrpc_read_string_lp(&env, resultP, &length, &value);
-    state = value;
-  
-    set_equipment_status(equipment[0].name, state.c_str(), "greenLight");
-    //cm_msg(MINFO,"tfm", "TFM state: '%s'", state.c_str()); 
-  }
+      if (env.fault_occurred) {
+        TLOG(TLVL_ERROR) << "001: XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
+        // cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string); 
+        set_equipment_status(equipment[0].name, "booting", "greenLight");
+      } 
+      else {
+        xmlrpc_read_string_lp(&env, resultP, &length, &value);
+        state = value;
+        
+        set_equipment_status(equipment[0].name, state.c_str(), "greenLight");
+        //cm_msg(MINFO,"tfm", "TFM state: '%s'", state.c_str()); 
+      }
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "002: XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
+    }
   } 
   ss_sleep(1000);
   return SUCCESS;
