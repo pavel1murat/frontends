@@ -51,10 +51,10 @@ else
     fi
 fi
 
-export ARTDAQ_PARTITION=$artdaq_partition
+export ARTDAQ_PARTITION_NUMBER=$artdaq_partition
 export LOGNAME=$USER                          # ksu might have messed up LOGNAME
 
-echo $LINENO"     ARTDAQ_PARTITION=$ARTDAQ_PARTITION subsystem=$subsystem"
+echo $LINENO"     ARTDAQ_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER subsystem=$subsystem"
 #------------------------------------------------------------------------------
 # 'subsystem' has to be either defined explicitly, or defined previously
 # it has the meaning of a 'subsystem'
@@ -77,49 +77,49 @@ if   [ $subsystem == "mu2e" ]; then
 #------------------------------------------------------------------------------
 # figure out which ports to use; is the CONSOLE_SUPERVISOR_IP used for anything now ? 
 #------------------------------------------------------------------------------
-    if   [ $ARTDAQ_PARTITION == 2 ] ; then # old style: subsystem=sync why ports are different ?
+    if   [ $ARTDAQ_PARTITION_NUMBER == 2 ] ; then # old style: subsystem=sync why ports are different ?
         export          OTS_MAIN_PORT=2015
         export OTS_WIZ_MODE_MAIN_PORT=3015
         repository="otsdaq_mu2e"
-    elif [ $ARTDAQ_PARTITION == 4 ] ; then # old style: subsystem=calo
+    elif [ $ARTDAQ_PARTITION_NUMBER == 4 ] ; then # old style: subsystem=calo
         export          OTS_MAIN_PORT=3025
         export OTS_WIZ_MODE_MAIN_PORT=3025
         repository="otsdaq_mu2e_calorimeter"
-    elif [ $ARTDAQ_PARTITION == 5 ] ; then # old style: subsystem=stm
+    elif [ $ARTDAQ_PARTITION_NUMBER == 5 ] ; then # old style: subsystem=stm
         export          OTS_MAIN_PORT=3035
         export OTS_WIZ_MODE_MAIN_PORT=3035
         repository="otsdaq_mu2e_stm"
-    elif [ $ARTDAQ_PARTITION == 6 ] ; then # old style: subsystem=trigger
+    elif [ $ARTDAQ_PARTITION_NUMBER == 6 ] ; then # old style: subsystem=trigger
         export          OTS_MAIN_PORT=3045
         export OTS_WIZ_MODE_MAIN_PORT=3045
         repository="otsdaq_mu2e_trigger"
-    elif [ $ARTDAQ_PARTITION == 7 ] ; then # old style: subsystem=hwdev
+    elif [ $ARTDAQ_PARTITION_NUMBER == 7 ] ; then # old style: subsystem=hwdev
         export          OTS_MAIN_PORT=3055
         export OTS_WIZ_MODE_MAIN_PORT=3055
         repository="otsdaq_mu2e_hwdev"
-    elif [ $ARTDAQ_PARTITION == 8 ] ; then # Pasha
+    elif [ $ARTDAQ_PARTITION_NUMBER == 8 ] ; then # Pasha
         export          OTS_MAIN_PORT=3065
         export OTS_WIZ_MODE_MAIN_PORT=3065
         export        FEWRITE_RUNFILE=1
         repository="otsdaq_mu2e_tracker"
-    elif [ $ARTDAQ_PARTITION == 9 ] ; then # old style: subsystem=crv
+    elif [ $ARTDAQ_PARTITION_NUMBER == 9 ] ; then # old style: subsystem=crv
         export          OTS_MAIN_PORT=3085
         export OTS_WIZ_MODE_MAIN_PORT=3085
         repository="otsdaq_mu2e_crv"
-    elif [ $ARTDAQ_PARTITION == 10 ] ; then # Kamal
+    elif [ $ARTDAQ_PARTITION_NUMBER == 10 ] ; then # Kamal
         export          OTS_MAIN_PORT=3085
         export OTS_WIZ_MODE_MAIN_PORT=3085
         repository="otsdaq_mu2e_crv"
-    elif [ $ARTDAQ_PARTITION == 14 ] ; then # Antonio, old style: subsystem=dqmtrk
+    elif [ $ARTDAQ_PARTITION_NUMBER == 14 ] ; then # Antonio, old style: subsystem=dqmtrk
         export          OTS_MAIN_PORT=3070
         export OTS_WIZ_MODE_MAIN_PORT=3070
         ##export      FEWRITE_RUNFILE=1
         repository="otsdaq_mu2e_tracker"
-    elif [ $ARTDAQ_PARTITION == 15 ] ; then # Sara, mu2edaq09
+    elif [ $ARTDAQ_PARTITION_NUMBER == 15 ] ; then # Sara, mu2edaq09
         export          OTS_MAIN_PORT=3075
         export OTS_WIZ_MODE_MAIN_PORT=3075
         repository="otsdaq_mu2e_tracker"
-    elif [ $ARTDAQ_PARTITION == 16 ] ; then # Gennagiy, mu2edaq09
+    elif [ $ARTDAQ_PARTITION_NUMBER == 16 ] ; then # Gennagiy, mu2edaq09
         export          OTS_MAIN_PORT=3080
         export OTS_WIZ_MODE_MAIN_PORT=3080
         repository="otsdaq_mu2e_tracker"
@@ -128,13 +128,13 @@ elif [ $subsystem == "HWDev" ]; then
     export  CONSOLE_SUPERVISOR_IP=192.168.157.5
     export          OTS_MAIN_PORT=3055
     export OTS_WIZ_MODE_MAIN_PORT=3055
-    export       ARTDAQ_PARTITION=7
+    export       ARTDAQ_PARTITION_NUMBER=7
     repository="otsdaq_mu2e"
 elif [ $subsystem == "HWDev2" ]; then
     export  CONSOLE_SUPERVISOR_IP=192.168.157.5
     export          OTS_MAIN_PORT=3055
     export OTS_WIZ_MODE_MAIN_PORT=3055
-    export       ARTDAQ_PARTITION=7
+    export       ARTDAQ_PARTITION_NUMBER=7
     repository="otsdaq_mu2e"
 else
     echo -e "Invalid parameter!"
@@ -389,7 +389,9 @@ CONF:OpLdStr_C   0x1ff 0 0
 PRVDR:FileDB_C   0x1ff 0 0
 CONF:OpBase_C    0x1ff 0 0
 " $TRACE_BIN/trace_cntl namlvlset
-
 fi
-
+#------------------------------------------------------------------------------
+# TFM and friends
+#------------------------------------------------------------------------------
+export TFM_CONFIG_DIR=$MRB_TOP/config
 return 0

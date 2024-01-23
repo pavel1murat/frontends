@@ -21,19 +21,18 @@ artdaq_config=$1
     partition=$2
 
 debug=0 ; if [ -n $3 ] ; then debug=$3 ; fi
-
-source ./setup_ots.sh $partition
 #------------------------------------------------------------------------------
-# 
-# source ./setup_midas.sh $experiment
+# this defines ARTDAQ_PARTITION_NUMBER
+#------------------------------------------------------------------------------
+source ./setup_ots.sh $partition
 
 config_dir=$PWD/config/$artdaq_config
 
-if [ $debug != 0 ] ; then echo [$0:$LINENO] config_dir=$config_dir ; fi
+if [[ $debug -ne 0 ]] ; then echo "[$0:$LINENO]" config_dir=$config_dir ; fi
 
-source $TFM_DIR/bin/tfm_configure $config_dir $ARTDAQ_PARTITION_NUMBER
+source $TFM_DIR/bin/tfm_configure $artdaq_config $partition
 
-if [ $debug != 0 ] ; then echo [$0:$LINENO] starting farm_manager.py ; fi
+if [[ $debug -ne 0 ]] ; then echo "[$0:$LINENO]" starting farm_manager.py ; fi
 $TFM_DIR/rc/control/farm_manager.py --config-dir=$config_dir
 
 # sleep 10
