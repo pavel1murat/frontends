@@ -1,5 +1,30 @@
 #+startup:fold
 * ------------------------------------------------------------------------------
+* News                             
+*** <2023-06-29 Thu> ROOT interface to DTC available
+* [[file:build_instructions.org][build instructions]]
+* ARTDAQ                                                                     
+   boardreader, eventbuilder, and datalogger are started by ARTDAQManager 
+   during the *configure* transition. At this point the run number is not defined,
+   so one can't encode the run number into their log file names
+#+begin_src 
+mu2etrk@mu2edaq09:~/test_stand/pasha_018>ps aux | grep boardreader | grep -v grep
+mu2etrk  15634  0.0  0.0 2367172 14144 pts/3   Sl   19:43   0:00 boardreader -c id: 18100 commanderPluginType: xmlrpc rank: 0 application_name: tracker_vst partition_number: 8
+mu2etrk@mu2edaq09:~/test_stand/pasha_018>ps aux | grep eventbuilder | grep -v grep
+mu2etrk  15635  0.0  0.0 17184952 14160 pts/3  Sl   19:43   0:00 eventbuilder -c id: 18101 commanderPluginType: xmlrpc rank: 1 application_name: builder0 partition_number: 8
+mu2etrk@mu2edaq09:~/test_stand/pasha_018>ps aux | grep datalogger | grep -v grep
+mu2etrk  15636  0.0  0.0 16546880 13112 pts/3  Sl   19:43   0:00 datalogger -c id: 18102 commanderPluginType: xmlrpc rank: 2 application_name: logger0 partition_number: 8
+#+end_src 
+*** artdaq::Fragment                                                          
+   - fragment type: tells the type of the data stored in the fragment
+   - fragment ID  : in essense, the fragment generator type
+     - a single generator can write out fragments of different types
+* [[file:dtc.org][DTC]]
+* [[file:rocs.org][ROCs]]
+* [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=19095][mu2e-19095]] : Mu2e beam timing
+* [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=37376&filename=20220922_DAQNodes.pdf][mu2e-37376]] : DAQ node configuration in the DAQ room 
+* [[file:trace.org][TRACE]]
+* [[file:code_repositories.org][code repositories]]                                                        
 * frontends                                                                  
 ** [[file:tfm_frontend.org][tfm_frontend]] : trigger farm manager (TFM) frontend
 ** [[file:dtc_frontend][dtc_frontend]] : DTC slow monitoring frontend
