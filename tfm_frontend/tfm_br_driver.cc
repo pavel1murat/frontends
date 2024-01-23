@@ -46,14 +46,12 @@ active = INT : 0\n\
 
 typedef INT(func_t) (INT cmd, ...);
 
+static char        _artdaq_conf[50];
 static int         _partition;
 static int         _base_port_number;
 static int         _br_rank;
 static int         _br_port_number;
 static std::string _brUrl;
-
-static double _prev_time_sec (-1);
-static double _prev_sz_mbytes(-1);
 
 /*---- device driver routines --------------------------------------*/
 /* the init function creates a ODB record which contains the
@@ -85,15 +83,14 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   db_get_value(hDB, hActiveConfKey, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
   _base_port_number = 10000+1000*_partition;
 
-  char  artdaq_conf[50];
-  sz = sizeof(artdaq_conf);
-  db_get_value(hDB,hActiveConfKey,"ArtdaqConfiguration", &artdaq_conf, &sz, TID_STRING, TRUE);
+  sz = sizeof(_artdaq_conf);
+  db_get_value(hDB,hActiveConfKey,"ArtdaqConfiguration", &_artdaq_conf, &sz, TID_STRING, TRUE);
 
-  TLOG(TLVL_INFO+10) << "001 artdaq_conf:" << artdaq_conf;
+  TLOG(TLVL_INFO+10) << "001 artdaq_conf:" << _artdaq_conf;
 //-----------------------------------------------------------------------------
 // find ARTDAQ configuration , the host name, and the [first] boardreader rank
 //-----------------------------------------------------------------------------
-  sprintf(key,"/ArtdaqConfigurations/%s",artdaq_conf);
+  sprintf(key,"/ArtdaqConfigurations/%s",_artdaq_conf);
   std::string k1 = key;
 
   HNDLE h_active_conf;
@@ -102,7 +99,7 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   }
 
   HNDLE hArtdaqNodeKey;
-  sprintf(key,"/ArtdaqConfigurations/%s/Node_01",artdaq_conf);
+  sprintf(key,"/ArtdaqConfigurations/%s/Node_01",_artdaq_conf);
   k1 = key;
 
 	if (db_find_key(hDB, 0, k1.data(), &hArtdaqNodeKey) != DB_SUCCESS) {
@@ -116,17 +113,34 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   TLOG(TLVL_INFO+10) << "002 hostname:" << hostname;
 
   HNDLE hBrKey; db_find_key(hDB,hArtdaqNodeKey,"BoardReader_01",&hBrKey);
-
+//-----------------------------------------------------------------------------
+// if port is defined explicitly, use that
+// otherwise, the port number is defined by the executable rank 
+//-----------------------------------------------------------------------------
+  HNDLE hPortKey; 
   sz = sizeof(int);
-  db_get_value(hDB, hBrKey, "Rank", &_br_rank, &sz, TID_INT32, FALSE);
-  _br_port_number = _base_port_number+100+_br_rank;
-
-  char  local_hostname[100];
-  gethostname(local_hostname,100);
+  if (db_find_key(hDB, hBrKey, "XmlrpcPort", &hPortKey) == DB_SUCCESS) {
+    db_get_value(hDB, hPortKey, 0, &_br_port_number, &sz, TID_INT32, FALSE);
+  }
+  else {
+    db_get_value(hDB, hBrKey, "Rank", &_br_rank, &sz, TID_INT32, FALSE);
+    _br_port_number = _base_port_number+100+_br_rank;
+  }
+//-----------------------------------------------------------------------------
+// get hostname
+//-----------------------------------------------------------------------------
+  std::string local_hostname;
+  char buf[100];
+  FILE* pipe = popen("hostname -f", "r");
+  while (!feof(pipe)) {
+    char* s = fgets(buf, 100, pipe);
+    if (s) local_hostname += buf;
+  }
+  pclose(pipe);
 
   TLOG(TLVL_INFO+10) << "002.1 local_hostname:" << local_hostname;
   
-  if (strcmp(hostname,local_hostname) == 0) strcpy(hostname,"localhost");
+  if (strcmp(hostname,local_hostname.data()) == 0) strcpy(hostname,"localhost");
 
   _brUrl          = "http://"+std::string(hostname)+":"+std::to_string(_br_port_number)+"/RPC2";
 
@@ -239,47 +253,65 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
     int    nBytesID[5];                 // n(bytes) currently in the buffer
   } brs;
 
-  xmlrpc_env_init(&env);
-                               // "({s:i,s:i})",
-  resultP = xmlrpc_client_call(&env,Url,"daq.report","(s)","stats");
-  if (env.fault_occurred) {
-    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string;
-    Data[0] = 0;
-    Data[1] = 0;
-    return env.fault_code;
-  }
-
-  const char* value;
-  size_t      length;
-  xmlrpc_read_string_lp(&env, resultP, &length, &value);
-    
-  std::string res = value;
-  xmlrpc_DECREF   (resultP);
-
+  TLOG(TLVL_INFO + 10) << "000: Url:" << Url;
   memset(&brs,0,sizeof(BrStatData_t));
 
-  if (res.find("Failed") == 0) {
-                                        // RPC comm failed
-    return -1;
-  }
+  std::string res;
+  int         nf(-1);
+
+  try {
+    xmlrpc_env_init(&env);
+                               // "({s:i,s:i})",
+    resultP = xmlrpc_client_call(&env,Url,"daq.report","(s)","stats");
+    if (env.fault_occurred) {
+      rc = env.fault_code;
+      TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " output:" << env.fault_string;
+      // throw;
+      goto DONE_PARSING;
+    }
+//-----------------------------------------------------------------------------
+// XML-RPC call successful, see what came back
+//-----------------------------------------------------------------------------
+    const char* value;
+    size_t      length;
+    xmlrpc_read_string_lp(&env, resultP, &length, &value);
+    
+    res = value;
+    xmlrpc_DECREF   (resultP);
 //-----------------------------------------------------------------------------
 // parsing
 //-----------------------------------------------------------------------------
-  try {
+    if (res.find("Failed") == 0) {
+                                        // RPC comm failed
+      rc = -1;
+      TLOG(TLVL_ERROR) << "002 ERROR: res=" << res;
+      // throw;
+      goto DONE_PARSING;
+    }
+//-----------------------------------------------------------------------------
+// parsing, normal ouutput should contain 6 lines
+//-----------------------------------------------------------------------------
     vector<string> lines;
     boost::split(lines,res,boost::is_any_of("\n"));
     int nlines = lines.size();
+    TLOG(TLVL_INFO + 10) << "001: nlines:" << nlines;
+    if (nlines < 6) {
+      rc = -10-nlines;
+      TLOG(TLVL_ERROR) << "002 ERROR: nlines=" << nlines;
+      // throw;
+      goto DONE_PARSING;
+    }
 //-----------------------------------------------------------------------------
 // first line
 // 0:  boardreader01 run number = 105251, Sent Fragment count = 5484253, boardreader01 statistics:\n
 //-----------------------------------------------------------------------------
     boost::trim(lines[0]); 
-    TLOG(TLVL_INFO + 10) << "nlines:" << nlines << " lines[0]:" << lines[0];
+    TLOG(TLVL_INFO + 10) << "002: lines[0]:" << lines[0];
 
     vector<string> words;                                // words of the lines[0]
     boost::split(words,lines[0],boost::is_any_of(" ,"));
 
-    TLOG(TLVL_INFO + 10) << "lines[0].words[4]:" << words[4] << " lines[0].words[10]:" << words[10];
+    TLOG(TLVL_INFO + 10) << "003: lines[0].words[4]:" << words[4] << " lines[0].words[10]:" << words[10];
     brs.runNumber = std::stoi(words[ 4]);
     brs.nFragTot  = std::stoi(words[10]);
 //-----------------------------------------------------------------------------
@@ -291,8 +323,8 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
     words.clear();
     boost::split(words,lines[1],boost::is_any_of(" "));
 
-    TLOG(TLVL_INFO + 10) << "lines[1]:" << lines[1];
-    TLOG(TLVL_INFO + 10) << "lines[1].nwords:" << words.size();
+    TLOG(TLVL_INFO + 10) << "004: lines[1]:" << lines[1];
+    TLOG(TLVL_INFO + 10) << "005: lines[1].nwords:" << words.size();
 
     brs.nFragRead    = std::stoi(words[ 2]);
     brs.getNextRate  = std::stof(words[ 6]);
@@ -302,23 +334,23 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
     vector<string> n1;
     boost::split(n1,words[23],boost::is_any_of(":"));
 
-    TLOG(TLVL_INFO + 10) << "lines[1],words[23]:" << words[23] << " n1.size():" << n1.size() << " n1[0]:" << n1[0] << " n1[2]:" << n1[2] ;
+    TLOG(TLVL_INFO + 10) << "006: lines[1],words[23]:" << words[23] << " n1.size():" << n1.size() << " n1[0]:" << n1[0] << " n1[2]:" << n1[2] ;
     
     brs.minNFrag    = std::stoi(n1[ 0]);
     brs.maxNFrag    = std::stoi(n1[ 2]);
-    TLOG(TLVL_INFO + 10) << "brs.minNFrag: " << brs.minNFrag << " brs.maxNFrag: " << brs.maxNFrag << " words[32]: " << words[32];
+    TLOG(TLVL_INFO + 10) << "007: brs.minNFrag: " << brs.minNFrag << " brs.maxNFrag: " << brs.maxNFrag << " words[32]: " << words[32];
 //-----------------------------------------------------------------------------
 // it looks that there are some TAB characters hidden
 //-----------------------------------------------------------------------------
-    TLOG(TLVL_INFO + 10) << " words[32]: " << words[32] << " words[33]: " << words[33];
+    TLOG(TLVL_INFO + 10) << "008: words[32]: " << words[32] << " words[33]: " << words[33];
     brs.elapsedTime = std::stof(words[33]);
-    TLOG(TLVL_INFO + 10) << " brs.elapsedTime: " << brs.elapsedTime;
+    TLOG(TLVL_INFO + 10) << "009: brs.elapsedTime: " << brs.elapsedTime;
 //-----------------------------------------------------------------------------
 // third line
 // 2:    Fragment output statistics: 74827 fragments sent at 1246.97 fragments/sec, effective data rate = 0.584226 MB/sec, monitor window = 60.0068 sec, min::max event size = 0.000457764::0.000534058 MB\n
 //-----------------------------------------------------------------------------
     boost::trim(lines[2]); 
-    TLOG(TLVL_INFO + 10) << "lines[2]:" << lines[2];
+    TLOG(TLVL_INFO + 10) << "010: lines[2]:" << lines[2];
 
     words.clear();
     boost::split(words,lines[2],boost::is_any_of(" "));
@@ -330,7 +362,7 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
     brs.minEventSize = std::stof(n2[ 0]);
     brs.maxEventSize = std::stof(n2[ 2]);
 
-    TLOG(TLVL_INFO + 10) << "words[13]:" << words[13] << " words[24]:" << words[24] << " n2[0]:" << n2[0] << " n2[2]:" << n2[2];
+    TLOG(TLVL_INFO + 10) << "011: words[13]:" << words[13] << " words[24]:" << words[24] << " n2[0]:" << n2[0] << " n2[2]:" << n2[2];
 //-----------------------------------------------------------------------------
 // line # 4
 //    Input wait time = 0.00156023 s/fragment, buffer wait time = 4.04943e-05 s/fragment, request wait time = 0.00075403 s/fragment, output wait time = 3.5861e-05 s/fragment\n
@@ -339,7 +371,7 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
 
     words.clear();
     boost::split(words,lines[3],boost::is_any_of(" "));
-    TLOG(TLVL_INFO + 10) << "words[4]:" << words[4] << " words[10]:" << words[10] 
+    TLOG(TLVL_INFO + 10) << "012: words[4]:" << words[4] << " words[10]:" << words[10] 
                          << " words[16]:" << words[16]  << " words[22]:" << words[22];
     brs.inputWaitTime   = std::stof(words[ 4]);
     brs.bufferWaitTime  = std::stof(words[10]);
@@ -349,23 +381,23 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
 // n fragments
 // 4: fragment_id: 11 nfragments: 0 nbytes: 0 max_nf: 1000 max_nb: 1048576000\n
 //-----------------------------------------------------------------------------
-    int nf = nlines-4;
+    nf = nlines-4;
     if (nf > 5) nf = 5;
 
-    TLOG(TLVL_INFO + 10) << "nf = " << nf;
+    TLOG(TLVL_INFO + 10) << "013: nf = " << nf;
 
     for (int i=0; i<nf; i++) {
       boost::trim(lines[4+i]); 
 
-      TLOG(TLVL_INFO + 10) << "i=" << i << " lines[4+i]:" << lines[4+i];
+      TLOG(TLVL_INFO + 10) << "014: i=" << i << " lines[4+i]:" << lines[4+i];
       words.clear();
       boost::split(words,lines[4+i],boost::is_any_of(" "));
-
-      TLOG(TLVL_INFO + 10) << "words.size()" << words.size();
 //-----------------------------------------------------------------------------
-// 
+//
+//-----------------------------------------------------------------------------
+      TLOG(TLVL_INFO + 10) << "015: words.size()" << words.size();
       int nww = words.size();
-      for (int k=0; k<nww; k++) TLOG(TLVL_INFO + 10) << "k:" << k << "words[k]:" << words[k];
+      for (int k=0; k<nww; k++) TLOG(TLVL_INFO + 10) << "016: k:" << k << "words[k]:" << words[k];
 
       try {
         vector<string> num;
@@ -384,34 +416,44 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
         TLOG(TLVL_ERROR) << "coudnt parse:" << lines[4+i];
       }
     }
+  }
+  catch (...) {
+    TLOG(TLVL_ERROR) << "res:" << res;
+  }
 //-----------------------------------------------------------------------------
 // done with parsing, copy to the Data
 //-----------------------------------------------------------------------------
-    Data[ 0] = brs.runNumber;        // N(getNext calls)
-    Data[ 1] = brs.nFragTot ;        // N(fragments/sec)
-    Data[ 2] = brs.nFragRead;        // data rate, MB/sec
-    Data[ 3] = brs.getNextRate;
-    Data[ 4] = brs.fragRate;
-    Data[ 5] = brs.timeWindow;
-    Data[ 6] = brs.minNFrag;
-    Data[ 7] = brs.maxNFrag;
-    Data[ 8] = brs.elapsedTime;
-    Data[ 9] = brs.dataRate;
-    Data[10] = brs.minEventSize;
-    Data[11] = brs.maxEventSize;
-    Data[12] = brs.inputWaitTime;
-    Data[13] = brs.bufferWaitTime;
-    Data[14] = brs.outputWaitTime;
+ DONE_PARSING:
+  Data[ 0] = brs.runNumber;        // N(getNext calls)
+  Data[ 1] = brs.nFragTot ;        // N(fragments/sec)
+  Data[ 2] = brs.nFragRead;        // data rate, MB/sec
+  Data[ 3] = brs.getNextRate;
+  Data[ 4] = brs.fragRate;
+  Data[ 5] = brs.timeWindow;
+  Data[ 6] = brs.minNFrag;
+  Data[ 7] = brs.maxNFrag;
+  Data[ 8] = brs.elapsedTime;
+  Data[ 9] = brs.dataRate;
+  Data[10] = brs.minEventSize;
+  Data[11] = brs.maxEventSize;
+  Data[12] = brs.inputWaitTime;
+  Data[13] = brs.bufferWaitTime;
+  Data[14] = brs.outputWaitTime;
 
+  if (nf <= 5) {
     for (int i=0; i<nf; i++) {
       Data[15+3*i] = brs.fragID  [i];
       Data[16+3*i] = brs.nFragsID[i];
       Data[17+3*i] = brs.nBytesID[i];
     }
   }
-  catch (...) {
-    rc      = -2;
+  else {
+    TLOG(TLVL_ERROR) << "010: nf=" << nf;
   }
+//-----------------------------------------------------------------------------
+// for i=4, the last word filled is Data[29]
+//-----------------------------------------------------------------------------
+  Data[30] = rc;
 
   TLOG(TLVL_INFO + 10) << "Data:" << Data[0] << " " << Data[1] << " rc=" << rc;
  
@@ -431,7 +473,7 @@ INT tfm_br_driver_get(TFM_BR_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
   time_t        timer;
   const char*   default_trace_file = "/proc/trace/buffer";
 
-  TLOG(TLVL_DEBUG+20) << "driver called";
+  TLOG(TLVL_DEBUG+20) << "000: driver called";
 
   timer = time(NULL); 
   double time_diff = difftime(timer,previous_timer);
@@ -446,7 +488,7 @@ INT tfm_br_driver_get(TFM_BR_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
     const char* trace_file = std::getenv("TRACE_FILE");
     if (trace_file == nullptr) trace_file = default_trace_file;
 
-    TLOG(TLVL_DEBUG) << "reading channel:" << Channel << "TRACE_FILE=" << trace_file;
+    TLOG(TLVL_DEBUG) << "001: reading channel:" << Channel << " TRACE_FILE=" << trace_file;
 //-----------------------------------------------------------------------------
 // in a rush, the component names were hardcoded 
 // need to extract them from ODB 
@@ -459,66 +501,15 @@ INT tfm_br_driver_get(TFM_BR_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
 // read once for all channels
 //-----------------------------------------------------------------------------
       tfm_br_get_boardreader_data(_brUrl.data(),&Info->array[ 0]);  // 29 parameters
-//-----------------------------------------------------------------------------
-// stick the output file info here
-// finally, get the output file information
-// the script should return just one line with two numbers - time [ms] size [bytes]
-//-----------------------------------------------------------------------------
-      char buf[100];
-      std::string res;
-
-      Info->array[98] = 0;
-      Info->array[99] = 0;
-      try {
-        FILE* pipe = popen("source daq_scripts/get_output_file_size", "r");
-        while (!feof(pipe)) {
-          char* s = fgets(buf, 100, pipe);
-          if (s) res += buf;
-        }
-        pclose(pipe);
-
-        TLOG(TLVL_INFO + 10) << "get_output_file_size output:" << res;
-
-        vector<string> w;
-        boost::split(w,res,boost::is_any_of(" "));
-
-        int nw=w.size();
-
-        TLOG(TLVL_INFO + 10) << "w.size: " << nw;
-
-        for (int i=0; i<nw; i++) {
-          TLOG(TLVL_INFO + 10) << "i, w[i]: " << i << " " << w[i];
-        }
-
-        double time_sec  = std::stol(w[0])/1000.;
-
-        TLOG(TLVL_INFO + 10) << "time_sec: " << time_sec;
-
-        double sz_mbytes = std::stoll(w[1])/1024./1024.;
-
-        TLOG(TLVL_INFO + 10) << "sz_mbytes: " << sz_mbytes;
-
-        Info->array[28]   = sz_mbytes;
-
-        if (_prev_time_sec > 0) {
-          Info->array[29] = (sz_mbytes-_prev_sz_mbytes)/(time_sec-_prev_time_sec+1.e-12);
-        }
-
-        _prev_sz_mbytes = sz_mbytes;
-        _prev_time_sec  = time_sec;
-      }
-      catch (...) {
-        TLOG(TLVL_ERROR) << "failed to get the DAQ output file size";
-      }
     }
   }
 //-----------------------------------------------------------------------------
 // so far, 30 parameters (sparse) 
 // Q: would it make sense to have a monitor frontend per executable type ???
 //-----------------------------------------------------------------------------
-  if (Channel < 30) *Pvalue = Info->array[Channel];
+  if (Channel < TFM_BR_DRIVER_NWORDS) *Pvalue = Info->array[Channel];
   else {
-    TLOG(TLVL_INFO+4) << "channel = " << Channel <<" outside the limits. TROUBLE";
+    TLOG(TLVL_ERROR) << "channel = " << Channel <<" outside the limit of " << TFM_BR_DRIVER_NWORDS << " . TROUBLE";
   }
 
   return FE_SUCCESS;
