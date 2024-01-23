@@ -3,7 +3,11 @@
 # returns time in milliseconds and the file size
 # assumes that $TFM_TOP_OUTPUT_DIR/data directory exists and that 
 # the output module label is 'RootDAQOut'
+# tfm_confiigure is sourced externally
 #------------------------------------------------------------------------------
+# config_name=$1
+# partition=$2
+# source $TFM_DIR/bin/tfm_configure $config_dir $partition > /dev/null
 tm_msec=`date +%s%N | cut -b1-13`
 sz=`ls -altr $TFM_TOP_OUTPUT_DIR/data | grep RootDAQOut | tail -n 1 | awk '{print $5}'`
 if [ -z $sz ] ; then sz=0 ; fi
