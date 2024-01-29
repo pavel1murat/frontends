@@ -27,12 +27,12 @@ EQUIPMENT equipment[] = {
     0,                         /* event source */
     "FIXED",                   /* format */
     TRUE,                      /* enabled */
-    // RO_ALWAYS,                 /* read when running and on transitions */
-    RO_TRANSITIONS, // | RO_RUNNING , // RO_ALWAYS,
-    10000,                     /* read every 10 sec */
+    RO_ALWAYS,                 // read when running and on transitions - not really sure what this means
+    // RO_TRANSITIONS, // | RO_RUNNING , // RO_ALWAYS,
+    30000,                     // read every 30 sec - P.M. for EQ_SLOW, should this number be sync'ed with the log_history every number ?
     0,                         /* stop run after this event limit */
     0,                         /* number of sub events */
-    60,                        /* log history at most every 60 seconds */
+    30,                        // log history at most every 30 seconds - P.M. validated
     "", "", ""} ,
    cd_multi_read,              /* readout routine */
    cd_multi,                   /* class driver main routine */

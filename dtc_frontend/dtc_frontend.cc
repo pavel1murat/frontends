@@ -90,7 +90,7 @@ INT frontend_exit() {
 
 /*-- Frontend Loop -------------------------------------------------*/
 INT frontend_loop() {
-  ss_sleep(2);
+  ss_sleep(5);
   return CM_SUCCESS;
 }
 

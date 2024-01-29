@@ -9,6 +9,8 @@
   $Id$
 
 \********************************************************************/
+#include "TRACE/tracemf.h"
+#define TRACE_NAME "dtc_driver"
 
 #include <math.h>
 #include <stdio.h>
@@ -44,6 +46,8 @@ INT dtc_driver_init(HNDLE hkey, DTC_DRIVER_INFO **pinfo, INT channels, func_t *b
   HNDLE            hDB   , hkeydd;
   DTC_DRIVER_INFO  *info;
 
+  TLOG(TLVL_INFO+10) << "001 channels:" << channels;
+
    /* allocate info structure */
   info = (DTC_DRIVER_INFO*) calloc(1, sizeof(DTC_DRIVER_INFO));
   *pinfo = info;
@@ -54,7 +58,7 @@ INT dtc_driver_init(HNDLE hkey, DTC_DRIVER_INFO **pinfo, INT channels, func_t *b
 // assume index = 0 corresponds to the PCIE card address=0
 //------------------------------------------------------------------------------
   char str[1000];
-  int dtc_pcie_address = 0; // frontend_index % 2;
+  int dtc_pcie_address = 0;                                   // frontend_index % 2;
   sprintf(str,DTC_DRIVER_SETTINGS_STR,dtc_pcie_address);
   status = db_create_record(hDB, hkey, "DD", str);
 
@@ -84,6 +88,8 @@ INT dtc_driver_init(HNDLE hkey, DTC_DRIVER_INFO **pinfo, INT channels, func_t *b
   /* initialize bus driver */
   status = info->bd(CMD_INIT, info->hkey, &info->bd_info);
   
+  TLOG(TLVL_INFO+10) << "010 EXIT status:" << status;
+
   if (status != SUCCESS)                                    return status;
   
   /* initialization of device, something like ... */
@@ -132,7 +138,7 @@ INT dtc_driver_set(DTC_DRIVER_INFO * info, INT channel, float value) {
 // ch#2: reg 0x9018 : FPGA VCCAUX voltage : V(V) = (ADC code)/4095*3.
 // ch#3: reg 0x901c : FPGA VCBRAM voltage : V(V) = (ADC code)/4095*3.
 //-----------------------------------------------------------------------------
-INT dtc_driver_get(DTC_DRIVER_INFO * info, INT channel, float *pvalue) {
+INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
    const int reg [4] = {0x9010, 0x9014, 0x9018, 0x901c}; 
    //   int rc;
    uint32_t val(0);
@@ -146,20 +152,36 @@ INT dtc_driver_get(DTC_DRIVER_INFO * info, INT channel, float *pvalue) {
 //-----------------------------------------------------------------------------
 // FPGA temperature
 //-----------------------------------------------------------------------------
+   int dtc_id = Info->driver_settings.dtcID;
+   TLOG(TLVL_INFO+10) << "001 DTC_ID:" << dtc_id << " Channel:" << Channel;
    /* rc = */ 
-   _dtc->GetDevice()->read_register(reg[channel],100,&val); 
 //-----------------------------------------------------------------------------
-// channel=0: temperature, the rest - voltages
+// channel=0: temperature, the rest three - voltages ; 
+//            read all four registers, convert into the right units, and store in the internal buffer 
 //-----------------------------------------------------------------------------
-   if      (channel == 0) *pvalue = (val/4096.)*503.975 - 273.15; // temperature
-   else if (channel  < 4) *pvalue = (val/4095.)*3.;               // voltage
-   else {
-     printf("dtc_driver_get DTC::dtc_driver: channel = %i. IN TROUBLE\n",channel);
+   if      (Channel == 0) {
+     for (int i=0; i<4; i++) {
+       _dtc->GetDevice()->read_register(reg[i],100,&val); 
+       if (i == 0) Info->array[i] = (val/4096.)*503.975 - 273.15; // temperature
+       else        Info->array[i] = (val/4095.)*3.;               // voltage
+     }
    }
-   // printf("channel: %i val: %i pvalue[channel] = %10.3f\n",channel,val,*pvalue);
+
+   if (Channel  < 4) *PValue = Info->array[Channel];
+   else {
+     TLOG(TLVL_ERROR) << "002 channel:" << Channel;
+   }
 //-----------------------------------------------------------------------------
 // assume success for now and implement handling of timeouts/errors etc later
 //-----------------------------------------------------------------------------
+   TLOG(TLVL_INFO+10) << "010 dtc_id:" << dtc_id << " Channel:" << Channel << " PValue:" << *PValue;
+//-----------------------------------------------------------------------------
+// assume success for now and implement handling of timeouts/errors etc later
+// and at this point implement sleep
+// I don't need to read the DTC too often
+//-----------------------------------------------------------------------------
+   sleep(5);
+
    return FE_SUCCESS;
 }
 
@@ -174,6 +196,8 @@ INT dtc_driver(INT cmd, ...) {
 
    va_start(argptr, cmd);
    status = FE_SUCCESS;
+
+   TLOG(TLVL_INFO+10) << "001 cmd:" << cmd;
 
    switch (cmd) {
    case CMD_INIT: {
@@ -213,6 +237,7 @@ INT dtc_driver(INT cmd, ...) {
 
    va_end(argptr);
 
+   TLOG(TLVL_INFO+10) << "010 EXIT status:" << status;
    return status;
 }
 
