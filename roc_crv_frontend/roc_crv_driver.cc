@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <map>
 #include "midas.h"
 
 #include "artdaq-core-mu2e/Overlays/DTC_Types.h"
@@ -26,6 +27,42 @@ int const   _sleepTimeROCReset(4000);
 int const   _DCSTimeoutROC    (100);
 
 DTC*        _dtc(nullptr);
+
+const std::vector<std::pair<int, std::string>> outputs = {
+    {0x0035, "ROC cnt"},                     // ROC counter
+    {0x8004, "ROC active FEBs"},             // number of active FEBs
+    {0x8021, "ROC Port 1 voltage"},          // ROC port 1 voltage
+    {0x8041, "ROC Port 1 current"},          // ROC port 1 amps
+    {0x8401, "FEB1 serial number"},          // FEB 1: serial number
+    {0x8421, "FEB1 spill cycle counter"},    // FEB 1: spill cycle counter
+    {0x8441, "FEB1 temperature"},            // FEB 1: temperature 
+    {0x8461, "FEB1 1.2v_Pos"},               // FEB 1, ADC  0: 1.2v_Pos
+    {0x8481, "FEB1 1.8v_Pos"},               // FEB 1, ADC  1: 1.8v_Pos 
+    {0x84a1, "FEB1 5.0v_Pos"},               // FEB 1, ADC  2: 5.0v_Pos
+    {0x84c1, "FEB1 10v_Pos"},                // FEB 1, ADC  3: 10v_Pos
+    {0x84e1, "FEB1 2.5v_Pos"},               // FEB 1, ADC  4: 2.5v_Pos
+    {0x8501, "FEB1 5.0v_Neg"},               // FEB 1, ADC  5: 5.0v_Neg
+    {0x8521, "FEB1 15v_Pos"},                // FEB 1, ADC  6: 15v_Pos
+    {0x8541, "FEB1 3.3v_Pos"},               // FEB 1, ADC  7: 3.3v_Pos
+    {0x8561, "FEB1 Bias_0"},                 // FEB 1, ADC  8: Bias_0
+    {0x8581, "FEB1 Bias_1"},                 // FEB 1, ADC  9: Bias_1
+    {0x85a1, "FEB1 Bias_2"},                 // FEB 1, ADC 10: Bias_2
+    {0x85c1, "FEB1 Bias_3"},                 // FEB 1, ADC 11: Bias_3
+    {0x85e1, "FEB1 Bias_4"},                 // FEB 1, ADC 12: Bias_4
+    {0x8601, "FEB1 Bias_5"},                 // FEB 1, ADC 13: Bias_5
+    {0x8621, "FEB1 Bias_6"},                 // FEB 1, ADC 14: Bias_6
+    {0x8641, "FEB1 Bias_7"},                 // FEB 1, ADC 15: Bias_7
+    {0x8661, "FEB1 FPGA1 Bias DAC 0"},       // FEB 1, FPGA 0, Bias ADC readback 
+    {0x8681, "FEB1 FPGA1 Bias DAC 1"},       // FEB 1, FPGA 0, Bias ADC readback
+    {0x86a1, "FEB1 FPGA1 CMB0 temperature"}, // FEB 1, FPGA 0, CMB0 temp
+    {0x86c1, "FEB1 FPGA1 CMB1 temperature"}, // FEB 1, FPGA 0, CMB1 temp
+    {0x86e1, "FEB1 FPGA1 CMB2 temperature"}, // FEB 1, FPGA 0, CMB2 temp
+    {0x8701, "FEB1 FPGA1 CMB3 temperature"}  // FEB 1, FPGA 0, CMB3 temp
+};
+
+
+
+
 
 /*---- globals -----------------------------------------------------*/
 
@@ -151,10 +188,10 @@ INT roc_crv_driver_set(DRIVER_INFO * info, INT channel, float value) {
                       0x1c44, // FPGA 0, Bias 0
                       0x1c45  // FPGA 0, Bias 0
                      };
-   size_t adds_size = adds_size = sizeof(adds)/sizeof(adds[0]);
+   size_t adds_size  = sizeof(adds)/sizeof(adds[0]);
 
    int ivalue = static_cast<int>(value);
-   if(channel < adds_size) {
+   if(static_cast<size_t>(channel) < adds_size) {
        _dtc->WriteROCRegister(_roc, adds[channel], ivalue, false, 100);
    } else {
      // channel not yet implemented
@@ -197,43 +234,65 @@ INT roc_crv_driver_set_register(DRIVER_INFO * info, INT add, int32_t value) {
   return FE_SUCCESS;
 }
 
+INT roc_crv_driver_get_label(DRIVER_INFO* Info, INT Channel, char *Pvalue) {
+  //cm_msg(MINFO,"roc_crv_driver_get_label", "TEST %i", Channel);
+  if(Channel < outputs.size()) { 
+      strcpy(Pvalue, outputs[Channel].second.c_str());
+  } else {
+      sprintf(Pvalue, "Channel %i", Channel);
+  }
+
+  return FE_SUCCESS;
+}
+
+
 //-----------------------------------------------------------------------------
 // this is the function which reads the channels, which are apped registers
 // ----------------------------------------------
 INT roc_crv_driver_get(DRIVER_INFO* Info, INT Channel, float *Pvalue) {
    int32_t val;
- 
+
+   /*
+    * Replaced with const vector combining addresses and names on top 
    const int adds[] = {0x0035, // ROC counter
                        0x8004, // number of active FEBs
                        0x8021, // ROC port 1 voltage
                        0x8041, // ROC port 1 amps
                        0x8401, // FEB 1: serial number
                        0x8421, // FEB 1: spill cycle counter
-                       0x8461, // FEB 1: temperature
-                       0x8481, // FEB 1, ADC  0: 1.2v_Pos 
-                       0x84a1, // FEB 1, ADC  1: 1.8v_Pos
-                       0x84c1, // FEB 1, ADC  2: 5.0v_Pos
-                       0x84e1, // FEB 1, ADC  3: 10v_Pos
-                       0x8501, // FEB 1, ADC  4: 2.5v_Pos
-                       0x8521, // FEB 1, ADC  5: 5.0v_Neg
-                       0x8541, // FEB 1, ADC  6: 15v_Pos
-                       0x8661, // SOMETHING IS OFF WITH THE ORDER?
-                       0x8561, // FEB 1, ADC  7: 3.3v_Pos
-                       0x8581, // FEB 1, ADC  8: Bias_0
-                       0x85a1, // FEB 1, ADC  9: Bias_1
-                       0x85c1, // FEB 1, ADC 10: Bias_2
-                       0x85e1, // FEB 1, ADC 11: Bias_3
-                       0x8601, // FEB 1, ADC 12: Bias_4
-                       0x8621, // FEB 1, ADC 13: Bias_5
-                       0x8641  // FEB 1, ADC 14: Bias_6
-                       //0x8661  // FEB 1, ADC 15: Bias_7
+                       0x8441, // FEB 1: temperature 
+                       0x8461, // FEB 1, ADC  0: 1.2v_Pos
+                       0x8481, // FEB 1, ADC  1: 1.8v_Pos 
+                       0x84a1, // FEB 1, ADC  2: 5.0v_Pos
+                       0x84c1, // FEB 1, ADC  3: 10v_Pos
+                       0x84e1, // FEB 1, ADC  4: 2.5v_Pos
+                       0x8501, // FEB 1, ADC  5: 5.0v_Neg
+                       0x8521, // FEB 1, ADC  6: 15v_Pos
+                       0x8541, // FEB 1, ADC  7: 3.3v_Pos
+                       0x8561, // FEB 1, ADC  8: Bias_0
+                       0x8581, // FEB 1, ADC  9: Bias_1
+                       0x85a1, // FEB 1, ADC 10: Bias_2
+                       0x85c1, // FEB 1, ADC 11: Bias_3
+                       0x85e1, // FEB 1, ADC 12: Bias_4
+                       0x8601, // FEB 1, ADC 13: Bias_5
+                       0x8621, // FEB 1, ADC 14: Bias_6
+                       0x8641, // FEB 1, ADC 15: Bias_7
+		       0x8661, // FEB 1, FPGA 0, Bias ADC readback 
+		       0x8681, // FEB 1, FPGA 0, Bias ADC readback
+		       0x86a1, // FEB 1, FPGA 0, CMB0 temp
+		       0x86c1, // FEB 1, FPGA 0, CMB1 temp
+		       0x86e1, // FEB 1, FPGA 0, CMB2 temp
+		       0x8701  // FEB 1, FPGA 0, CMB3 temp
+//0x8661  // FEB 1, ADC 15: Bias_7
                        };
+   */
 
-   size_t adds_size = sizeof(adds)/sizeof(adds[0]);
-   if(Channel < adds_size) {
+   size_t adds_size = outputs.size(); //sizeof(adds)/sizeof(adds[0]);
+   if(static_cast<size_t>(Channel) < adds_size) {
       //for(size_t i=0; i < adds_size; ++i) {
           try { 
-              val = _dtc->ReadROCRegister(_roc, adds[Channel], _DCSTimeoutROC);
+              //val = _dtc->ReadROCRegister(_roc, adds[Channel], _DCSTimeoutROC);
+              val = _dtc->ReadROCRegister(_roc, outputs[Channel].first, _DCSTimeoutROC);
               *Pvalue = val;
           } catch (const std::exception &exc) {
               cm_msg(MERROR, "roc_crv_driver_get", exc.what());
@@ -271,6 +330,7 @@ INT roc_crv_driver(INT cmd, ...) {
    INT channel, status;
    float value, *pvalue;
    int32_t valueint, *pvalueint;
+   char * pvaluechar;
    DRIVER_INFO *info;
 
    va_start(argptr, cmd);
@@ -318,6 +378,12 @@ INT roc_crv_driver(INT cmd, ...) {
       pvalueint  = va_arg(argptr, int32_t *);
       status  = roc_crv_driver_get_register(info, channel, pvalueint);
       break;
+
+   case CMD_GET_LABEL:
+      info    = va_arg(argptr, DRIVER_INFO *);
+      channel = va_arg(argptr, INT);
+      pvaluechar  = va_arg(argptr, char *);
+      status  = roc_crv_driver_get_label(info, channel, pvaluechar);
 
    default:
       break;
