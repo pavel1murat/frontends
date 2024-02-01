@@ -15,7 +15,7 @@
 
 /* device driver list */
 DEVICE_DRIVER driver_list[] = {
-  {"rocOut", roc_crv_driver ,  25, null, DF_INPUT},
+  {"rocOut", roc_crv_driver ,  30, null, DF_INPUT},
   {"rocBias",roc_crv_driver ,  16, null, DF_OUTPUT},
   {""}
 };
