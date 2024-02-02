@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="midas.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <title>TFM Status</title>
+  </head>
+
+  <body class="mcss" onload="mhttpd_init('TFM Status');">
+
+    <!-- header and side navigation will be filled in mhttpd_start -->
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+
+    <div id="mmain">
+      <div>
+        <table class="mtable subStatusTable" id="stripeList">
+          <tr>
+            <td colspan=5 class="mtableheader subStatusTitle">TFM Status</td>
+          </tr>
+          <tr class="mtabletitle titleRow">
+            <th>Client</th>
+            <th>System</th>
+            <th>Rank</th>
+            <th>Host</th>
+            <th>Status</th>
+          </tr>
+          <tr class="mtbale">
+            <td align="center">TFM</td>
+            <td align="center"></td>
+            <td align="center"></td>
+            <td align="center"><span name="modbvalue" data-odb-path="/Equipment/tfm_launch/Common/Frontend host"></td>
+            <td align="center"><span name="modbvalue" data-odb-path="/Equipment/tfm_launch/Common/Status" onchange="setStatus(this)"></td>
+          </tr>
+        </table>
+      </div>
+      <div id="updateStatus" align="left">
+        updateStatus
+      </div>
+    </div>
+
+  <script>
+
+  function set_if_changed(e, v) {
+     if (e) {
+        if (e.innerHTML !== v) {
+            e.innerHTML = v;
+        }
+     }
+  }
+
+  function setStatus(elm) {
+     pelm = elm.parentElement
+     pelm.classList.remove("mgreen");
+     pelm.classList.remove("morange");
+     pelm.classList.remove("mred");
+     if(elm.value == "Running") {
+        pelm.classList.add("mgreen");
+     } else if(elm.value == "running:100") {
+        pelm.classList.add("mgreen");
+     } else if(elm.value == "nonexistent") {
+        pelm.classList.add("mred");
+     } else {
+        pelm.classList.add("morange");
+     }
+  }
+
+  function add_table_entry(name, data) {
+     var tr = document.createElement("tr");
+     tr.id = "client " + name;
+     tr.className = "mtable";   
+     tr.style = "padding:5px;" 
+ 
+     // Client
+     td = document.createElement("td");
+     td.innerHTML = "<a href=" + name + "'>" + name +  "</a>";
+     td.align = "center";
+     tr.appendChild(td);
+
+     // Subsystem
+     td = document.createElement("td");
+     td.innerHTML = data.subsystem;
+     td.align = "center";
+     tr.appendChild(td);
+
+     // Rank
+     td = document.createElement("td");
+     td.innerHTML = data.rank;
+     td.align = "center";
+     tr.appendChild(td);
+     
+     // Host
+     td = document.createElement("td");
+     td.innerHTML = data.host;
+     td.align = "center";
+     tr.appendChild(td);
+
+     // Status
+     td = document.createElement("td");
+     //td.innerHTML = data.status;
+     td.align = "center";
+     span = document.createElement("span")
+     span.setAttribute("name", "modbvalue")
+     span.setAttribute("data-odb-path", "/Equipment/tfm_launch/Clients/"+name+"/status")
+     span.onchange = function(){setStatus(this)};
+     td.appendChild(span)
+     tr.appendChild(td);
+
+     var table = document.getElementById("stripeList");
+     table.appendChild(tr);
+     return tr
+   }
+
+  function callback(rpc) {
+    //console.log(rpc.result)
+    var clients = rpc.result.data[0];
+    for(const name in clients) {
+       if(name.substr(name.length - 4) != "name"){ 
+          e = add_table_entry(name, clients[name]);
+       }
+    }
+    set_if_changed(document.getElementById('updateStatus'), "");
+  }
+
+  function update() {
+      var paths = ["/Equipment/tfm_launch/Clients"];
+      //document.getElementById('updateStatus').innerHTML = "R___";
+      mjsonrpc_db_get_values(paths).then(function (rpc) {
+         callback(rpc);
+      }).catch(function (error) {
+         document.getElementById('updateStatus').innerHTML = "RWE: RPC or JS error: " + mjsonrpc_decode_error(error);
+      });
+      //document.getElementById('updateStatus').innerHTML = "RW__";
+   }
+
+  update();
+  </script>
+  </body>
+</html>
+
+
