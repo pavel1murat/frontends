@@ -151,6 +151,18 @@ INT frontend_init() {
   cm_msg(MINFO,"debug","_use_screen: %i", _use_screen);
   TLOG(TLVL_DEBUG+4) << "farm_manager _useRunInfoDB:" << _useRunInfoDB;
   TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
+
+  // Create or clear the Clients ODB tree
+  sprintf(key,"/Equipment/%s/Clients", equipment[0].name); 
+  if(db_find_key(hDB, 0, key, &hKey) == DB_SUCCESS) {
+     db_delete_key(hDB, hKey, false);
+  } 
+  db_create_key(hDB, 0, key, TID_KEY);
+  //db_find_key(hDB, 0, str, hKey);
+
+
+
+
 //-----------------------------------------------------------------------------
 // launch the farm manager via dbus-console
 //-----------------------------------------------------------------------------
@@ -206,6 +218,16 @@ INT frontend_exit() {
   xmlrpc_env_clean(&_env);
   xmlrpc_client_cleanup();
 
+
+  // clean up "Clients" in ODB, remove them all
+  HNDLE hDB, hKey;
+  char key[200];
+  cm_get_experiment_database(&hDB, NULL); 
+  sprintf(key,"/Equipment/%s/Clients", equipment[0].name); 
+  if(db_find_key(hDB, 0, key, &hKey) == DB_SUCCESS) {
+     db_delete_key(hDB, hKey, false);
+  } 
+  db_create_key(hDB, 0, key, TID_KEY);
 
   return SUCCESS;
 }
@@ -444,7 +466,7 @@ INT frontend_loop() {
                                "(s)", 
                                "daqint");
   if (env.fault_occurred) {
-    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
+    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << "."; 
     //cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string); 
     set_equipment_status(equipment[0].name, "booting", "yellow");
   } else {
@@ -453,7 +475,84 @@ INT frontend_loop() {
     state = value;
   
     set_equipment_status(equipment[0].name, state.c_str(), "greenLight");
-    //cm_msg(MINFO,"tfm", "TFM state: '%s'", state.c_str()); 
+    //cm_msg(MINFO,"tfm", "TFM state: '%s'", state.c_str());
+
+    // only if getting the status of the farm manager worked, try update the status of all farm processes here
+    
+    resultP = xmlrpc_client_call(&env, 
+                                 _xmlrpcUrl,
+                                 "artdaq_process_info",
+                                 // "({s:i,s:i})",
+                                 "(s)", 
+                                 "daqint");
+    if (env.fault_occurred) {
+        TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << ".";
+        cm_msg(MERROR,"frontend_loop","Failed to `artdaq_process_info` with '%s'.", env.fault_string); 
+    } else {
+        
+        xmlrpc_read_string_lp(&env, resultP, &length, &value);
+        state = value;
+        std::istringstream iss(state);
+        std::string line;
+
+        const char *client_str =
+"[.]\n\
+host      = STRING : [64] \n\
+status    = STRING : [64] \n\
+subsystem = INT : 0\n\
+rank      = INT : 0";
+        
+       typedef struct {
+           //char name[64];
+           char host[64];
+           char status[64];
+           INT subsystem;
+           INT rank;
+        } client_t;
+        client_t client;
+
+        std::string name;
+
+        HNDLE hDB, hKey, hKeyClient;
+        cm_get_experiment_database(&hDB, NULL);
+        char key[200]; 
+        sprintf(key,"/Equipment/%s/Clients", equipment[0].name);
+        db_find_key(hDB, 0, key, &hKey); // check if found?
+
+        int cnt = 0;
+        while (std::getline(iss, line)) {
+           cnt++;
+           // 
+           std::istringstream words(line);
+           std::string word;
+           int wcnt = 0;
+           strcpy(client.status, "n/a");
+           while (getline(words, word,' ')) { 
+              if(wcnt == 0) name = word;
+              if(wcnt == 2) strcpy(client.host, word.c_str());
+              if(wcnt == 4) client.subsystem = std::stoi(word.substr(0, word.size()-1));
+              if(wcnt == 6) client.rank = std::stoi(word.substr(0, word.size()-2));
+              if(wcnt == 7) strcpy(client.status, word.c_str());
+              wcnt++;
+           }
+
+           if(wcnt != 8) { // check that the word count is write, if not, something is off
+              cm_msg(MERROR,"frontend_loop","Parsing '%s' failed with wrong word count of %i. Expect 8.", name.c_str(), wcnt);
+              strcpy(client.status, "read error");
+           }
+
+           //check if client alread exists, if not add it
+           sprintf(key,"%s", name.c_str());
+           if(db_find_key(hDB, hKey, key, &hKeyClient) != DB_SUCCESS) {
+               db_create_record(hDB, hKey, key, client_str);
+               db_find_key(hDB, hKey, key, &hKeyClient);
+           }
+
+           // update the client's status 
+           db_set_record(hDB, hKeyClient, &client, sizeof(client_t), 0);
+        }
+    }
+
   }
   } 
   ss_sleep(1000);
