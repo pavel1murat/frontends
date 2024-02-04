@@ -5,9 +5,11 @@
 #define __tfm_mon_fe_hh_
 
 #include "drivers/bus/null.h"
-#include "drivers/class/multi.h"
-#include "tfm_frontend/tfm_driver.hh"
+// #include "drivers/class/multi.h"
+#include "frontends/utils/mu2e_sc.hh"
+// #include "tfm_frontend/tfm_driver.hh"
 #include "tfm_frontend/tfm_br_driver.hh"
+#include "tfm_frontend/tfm_dr_driver.hh"
 //-----------------------------------------------------------------------------
 /* device driver list */
 //-----------------------------------------------------------------------------
@@ -17,11 +19,11 @@
 // in both cases, reserve array sizes > than immediate needs for driver internal buffers 
 // *_NWORDS are defined in the corresponding include files respectively
 //-----------------------------------------------------------------------------
-DEVICE_DRIVER driver_list[] = {
-  {"tfm_driver"   , tfm_driver   , TFM_DRIVER_NWORDS   , null, DF_INPUT},
-  {"tfm_br_driver", tfm_br_driver, TFM_BR_DRIVER_NWORDS, null, DF_INPUT},
-  {""}
-};
+// DEVICE_DRIVER driver_list[] = {
+//   {"tfm_driver"   , tfm_driver   , TFM_DRIVER_NWORDS   , null, DF_INPUT},
+//   {"tfm_br_driver", tfm_br_driver, TFM_BR_DRIVER_NWORDS, null, DF_INPUT},
+//   {""}
+// };
 
 BOOL equipment_common_overwrite = TRUE;
 
@@ -51,9 +53,12 @@ EQUIPMENT equipment[] = {
       0,                                  // hidden flag
       0                                   // event buffer write cache size
     },
-    cd_multi_read,                        // pointer to user readout routine
-    cd_multi,                             // class driver routine
-    driver_list,                          // device driver list
+    // cd_multi_read,                  // pointer to user readout routine
+    // cd_multi,                       // class driver routine
+    cd_mu2e_sc_read,                      // pointer to user readout routine, for monitoring-only client could be a nullptr
+    cd_mu2e_sc     ,                      // class driver routine
+    //    driver_list,                          // device driver list
+    nullptr,                              // device driver list, initialized dynamically in frontend_init (P.M.)
     nullptr,                              // init string for fixed events or bank list
     nullptr,                              // private data for class driver
     0,                                    // one of FE_xxx
