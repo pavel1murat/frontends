@@ -46,6 +46,13 @@ namespace {
   FeName xx("mu2edaq09_dtc");
 }
 
+// DEVICE_DRIVER driver_list[] = {
+//   {"dtc" , dtc_driver,  4, null, DF_INPUT},
+//   {""}
+// };
+
+static DEVICE_DRIVER* _driver_list (nullptr);
+
 /* The frontend file name, don't change it */
 const char *frontend_file_name = __FILE__;
 
@@ -79,7 +86,14 @@ INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
 // use 'channel' as the DTC ID
 //----------------------------------------------------------------------------- 
 INT frontend_init() {
+
+  _driver_list        = new DEVICE_DRIVER[2];
+  _driver_list[0]     = {"dtc" , dtc_driver,  4, null, DF_INPUT};
+  _driver_list[1]     = {""};
+  equipment[0].driver = _driver_list;
+
   // dtc_driver_init(CMD_INIT,dtc_driver_info,channel,bus_driver);
+
   return CM_SUCCESS;
 }
 

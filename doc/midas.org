@@ -20,6 +20,15 @@
 ** history                                                                   
 - location of the files:                                                     
 - key="/Logger/History dir"
+** hotlinks : https://daq00.triumf.ca/elog-midas/Midas/546
+** custom pages, javascript
+*** show a value in hex: https://daq00.triumf.ca/elog-midas/Midas/568        
+> I have one more question. I use <odb src="odb field" edit=1> to display an 
+> editable ODB value, but how can I show this value in hexadecimal?
+
+Again with JavaScript:
+
+  var v = ODBGet('/some/path&format=%X');
 * ------------------------------------------------------------------------------
 * back to file:frontends.org
 * ------------------------------------------------------------------------------

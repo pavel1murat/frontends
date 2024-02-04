@@ -24,7 +24,7 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
-#include "tfm_frontend/db_runinfo.hh"
+#include "frontends/utils/db_runinfo.hh"
 #include "tfm_frontend/tfm_launch_fe.hh"
 
 /*-- Globals -------------------------------------------------------*/

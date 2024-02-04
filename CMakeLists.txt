@@ -48,21 +48,21 @@ find_package(messagefacility REQUIRED EXPORT QUIET)
 # include_directories($ENV{XDAQ_INC} $ENV{XDAQ_INC}/linux)
 # link_directories   ($ENV{XDAQ_LIB})
 
-message(>>> OTSDAQ_MU2E_TRACKER: XDAQ_INC=$ENV{XDAQ_INC})
-
-link_directories($ENV{XDAQ_LIB})
-
-set(XDAQ_BASIC_LIB_LIST 
-   log4cplus
-   executive
-   xcept
-   xoap
-   xdaq
-   toolbox
-   xerces-c
-   cgicc
- )
- set(XDAQ_XERCES-C xerces-c)
+# message(>>> OTSDAQ_MU2E_TRACKER: XDAQ_INC=$ENV{XDAQ_INC})
+# 
+# link_directories($ENV{XDAQ_LIB})
+# 
+# set(XDAQ_BASIC_LIB_LIST 
+#    log4cplus
+#    executive
+#    xcept
+#    xoap
+#    xdaq
+#    toolbox
+#    xerces-c
+#    cgicc
+#  )
+#  set(XDAQ_XERCES-C xerces-c)
 
 #string(REGEX MATCHALL "[0-9][0-9]?[0-9]?" ART_VERSION_LIST "$ENV{ART_VERSION}")
 #list(GET ART_VERSION_LIST 0 ART_MAJOR_VERSION)
@@ -77,21 +77,14 @@ include(BuildPlugins)
 #------------------------------------------------------------------------------
 # Code
 #------------------------------------------------------------------------------
-add_subdirectory(tfm_frontend)
-# add_subdirectory(scfe_example)
+add_subdirectory(utils)
 add_subdirectory(dtc_frontend)
 add_subdirectory(roc_frontend)
+add_subdirectory(tfm_frontend)
+add_subdirectory(test)
 
 # Useful scripts
 #add_subdirectory(tools)
-
-# Test Programs
-#add_subdirectory(test)
-
-# Documentation (to comment out if not needed DOXYGEN locally)
-if( $ENV{OTS_DOXY} MATCHES "DOIT" )
-	add_subdirectory(doc)
-endif()
 
 # Data
 #FILE(COPY ConfigurationDataExamples DESTINATION Data)

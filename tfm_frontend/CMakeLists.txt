@@ -24,33 +24,22 @@ cet_set_compiler_flags(
         -pthread 
 )
 
-cet_make_library(LIBRARY_NAME frontends_tfm 
-                 SOURCE       db_runinfo.cc 
-                 LIBRARIES PUBLIC 
-                 midas
-                 ${PostgreSQL_LIBRARIES} 
-                 tracelib
-                 MF_MessageLogger
-                 xmlrpc++ xmlrpc_client xmlrpc 
-                 xmlrpc_util xmlrpc_util++ 
-                 pthread rt util
-)
-
 # Nominally a test exec (no MPI) but we want this to be available to other packages.
 cet_make_exec(NAME      client
               SOURCE    client.cc
-              LIBRARIES frontends_tfm xmlrpc_client xmlrpc xmlrpc_util 
+              LIBRARIES frontends xmlrpc_client xmlrpc xmlrpc_util 
                         # xmlrpc_client++ xmlrpc++ xmlrpc_util++ 
                         pthread rt util
 )                  
 
 cet_make_exec(NAME      tfm_mon_fe
               SOURCE    tfm_mon_fe.cc 
-                        tfm_driver.cc
+                        #                        tfm_driver.cc
                         tfm_br_driver.cc
+                        tfm_dr_driver.cc
                         $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
-              LIBRARIES frontends_tfm midas mfe 
+              LIBRARIES frontends midas mfe 
                         artdaq_plugin_support::commanderMaker
                         artdaq::Application                       # needed for messagefacility
                         artdaq::DAQrate
@@ -65,7 +54,7 @@ cet_make_exec(NAME      tfm_launch_fe
                         $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/device/nulldev.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
-              LIBRARIES frontends_tfm midas mfe 
+              LIBRARIES frontends midas mfe 
                         artdaq_plugin_support::commanderMaker
                         artdaq::Application                       # needed for messagefacility
                         artdaq::DAQrate
@@ -73,24 +62,6 @@ cet_make_exec(NAME      tfm_launch_fe
                         artdaq::BuildInfo
                         artdaq_core::artdaq-core_Utilities
                         artdaq_core::artdaq-core_Plugins
-)                  
-
-cet_make_exec(NAME        db_runinfo_main
-              SOURCE      db_runinfo_main.cc # db_runinfo.cc 
-              LIBRARIES   frontends_tfm  
-#                         ${PostgreSQL_LIBRARIES} util stdc++
-)                  
-
-cet_make_exec(NAME      get_next_run_number
-              SOURCE    get_next_run_number.cc 
-              LIBRARIES frontends_tfm  ${PostgreSQL_LIBRARIES} util stdc++
-)                  
-#------------------------------------------------------------------------------
-# test executable
-#------------------------------------------------------------------------------
-cet_make_exec(NAME      register_transitions
-              SOURCE    register_transitions.cc 
-              LIBRARIES frontends_tfm  ${PostgreSQL_LIBRARIES} util stdc++
 )                  
 
 # install_fhicl(SUBDIRS fcl)

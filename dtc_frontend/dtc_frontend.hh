@@ -11,10 +11,11 @@
 /*-- Equipment list ------------------------------------------------*/
 
 /* device driver list */
-DEVICE_DRIVER driver_list[] = {
-  {"dtc" , dtc_driver,  4, null, DF_INPUT},
-  {""}
-};
+
+// DEVICE_DRIVER driver_list[] = {
+//   {"dtc" , dtc_driver,  4, null, DF_INPUT},
+//   {""}
+// };
 
 BOOL equipment_common_overwrite = TRUE;
 
@@ -36,7 +37,8 @@ EQUIPMENT equipment[] = {
     "", "", ""} ,
    cd_multi_read,              /* readout routine */
    cd_multi,                   /* class driver main routine */
-   driver_list,                /* device driver list */
+   //   driver_list,                /* device driver list */
+   nullptr,                    // driver (driver list) initialized in frontend_init
    NULL,                       /* init string */
   },
   {""}

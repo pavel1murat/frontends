@@ -97,7 +97,9 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
 	if (db_find_key(hDB, 0, k1.data(), &h_active_conf) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "0012 no handle for:" << k1 << ", got:" << h_active_conf;
   }
-
+//-----------------------------------------------------------------------------
+// the node and the component name are hardcoded here...
+//-----------------------------------------------------------------------------
   HNDLE hArtdaqNodeKey;
   sprintf(key,"/ArtdaqConfigurations/%s/Node_01",_artdaq_conf);
   k1 = key;
@@ -178,7 +180,6 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
 
   return FE_SUCCESS;
 }
-
 
 /*----------------------------------------------------------------------------*/
 INT tfm_br_driver_exit(TFM_BR_DRIVER_INFO * info) {
@@ -515,54 +516,50 @@ INT tfm_br_driver_get(TFM_BR_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
   return FE_SUCCESS;
 }
 
-/*---- device driver entry point -----------------------------------*/
-
+//-----------------------------------------------------------------------------
+// device driver entry point
+//-----------------------------------------------------------------------------
 INT tfm_br_driver(INT cmd, ...) {
-   va_list         argptr;
-   HNDLE           hKey;
-   INT             channel, status;
-   float           value  , *pvalue;
-   TFM_BR_DRIVER_INFO *info;
+  va_list         argptr;
+  HNDLE           hKey;
+  INT             channel, status;
+  float           value  , *pvalue;
+  TFM_BR_DRIVER_INFO *info;
 
-   va_start(argptr, cmd);
-   status = FE_SUCCESS;
+  va_start(argptr, cmd);
+  status = FE_SUCCESS;
 
-   switch (cmd) {
-   case CMD_INIT: {
-      hKey       = va_arg(argptr, HNDLE);
-      TFM_BR_DRIVER_INFO** pinfo = va_arg(argptr, TFM_BR_DRIVER_INFO **);
-      channel    = va_arg(argptr, INT);
-      va_arg(argptr, DWORD);
-      func_t *bd = va_arg(argptr, func_t *);
-      status     = tfm_br_driver_init(hKey, pinfo, channel, bd);
-      break;
-   }
-   case CMD_EXIT:
-      info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
-      status  = tfm_br_driver_exit(info);
-      break;
+  switch (cmd) {
+  case CMD_INIT: {
+    hKey       = va_arg(argptr, HNDLE);
+    TFM_BR_DRIVER_INFO** pinfo = va_arg(argptr, TFM_BR_DRIVER_INFO **);
+    channel    = va_arg(argptr, INT);
+    va_arg(argptr, DWORD);
+    func_t *bd = va_arg(argptr, func_t *);
+    status     = tfm_br_driver_init(hKey, pinfo, channel, bd);
+    break;
+  }
+  case CMD_EXIT:
+    info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
+    status  = tfm_br_driver_exit(info);
+    break;
+  case CMD_SET:
+    info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
+    channel = va_arg(argptr, INT);
+    value   = (float) va_arg(argptr, double);   // floats are passed as double
+    status  = tfm_br_driver_set(info, channel, value);
+    break;
+  case CMD_GET:
+    info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
+    channel = va_arg(argptr, INT);
+    pvalue  = va_arg(argptr, float *);
+    status  = tfm_br_driver_get(info, channel, pvalue);
+    break;
+  default:
+    break;
+  }
 
-   case CMD_SET:
-      info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
-      channel = va_arg(argptr, INT);
-      value   = (float) va_arg(argptr, double);   // floats are passed as double
-      status  = tfm_br_driver_set(info, channel, value);
-      break;
+  va_end(argptr);
 
-   case CMD_GET:
-      info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
-      channel = va_arg(argptr, INT);
-      pvalue  = va_arg(argptr, float *);
-      status  = tfm_br_driver_get(info, channel, pvalue);
-      break;
-
-   default:
-      break;
-   }
-
-   va_end(argptr);
-
-   return status;
+  return status;
 }
-
-/*------------------------------------------------------------------*/
