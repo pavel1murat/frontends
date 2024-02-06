@@ -1,14 +1,15 @@
-/********************************************************************\
-
-  Name:         nulldev.c
-  Created by:   Stefan Ritt
-
-  Contents:     NULL Device Driver. This file can be used as a 
-                template to write a read device driver
-
-  $Id$
-
-\********************************************************************/
+///////////////////////////////////////////////////////////////////////////////
+// when the execution comes here,  FrontendsGlobals::_driver points to the driver
+// being initialized
+//
+//  Name:         nulldev.c
+//  Created by:   Stefan Ritt
+//
+//  Contents:     NULL Device Driver. This file can be used as a 
+//                template to write a read device driver
+//
+//  $Id$
+///////////////////////////////////////////////////////////////////////////////
 #include "TRACE/tracemf.h"
 #define TRACE_NAME "dtc_driver"
 
@@ -22,7 +23,8 @@
 #include "dtcInterfaceLib/DTC.h"
 using namespace DTCLib; 
 
-#include "dtc_frontend/dtc_driver.hh"
+#include "frontends/utils/utils.hh"
+#include "frontends/dtc_frontend/dtc_driver.hh"
 
 DTC* _dtc(nullptr);
 
@@ -31,8 +33,9 @@ DTC* _dtc(nullptr);
 #define DEFAULT_TIMEOUT 10000   /* 10 sec. */
 
 #define DTC_DRIVER_SETTINGS_STR "\
-Address = INT : 1\n\
-DTC_ID  = INT : %i\n\
+Address = INT   : 1\n\
+DTC_ID  = INT   : %i\n\
+Dtc     = INT64 : 0\n\
 "
 
 typedef INT(func_t) (INT cmd, ...);
@@ -47,8 +50,9 @@ INT dtc_driver_init(HNDLE hkey, DTC_DRIVER_INFO **pinfo, INT channels, func_t *b
   DTC_DRIVER_INFO  *info;
 
   TLOG(TLVL_INFO+10) << "001 channels:" << channels;
-
-   /* allocate info structure */
+//-----------------------------------------------------------------------------
+// allocate info structure, that includes DTC_DRIVER_SETTINGS
+//-----------------------------------------------------------------------------
   info = (DTC_DRIVER_INFO*) calloc(1, sizeof(DTC_DRIVER_INFO));
   *pinfo = info;
 
@@ -58,7 +62,8 @@ INT dtc_driver_init(HNDLE hkey, DTC_DRIVER_INFO **pinfo, INT channels, func_t *b
 // assume index = 0 corresponds to the PCIE card address=0
 //------------------------------------------------------------------------------
   char str[1000];
-  int dtc_pcie_address = 0;                                   // frontend_index % 2;
+
+  int dtc_pcie_address(0);                                   // frontend_index % 2;
   sprintf(str,DTC_DRIVER_SETTINGS_STR,dtc_pcie_address);
   status = db_create_record(hDB, hkey, "DD", str);
 
@@ -76,11 +81,15 @@ INT dtc_driver_init(HNDLE hkey, DTC_DRIVER_INFO **pinfo, INT channels, func_t *b
 //-----------------------------------------------------------------------------
 // initialize DTC, assume that for some magic the ODB has the proper value of 
 // dtcID stored in it
-// ROC mask to be properly set....
+// force dtc_id to come from the driver name
 //-----------------------------------------------------------------------------
-  if (_dtc == nullptr) {
+  if (info->driver_settings.dtc == nullptr) {
     printf(" DTC_ID = %i\n",info->driver_settings.dtcID);
-    _dtc = new DTC(DTC_SimMode_NoCFO,info->driver_settings.dtcID,0x0,"");
+    int dtc_id(-1);
+    if (strcmp(FrontendsGlobals::_driver->name,"dtc0") == 0) dtc_id = 0;
+    if (strcmp(FrontendsGlobals::_driver->name,"dtc1") == 0) dtc_id = 1;
+    info->driver_settings.dtcID = dtc_id;
+    info->driver_settings.dtc = new DTC(DTC_SimMode_NoCFO,info->driver_settings.dtcID,0x0,"");
   }
 
   if (!bd)                                                  return FE_ERR_ODB;
@@ -131,6 +140,23 @@ INT dtc_driver_set(DTC_DRIVER_INFO * info, INT channel, float value) {
 }
 
 //-----------------------------------------------------------------------------
+INT dtc_driver_get_label(DTC_DRIVER_INFO * Info, INT Channel, char* Label) {
+  if      (Channel == 0) sprintf(Label,"DTC%i#Temp"  ,Info->driver_settings.dtcID);
+  else if (Channel == 1) sprintf(Label,"DTC%i#VCCINT",Info->driver_settings.dtcID);
+  else if (Channel == 2) sprintf(Label,"DTC%i#VCCAUX",Info->driver_settings.dtcID);
+  else if (Channel == 3) sprintf(Label,"DTC%i#VCBRAM",Info->driver_settings.dtcID);
+  else if (Channel == 4) sprintf(Label,"DTC%i#0x9004",Info->driver_settings.dtcID);
+  else if (Channel == 5) sprintf(Label,"DTC%i#0x9100",Info->driver_settings.dtcID);
+  else if (Channel == 6) sprintf(Label,"DTC%i#0x9140",Info->driver_settings.dtcID);
+  else {
+    TLOG(TLVL_ERROR) << "channel:" << Channel << ". Do nothing";  
+  }
+
+  return FE_SUCCESS;
+}
+
+
+//-----------------------------------------------------------------------------
 // this is the function which reads the registers
 // ----------------------------------------------
 // ch#0: reg 0x9010 : FPGA temperature    : T(C) = (ADC code)*503.975/4096 - 273.15
@@ -139,35 +165,46 @@ INT dtc_driver_set(DTC_DRIVER_INFO * info, INT channel, float value) {
 // ch#3: reg 0x901c : FPGA VCBRAM voltage : V(V) = (ADC code)/4095*3.
 //-----------------------------------------------------------------------------
 INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
-   const int reg [4] = {0x9010, 0x9014, 0x9018, 0x901c}; 
-   //   int rc;
-   uint32_t val(0);
+
+  const int reg [DTC_DRIVER_NWORDS] = {
+    0x9010, 0x9014, 0x9018, 0x901c, 
+    0x9004, 0x9100, 0x9140
+  };
+
+  uint32_t val(0);
 //-----------------------------------------------------------------------------
 // 
 //-----------------------------------------------------------------------------
-   // char str[80];
-   // sprintf(str, "GET %d", channel);
-   // BD_PUTS(str);
-   // BD_GETS(str, sizeof(str), ">", DEFAULT_TIMEOUT);
+  // char str[80];
+  // sprintf(str, "GET %d", channel);
+  // BD_PUTS(str);
+  // BD_GETS(str, sizeof(str), ">", DEFAULT_TIMEOUT);
+
 //-----------------------------------------------------------------------------
 // FPGA temperature
 //-----------------------------------------------------------------------------
-   int dtc_id = Info->driver_settings.dtcID;
-   TLOG(TLVL_INFO+10) << "001 DTC_ID:" << dtc_id << " Channel:" << Channel;
-   /* rc = */ 
+  DTCLib::DTC* dtc = Info->driver_settings.dtc;
+  int dtc_id = Info->driver_settings.dtcID;
+  TLOG(TLVL_INFO+10) << "001 DTC_ID:" << dtc_id << " Channel:" << Channel;
 //-----------------------------------------------------------------------------
 // channel=0: temperature, the rest three - voltages ; 
 //            read all four registers, convert into the right units, and store in the internal buffer 
 //-----------------------------------------------------------------------------
-   if      (Channel == 0) {
-     for (int i=0; i<4; i++) {
-       _dtc->GetDevice()->read_register(reg[i],100,&val); 
-       if (i == 0) Info->array[i] = (val/4096.)*503.975 - 273.15; // temperature
-       else        Info->array[i] = (val/4095.)*3.;               // voltage
-     }
-   }
+  if      (Channel == 0) {
+    for (int i=0; i<DTC_DRIVER_NWORDS; i++) {
+      dtc->GetDevice()->read_register(reg[i],100,&val); 
+      if      (i == 0) Info->array[i] = (val/4096.)*503.975 - 273.15; // temperature
+      else if (i <  4) Info->array[i] = (val/4095.)*3.;               // voltage
+      else {
+//-----------------------------------------------------------------------------
+// don't want any conversion
+//-----------------------------------------------------------------------------
+        Info->array[i] = *((float*) &val);
+      }
+    }
+  }
 
-   if (Channel  < 4) *PValue = Info->array[Channel];
+   if (Channel  < DTC_DRIVER_NWORDS) *PValue = Info->array[Channel];
    else {
      TLOG(TLVL_ERROR) << "002 channel:" << Channel;
    }
@@ -192,6 +229,7 @@ INT dtc_driver(INT cmd, ...) {
    HNDLE           hKey;
    INT             channel, status;
    float           value, *pvalue;
+   char*           label;
    DTC_DRIVER_INFO *info;
 
    va_start(argptr, cmd);
@@ -231,6 +269,13 @@ INT dtc_driver(INT cmd, ...) {
       status = dtc_driver_get(info, channel, pvalue);
       break;
 
+   case CMD_GET_LABEL:
+      info    = va_arg(argptr, DTC_DRIVER_INFO *);
+      channel = va_arg(argptr, INT);
+      label   = va_arg(argptr, char *);
+      status  = dtc_driver_get_label(info, channel, label);
+      break;
+
    default:
       break;
    }
@@ -240,5 +285,3 @@ INT dtc_driver(INT cmd, ...) {
    TLOG(TLVL_INFO+10) << "010 EXIT status:" << status;
    return status;
 }
-
-/*------------------------------------------------------------------*/

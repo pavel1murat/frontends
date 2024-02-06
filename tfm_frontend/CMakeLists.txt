@@ -34,10 +34,8 @@ cet_make_exec(NAME      client
 
 cet_make_exec(NAME      tfm_mon_fe
               SOURCE    tfm_mon_fe.cc 
-                        #                        tfm_driver.cc
                         tfm_br_driver.cc
                         tfm_dr_driver.cc
-                        $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
               LIBRARIES frontends midas mfe 
                         artdaq_plugin_support::commanderMaker
@@ -51,7 +49,6 @@ cet_make_exec(NAME      tfm_mon_fe
 
 cet_make_exec(NAME      tfm_launch_fe 
               SOURCE    tfm_launch_fe.cc 
-                        $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/device/nulldev.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
               LIBRARIES frontends midas mfe 

@@ -18,6 +18,12 @@ namespace FrontendsGlobals {
 };
 
 //-----------------------------------------------------------------------------
+// assume Hostname is either a fully domain-qualified name, or 'local'
+//-----------------------------------------------------------------------------
+std::string get_full_host_name (const char* Hostname);
+std::string get_short_host_name(const char* Hostname);
+
+//-----------------------------------------------------------------------------
 // for a given artdaq node and a component name, return XMLRPC url
 //-----------------------------------------------------------------------------
 int get_xmlrpc_url(HNDLE& hDB, HNDLE& hArtdaqNode, int Partition, const char* Component, std::string& Url);

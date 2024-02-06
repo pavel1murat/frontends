@@ -3,6 +3,7 @@
 // this is a monitoring frontend running on a single node
 // try to make it work
 // frontend needs to know on which node it is running, so always use -h flag
+// start : 'tfm_mon_fe -h mu2edaq09.fnal.gov'
 ///////////////////////////////////////////////////////////////////////////////
 #undef NDEBUG // midas required assert() to be always enabled
 
@@ -26,7 +27,8 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
-#include "tfm_frontend/tfm_mon_fe.hh"
+#include "frontends/utils/utils.hh"
+#include "frontends/tfm_frontend/tfm_mon_fe.hh"
 //-----------------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------------
@@ -120,24 +122,28 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   cm_get_experiment_database(&hDB, NULL);
   int   sz = sizeof(active_conf);
-  db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
+  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
 //-----------------------------------------------------------------------------
-// hKey is the key corresponding the the active run configuration
+// h_active_run_conf is the key corresponding the the active run configuration
 //-----------------------------------------------------------------------------
-  HNDLE    hKeyActiveConf;
+  HNDLE    h_active_run_conf;
   char     key[1000];
-  sprintf(key,"/Experiment/RunConfigurations/%s",active_conf);
-	db_find_key(hDB, 0, key, &hKeyActiveConf);
+  sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
+	db_find_key(hDB, 0, key, &h_active_run_conf);
 //-----------------------------------------------------------------------------
-// ARTDAQ_PARTITION_NUMBER also comes from the active configuration ODB
+// ARTDAQ_PARTITION_NUMBER also comes from the active run configuration
 //-----------------------------------------------------------------------------
   int partition;
   sz = sizeof(int);
-  db_get_value(hDB, hKeyActiveConf, "ARTDAQ_PARTITION_NUMBER", &partition, &sz, TID_INT32, TRUE);
+  db_get_value(hDB, h_active_run_conf, "ARTDAQ_PARTITION_NUMBER", &partition, &sz, TID_INT32, TRUE);
   int port_number = 10000+1000*partition;
+//-----------------------------------------------------------------------------
+// get port number used by the TF manager 
+//-----------------------------------------------------------------------------
+  std::string host = get_full_host_name(host_name);
 
   char url[100];
-  sprintf(url,"http://localhost:%i/RPC2",port_number);
+  sprintf(url,"http://%s:%i/RPC2",host.data(),port_number);
   _xmlrpcUrl = url;
 
   TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
@@ -156,13 +162,13 @@ INT frontend_init() {
 //    a driver for each one
 //-----------------------------------------------------------------------------
   sz = sizeof(_artdaq_conf);
-  db_get_value(hDB,hKeyActiveConf,"ArtdaqConfiguration", &_artdaq_conf, &sz, TID_STRING, TRUE);
+  db_get_value(hDB,h_active_run_conf,"ArtdaqConfiguration", &_artdaq_conf, &sz, TID_STRING, TRUE);
   TLOG(TLVL_INFO+10) << "001 artdaq_conf:" << _artdaq_conf;
 //-----------------------------------------------------------------------------
-// find ARTDAQ configuration , the host_name, and the [first] boardreader rank
-// hostname (i.e. mu2edaq09.fnal.gov) is global (midas/src/mfe.cxx) and defined on the command line! 
+// find ARTDAQ configuration , 'host_name' (hostname, i.e. mu2edaq09.fnal.gov) 
+// is a global from midas/src/mfe.cxx and should be defined on the command line! 
 //-----------------------------------------------------------------------------
-  sprintf(key,"/ArtdaqConfigurations/%s/%s",_artdaq_conf,host_name);
+  sprintf(key,"/Mu2e/ArtdaqConfigurations/%s/%s",_artdaq_conf,host.data());
   std::string k1 = key;
 
   HNDLE h_artdaq_conf;
@@ -192,12 +198,13 @@ INT frontend_init() {
 // use the component label 
 // so far, output of all drivers goes into the same common "Input" array
 //-----------------------------------------------------------------------------
-    char label[100];
-    db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, TRUE);
+    char component_label[100];
+    sz = sizeof(component_label);
+    db_get_value(hDB, h_component, "Label", &component_label, &sz, TID_STRING, TRUE);
 
     DEVICE_DRIVER driver;
     if (strstr(component.name,"BoardReader") == component.name) {
-      snprintf(driver.name,NAME_LENGTH,"%s",label);
+      snprintf(driver.name,NAME_LENGTH,"%s",component_label);
       driver.dd       = tfm_br_driver;               //  thsi is a function ..
       driver.channels = TFM_BR_DRIVER_NWORDS;
       driver.bd       = null;
@@ -205,7 +212,7 @@ INT frontend_init() {
       _driver_list[i] = driver;
     }
     else if (strstr(component.name,"EventBuilder") == component.name) {
-      snprintf(driver.name,NAME_LENGTH,"%s",label);
+      snprintf(driver.name,NAME_LENGTH,"%s",component_label);
       driver.dd       = tfm_dr_driver;
       driver.channels = TFM_DR_DRIVER_NWORDS;
       driver.bd       = null;
@@ -213,7 +220,7 @@ INT frontend_init() {
       _driver_list[i] = driver;
     }
     else if (strstr(component.name,"DataLogger"  ) == component.name) {
-      snprintf(driver.name,NAME_LENGTH,"%s",label);
+      snprintf(driver.name,NAME_LENGTH,"%s",component_label);
       driver.dd       = tfm_dr_driver;
       driver.channels = TFM_DR_DRIVER_NWORDS;
       driver.bd       = null;

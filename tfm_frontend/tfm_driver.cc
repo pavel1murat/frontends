@@ -31,7 +31,8 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
-#include "tfm_frontend/tfm_driver.hh"
+#include "frontends/utils/utils.hh"
+#include "frontends/tfm_frontend/tfm_driver.hh"
 
 using std::vector, std::string;
 
@@ -96,14 +97,7 @@ int get_xmlrpc_url(HNDLE& hDB, HNDLE& hArtdaqNodeKey, const char* ComponentName,
 
   TLOG(TLVL_INFO+10) << "001.3 port_number:" << port_number;
 
-  std::string local_hostname;
-  char buf[100];
-  FILE* pipe = popen("hostname -f", "r");
-  while (!feof(pipe)) {
-    char* s = fgets(buf, 100, pipe);
-    if (s) local_hostname += buf;
-  }
-  pclose(pipe);
+  std::string local_hostname = get_host_name("local");
 
   TLOG(TLVL_INFO+10) << "002.1 local_hostname:" << local_hostname;
   

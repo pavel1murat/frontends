@@ -13,9 +13,12 @@
    contains usually the address of the device. For a CAMAC device
    this could be crate and station for example. */
 
+#include "dtcInterfaceLib/DTC.h"
+
 typedef struct {
-  int   address;
-  int   dtcID;
+  int          address;
+  int          dtcID;
+  DTCLib::DTC* dtc;
 } DTC_DRIVER_SETTINGS;
 
 /* the following structure contains private variables to the device
@@ -35,3 +38,21 @@ typedef struct {
 
 
 INT dtc_driver(INT cmd, ...);
+//-----------------------------------------------------------------------------
+// ARTDAQ metrics reported by the data receiver, assume everything is 4 bytes
+//-----------------------------------------------------------------------------
+struct DtcData_t {
+  float Temp;        // 0x9010: FPGA temperature    : T(C) = val(0x9010)*503.975/4096 - 273.15
+  float VCCINT;      // 0x9014: FPGA VCCINT voltage : V(V) = (ADC code)/4095*3.
+  float VCCAUX;      // 0x9018: FPGA VCCAUX voltage : V(V) = (ADC code)/4095*3.
+  float VCBRAM;      // 0x901c: FPGA VCBRAM voltage : V(V) = (ADC code)/4095*3.
+  int   r_0x9004;    // 0x9004: DTC version 
+  int   r_0x9100;    // 0x9100: DTC control register
+  int   r_0x9140;    // 0x9140: fibers locked
+};
+//-----------------------------------------------------------------------------
+// internally, a MIDAS driver stored only floats
+// reserve seven (7) words just for the first attempt to display
+//-----------------------------------------------------------------------------
+int const DTC_DRIVER_NWORDS =  7;
+

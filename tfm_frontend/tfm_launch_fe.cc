@@ -1,6 +1,9 @@
 //------------------------------------------------------------------------------
 // P.Murat: this frontend just launches the farm manager
-// make sure the TRACE name is the same as the 
+// make sure to use the correct TRACE name 
+// the host name has to be specified upon submission
+// start: tfm_launch_fe -h mu2edaq09.fnal.gov
+// host_name is defined in midas/include/mfe.h
 //-----------------------------------------------------------------------------
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "tfm_launch_fe"
@@ -24,8 +27,9 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
+#include "frontends/utils/utils.hh"
 #include "frontends/utils/db_runinfo.hh"
-#include "tfm_frontend/tfm_launch_fe.hh"
+#include "frontends/tfm_frontend/tfm_launch_fe.hh"
 
 /*-- Globals -------------------------------------------------------*/
 
@@ -121,10 +125,10 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   cm_get_experiment_database(&hDB, NULL);
   int   sz = sizeof(active_conf);
-  db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
+  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
 
   char key[200];
-  sprintf(key,"/Experiment/RunConfigurations/%s",active_conf);
+  sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
 	db_find_key(hDB, 0, key, &hKey);
 //-----------------------------------------------------------------------------
 // check whether or not use run number from the DB
@@ -132,13 +136,17 @@ INT frontend_init() {
   sz = sizeof(_useRunInfoDB);
   db_get_value(hDB, hKey, "UseRunInfoDB", &_useRunInfoDB, &sz, TID_BOOL, TRUE);
 //-----------------------------------------------------------------------------
+// handle the name of the host we'running
+//-----------------------------------------------------------------------------
+  std::string host = get_full_host_name("local");
+//-----------------------------------------------------------------------------
 // ARTDAQ_PARTITION_NUMBER and configuration name are defined in the active run configuration
 // TF manager port is defined by the partition number
 //-----------------------------------------------------------------------------
   sz = sizeof(_partition);
   db_get_value(hDB, hKey, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
   _port = 10000+1000*_partition;
-  sprintf(_xmlrpcUrl,"http://localhost:%i/RPC2",_port);
+  sprintf(_xmlrpcUrl,"http://%s:%i/RPC2",host.data(),_port);
 
   sz = sizeof(_artdaq_conf);
   db_get_value(hDB, hKey, "ArtdaqConfiguration", _artdaq_conf, &sz, TID_STRING, TRUE);
@@ -415,7 +423,7 @@ INT frontend_loop() {
       the frontend is idle or once between every event */
   if (_init > 0) {
 
-    int         rc (0);
+    //    int         rc (0);
 
     std::string         state;
     xmlrpc_env          env;
