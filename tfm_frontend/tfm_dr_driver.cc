@@ -86,15 +86,15 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
   info->bd           = bd;
   info->hkey         = hkey;
 //-----------------------------------------------------------------------------
-// now figure out waht needs to be initialized
+// now figure out what needs to be initialized
 //-----------------------------------------------------------------------------
   char        active_conf[100];
   int   sz = sizeof(active_conf);
-  db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
+  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
 
   HNDLE      h_active_conf;
   char       key[200];
-  sprintf(key,"/Experiment/RunConfigurations/%s",active_conf);
+  sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
 	db_find_key(hDB, 0, key, &h_active_conf);
 
   sz = sizeof(int);
@@ -107,7 +107,7 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
   db_get_value(hDB,h_active_conf,"ArtdaqConfiguration", &_artdaq_conf, &sz, TID_STRING, TRUE);
   TLOG(TLVL_INFO+10) << "001 artdaq_conf:" << _artdaq_conf;
 
-  sprintf(key,"/ArtdaqConfigurations/%s",_artdaq_conf);
+  sprintf(key,"/Mu2e/ArtdaqConfigurations/%s",_artdaq_conf);
   std::string k1 = key;
 
   HNDLE h_artdaq_conf;
@@ -119,8 +119,8 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
 // the node name should be defined in the driver settings
 // the nodename could be short of the 'host_name', a global from mfe.h
 //-----------------------------------------------------------------------------
-  std::string nodename = short_nodename(host_name);
-  sprintf(key,"/ArtdaqConfigurations/%s/%s",_artdaq_conf,nodename.data());
+  std::string host = get_full_host_name(host_name);
+  sprintf(key,"/Mu2e/ArtdaqConfigurations/%s/%s",_artdaq_conf,host.data());
   k1 = key;
 
   HNDLE h_artdaq_node;
@@ -130,7 +130,6 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
 //-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
 // make sure it won't compile before that
-// in principle, global variable host_name should be available here via mfe.h
 //-----------------------------------------------------------------------------
   get_xmlrpc_url(hDB,h_artdaq_node,_partition,FrontendsGlobals::_driver->name,_xmlrpcUrl);
 //-----------------------------------------------------------------------------
