@@ -103,7 +103,7 @@ INT frontend_init() {
 // MIDAS 'host_name' could be 'local'..
 //-----------------------------------------------------------------------------
   std::string host = get_full_host_name(host_name);
-  sprintf(key,"/Mu2e/DetectorConfigurations/%s/DAQ/%s",active_run_conf,host.data());
+  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s",active_run_conf,host.data());
   std::string k1 = key;
                                         // DTC configuration on 'host_name'
   HNDLE h_daq_conf;
@@ -113,8 +113,14 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 // DTC is the equipment, two are listed in the header, both should be listed in ODB
 //-----------------------------------------------------------------------------
-  HNDLE h_dtc;
-  for (int i=0; db_enum_key(hDB, h_daq_conf, i, &h_dtc) != DB_NO_MORE_SUBKEYS; i++) {
+  HNDLE h_subkey;
+  KEY   subkey;
+  for (int i=0; db_enum_key(hDB,h_daq_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
+//-----------------------------------------------------------------------------
+// skip 'Artdaq' folder
+//-----------------------------------------------------------------------------
+    db_get_key(hDB,h_subkey,&subkey);
+    if (strstr(subkey.name,"DTC") != subkey.name)           continue;
 //-----------------------------------------------------------------------------
 // for each DTC, define a driver
 // so far, output of all drivers goes into the same common "Input" array
