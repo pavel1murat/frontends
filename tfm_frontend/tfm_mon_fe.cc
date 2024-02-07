@@ -95,7 +95,7 @@ std::string _xmlrpcUrl = "http://localhost:15000/RPC2";
 
 namespace {
   xmlrpc_env     _env;
-  char           _artdaq_conf[50];
+  //  char           _artdaq_conf[50];
 }
 
 // DEVICE_DRIVER driver_list[] = {
@@ -104,7 +104,9 @@ namespace {
 //   {""}
 // };
 
-static DEVICE_DRIVER* _driver_list;
+namespace {
+  DEVICE_DRIVER* _driver_list(nullptr);
+}
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the frontend (or not ?)
 // print message and return FE_ERR_HW if frontend should not be started 
@@ -160,15 +162,10 @@ INT frontend_init() {
 // 1. First try a simple thing and it seems to work
 // 2. next, loop over components in the detector configuration and create 
 //    a driver for each one
-//-----------------------------------------------------------------------------
-  sz = sizeof(_artdaq_conf);
-  db_get_value(hDB,h_active_run_conf,"ArtdaqConfiguration", &_artdaq_conf, &sz, TID_STRING, TRUE);
-  TLOG(TLVL_INFO+10) << "001 artdaq_conf:" << _artdaq_conf;
-//-----------------------------------------------------------------------------
 // find ARTDAQ configuration , 'host_name' (hostname, i.e. mu2edaq09.fnal.gov) 
 // is a global from midas/src/mfe.cxx and should be defined on the command line! 
 //-----------------------------------------------------------------------------
-  sprintf(key,"/Mu2e/ArtdaqConfigurations/%s/%s",_artdaq_conf,host.data());
+  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",active_conf,host.data());
   std::string k1 = key;
 
   HNDLE h_artdaq_conf;
@@ -190,7 +187,8 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 // knowing the number of components, create a driver list
 //-----------------------------------------------------------------------------
-  _driver_list    = new DEVICE_DRIVER[ncomp];
+  DEVICE_DRIVER* x = new DEVICE_DRIVER[ncomp+1];
+  _driver_list = x;
   
   for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
 //-----------------------------------------------------------------------------
@@ -198,21 +196,23 @@ INT frontend_init() {
 // use the component label 
 // so far, output of all drivers goes into the same common "Input" array
 //-----------------------------------------------------------------------------
-    char component_label[100];
-    sz = sizeof(component_label);
-    db_get_value(hDB, h_component, "Label", &component_label, &sz, TID_STRING, TRUE);
+    db_get_key(hDB, h_component, &component);
+
+    char label[100];
+    sz = sizeof(label);
+    db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, TRUE);
 
     DEVICE_DRIVER driver;
     if (strstr(component.name,"BoardReader") == component.name) {
-      snprintf(driver.name,NAME_LENGTH,"%s",component_label);
-      driver.dd       = tfm_br_driver;               //  thsi is a function ..
+      snprintf(driver.name,NAME_LENGTH,"%s",label);
+      driver.dd       = tfm_br_driver;               //  this is a function ..
       driver.channels = TFM_BR_DRIVER_NWORDS;
       driver.bd       = null;
       driver.flags    = DF_INPUT;
       _driver_list[i] = driver;
     }
     else if (strstr(component.name,"EventBuilder") == component.name) {
-      snprintf(driver.name,NAME_LENGTH,"%s",component_label);
+      snprintf(driver.name,NAME_LENGTH,"%s",label);
       driver.dd       = tfm_dr_driver;
       driver.channels = TFM_DR_DRIVER_NWORDS;
       driver.bd       = null;
@@ -220,7 +220,7 @@ INT frontend_init() {
       _driver_list[i] = driver;
     }
     else if (strstr(component.name,"DataLogger"  ) == component.name) {
-      snprintf(driver.name,NAME_LENGTH,"%s",component_label);
+      snprintf(driver.name,NAME_LENGTH,"%s",label);
       driver.dd       = tfm_dr_driver;
       driver.channels = TFM_DR_DRIVER_NWORDS;
       driver.bd       = null;

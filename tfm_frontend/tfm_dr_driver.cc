@@ -38,12 +38,12 @@ using std::vector, std::string;
 #define TFM_DR_DRIVER_SETTINGS_STR "\
 Link     = INT : 0\n\
 Active   = INT : 0\n\
-NodeName = STR : \"\"\
+CompName = STR : \"\"\
 "
 
 typedef INT(func_t) (INT cmd, ...);
 
-static char         _artdaq_conf[50];
+// static char         _artdaq_conf[50];
 static int          _partition;
 
 // static double       _prev_time_sec (-1);
@@ -88,8 +88,8 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
 //-----------------------------------------------------------------------------
 // now figure out what needs to be initialized
 //-----------------------------------------------------------------------------
-  char        active_conf[100];
-  int   sz = sizeof(active_conf);
+  char       active_conf[100];
+  int sz   = sizeof(active_conf);
   db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
 
   HNDLE      h_active_conf;
@@ -100,38 +100,23 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
   sz = sizeof(int);
   db_get_value(hDB, h_active_conf, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
 //-----------------------------------------------------------------------------
-// find out the port numbers for the first boardreader, first event builder, 
-// and first datalogger
-//-----------------------------------------------------------------------------
-  sz = sizeof(_artdaq_conf);
-  db_get_value(hDB,h_active_conf,"ArtdaqConfiguration", &_artdaq_conf, &sz, TID_STRING, TRUE);
-  TLOG(TLVL_INFO+10) << "001 artdaq_conf:" << _artdaq_conf;
-
-  sprintf(key,"/Mu2e/ArtdaqConfigurations/%s",_artdaq_conf);
-  std::string k1 = key;
-
-  HNDLE h_artdaq_conf;
-	if (db_find_key(hDB, 0, k1.data(), &h_artdaq_conf) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "0012 no handle for:" << k1 << ", got:" << h_artdaq_conf;
-  }
-//-----------------------------------------------------------------------------
-// a node monitoring frontend is submitted separately on each node
-// the node name should be defined in the driver settings
-// the nodename could be short of the 'host_name', a global from mfe.h
+// the frontend monitors only ARTDAQ processes running on the same node with it
+// this is convenient for book-keeping reasons
 //-----------------------------------------------------------------------------
   std::string host = get_full_host_name(host_name);
-  sprintf(key,"/Mu2e/ArtdaqConfigurations/%s/%s",_artdaq_conf,host.data());
-  k1 = key;
+  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",active_conf,host.data());
 
-  HNDLE h_artdaq_node;
-	if (db_find_key(hDB, 0, k1.data(), &h_artdaq_node) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "no handle for:" << k1 << ", got" << h_artdaq_node;
+  HNDLE h_artdaq_conf;
+	if (db_find_key(hDB, 0, key, &h_artdaq_conf) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "0012 no handle for:" << key << ", got:" << h_artdaq_conf;
   }
 //-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
 // make sure it won't compile before that
+// the driver name is the same as the component name
 //-----------------------------------------------------------------------------
-  get_xmlrpc_url(hDB,h_artdaq_node,_partition,FrontendsGlobals::_driver->name,_xmlrpcUrl);
+  strcpy(info->driver_settings.CompName,FrontendsGlobals::_driver->name);
+  get_xmlrpc_url(hDB,h_artdaq_conf,host.data(),_partition,FrontendsGlobals::_driver->name,_xmlrpcUrl);
 //-----------------------------------------------------------------------------
 // it looks that the 'bus driver' function should be defined no matter what.
 //-----------------------------------------------------------------------------
@@ -487,13 +472,44 @@ INT tfm_dr_driver_get(TFM_DR_DRIVER_INFO* Info, INT Channel, float *PValue) {
 }
 
 //-----------------------------------------------------------------------------
+INT tfm_dr_driver_get_label(TFM_DR_DRIVER_INFO * Info, INT Channel, char* Label) {
+  if      (Channel ==  0) sprintf(Label,"%s#nev_read"    ,Info->driver_settings.CompName);
+  else if (Channel ==  1) sprintf(Label,"%s#event_rate"  ,Info->driver_settings.CompName);
+  else if (Channel ==  2) sprintf(Label,"%s#data_rate_ev",Info->driver_settings.CompName);
+  else if (Channel ==  3) sprintf(Label,"%s#time_window" ,Info->driver_settings.CompName);
+  else if (Channel ==  4) sprintf(Label,"%s#min_ev_size" ,Info->driver_settings.CompName);
+  else if (Channel ==  5) sprintf(Label,"%s#max_ev_size" ,Info->driver_settings.CompName);
+  else if (Channel ==  6) sprintf(Label,"%s#elapsed_time",Info->driver_settings.CompName);
+  else if (Channel ==  7) sprintf(Label,"%s#nfrag_read"  ,Info->driver_settings.CompName);
+  else if (Channel ==  8) sprintf(Label,"%s#frag_rate"   ,Info->driver_settings.CompName);
+  else if (Channel ==  9) sprintf(Label,"%s#data_rate_fr",Info->driver_settings.CompName);
+  else if (Channel == 10) sprintf(Label,"%s#min_fr_size" ,Info->driver_settings.CompName);
+  else if (Channel == 11) sprintf(Label,"%s#max_fr_size" ,Info->driver_settings.CompName);
+  else if (Channel == 12) sprintf(Label,"%s#nev_tot_run" ,Info->driver_settings.CompName);
+  else if (Channel == 13) sprintf(Label,"%s#nev_bad_run" ,Info->driver_settings.CompName);
+  else if (Channel == 14) sprintf(Label,"%s#nev_tot_sr"  ,Info->driver_settings.CompName);
+  else if (Channel == 15) sprintf(Label,"%s#nev_bad_sr"  ,Info->driver_settings.CompName);
+  else if (Channel == 16) sprintf(Label,"%s#nshm_buf_tot",Info->driver_settings.CompName);
+  else if (Channel == 17) sprintf(Label,"%s#nshm_buf_emp",Info->driver_settings.CompName);
+  else if (Channel == 18) sprintf(Label,"%s#nshm_buf_wr" ,Info->driver_settings.CompName);
+  else if (Channel == 19) sprintf(Label,"%s#nshm_buf_ful",Info->driver_settings.CompName);
+  else if (Channel == 20) sprintf(Label,"%s#nshm_buf_rd" ,Info->driver_settings.CompName);
+  else {
+    TLOG(TLVL_WARNING) << "channel:" << Channel << ". Do nothing";  
+  }
+
+  return FE_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
 // TFM data receiver (DR) slow control driver 
 //-----------------------------------------------------------------------------
 INT tfm_dr_driver(INT cmd, ...) {
-   va_list         argptr;
-   HNDLE           hKey;
-   INT             channel, status;
-   float           value  , *pvalue;
+   va_list             argptr;
+   HNDLE               hKey;
+   INT                 channel, status;
+   float               value  , *pvalue;
+   char*               label;
    TFM_DR_DRIVER_INFO *info;
 
    va_start(argptr, cmd);
@@ -527,6 +543,13 @@ INT tfm_dr_driver(INT cmd, ...) {
       pvalue  = va_arg(argptr, float *);
       status  = tfm_dr_driver_get(info, channel, pvalue);
       break;
+
+  case CMD_GET_LABEL:
+    info    = va_arg(argptr, TFM_DR_DRIVER_INFO *);
+    channel = va_arg(argptr, INT);
+    label   = va_arg(argptr, char *);
+    status  = tfm_dr_driver_get_label(info, channel, label);
+    break;
 
    default:
       break;

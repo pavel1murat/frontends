@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 #------------------------------------------------------------------------------
-# call signature: mu2e_install_ots.sh top [partition] [otsdaq_bundle] [qual]
+# call signature: mu2e_install_daq.sh top [partition] [otsdaq_bundle] [qual]
 # ---------------
 # parameters   :
 # --------------
@@ -10,18 +10,18 @@
 #            https://github.com/mu2e/otsdaq_mu2e/blob/develop/doc/otsdaq_mu2e.org#partitions
 #
 # bundle   : otsdaq bundle to use for Mu2e build, find it at 
-#            https://github.com/mu2e/otsdaq_mu2e/blob/develop/doc/build_instructions.org
+#            https://github.com/mu2e/pavel1murat/blob/main/doc/build_instructions.org
 #
-# example  : mu2e_install_ots.sh pasha_007 8
+# example  : mu2e_install_daq.sh sara_002 8 v2_07_00 e28_s126_debug
 # 
 # make sure no variables defined outside get redefined - make it a function
 # and declare all internal variables as local
 #------------------------------------------------------------------------------
-install_ots() {
-    local           top=$PWD/$1       ;
-    local     partition=$2            ; if [ ".$2" != "." ] ; then partition=$2 ; fi
-    local        bundle=v2_06_11      ; if [ ".$3" != "." ] ; then    bundle=$3 ; fi
-    local          qual=e28_s124_prof ; if [ ".$4" != "." ] ; then      qual=$4 ; fi
+install_daq() {
+    local           top=$PWD/$1        ;
+    local     partition=$2             ; if [ ".$2" != "." ] ; then partition=$2 ; fi
+    local        bundle=v2_07_00       ; if [ ".$3" != "." ] ; then    bundle=$3 ; fi
+    local          qual=e28_s126_debug ; if [ ".$4" != "." ] ; then      qual=$4 ; fi
     local         equal=`echo $qual | awk -F _ '{print $1}'`  #
     local         squal=`echo $qual | awk -F _ '{print $2}'`  # 
     local         oqual=`echo $qual | awk -F _ '{print $3}'`  # optimization
@@ -41,23 +41,28 @@ install_ots() {
 #------------------------------------------------------------------------------
 # pull code to be used, add more packages if needed
 #------------------------------------------------------------------------------
-    git clone https://github.com/mu2e/otsdaq_mu2e          # documentation
-    git clone https://github.com/mu2e/otsdaq_mu2e_dqm
-    git clone https://github.com/mu2e/otsdaq_mu2e_tracker
-#    git clone https://github.com/mu2e/otsdaq_mu2e_trigger
+    git clone https://github.com/pavel1murat/artdaq
+    cd artdaq; git checkout pasha/update_metrics ; cd .. ;
+    git clone https://github.com/pavel1murat/artdaq_core
+    cd artdaq_core; git checkout pasha/add_run_number ; cd .. ;
+    git clone https://github.com/pavel1murat/artdaq_demo
+
+    cd artdaq_core; git checkout pasha/rootwebgui ; cd .. ;
+    git clone https://github.com/art-daq/artdaq_core_demo
+
+    git clone https://github.com/mu2e/artdaq_mu2e
+
+    git clone https://github.com/pavel1murat/tfm
+    git clone https://github.com/pavel1murat/frontends
+
 #------------------------------------------------------------------------------
-# otsdaq_mu2e_config is a private Mu2e repo
+# 2023-08-12 P.M. : today, need mu2e_pcie_utils. That may change later
 #------------------------------------------------------------------------------
-#    git clone https://github.com/mu2e/otsdaq_mu2e_config
-#------------------------------------------------------------------------------
-# 2023-08-12 P.M. : today, need otsdaq and mu2e_pcie_utils. That may change later
-#------------------------------------------------------------------------------
-#    git clone https://github.com/art-daq/otsdaq
     git clone https://github.com/mu2e/mu2e_pcie_utils
 #------------------------------------------------------------------------------
 # 2023-10-30 P.M. : finally, check out Offline , today - from Eric's pull
 #------------------------------------------------------------------------------
-    git clone https://github.com/eflumerf/Offline.git -b eflumerf/AddCMake
+    git clone https://github.com/eflumerf/Offline.git
 #------------------------------------------------------------------------------
 # fixes for v2_06_10
 #------------------------------------------------------------------------------
@@ -81,7 +86,7 @@ install_ots() {
     setup mrb 
 
     export MRB_PROJECT=mu2e
-    mrb n -v $bundle -q $equal:$squal:$oqual -f
+    mrb n -v $bundle -q $equal:$squal:$oqual -f 
     source localProducts_${MRB_PROJECT}_${bundle}_${qual}/setup
     mrb uc
 
@@ -92,6 +97,6 @@ install_ots() {
     mrb b
 }
 #------------------------------------------------------------------------------
-# just call install_ots and pass all parameters to it
+# just call install_daq and pass all parameters to it
 #------------------------------------------------------------------------------
-install_ots $*
+install_daq $*

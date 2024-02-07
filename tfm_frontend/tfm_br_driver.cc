@@ -42,9 +42,9 @@ using std::vector, std::string;
 #define DEFAULT_TIMEOUT 10000   /* 10 sec. */
 
 #define TFM_BR_DRIVER_SETTINGS_STR "\
-link   = INT : 0\n\
-active = INT : 0\n\
-NodeName = STR : \"\"\
+Link     = INT : 0\n\
+Active   = INT : 0\n\
+CompName = STR : \"\"\
 "
 
 typedef INT(func_t) (INT cmd, ...);
@@ -90,7 +90,7 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   info->bd           = bd;
   info->hkey         = hkey;
 //-----------------------------------------------------------------------------
-// now figure out waht needs to be initialized
+// now figure out what needs to be initialized
 //-----------------------------------------------------------------------------
   char        active_conf[100];
   int   sz = sizeof(active_conf);
@@ -107,11 +107,9 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
 // find out the port numbers for the first boardreader, first event builder, 
 // and first datalogger
 //-----------------------------------------------------------------------------
-  sz = sizeof(_artdaq_conf);
-  db_get_value(hDB,h_active_conf,"ArtdaqConfiguration", &_artdaq_conf, &sz, TID_STRING, TRUE);
-  TLOG(TLVL_INFO+10) << "001 artdaq_conf:" << _artdaq_conf;
+  std::string host = get_full_host_name(host_name);
 
-  sprintf(key,"/Mu2e/ArtdaqConfigurations/%s",_artdaq_conf);
+  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",_artdaq_conf,host.data());
   std::string k1 = key;
 
   HNDLE h_artdaq_conf;
@@ -119,25 +117,14 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
     TLOG(TLVL_ERROR) << "0012 no handle for:" << k1 << ", got:" << h_artdaq_conf;
   }
 //-----------------------------------------------------------------------------
-// a node monitoring frontend is submitted separately on each node
-// the node name should be defined in the driver settings
-// the nodename could be short of the 'host_name', a global from mfe.h
-//-----------------------------------------------------------------------------
-  std::string host = get_full_host_name(host_name);
-  sprintf(key,"/Mu2e/ArtdaqConfigurations/%s/%s",_artdaq_conf,host.data());
-  k1 = key;
-
-  HNDLE h_artdaq_node;
-	if (db_find_key(hDB, 0, k1.data(), &h_artdaq_node) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "no handle for:" << k1 << ", got" << h_artdaq_node;
-  }
-//-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
 // make sure it won't compile before that
 // in principle, global variable host_name should be available here via mfe.h
 // expect FrontendsGlobals::_driver->name to be br01, dl01, eb01 etc....
+// the driver name is the same as the component name
 //-----------------------------------------------------------------------------
-  get_xmlrpc_url(hDB,h_artdaq_node,_partition,FrontendsGlobals::_driver->name,_xmlrpcUrl);
+  strcpy(info->driver_settings.CompName,FrontendsGlobals::_driver->name);
+  get_xmlrpc_url(hDB,h_artdaq_conf,host.data(),_partition,FrontendsGlobals::_driver->name,_xmlrpcUrl);
 //-----------------------------------------------------------------------------
 // it looks that the 'bus driver' function should be defined no matter what.
 //-----------------------------------------------------------------------------
@@ -202,27 +189,7 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
   xmlrpc_env    env;
   xmlrpc_value* resultP;
 
-  struct BrStatData_t {
-    int    runNumber;
-    int    nFragTot;                    // end of line 0
-    int    nFragRead;
-    float  getNextRate;                 // per second;
-    float  fragRate;
-    float  timeWindow;
-    int    minNFrag;                    // per getNext call
-    int    maxNFrag;                    // per getNext call
-    float  elapsedTime; 
-    float  dataRate;                    // MB/sec
-    float  minEventSize;                // MB
-    float  maxEventSize;                // MB , end of line 1
-    float  inputWaitTime;               // 
-    float  bufferWaitTime;
-    float  requestWaitTime;
-    float  outputWaitTime;              // per fragment; end of line 2
-    int    fragID  [5];                 // fragment ID's
-    int    nFragsID[5];                 // n(fragments) currently in the buffer
-    int    nBytesID[5];                 // n(bytes) currently in the buffer
-  } brs;
+  BrStatData_t  brs;
 
   TLOG(TLVL_INFO + 10) << "000: Url:" << Url;
   memset(&brs,0,sizeof(BrStatData_t));
@@ -377,11 +344,11 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
       
         num.clear();
         boost::split(num,words[1],boost::is_any_of(":"));
-        brs.nFragsID[i] = std::stoi (num[ 1]);
+        brs.nShmFragsID[i] = std::stoi (num[ 1]);
 
         num.clear();
         boost::split(num,words[2],boost::is_any_of(":"));
-        brs.nBytesID[i] = std::stoi(num[ 1]);
+        brs.nShmBytesID[i] = std::stoi(num[ 1]);
       }
       catch(...) {
         TLOG(TLVL_ERROR) << "coudnt parse:" << lines[4+i];
@@ -395,9 +362,9 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
 // done with parsing, copy to the Data
 //-----------------------------------------------------------------------------
  DONE_PARSING:
-  Data[ 0] = brs.runNumber;        // N(getNext calls)
-  Data[ 1] = brs.nFragTot ;        // N(fragments/sec)
-  Data[ 2] = brs.nFragRead;        // data rate, MB/sec
+  Data[ 0] = brs.runNumber;        // 
+  Data[ 1] = brs.nFragTot ;        // 
+  Data[ 2] = brs.nFragRead;        // 
   Data[ 3] = brs.getNextRate;
   Data[ 4] = brs.fragRate;
   Data[ 5] = brs.timeWindow;
@@ -409,13 +376,16 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
   Data[11] = brs.maxEventSize;
   Data[12] = brs.inputWaitTime;
   Data[13] = brs.bufferWaitTime;
-  Data[14] = brs.outputWaitTime;
-
+  Data[14] = brs.requestWaitTime;
+  Data[15] = brs.outputWaitTime;
+//-----------------------------------------------------------------------------
+// shared memory
+//-----------------------------------------------------------------------------
   if (nf <= 5) {
     for (int i=0; i<nf; i++) {
-      Data[15+3*i] = brs.fragID  [i];
-      Data[16+3*i] = brs.nFragsID[i];
-      Data[17+3*i] = brs.nBytesID[i];
+      Data[16+i] = brs.fragID  [i];
+      Data[21+i] = brs.nShmFragsID[i];
+      Data[26+i] = brs.nShmBytesID[i];
     }
   }
   else {
@@ -487,6 +457,47 @@ INT tfm_br_driver_get(TFM_BR_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
 }
 
 //-----------------------------------------------------------------------------
+INT tfm_br_driver_get_label(TFM_BR_DRIVER_INFO * Info, INT Channel, char* Label) {
+  if      (Channel ==  0) sprintf(Label,"%s#run_num"     ,Info->driver_settings.CompName);
+  else if (Channel ==  1) sprintf(Label,"%s#nfrag_tot"   ,Info->driver_settings.CompName);
+  else if (Channel ==  2) sprintf(Label,"%s#nfrag_read"  ,Info->driver_settings.CompName);
+  else if (Channel ==  3) sprintf(Label,"%s#getnext_rate",Info->driver_settings.CompName);
+  else if (Channel ==  4) sprintf(Label,"%s#frag_rate"   ,Info->driver_settings.CompName);
+  else if (Channel ==  5) sprintf(Label,"%s#time_win"    ,Info->driver_settings.CompName);
+  else if (Channel ==  6) sprintf(Label,"%s#min_nfrag"   ,Info->driver_settings.CompName);
+  else if (Channel ==  7) sprintf(Label,"%s#max_nfrag"   ,Info->driver_settings.CompName);
+  else if (Channel ==  8) sprintf(Label,"%s#elapsed_time",Info->driver_settings.CompName);
+  else if (Channel ==  9) sprintf(Label,"%s#data_rate"   ,Info->driver_settings.CompName);
+  else if (Channel == 10) sprintf(Label,"%s#min_ev_size" ,Info->driver_settings.CompName);
+  else if (Channel == 11) sprintf(Label,"%s#max_ev_size" ,Info->driver_settings.CompName);
+  else if (Channel == 12) sprintf(Label,"%s#inp_wtime"   ,Info->driver_settings.CompName);
+  else if (Channel == 13) sprintf(Label,"%s#buf_wtime"   ,Info->driver_settings.CompName);
+  else if (Channel == 14) sprintf(Label,"%s#req_wtime"   ,Info->driver_settings.CompName);
+  else if (Channel == 15) sprintf(Label,"%s#out_wtime"   ,Info->driver_settings.CompName);
+  else if (Channel == 16) sprintf(Label,"%s#frag_id_0"   ,Info->driver_settings.CompName);
+  else if (Channel == 17) sprintf(Label,"%s#nfrag_0"     ,Info->driver_settings.CompName);
+  else if (Channel == 18) sprintf(Label,"%s#nbytes_0"    ,Info->driver_settings.CompName);
+  else if (Channel == 19) sprintf(Label,"%s#frag_id_1"   ,Info->driver_settings.CompName);
+  else if (Channel == 20) sprintf(Label,"%s#nffrag_1"    ,Info->driver_settings.CompName);
+  else if (Channel == 21) sprintf(Label,"%s#nbytes_1"    ,Info->driver_settings.CompName);
+  else if (Channel == 22) sprintf(Label,"%s#frag_id_2"   ,Info->driver_settings.CompName);
+  else if (Channel == 23) sprintf(Label,"%s#nffrag_2"    ,Info->driver_settings.CompName);
+  else if (Channel == 24) sprintf(Label,"%s#nbytes_2"    ,Info->driver_settings.CompName);
+  else if (Channel == 25) sprintf(Label,"%s#frag_id_3"   ,Info->driver_settings.CompName);
+  else if (Channel == 26) sprintf(Label,"%s#nfrag_3"     ,Info->driver_settings.CompName);
+  else if (Channel == 27) sprintf(Label,"%s#nbytes_3"    ,Info->driver_settings.CompName);
+  else if (Channel == 28) sprintf(Label,"%s#frag_id_4"   ,Info->driver_settings.CompName);
+  else if (Channel == 29) sprintf(Label,"%s#nfrag_4"     ,Info->driver_settings.CompName);
+  else if (Channel == 30) sprintf(Label,"%s#nbytes_4"    ,Info->driver_settings.CompName);
+  else {
+    TLOG(TLVL_WARNING) << "channel:" << Channel << ". Do nothing";  
+  }
+
+  return FE_SUCCESS;
+}
+
+
+//-----------------------------------------------------------------------------
 // device driver entry point
 //-----------------------------------------------------------------------------
 INT tfm_br_driver(INT cmd, ...) {
@@ -494,6 +505,7 @@ INT tfm_br_driver(INT cmd, ...) {
   HNDLE           hKey;
   INT             channel, status;
   float           value  , *pvalue;
+  char*           label;
   TFM_BR_DRIVER_INFO *info;
 
   va_start(argptr, cmd);
@@ -524,6 +536,12 @@ INT tfm_br_driver(INT cmd, ...) {
     channel = va_arg(argptr, INT);
     pvalue  = va_arg(argptr, float *);
     status  = tfm_br_driver_get(info, channel, pvalue);
+    break;
+  case CMD_GET_LABEL:
+    info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
+    channel = va_arg(argptr, INT);
+    label   = va_arg(argptr, char *);
+    status  = tfm_br_driver_get_label(info, channel, label);
     break;
   default:
     break;
