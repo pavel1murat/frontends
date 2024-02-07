@@ -5,11 +5,9 @@
 #define __tfm_mon_fe_hh_
 
 #include "drivers/bus/null.h"
-// #include "drivers/class/multi.h"
 #include "frontends/utils/mu2e_sc.hh"
-// #include "tfm_frontend/tfm_driver.hh"
-#include "tfm_frontend/tfm_br_driver.hh"
-#include "tfm_frontend/tfm_dr_driver.hh"
+#include "frontends/tfm_frontend/tfm_br_driver.hh"
+#include "frontends/tfm_frontend/tfm_dr_driver.hh"
 //-----------------------------------------------------------------------------
 /* device driver list */
 //-----------------------------------------------------------------------------
@@ -29,7 +27,7 @@ BOOL equipment_common_overwrite = TRUE;
 
 EQUIPMENT equipment[] = {
   {
-    "trigger_farm",                       // eq name
+    "${HOSTNAME}#artdaq",                 // eq name
     EQUIPMENT_INFO {
       2, 0,                               // event ID, trigger mask
       "SYSTEM",                           // event buffer name
@@ -53,8 +51,6 @@ EQUIPMENT equipment[] = {
       0,                                  // hidden flag
       0                                   // event buffer write cache size
     },
-    // cd_multi_read,                  // pointer to user readout routine
-    // cd_multi,                       // class driver routine
     cd_mu2e_sc_read,                      // pointer to user readout routine, for monitoring-only client could be a nullptr
     cd_mu2e_sc     ,                      // class driver routine
     //    driver_list,                          // device driver list

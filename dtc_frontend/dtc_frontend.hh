@@ -40,8 +40,8 @@ EQUIPMENT equipment[] = {
     "",                        // frontend source file name
     "",                        // current status
     "",                        // color for status
-    FALSE,                     // hidden flag
-    5000000                    // write cache size
+    0,                         // hidden flag
+    0                          // write cache size
    } ,
    cd_mu2e_sc_read,              /* readout routine */
    cd_mu2e_sc,                   /* class driver main routine */

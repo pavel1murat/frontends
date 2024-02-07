@@ -99,7 +99,7 @@ std::unique_ptr<artdaq::CommanderInterface>  _commander;
 static uint          _useRunInfoDB(0);
 static int           _partition(0);
 static int           _port(0);
-static char          _artdaq_conf[100];
+//static char          _artdaq_conf[100];
 static char          _xmlrpcUrl  [100];
 static xmlrpc_env    _env;
 static int           _init(0);
@@ -113,7 +113,7 @@ INT frontend_init() {
   int         argc;
   char**      argv;
   std::string fcl_fn;
-  HNDLE       hDB, hKey;
+  HNDLE       hDB, h_active_run_conf;
   char        active_conf[100];
 
   set_equipment_status(equipment[0].name, "Initializing...", "yellow");
@@ -129,12 +129,12 @@ INT frontend_init() {
 
   char key[200];
   sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
-	db_find_key(hDB, 0, key, &hKey);
+	db_find_key(hDB, 0, key, &h_active_run_conf);
 //-----------------------------------------------------------------------------
 // check whether or not use run number from the DB
 //-----------------------------------------------------------------------------
   sz = sizeof(_useRunInfoDB);
-  db_get_value(hDB, hKey, "UseRunInfoDB", &_useRunInfoDB, &sz, TID_BOOL, TRUE);
+  db_get_value(hDB, h_active_run_conf, "UseRunInfoDB", &_useRunInfoDB, &sz, TID_BOOL, TRUE);
 //-----------------------------------------------------------------------------
 // handle the name of the host we'running
 //-----------------------------------------------------------------------------
@@ -144,23 +144,20 @@ INT frontend_init() {
 // TF manager port is defined by the partition number
 //-----------------------------------------------------------------------------
   sz = sizeof(_partition);
-  db_get_value(hDB, hKey, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
+  db_get_value(hDB, h_active_run_conf, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
   _port = 10000+1000*_partition;
   sprintf(_xmlrpcUrl,"http://%s:%i/RPC2",host.data(),_port);
-
-  sz = sizeof(_artdaq_conf);
-  db_get_value(hDB, hKey, "ArtdaqConfiguration", _artdaq_conf, &sz, TID_STRING, TRUE);
 
   TLOG(TLVL_DEBUG+4) << "farm_manager _useRunInfoDB:" << _useRunInfoDB;
   TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
 //-----------------------------------------------------------------------------
 // launch the farm manager via dbus-console
 //-----------------------------------------------------------------------------
-  cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s', artdaq config '%s', partition %i", 
-         active_conf, _artdaq_conf, _partition);
+  cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s' partition %i", 
+         active_conf, _partition);
   char cmd[200];
   sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e daq_scripts/start_farm_manager %s %i",
-          _artdaq_conf,_partition);
+          active_conf,_partition);
 
   TLOG(TLVL_DEBUG+4) << "before launching: cmd=" << cmd;
   system(cmd);
@@ -204,7 +201,6 @@ INT frontend_exit() {
 
   xmlrpc_env_clean(&_env);
   xmlrpc_client_cleanup();
-
 
   return SUCCESS;
 }
