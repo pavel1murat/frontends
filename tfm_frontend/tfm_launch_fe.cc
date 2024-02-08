@@ -264,6 +264,19 @@ int wait_for(const char* State, int MaxWaitingTime) {
 INT begin_of_run(INT RunNumber, char *error) {
   xmlrpc_env    env;
   xmlrpc_value* resultP;
+//-----------------------------------------------------------------------------
+// register beginning of the transition 
+//-----------------------------------------------------------------------------
+  int rc(0);
+  if (_useRunInfoDB) {
+    try { 
+      db_runinfo db("aaa");
+      rc = db.registerTransition(RunNumber,db_runinfo::START,0);
+    }
+    catch(char* err) {
+      TLOG(TLVL_ERROR) << "failed to register beginning of the START transition rc=" << rc;
+    }
+  }
 
   set_equipment_status(equipment[0].name, "Run starting...", "yellow");
 
@@ -293,8 +306,6 @@ INT begin_of_run(INT RunNumber, char *error) {
 //-----------------------------------------------------------------------------
 // now wait till completion
 //-----------------------------------------------------------------------------
-  int rc(0);
-
   rc = wait_for("configured:100",100);
 
   printf("tfm_frontend::%s 0011: DONE configuring, rc=%i\n",__func__,rc);
@@ -324,16 +335,19 @@ INT begin_of_run(INT RunNumber, char *error) {
   rc = wait_for("running:100",70);
 
   printf("tfm_frontend::%s ERROR: wait for running run=%6i rc=%i\n",__func__,RunNumber,rc);
-
+//-----------------------------------------------------------------------------
+// register the end of the start completion
+//-----------------------------------------------------------------------------
   if (_useRunInfoDB) {
     try { 
       db_runinfo db("aaa");
-      rc = db.registerTransition(RunNumber,db_runinfo::START);
+      rc = db.registerTransition(RunNumber,db_runinfo::START,1);
     }
     catch(char* err) {
-      TLOG(TLVL_ERROR) << "failed to register START transition rc=" << rc;
+      TLOG(TLVL_ERROR) << "failed to register end of the START transition rc=" << rc;
     }
   }
+
   printf("tfm_frontend::%s 003: done starting, run=%6i rc=%i\n",__func__,RunNumber,rc);
 
   return SUCCESS;
@@ -353,7 +367,21 @@ INT end_of_run(INT RunNumber, char *Error) {
 
   size_t        length;
   const char*   value;
+//-----------------------------------------------------------------------------
+// write beginning of the transition into the DB
+//-----------------------------------------------------------------------------
+  int rc(0);
 
+  if (_useRunInfoDB) {
+    db_runinfo db("aaa");
+    rc = db.registerTransition(RunNumber,db_runinfo::STOP,0);
+    if (rc < 0) {
+      TLOG(TLVL_ERROR) << "failed to register beginning of the END_RUN transition rc=" << rc;
+    }
+  }
+//-----------------------------------------------------------------------------
+// send the transition request 
+//-----------------------------------------------------------------------------
   xmlrpc_env_init(&env);
   resultP = xmlrpc_client_call(&_env, 
                                _xmlrpcUrl,
@@ -372,31 +400,26 @@ INT end_of_run(INT RunNumber, char *Error) {
   std::string result = value;
 
   xmlrpc_DECREF(resultP);
-  //  xmlrpc_env_clean(&_env);
 
   TLOG(TLVL_INFO) << "after my_xmlrpc command run=" << RunNumber << "result:" << result;
 //-----------------------------------------------------------------------------
 // now wait till completion
 //-----------------------------------------------------------------------------
-  int rc(0);
-
   TLOG(TLVL_DEBUG) << "wait for completion";
 
   rc = wait_for("stopped:100",100);
 
   TLOG(TLVL_DEBUG) << "DONE stopping rc=" << rc;
 //-----------------------------------------------------------------------------
-// write end of transition into the DB
+// write end of STOP_RUN transition into the DB
 //-----------------------------------------------------------------------------
   if (_useRunInfoDB) {
     db_runinfo db("aaa");
-    rc = db.registerTransition(RunNumber,db_runinfo::STOP);
+    rc = db.registerTransition(RunNumber,db_runinfo::STOP,1);
     if (rc < 0) {
-      TLOG(TLVL_ERROR) << "failed to register STOP transition rc=" << rc;
-      sprintf(Error,"tfm_frontend::%s ERROR: line %i failed to regiser STOP transition",__func__,__LINE__);
+      TLOG(TLVL_ERROR) << "failed to register end of the STOP_RUN transition rc=" << rc;
     }
   }
-
 
   set_equipment_status(equipment[0].name, "OK", "green");
 

@@ -34,9 +34,10 @@ public:
 //-----------------------------------------------------------------------------
 // run configuration should contain all needed information. By default, store 
 // the new run number in ODB
+// TransitionCause: 0:start 1:end
 //-----------------------------------------------------------------------------
   int nextRunNumber     (const char* RunConfiguration, int StoreInODB=1);
-  int registerTransition(int RunNumber, uint TransitionType);
+  int registerTransition(int RunNumber, uint TransitionType, uint CauseType);
 
 	int  openConnection ();
 	int  checkConnection();

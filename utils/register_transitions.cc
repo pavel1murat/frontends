@@ -19,7 +19,7 @@ int main(int argc, const char** argv) {
 // transitions are registered by the clients
 // a test - see db_runinfo_main.cc
 //-----------------------------------------------------------------------------
-  x.registerTransition(rn,db_runinfo::START);
-  x.registerTransition(rn,db_runinfo::STOP );
+  x.registerTransition(rn,db_runinfo::START,1);
+  x.registerTransition(rn,db_runinfo::STOP ,1);
   return 0;
 }
