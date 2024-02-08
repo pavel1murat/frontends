@@ -622,16 +622,18 @@ INT mu2e_sc_init(EQUIPMENT *pequipment) {
                      m_info->num_channels_output * (int) sizeof(float),
                      MODE_READ, mu2e_sc_output, pequipment);
    }
-
-   /* set initial demand values */
+//-----------------------------------------------------------------------------
+// set initial demand values
+//-----------------------------------------------------------------------------
    for (i = 0; i < m_info->num_channels_output; i++) {
       if (m_info->driver_output[i]->flags & DF_PRIO_DEVICE) {
-         /* read default value directly from device bypassing mu2e_sc-thread buffer */
+        /* read default value directly from device bypassing mu2e_sc-thread buffer */
          device_driver(m_info->driver_output[i], CMD_GET_DEMAND_DIRECT,
                        i - m_info->channel_offset_output[i],
                        &m_info->output_mirror[i]);
-      } else {
-         /* use default value from ODB */
+      } 
+      else {
+        /* use default value from ODB */
          m_info->output_mirror[i] = m_info->var_output[i] * m_info->factor_output[i] -
                                     m_info->offset_output[i];
 
@@ -716,8 +718,9 @@ INT mu2e_sc_idle(EQUIPMENT *pequipment) {
    return FE_SUCCESS;
 }
 
-/*----------------------------------------------------------------------------*/
-
+//----------------------------------------------------------------------------
+// for FORMAT_FIXED, copy data from the driver internal buffer to the shared mem ?
+//-----------------------------------------------------------------------------
 INT cd_mu2e_sc_read(char *pevent, int) {
    float *pdata;
    MU2E_SC_INFO *m_info;

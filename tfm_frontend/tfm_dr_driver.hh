@@ -15,7 +15,8 @@
 typedef struct {
   int  Link;
   int  Active;
-  char CompName[NAME_LENGTH];
+  char CompName [NAME_LENGTH];
+  char XmlrpcUrl[64];
 } TFM_DR_DRIVER_SETTINGS;
 
 /* following structure contains private variables to the device

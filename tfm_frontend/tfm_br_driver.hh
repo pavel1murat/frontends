@@ -8,11 +8,16 @@
    structure. Edit the DRIVER_SETTINGS_STR accordingly. This 
    contains usually the address of the device. For a CAMAC device
    this could be crate and station for example. */
-
+//-----------------------------------------------------------------------------
+// a boardreader can read several fragment types, the number of lines 
+// in the shared memory manager report depends on that
+//-----------------------------------------------------------------------------
 typedef struct {
   int  Link;
   int  Active;
-  char CompName[NAME_LENGTH];
+  int  NFragmentTypes;
+  char CompName [NAME_LENGTH];
+  char XmlrpcUrl[64];
 } TFM_BR_DRIVER_SETTINGS;
 
 

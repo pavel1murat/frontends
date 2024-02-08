@@ -36,20 +36,15 @@ using std::vector, std::string;
 #define DEFAULT_TIMEOUT 10000   /* 10 sec. */
 
 #define TFM_DR_DRIVER_SETTINGS_STR "\
-Link     = INT : 0\n\
-Active   = INT : 0\n\
-CompName = STR : \"\"\
+Link      = INT : 0\n\
+Active    = INT : 0\n\
+CompName  = STRING :\n\
+XmlrpcUrl = STRING[64] :\n\
 "
 
 typedef INT(func_t) (INT cmd, ...);
 
-// static char         _artdaq_conf[50];
 static int          _partition;
-
-// static double       _prev_time_sec (-1);
-// static double       _prev_sz_mbytes(-1);
-
-static std::string  _xmlrpcUrl;       // XML-RPC url of the data receiver
 //-----------------------------------------------------------------------------
 // device driver routines
 // the init function creates a ODB record which contains the
@@ -116,7 +111,10 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
 // the driver name is the same as the component name
 //-----------------------------------------------------------------------------
   strcpy(info->driver_settings.CompName,FrontendsGlobals::_driver->name);
-  get_xmlrpc_url(hDB,h_artdaq_conf,host.data(),_partition,FrontendsGlobals::_driver->name,_xmlrpcUrl);
+
+  std::string  url;       // XML-RPC url of the data receiver
+  get_xmlrpc_url(hDB,h_artdaq_conf,host.data(),_partition,FrontendsGlobals::_driver->name,url);
+  strcpy(info->driver_settings.XmlrpcUrl,url.data());
 //-----------------------------------------------------------------------------
 // it looks that the 'bus driver' function should be defined no matter what.
 //-----------------------------------------------------------------------------
@@ -175,7 +173,7 @@ INT tfm_dr_driver_set(TFM_DR_DRIVER_INFO * info, INT channel, float value) {
 // 5 shm_nbb :10:1048576:0:0:10:0\n
 // last parameter : communication/parsing error code
 //-----------------------------------------------------------------------------
-int get_receiver_data(const char* Url, float* Data) {
+int get_receiver_data(TFM_DR_DRIVER_INFO* Info, float* Data) {
 
   int                rc(0);
   ReceiverStatData_t rs;
@@ -187,12 +185,13 @@ int get_receiver_data(const char* Url, float* Data) {
   memset(&rs,0,sizeof(ReceiverStatData_t));
 
                                // "({s:i,s:i})",
-  TLOG(TLVL_INFO + 10) << "000: Url:" << Url;
+  const char* url = Info->driver_settings.XmlrpcUrl;
+  TLOG(TLVL_INFO + 10) << "000: url:" << url;
 
   std::string res;
 
   try {
-    resultP = xmlrpc_client_call(&env,Url,"daq.report","(s)","stats");
+    resultP = xmlrpc_client_call(&env,url,"daq.report","(s)","stats");
     if (env.fault_occurred) {
       TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string;
       rc = env.fault_code;
@@ -331,7 +330,7 @@ int get_receiver_data(const char* Url, float* Data) {
 //-----------------------------------------------------------------------------
 // any kind of error 
 //-----------------------------------------------------------------------------
-    TLOG(TLVL_ERROR) << "Url:" << Url << " response:" << res;
+    TLOG(TLVL_ERROR) << "url:" << url << " response:" << res;
   }
 //-----------------------------------------------------------------------------
 // copy data to the output
@@ -377,7 +376,7 @@ INT tfm_dr_driver_get(TFM_DR_DRIVER_INFO* Info, INT Channel, float *PValue) {
   time_t        timer;
   const char*   default_trace_file = "/proc/trace/buffer";
 
-  TLOG(TLVL_DEBUG+20) << "driver called";
+  TLOG(TLVL_DEBUG) << "driver called";
 //-----------------------------------------------------------------------------
 // the timing part is a kludge - need to learn how to handle this correctly
 // however, this can be fixed transparently at any point in time
@@ -397,67 +396,9 @@ INT tfm_dr_driver_get(TFM_DR_DRIVER_INFO* Info, INT Channel, float *PValue) {
 
     TLOG(TLVL_DEBUG) << "reading channel:" << Channel << "; TRACE_FILE=" << trace_file;
 //-----------------------------------------------------------------------------
-    if (Channel == 0) {
-//-----------------------------------------------------------------------------
 // read once for all channels
 //-----------------------------------------------------------------------------
-      get_receiver_data   (_xmlrpcUrl.data(),&Info->array[0]);  // 22 parameters
-//-----------------------------------------------------------------------------
-// finally, get the output file information
-// the script should return just one line with two numbers - time [ms] size [bytes]
-//-----------------------------------------------------------------------------
-      // char buf[100];
-      // std::string res;
-
-      // Info->array[98] = 0;
-      // Info->array[99] = 0;
-      // TLOG(TLVL_DEBUG) << "before getting the output file size";
-      // try {
-      //   char cmd[200];
-      //   sprintf(cmd,"source $TFM_DIR/bin/tfm_configure %s %i > /dev/null; source daq_scripts/get_output_file_size",
-      //           _artdaq_conf,_partition);
-      //   TLOG(TLVL_DEBUG) << "before issuing cmd:" << cmd;
-      //   FILE* pipe = popen(cmd, "r");
-      //   while (!feof(pipe)) {
-      //     char* s = fgets(buf, 100, pipe);
-      //     if (s) res += buf;
-      //   }
-      //   pclose(pipe);
-
-      //   TLOG(TLVL_DEBUG) << "get_output_file_size output:" << res;
-
-      //   vector<string> w;
-      //   boost::split(w,res,boost::is_any_of(" "));
-
-      //   int nw=w.size();
-
-      //   TLOG(TLVL_INFO + 10) << "w.size: " << nw;
-
-      //   for (int i=0; i<nw; i++) {
-      //     TLOG(TLVL_INFO + 10) << "i, w[i]: " << i << " " << w[i];
-      //   }
-
-      //   double time_sec  = std::stol(w[0])/1000.;
-
-      //   TLOG(TLVL_INFO + 10) << "time_sec: " << time_sec;
-
-      //   double sz_mbytes = std::stoll(w[1])/1024./1024.;
-
-      //   TLOG(TLVL_INFO + 10) << "sz_mbytes: " << sz_mbytes;
-
-      //   Info->array[98]   = sz_mbytes;
-
-      //   if (_prev_time_sec > 0) {
-      //     Info->array[99] = (sz_mbytes-_prev_sz_mbytes)/(time_sec-_prev_time_sec+1.e-12);
-      //   }
-
-      //   _prev_sz_mbytes = sz_mbytes;
-      //   _prev_time_sec  = time_sec;
-      // }
-      // catch (...) {
-      //   TLOG(TLVL_ERROR) << "failed to get the DAQ output file size";
-      // }
-    }
+    get_receiver_data   (Info,&Info->array[0]);  // 22 parameters
   }
 //-----------------------------------------------------------------------------
 // so far, 100 parameters (sparse) 
