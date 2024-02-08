@@ -217,7 +217,7 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
 // and at this point implement sleep
 // I don't need to read the DTC too often
 //-----------------------------------------------------------------------------
-   sleep(5);
+   sleep(1);
 
    return FE_SUCCESS;
 }

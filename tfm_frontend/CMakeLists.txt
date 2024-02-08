@@ -36,6 +36,7 @@ cet_make_exec(NAME      tfm_mon_fe
               SOURCE    tfm_mon_fe.cc 
                         tfm_br_driver.cc
                         tfm_dr_driver.cc
+                        tfm_disk_driver.cc
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
               LIBRARIES frontends midas mfe 
                         artdaq_plugin_support::commanderMaker

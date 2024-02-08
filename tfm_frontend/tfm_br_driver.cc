@@ -42,21 +42,16 @@ using std::vector, std::string;
 #define DEFAULT_TIMEOUT 10000   /* 10 sec. */
 
 #define TFM_BR_DRIVER_SETTINGS_STR "\
-Link     = INT : 0\n\
-Active   = INT : 0\n\
-CompName = STR : \"\"\
+Link           = INT : 0\n\
+Active         = INT : 0\n\
+NFragmentTypes = INT : 1\n\
+CompName       = STRING :\n\
+XmlrpcUrl      = STRING[64] :\n\
 "
 
 typedef INT(func_t) (INT cmd, ...);
 
-static char        _artdaq_conf[50];
 static int         _partition;
-// static int         _base_port_number;
-// static int         _br_rank;
-// static int         _br_port_number;
-// static std::string _brUrl;
-static std::string  _xmlrpcUrl;       // XML-RPC url of the data receiver
-
 /*---- device driver routines --------------------------------------*/
 /* the init function creates a ODB record which contains the
    settings and initialized it variables as well as the bus driver */
@@ -109,7 +104,7 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
 //-----------------------------------------------------------------------------
   std::string host = get_full_host_name(host_name);
 
-  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",_artdaq_conf,host.data());
+  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",active_conf,host.data());
   std::string k1 = key;
 
   HNDLE h_artdaq_conf;
@@ -124,7 +119,21 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
 // the driver name is the same as the component name
 //-----------------------------------------------------------------------------
   strcpy(info->driver_settings.CompName,FrontendsGlobals::_driver->name);
-  get_xmlrpc_url(hDB,h_artdaq_conf,host.data(),_partition,FrontendsGlobals::_driver->name,_xmlrpcUrl);
+
+  std::string  xmlrpcUrl;       // XML-RPC url of the board reader
+  get_xmlrpc_url(hDB,h_artdaq_conf,host.data(),_partition,FrontendsGlobals::_driver->name,xmlrpcUrl);
+
+  TLOG(TLVL_INFO+10) << "013: host.data:" << host.data() << " xmlRpcUrl:" << xmlrpcUrl;
+  strcpy(info->driver_settings.XmlrpcUrl,xmlrpcUrl.data());
+//-----------------------------------------------------------------------------
+// for the boardreader, store the number of fragment types - that defined the number of lines in the 
+// boardreader metrics report
+//-----------------------------------------------------------------------------
+  HNDLE h_component;
+  db_find_key(hDB,h_artdaq_conf,FrontendsGlobals::_driver->name,&h_component);
+
+  sz = sizeof(int);
+  db_get_value(hDB, h_component, "NFragmentTypes", &info->driver_settings.NFragmentTypes, &sz, TID_INT32, FALSE);
 //-----------------------------------------------------------------------------
 // it looks that the 'bus driver' function should be defined no matter what.
 //-----------------------------------------------------------------------------
@@ -182,16 +191,19 @@ INT tfm_br_driver_set(TFM_BR_DRIVER_INFO * info, INT channel, float value) {
 // 3:    Input wait time = 0.00156023 s/fragment, buffer wait time = 4.04943e-05 s/fragment, request wait time = 0.00075403 s/fragment, output wait time = 3.5861e-05 s/fragment\n
 // 4: fragment_id: 11 nfragments: 0 nbytes: 0 max_nf: 1000 max_nb: 1048576000\n
 // 5: fragment_id: 0 nfragments: 0 nbytes: 0 max_nf: 1000 max_nb: 1048576000\n
-//-----------------------------------------------------------------------------
-int tfm_br_get_boardreader_data(const char* Url, float* Data) {
+//
+// note that the number of lines in the boardreader response depends on the number of fragments on input
+//------------------------------------------------------------------------------------------------------
+int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
   // two words per process - N(segments/sec) and the data rate, MB/sec
   int           rc(0);
   xmlrpc_env    env;
   xmlrpc_value* resultP;
 
   BrStatData_t  brs;
-
-  TLOG(TLVL_INFO + 10) << "000: Url:" << Url;
+  
+  const char* url = Info->driver_settings.XmlrpcUrl;
+  TLOG(TLVL_INFO + 10) << "000: Url:" << url;
   memset(&brs,0,sizeof(BrStatData_t));
 
   std::string res;
@@ -200,7 +212,7 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
   try {
     xmlrpc_env_init(&env);
                                // "({s:i,s:i})",
-    resultP = xmlrpc_client_call(&env,Url,"daq.report","(s)","stats");
+    resultP = xmlrpc_client_call(&env,url,"daq.report","(s)","stats");
     if (env.fault_occurred) {
       rc = env.fault_code;
       TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " output:" << env.fault_string;
@@ -233,7 +245,7 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
     boost::split(lines,res,boost::is_any_of("\n"));
     int nlines = lines.size();
     TLOG(TLVL_INFO + 10) << "001: nlines:" << nlines;
-    if (nlines < 6) {
+    if (nlines < 4+Info->driver_settings.NFragmentTypes) {
       rc = -10-nlines;
       TLOG(TLVL_ERROR) << "002 ERROR: nlines=" << nlines;
       // throw;
@@ -396,7 +408,7 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
 //-----------------------------------------------------------------------------
   Data[30] = rc;
 
-  TLOG(TLVL_INFO + 10) << "Data:" << Data[0] << " " << Data[1] << " rc=" << rc;
+  TLOG(TLVL_INFO + 10) << "Data[0]:" << Data[0] << " Data[1]" << Data[1] << " rc=" << rc;
  
   return rc;
 }
@@ -436,13 +448,9 @@ INT tfm_br_driver_get(TFM_BR_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
 // it might make sense to have everything on a per-component basis,
 // so there would be a driver for the boardreader and a separate driver 
 // the event builder/data logger which format report is different 
-//-----------------------------------------------------------------------------
-    if (Channel == 0) {
-//-----------------------------------------------------------------------------
 // read once for all channels
 //-----------------------------------------------------------------------------
-      tfm_br_get_boardreader_data(_xmlrpcUrl.data(),Info->array);  // 29 parameters
-    }
+    tfm_br_get_boardreader_data(Info,Info->array);  // 29 parameters
   }
 //-----------------------------------------------------------------------------
 // so far, 30 parameters (sparse) 

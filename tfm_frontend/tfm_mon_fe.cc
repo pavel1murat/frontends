@@ -186,6 +186,8 @@ INT frontend_init() {
   }
 //-----------------------------------------------------------------------------
 // knowing the number of components, create a driver list
+// the total number of "drivers" should be ncomp+1 (including the "disk driver")
+// nothing for dispatcher so far
 //-----------------------------------------------------------------------------
   DEVICE_DRIVER* x = new DEVICE_DRIVER[ncomp+1];
   _driver_list = x;
@@ -231,7 +233,20 @@ INT frontend_init() {
       // so far, do nothing
     }
   }
-  
+//-----------------------------------------------------------------------------
+// disk reporting , nothing for dispatcher, so ncomp-1
+//-----------------------------------------------------------------------------
+  DEVICE_DRIVER* drv = &_driver_list[ncomp-1];
+  snprintf(drv->name,NAME_LENGTH,"%s","diskmon");
+  drv->dd            = tfm_disk_driver;
+  drv->channels      = TFM_DISK_DRIVER_NWORDS;
+  drv->bd            = null;
+  drv->flags         = DF_INPUT;
+//-----------------------------------------------------------------------------
+// end of the list - a driver with an empty name
+//-----------------------------------------------------------------------------
+  _driver_list[ncomp].name[0] = 0;
+
   equipment[0].driver = _driver_list;
 
   return SUCCESS;
@@ -291,7 +306,7 @@ INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
 };
 
 /*-- Event readout -------------------------------------------------*/
-// This function gets called whenever poll_event() returns TRUE (the
+// This function gets called whenever poll_event() returns TRUE (the 
 // MFE framework calls poll_event() regularly).
 
 //-----------------------------------------------------------------------------

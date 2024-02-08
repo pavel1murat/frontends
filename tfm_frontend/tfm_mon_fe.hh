@@ -8,6 +8,7 @@
 #include "frontends/utils/mu2e_sc.hh"
 #include "frontends/tfm_frontend/tfm_br_driver.hh"
 #include "frontends/tfm_frontend/tfm_dr_driver.hh"
+#include "frontends/tfm_frontend/tfm_disk_driver.hh"
 //-----------------------------------------------------------------------------
 /* device driver list */
 //-----------------------------------------------------------------------------
