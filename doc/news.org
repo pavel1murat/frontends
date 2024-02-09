@@ -1,8 +1,10 @@
 #+startup:fold
 # ------------------------------------------------------------------------------
 # development news
-# ------------------------------------------------------------------------------ ------------------------------------------------------------------------------
-* <2024-02-08 Thu> 
+# ------------------------------------------------------------------------------
+* <2024-02-09 Fri>                                                           
+- [[file:../dtc_frontend/dtc_frontend.cc][dtc_frontend]] updated to include monitoring of the DTC registers
+* <2024-02-08 Thu>                                                          
 - a number of updates to frontends merged into to the main branch :
 - all Mu2e-specific configuration parameters moved to a single top-level subtree- /Mu2e in ODB 
 - the subtree is saved in git and could be loaded from  https://github.com/pavel1murat/frontends/blob/main/odb/Mu2e/Mu2e.json
