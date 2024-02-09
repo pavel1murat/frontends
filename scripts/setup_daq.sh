@@ -391,7 +391,9 @@ CONF:OpBase_C    0x1ff 0 0
 " $TRACE_BIN/trace_cntl namlvlset
 fi
 #------------------------------------------------------------------------------
-# TFM and friends
+# TFM and friends .. assume this script is sourced in the top DAQ directory
+# before the mhttpd server is launched
 #------------------------------------------------------------------------------
+export Mu2E_DAQ_DIR=$PWD
 export TFM_CONFIG_DIR=$MRB_TOP/config
 return 0
