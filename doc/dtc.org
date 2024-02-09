@@ -104,6 +104,7 @@ mu2etrk@mu2edaq09:~/test_stand/pasha_015>my_cntl read 0x9140
 0x00000011
 sts=0
 #+end_quote 
+*      0x9150 : 
 *      0x9158 : EVB configuration register                                   
 |-------+------+---------+---------------------------------------|
 |   bit | Mode | default | description                           |
