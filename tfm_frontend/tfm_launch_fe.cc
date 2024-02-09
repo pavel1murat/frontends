@@ -100,6 +100,7 @@ static char          _xmlrpcUrl  [100];
 static xmlrpc_env    _env;
 static int           _init(0);
 static bool          _use_screen(false);
+static bool          _tfm_messages(false);
 
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the monitoring frontend
@@ -148,7 +149,12 @@ INT frontend_init() {
   sprintf(key,"/Equipment/%s/UseScreen", equipment[0].name);
   db_get_value(hDB, 0, key, &_use_screen, &sz, TID_BOOL, TRUE);
 
+  sz = sizeof(_tfm_messages);
+  sprintf(key,"/Equipment/%s/CheckTfmMessages", equipment[0].name);
+  db_get_value(hDB, 0, key, &_tfm_messages, &sz, TID_BOOL, TRUE);
+
   cm_msg(MINFO,"debug","_use_screen: %i", _use_screen);
+  cm_msg(MINFO,"debug","_tfm_messages: %i", _tfm_messages);
   TLOG(TLVL_DEBUG+4) << "farm_manager _useRunInfoDB:" << _useRunInfoDB;
   TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
 
@@ -172,6 +178,7 @@ INT frontend_init() {
   sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e daq_scripts/start_farm_manager %s %i",
           _artdaq_conf,_partition);
   if(_use_screen) {
+    // todo, kill all remaining sessions?
     sprintf(cmd,"screen -dmS tfm bash -c \"daq_scripts/start_farm_manager %s %i\"",
             _artdaq_conf,_partition); 
   }
@@ -552,7 +559,41 @@ rank      = INT : 0";
            db_set_record(hDB, hKeyClient, &client, sizeof(client_t), 0);
         }
     }
-
+    if(_tfm_messages) {
+        // check for new messages
+        resultP = xmlrpc_client_call(&env, 
+                                     _xmlrpcUrl,
+                                     "get_messages",
+                                     "(s)",
+                                     "daqint");
+        if (env.fault_occurred) {
+            TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << ".";
+            cm_msg(MERROR,"frontend_loop","Failed to `get_messages` with '%s'.", env.fault_string); 
+        } else {
+            xmlrpc_read_string_lp(&env, resultP, &length, &value);
+            state = value;
+            if(! state.empty()) {
+                std::istringstream iss(state);
+                std::string line;
+                size_t cnt = 0;
+                while (std::getline(iss, line)) {
+                    std::cout << cnt << std::endl;
+                    if(cnt++ > 3) {
+                        cm_msg(MINFO,"artdaq","Additional messages were suppressed.");
+                    }
+                    size_t pos = line.find(":");
+                    if(line.substr(0, pos) == "error") {
+                        cm_msg(MERROR,"artdaq","%s", line.substr(pos+1).c_str());
+                    } else if(line.substr(0, pos) == "alarm") {
+                        al_trigger_alarm("artdaq", line.substr(pos+1).c_str(), "artdaq", "unhappy", AT_INTERNAL);
+                        //cm_msg(MERROR,"artdaq","%s", state.substr(pos+1).c_str()); // todo, midas alarm
+                    } else {
+                        cm_msg(MINFO,"artdaq","%s", line.substr(pos+1).c_str());
+                    }
+                 }
+            }
+        }
+    }
   }
   } 
   ss_sleep(1000);
