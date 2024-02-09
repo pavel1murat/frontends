@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "midas.h"
+#include "mfe.h"
 
 #include "dtcInterfaceLib/DTC.h"
 using namespace DTCLib; 
@@ -167,7 +168,12 @@ INT dtc_driver_get_label(DTC_DRIVER_INFO * Info, INT Channel, char* Label) {
 INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
 
   const int reg [DTC_DRIVER_NWORDS] = {
-    0x9010, 0x9014, 0x9018, 0x901c, 
+    0x9010, 0x9014, 0x9018, 0x901c              // temperature, voltages
+  };
+
+  int DTC_DRIVER_NREGISTERS = 3;
+
+  const int regn [DTC_DRIVER_NREGISTERS] = {
     0x9004, 0x9100, 0x9140
   };
 
@@ -191,16 +197,29 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
 //            read all four registers, convert into the right units, and store in the internal buffer 
 //-----------------------------------------------------------------------------
   if      (Channel == 0) {
+    cm_get_experiment_database(&hDB, NULL);
+    char     key[100];
+    HNDLE    h_dtc;
+    std::string shname = get_short_host_name("local");
+
+    sprintf(key,"/Equipment/%s#DTC%i/Registers",shname.data(),dtc_id);
+    db_find_key(hDB, 0, key, &h_dtc);
+
     for (int i=0; i<DTC_DRIVER_NWORDS; i++) {
       dtc->GetDevice()->read_register(reg[i],100,&val); 
       if      (i == 0) Info->array[i] = (val/4096.)*503.975 - 273.15; // temperature
       else if (i <  4) Info->array[i] = (val/4095.)*3.;               // voltage
-      else {
+    }
+
+    for (int i=0; i<DTC_DRIVER_NREGISTERS; i++) {
+      dtc->GetDevice()->read_register(regn[i],100,&val); 
 //-----------------------------------------------------------------------------
 // don't want any conversion
 //-----------------------------------------------------------------------------
-        Info->array[i] = *((float*) &val);
-      }
+      HNDLE    h_reg;
+      sprintf(key,"/Equipment/%s#DTC%i/Registers/0x%04x",shname.data(),dtc_id,regn[i]);
+      int rc = db_find_key (hDB, 0, key, &h_reg);
+      rc     = db_set_value(hDB, 0, key, &val, sizeof(int), 1, TID_INT);
     }
   }
 

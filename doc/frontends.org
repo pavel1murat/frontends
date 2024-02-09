@@ -42,7 +42,7 @@ mu2etrk  15636  0.0  0.0 16546880 13112 pts/3  Sl   19:43   0:00 datalogger -c i
 ** [[file:tfm_launch_fe.org][tfm_launch_fe]] : trigger farm manager (TFM) launching frontend
 ** [[file:tfm_mon_fe.org][tfm_mon_fe]]    : ARTDAQ monitoring frontend, one per node
 ** [[file:dtc_frontend][dtc_frontend]]  : DTC slow monitoring frontend, also monitors the DTC's ROCs, one per node
-* SCREEN cheat sheet     
+* SCREEN cheat sheet                                                         
 #+begin_src 
 screen -ls                 # see all screen sessions
 screen -r 11882.tfm        # connect to one 

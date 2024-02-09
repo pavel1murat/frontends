@@ -29,7 +29,7 @@ An example follows.
 
 here 'pasha_001' is the name of the created work area
 
-- if htere is a need to pull locally more repos, 
+- if there is a need to pull locally more repos, 
   - cd to $MRB_SOURCE,  pull needed repos, cd back to 'pasha_001'
   - recompile:
 #+begin_src
