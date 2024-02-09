@@ -26,7 +26,7 @@ db_runinfo::db_runinfo(const char* UID, int DebugLevel) {
     return;
   }
 
-	db_find_key(hDB, 0, "/Runinfo/PostgresqlDB", &hKey);
+	db_find_key(hDB, 0, "/Mu2e/PostgresqlDB", &hKey);
  
   int  sz;
   char database[32], host[32], port[32], user[32], pwd[32], schema[32];
