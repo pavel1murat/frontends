@@ -1,13 +1,20 @@
 #+startup:fold
+# note: everything below is work in progress.
+# if you notice smth missing, don't ask permissions, go ahead, and fix it
 * ------------------------------------------------------------------------------
 * [[file:news.org][News]]                                                                       
 * [[file:build_instructions.org][installation and build instructions]]
 * configuration instructions                                                 
-*** first time , one-time configuration step:               
-- th folowing assumes that you read instructions on MIDAS website
-- edit $MU2E_DAQ_DIR/setup_midas.sh to setup MIDAS, the MIDAS experiment, and ODB area
-- edit $MU2E_DAQ_DIR/source_me 
-*** any time after that 
+- the folowing assumes that you read instructions on MIDAS website: 
+  https://daq00.triumf.ca/MidasWiki/index.php/Quickstart_Linux#Installation                                            
+
+- first time , one-time configuration step:               
+
+  - edit $MU2E_DAQ_DIR/setup_midas.sh to setup MIDAS, the MIDAS experiment, and ODB area
+  - edit $MU2E_DAQ_DIR/source_me 
+
+- any time after that 
+
     source source_me
 * ARTDAQ                                                                     
    boardreader, eventbuilder, and datalogger are started by ARTDAQManager 
