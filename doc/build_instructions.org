@@ -16,20 +16,21 @@
   source mu2e_install_daq.sh work_area partition [otsdaq_bundle] [qualifiers]
 #+end_src 
 
-  - work_area    : name of the OTSDAQ work area, to be created in the current directory 
+  - work_area    : name of the work area, to be created in the current directory 
   - partition    : not used anywhere else, use 10 to begin with
   - otsdaq_bundle: version of the OTSDAQ bundle, see above 
   - qualifiers   : build qualifiers, see above
 
-An example follows. In the middle of the installation you will be asked for a password to access the *otsdaq_mu2e_config* repo. 
+An example follows.
 #+begin_src 
   wget -O mu2e_install_daq.sh https://raw.githubusercontent.com/pavel1murat/frontends/main/mu2e_install_daq.sh?token=GHSAT0AAAAAAB5R6WEFJZB7JMSKCUB3OHKMZKAOHMA
   source mu2e_install_daq.sh pasha_001 8 v2_07_00 e28_s126_prof
 #+end_src
 
-  here 'pasha_001' is the name of created work area
+here 'pasha_001' is the name of the created work area
 
-  - if you need to pull locally more repos, cd to $MRB_SOURCE,  pull needed repos, cd back to 'pasha_001'
+- if htere is a need to pull locally more repos, 
+  - cd to $MRB_SOURCE,  pull needed repos, cd back to 'pasha_001'
   - recompile:
 #+begin_src
 mrb uc
