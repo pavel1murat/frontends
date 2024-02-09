@@ -1,7 +1,6 @@
 #+startup:fold
 * ------------------------------------------------------------------------------
-* News                             
-*** <2023-06-29 Thu> ROOT interface to DTC available
+* [[file:news.org][News]]                                                                       
 * [[file:build_instructions.org][build instructions]]
 * ARTDAQ                                                                     
    boardreader, eventbuilder, and datalogger are started by ARTDAQManager 
