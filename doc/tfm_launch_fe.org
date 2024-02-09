@@ -1,15 +1,15 @@
 #startup:fold
 * ------------------------------------------------------------------------------
-* trigger farm (TFM) frontend : tfm_frontend                                 
+* trigger farm manager (TFM) launchig frontend : tfm_launch_fe               
 - interfaces MIDAS with ARTDAQ via tfm 
 - tfm_frontend gets all its configuration parameters from the experiment ODB
 - to start interactively: 
 #+begin_src
-tfm_frontend
+tfm_launch_fe
 #+end_src
-*** */Experiment/ActiveConfiguration]* : the active configuration name       
+*** */Mu2e/ActiveRunConfiguration]* : the active configuration name       
 - assumed to be set interactively when starting a new run
-*** */Experiment/RunConfigurations/$conf* : folder containing configuration parameters 
+*** */Mu2e/RunConfigurations/$conf* : folder containing configuration parameters 
 for different run configurations
 - [[file:run_configuration.org][format of the RunConfiguration table]] 
 ** <2024-01-15 Mon> monitored quantities (will change in time)               
