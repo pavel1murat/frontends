@@ -4,6 +4,10 @@
   "/filename" : "Mu2e.json",
   "/ODB path" : "/Mu2e",
 
+  "DaqHome/key" : { "type" : 12, "item_size" : 35, "access_mode" : 7, "last_written" : 1707444466 },
+  "DaqHome" : "/home/mu2etrk/test_stand/pasha_020",
+  "ArtdaqConfigDir/key" : { "type" : 12, "item_size" : 42, "access_mode" : 7, "last_written" : 1707007317 },
+  "ArtdaqConfigDir" : "/home/mu2etrk/test_stand/pasha_020/config",
   "ActiveRunConfiguration/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707321169 },
   "ActiveRunConfiguration" : "demo",
   "RunConfigurations" : {
@@ -14,8 +18,8 @@
       "RunType" : 4,
       "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707004598 },
       "TriggerTable" : "demo_tt_v00",
-      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1707004598 },
-      "UseRunInfoDB" : false,
+      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1707432127 },
+      "UseRunInfoDB" : true,
       "DetectorConfiguration" : {
         "Calorimeter" : {
         },
@@ -428,6 +432,18 @@
       }
     }
   },
-  "ArtdaqConfigDir/key" : { "type" : 12, "item_size" : 42, "access_mode" : 7, "last_written" : 1707007317 },
-  "ArtdaqConfigDir" : "/home/mu2etrk/test_stand/pasha_020/config"
+  "PostgresqlDB" : {
+    "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "Host" : "localhost",
+    "Port/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "Port" : "5434",
+    "User/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "User" : "run_user",
+    "Schema/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "Schema" : "test",
+    "Database/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "Database" : "run_info",
+    "Pwd/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "Pwd" : "ask_Antonio"
+  }
 }

@@ -155,14 +155,16 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s' partition %i", 
          active_conf, _partition);
-  char cmd[200];
-  sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e daq_scripts/start_farm_manager %s %i",
-          active_conf,_partition);
 
+  char cmd[200];
+  // sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e daq_scripts/start_farm_manager %s %i",
+  //         active_conf,_partition);
+
+  sprintf(cmd,"screen -dmS tfm bash -c \"daq_scripts/start_farm_manager %s %i\"",
+          active_conf,_partition);
   TLOG(TLVL_DEBUG+4) << "before launching: cmd=" << cmd;
   system(cmd);
   TLOG(TLVL_DEBUG+4) << "after launching: cmd=" << cmd;
-  
 //-----------------------------------------------------------------------------
 // init XML RPC
 //-----------------------------------------------------------------------------

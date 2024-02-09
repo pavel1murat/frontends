@@ -32,7 +32,7 @@ public:
   ~db_runinfo();
 
 //-----------------------------------------------------------------------------
-// run configuration should contain all needed information. By default, store 
+// run configuration should contain all needed information. By default, store
 // the new run number in ODB
 // TransitionCause: 0:start 1:end
 //-----------------------------------------------------------------------------
