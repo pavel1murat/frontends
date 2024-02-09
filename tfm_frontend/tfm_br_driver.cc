@@ -23,6 +23,7 @@
 #include <iostream>
 
 #include "midas.h"
+#include "mfe.h"
 
 #include <vector>
 #include <boost/algorithm/string.hpp>
@@ -31,6 +32,7 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
+#include "frontends/utils/utils.hh"
 #include "tfm_frontend/tfm_br_driver.hh"
 
 using std::vector, std::string;
@@ -40,118 +42,36 @@ using std::vector, std::string;
 #define DEFAULT_TIMEOUT 10000   /* 10 sec. */
 
 #define TFM_BR_DRIVER_SETTINGS_STR "\
-link   = INT : 0\n\
-active = INT : 0\n\
+Link           = INT : 0\n\
+Active         = INT : 0\n\
+NFragmentTypes = INT : 1\n\
+CompName       = STRING :\n\
+XmlrpcUrl      = STRING[64] :\n\
 "
 
 typedef INT(func_t) (INT cmd, ...);
 
-static char        _artdaq_conf[50];
 static int         _partition;
-static int         _base_port_number;
-static int         _br_rank;
-static int         _br_port_number;
-static std::string _brUrl;
-
 /*---- device driver routines --------------------------------------*/
 /* the init function creates a ODB record which contains the
    settings and initialized it variables as well as the bus driver */
 //-----------------------------------------------------------------------------
 INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, func_t *bd) {
-  int                 status, size  ;
-  HNDLE               hDB   , hkeydd;
+  int                status, size;
+  HNDLE              hDB   , hkeydd;
   TFM_BR_DRIVER_INFO *info;
-
-   /* allocate info structure */
-  info   = (TFM_BR_DRIVER_INFO*) calloc(1, sizeof(TFM_BR_DRIVER_INFO));
+//-----------------------------------------------------------------------------
+// allocate private info structure (DEVICE_DRIVER::dd_info)
+//-----------------------------------------------------------------------------
+  info = (TFM_BR_DRIVER_INFO*) calloc(1, sizeof(TFM_BR_DRIVER_INFO));
   *pinfo = info;
 
   cm_get_experiment_database(&hDB, NULL);
-
-  char  active_conf[100];
-  int   sz = sizeof(active_conf);
-  db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
-//------------------------------------------------------------------------------
-// hConfKey: key of the active detector configuration
 //-----------------------------------------------------------------------------
-  HNDLE hActiveConfKey;
-  char  key[200];
-  sprintf(key,"/Experiment/RunConfigurations/%s",active_conf);
-	db_find_key(hDB, 0, key, &hActiveConfKey);
-
-  sz = sizeof(int);
-  db_get_value(hDB, hActiveConfKey, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
-  _base_port_number = 10000+1000*_partition;
-
-  sz = sizeof(_artdaq_conf);
-  db_get_value(hDB,hActiveConfKey,"ArtdaqConfiguration", &_artdaq_conf, &sz, TID_STRING, TRUE);
-
-  TLOG(TLVL_INFO+10) << "001 artdaq_conf:" << _artdaq_conf;
-//-----------------------------------------------------------------------------
-// find ARTDAQ configuration , the host name, and the [first] boardreader rank
-//-----------------------------------------------------------------------------
-  sprintf(key,"/ArtdaqConfigurations/%s",_artdaq_conf);
-  std::string k1 = key;
-
-  HNDLE h_active_conf;
-	if (db_find_key(hDB, 0, k1.data(), &h_active_conf) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "0012 no handle for:" << k1 << ", got:" << h_active_conf;
-  }
-
-  HNDLE hArtdaqNodeKey;
-  sprintf(key,"/ArtdaqConfigurations/%s/Node_01",_artdaq_conf);
-  k1 = key;
-
-	if (db_find_key(hDB, 0, k1.data(), &hArtdaqNodeKey) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "no handle for:" << key << ", got" << hArtdaqNodeKey;
-  }
-
-  char  hostname[50];
-  sz = sizeof(hostname);
-  db_get_value(hDB,hArtdaqNodeKey,"Hostname", hostname, &sz, TID_STRING, TRUE);
-
-  TLOG(TLVL_INFO+10) << "002 hostname:" << hostname;
-
-  HNDLE hBrKey; db_find_key(hDB,hArtdaqNodeKey,"BoardReader_01",&hBrKey);
-//-----------------------------------------------------------------------------
-// if port is defined explicitly, use that
-// otherwise, the port number is defined by the executable rank 
-//-----------------------------------------------------------------------------
-  HNDLE hPortKey; 
-  sz = sizeof(int);
-  if (db_find_key(hDB, hBrKey, "XmlrpcPort", &hPortKey) == DB_SUCCESS) {
-    db_get_value(hDB, hPortKey, 0, &_br_port_number, &sz, TID_INT32, FALSE);
-  }
-  else {
-    db_get_value(hDB, hBrKey, "Rank", &_br_rank, &sz, TID_INT32, FALSE);
-    _br_port_number = _base_port_number+100+_br_rank;
-  }
-//-----------------------------------------------------------------------------
-// get hostname
-//-----------------------------------------------------------------------------
-  std::string local_hostname;
-  char buf[100];
-  FILE* pipe = popen("hostname -f", "r");
-  while (!feof(pipe)) {
-    char* s = fgets(buf, 100, pipe);
-    if (s) local_hostname += buf;
-  }
-  pclose(pipe);
-
-  TLOG(TLVL_INFO+10) << "002.1 local_hostname:" << local_hostname;
-  
-  if (strcmp(hostname,local_hostname.data()) == 0) strcpy(hostname,"localhost");
-
-  _brUrl          = "http://"+std::string(hostname)+":"+std::to_string(_br_port_number)+"/RPC2";
-
-  TLOG(TLVL_INFO+10) << "003 _brUrl:" << _brUrl;
-//-----------------------------------------------------------------------------
-// hkey: driver subdirectory
-// create DRIVER settings record (DD = Device Driver, I guess)
+// create DRIVER settings record 
 //-----------------------------------------------------------------------------
   status = db_create_record(hDB, hkey, "DD", TFM_BR_DRIVER_SETTINGS_STR);
-  if (status != DB_SUCCESS)
-    return FE_ERR_ODB;
+  if (status != DB_SUCCESS)                                 return FE_ERR_ODB;
 
   db_find_key(hDB, hkey, "DD", &hkeydd);
   size = sizeof(info->driver_settings);
@@ -164,37 +84,84 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   info->array        = (float*) calloc(channels, sizeof(float));
   info->bd           = bd;
   info->hkey         = hkey;
+//-----------------------------------------------------------------------------
+// now figure out what needs to be initialized
+//-----------------------------------------------------------------------------
+  char        active_conf[100];
+  int   sz = sizeof(active_conf);
+  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
 
-  if (!bd)  return FE_ERR_ODB;
+  HNDLE      h_active_conf;
+  char       key[200];
+  sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
+	db_find_key(hDB, 0, key, &h_active_conf);
 
-  /* initialize bus driver */
+  sz = sizeof(int);
+  db_get_value(hDB, h_active_conf, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
+//-----------------------------------------------------------------------------
+// find out the port numbers for the first boardreader, first event builder, 
+// and first datalogger
+//-----------------------------------------------------------------------------
+  std::string host = get_full_host_name(host_name);
+
+  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",active_conf,host.data());
+  std::string k1 = key;
+
+  HNDLE h_artdaq_conf;
+	if (db_find_key(hDB, 0, k1.data(), &h_artdaq_conf) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "0012 no handle for:" << k1 << ", got:" << h_artdaq_conf;
+  }
+//-----------------------------------------------------------------------------
+// need to figure which component this driver is monitoring 
+// make sure it won't compile before that
+// in principle, global variable host_name should be available here via mfe.h
+// expect FrontendsGlobals::_driver->name to be br01, dl01, eb01 etc....
+// the driver name is the same as the component name
+//-----------------------------------------------------------------------------
+  strcpy(info->driver_settings.CompName,FrontendsGlobals::_driver->name);
+
+  std::string  xmlrpcUrl;       // XML-RPC url of the board reader
+  get_xmlrpc_url(hDB,h_artdaq_conf,host.data(),_partition,FrontendsGlobals::_driver->name,xmlrpcUrl);
+
+  TLOG(TLVL_INFO+10) << "013: host.data:" << host.data() << " xmlRpcUrl:" << xmlrpcUrl;
+  strcpy(info->driver_settings.XmlrpcUrl,xmlrpcUrl.data());
+//-----------------------------------------------------------------------------
+// for the boardreader, store the number of fragment types - that defined the number of lines in the 
+// boardreader metrics report
+//-----------------------------------------------------------------------------
+  HNDLE h_component;
+  db_find_key(hDB,h_artdaq_conf,FrontendsGlobals::_driver->name,&h_component);
+
+  sz = sizeof(int);
+  db_get_value(hDB, h_component, "NFragmentTypes", &info->driver_settings.NFragmentTypes, &sz, TID_INT32, FALSE);
+//-----------------------------------------------------------------------------
+// it looks that the 'bus driver' function should be defined no matter what.
+//-----------------------------------------------------------------------------
+  if (info->bd == nullptr)  return FE_ERR_ODB;
+
+  /* initialize the bus driver */
   status = info->bd(CMD_INIT, info->hkey, &info->bd_info);
   
-  if (status != SUCCESS)
-    return status;
+  if (status != SUCCESS)                                    return status;
   
   /* initialization of device, something like ... */
   BD_PUTS("init");
 
+  //  _f = fopen(_fn.data(),"w");
+  
   return FE_SUCCESS;
 }
 
-
-/*----------------------------------------------------------------------------*/
+//-----------------------------------------------------------------------------
+// call EXIT function of bus driver, usually closes device
+//-----------------------------------------------------------------------------
 INT tfm_br_driver_exit(TFM_BR_DRIVER_INFO * info) {
-  /* call EXIT function of bus driver, usually closes device */
   info->bd(CMD_EXIT, info->bd_info);
   
-  /* free local variables */
-  if (info->array)
-    free(info->array);
-
+  if (info->array) free(info->array);
   free(info);
 
-  //   delete _dtc;
-
   //  fclose(_f);
-  
   return FE_SUCCESS;
 }
 
@@ -224,36 +191,19 @@ INT tfm_br_driver_set(TFM_BR_DRIVER_INFO * info, INT channel, float value) {
 // 3:    Input wait time = 0.00156023 s/fragment, buffer wait time = 4.04943e-05 s/fragment, request wait time = 0.00075403 s/fragment, output wait time = 3.5861e-05 s/fragment\n
 // 4: fragment_id: 11 nfragments: 0 nbytes: 0 max_nf: 1000 max_nb: 1048576000\n
 // 5: fragment_id: 0 nfragments: 0 nbytes: 0 max_nf: 1000 max_nb: 1048576000\n
-//-----------------------------------------------------------------------------
-int tfm_br_get_boardreader_data(const char* Url, float* Data) {
+//
+// note that the number of lines in the boardreader response depends on the number of fragments on input
+//------------------------------------------------------------------------------------------------------
+int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
   // two words per process - N(segments/sec) and the data rate, MB/sec
   int           rc(0);
   xmlrpc_env    env;
   xmlrpc_value* resultP;
 
-  struct BrStatData_t {
-    int    runNumber;
-    int    nFragTot;                    // end of line 0
-    int    nFragRead;
-    float  getNextRate;                 // per second;
-    float  fragRate;
-    float  timeWindow;
-    int    minNFrag;                    // per getNext call
-    int    maxNFrag;                    // per getNext call
-    float  elapsedTime; 
-    float  dataRate;                    // MB/sec
-    float  minEventSize;                // MB
-    float  maxEventSize;                // MB , end of line 1
-    float  inputWaitTime;               // 
-    float  bufferWaitTime;
-    float  requestWaitTime;
-    float  outputWaitTime;              // per fragment; end of line 2
-    int    fragID  [5];                 // fragment ID's
-    int    nFragsID[5];                 // n(fragments) currently in the buffer
-    int    nBytesID[5];                 // n(bytes) currently in the buffer
-  } brs;
-
-  TLOG(TLVL_INFO + 10) << "000: Url:" << Url;
+  BrStatData_t  brs;
+  
+  const char* url = Info->driver_settings.XmlrpcUrl;
+  TLOG(TLVL_INFO + 10) << "000: Url:" << url;
   memset(&brs,0,sizeof(BrStatData_t));
 
   std::string res;
@@ -262,7 +212,7 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
   try {
     xmlrpc_env_init(&env);
                                // "({s:i,s:i})",
-    resultP = xmlrpc_client_call(&env,Url,"daq.report","(s)","stats");
+    resultP = xmlrpc_client_call(&env,url,"daq.report","(s)","stats");
     if (env.fault_occurred) {
       rc = env.fault_code;
       TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " output:" << env.fault_string;
@@ -295,7 +245,7 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
     boost::split(lines,res,boost::is_any_of("\n"));
     int nlines = lines.size();
     TLOG(TLVL_INFO + 10) << "001: nlines:" << nlines;
-    if (nlines < 6) {
+    if (nlines < 4+Info->driver_settings.NFragmentTypes) {
       rc = -10-nlines;
       TLOG(TLVL_ERROR) << "002 ERROR: nlines=" << nlines;
       // throw;
@@ -406,11 +356,11 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
       
         num.clear();
         boost::split(num,words[1],boost::is_any_of(":"));
-        brs.nFragsID[i] = std::stoi (num[ 1]);
+        brs.nShmFragsID[i] = std::stoi (num[ 1]);
 
         num.clear();
         boost::split(num,words[2],boost::is_any_of(":"));
-        brs.nBytesID[i] = std::stoi(num[ 1]);
+        brs.nShmBytesID[i] = std::stoi(num[ 1]);
       }
       catch(...) {
         TLOG(TLVL_ERROR) << "coudnt parse:" << lines[4+i];
@@ -424,9 +374,9 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
 // done with parsing, copy to the Data
 //-----------------------------------------------------------------------------
  DONE_PARSING:
-  Data[ 0] = brs.runNumber;        // N(getNext calls)
-  Data[ 1] = brs.nFragTot ;        // N(fragments/sec)
-  Data[ 2] = brs.nFragRead;        // data rate, MB/sec
+  Data[ 0] = brs.runNumber;        // 
+  Data[ 1] = brs.nFragTot ;        // 
+  Data[ 2] = brs.nFragRead;        // 
   Data[ 3] = brs.getNextRate;
   Data[ 4] = brs.fragRate;
   Data[ 5] = brs.timeWindow;
@@ -438,13 +388,16 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
   Data[11] = brs.maxEventSize;
   Data[12] = brs.inputWaitTime;
   Data[13] = brs.bufferWaitTime;
-  Data[14] = brs.outputWaitTime;
-
+  Data[14] = brs.requestWaitTime;
+  Data[15] = brs.outputWaitTime;
+//-----------------------------------------------------------------------------
+// shared memory
+//-----------------------------------------------------------------------------
   if (nf <= 5) {
     for (int i=0; i<nf; i++) {
-      Data[15+3*i] = brs.fragID  [i];
-      Data[16+3*i] = brs.nFragsID[i];
-      Data[17+3*i] = brs.nBytesID[i];
+      Data[16+i] = brs.fragID  [i];
+      Data[21+i] = brs.nShmFragsID[i];
+      Data[26+i] = brs.nShmBytesID[i];
     }
   }
   else {
@@ -455,7 +408,7 @@ int tfm_br_get_boardreader_data(const char* Url, float* Data) {
 //-----------------------------------------------------------------------------
   Data[30] = rc;
 
-  TLOG(TLVL_INFO + 10) << "Data:" << Data[0] << " " << Data[1] << " rc=" << rc;
+  TLOG(TLVL_INFO + 10) << "Data[0]:" << Data[0] << " Data[1]" << Data[1] << " rc=" << rc;
  
   return rc;
 }
@@ -478,7 +431,7 @@ INT tfm_br_driver_get(TFM_BR_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
   timer = time(NULL); 
   double time_diff = difftime(timer,previous_timer);
   if ((time_diff > 5) and (Channel == 0)) { 
-    previous_timer=timer;
+    previous_timer = timer;
 //-----------------------------------------------------------------------------
 // debugging-only:
 // sometimes it is important to make sure that one is looking at 
@@ -495,13 +448,9 @@ INT tfm_br_driver_get(TFM_BR_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
 // it might make sense to have everything on a per-component basis,
 // so there would be a driver for the boardreader and a separate driver 
 // the event builder/data logger which format report is different 
-//-----------------------------------------------------------------------------
-    if (Channel == 0) {
-//-----------------------------------------------------------------------------
 // read once for all channels
 //-----------------------------------------------------------------------------
-      tfm_br_get_boardreader_data(_brUrl.data(),&Info->array[ 0]);  // 29 parameters
-    }
+    tfm_br_get_boardreader_data(Info,Info->array);  // 29 parameters
   }
 //-----------------------------------------------------------------------------
 // so far, 30 parameters (sparse) 
@@ -515,54 +464,98 @@ INT tfm_br_driver_get(TFM_BR_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
   return FE_SUCCESS;
 }
 
-/*---- device driver entry point -----------------------------------*/
+//-----------------------------------------------------------------------------
+INT tfm_br_driver_get_label(TFM_BR_DRIVER_INFO * Info, INT Channel, char* Label) {
+  if      (Channel ==  0) sprintf(Label,"%s#run_num"     ,Info->driver_settings.CompName);
+  else if (Channel ==  1) sprintf(Label,"%s#nfrag_tot"   ,Info->driver_settings.CompName);
+  else if (Channel ==  2) sprintf(Label,"%s#nfrag_read"  ,Info->driver_settings.CompName);
+  else if (Channel ==  3) sprintf(Label,"%s#getnext_rate",Info->driver_settings.CompName);
+  else if (Channel ==  4) sprintf(Label,"%s#frag_rate"   ,Info->driver_settings.CompName);
+  else if (Channel ==  5) sprintf(Label,"%s#time_win"    ,Info->driver_settings.CompName);
+  else if (Channel ==  6) sprintf(Label,"%s#min_nfrag"   ,Info->driver_settings.CompName);
+  else if (Channel ==  7) sprintf(Label,"%s#max_nfrag"   ,Info->driver_settings.CompName);
+  else if (Channel ==  8) sprintf(Label,"%s#elapsed_time",Info->driver_settings.CompName);
+  else if (Channel ==  9) sprintf(Label,"%s#data_rate"   ,Info->driver_settings.CompName);
+  else if (Channel == 10) sprintf(Label,"%s#min_ev_size" ,Info->driver_settings.CompName);
+  else if (Channel == 11) sprintf(Label,"%s#max_ev_size" ,Info->driver_settings.CompName);
+  else if (Channel == 12) sprintf(Label,"%s#inp_wtime"   ,Info->driver_settings.CompName);
+  else if (Channel == 13) sprintf(Label,"%s#buf_wtime"   ,Info->driver_settings.CompName);
+  else if (Channel == 14) sprintf(Label,"%s#req_wtime"   ,Info->driver_settings.CompName);
+  else if (Channel == 15) sprintf(Label,"%s#out_wtime"   ,Info->driver_settings.CompName);
+  else if (Channel == 16) sprintf(Label,"%s#frag_id_0"   ,Info->driver_settings.CompName);
+  else if (Channel == 17) sprintf(Label,"%s#nfrag_0"     ,Info->driver_settings.CompName);
+  else if (Channel == 18) sprintf(Label,"%s#nbytes_0"    ,Info->driver_settings.CompName);
+  else if (Channel == 19) sprintf(Label,"%s#frag_id_1"   ,Info->driver_settings.CompName);
+  else if (Channel == 20) sprintf(Label,"%s#nffrag_1"    ,Info->driver_settings.CompName);
+  else if (Channel == 21) sprintf(Label,"%s#nbytes_1"    ,Info->driver_settings.CompName);
+  else if (Channel == 22) sprintf(Label,"%s#frag_id_2"   ,Info->driver_settings.CompName);
+  else if (Channel == 23) sprintf(Label,"%s#nffrag_2"    ,Info->driver_settings.CompName);
+  else if (Channel == 24) sprintf(Label,"%s#nbytes_2"    ,Info->driver_settings.CompName);
+  else if (Channel == 25) sprintf(Label,"%s#frag_id_3"   ,Info->driver_settings.CompName);
+  else if (Channel == 26) sprintf(Label,"%s#nfrag_3"     ,Info->driver_settings.CompName);
+  else if (Channel == 27) sprintf(Label,"%s#nbytes_3"    ,Info->driver_settings.CompName);
+  else if (Channel == 28) sprintf(Label,"%s#frag_id_4"   ,Info->driver_settings.CompName);
+  else if (Channel == 29) sprintf(Label,"%s#nfrag_4"     ,Info->driver_settings.CompName);
+  else if (Channel == 30) sprintf(Label,"%s#nbytes_4"    ,Info->driver_settings.CompName);
+  else {
+    TLOG(TLVL_WARNING) << "channel:" << Channel << ". Do nothing";  
+  }
 
-INT tfm_br_driver(INT cmd, ...) {
-   va_list         argptr;
-   HNDLE           hKey;
-   INT             channel, status;
-   float           value  , *pvalue;
-   TFM_BR_DRIVER_INFO *info;
-
-   va_start(argptr, cmd);
-   status = FE_SUCCESS;
-
-   switch (cmd) {
-   case CMD_INIT: {
-      hKey       = va_arg(argptr, HNDLE);
-      TFM_BR_DRIVER_INFO** pinfo = va_arg(argptr, TFM_BR_DRIVER_INFO **);
-      channel    = va_arg(argptr, INT);
-      va_arg(argptr, DWORD);
-      func_t *bd = va_arg(argptr, func_t *);
-      status     = tfm_br_driver_init(hKey, pinfo, channel, bd);
-      break;
-   }
-   case CMD_EXIT:
-      info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
-      status  = tfm_br_driver_exit(info);
-      break;
-
-   case CMD_SET:
-      info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
-      channel = va_arg(argptr, INT);
-      value   = (float) va_arg(argptr, double);   // floats are passed as double
-      status  = tfm_br_driver_set(info, channel, value);
-      break;
-
-   case CMD_GET:
-      info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
-      channel = va_arg(argptr, INT);
-      pvalue  = va_arg(argptr, float *);
-      status  = tfm_br_driver_get(info, channel, pvalue);
-      break;
-
-   default:
-      break;
-   }
-
-   va_end(argptr);
-
-   return status;
+  return FE_SUCCESS;
 }
 
-/*------------------------------------------------------------------*/
+
+//-----------------------------------------------------------------------------
+// device driver entry point
+//-----------------------------------------------------------------------------
+INT tfm_br_driver(INT cmd, ...) {
+  va_list         argptr;
+  HNDLE           hKey;
+  INT             channel, status;
+  float           value  , *pvalue;
+  char*           label;
+  TFM_BR_DRIVER_INFO *info;
+
+  va_start(argptr, cmd);
+  status = FE_SUCCESS;
+
+  switch (cmd) {
+  case CMD_INIT: {
+    hKey       = va_arg(argptr, HNDLE);
+    TFM_BR_DRIVER_INFO** pinfo = va_arg(argptr, TFM_BR_DRIVER_INFO **);
+    channel    = va_arg(argptr, INT);
+    va_arg(argptr, DWORD);
+    func_t *bd = va_arg(argptr, func_t *);
+    status     = tfm_br_driver_init(hKey, pinfo, channel, bd);
+    break;
+  }
+  case CMD_EXIT:
+    info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
+    status  = tfm_br_driver_exit(info);
+    break;
+  case CMD_SET:
+    info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
+    channel = va_arg(argptr, INT);
+    value   = (float) va_arg(argptr, double);   // floats are passed as double
+    status  = tfm_br_driver_set(info, channel, value);
+    break;
+  case CMD_GET:
+    info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
+    channel = va_arg(argptr, INT);
+    pvalue  = va_arg(argptr, float *);
+    status  = tfm_br_driver_get(info, channel, pvalue);
+    break;
+  case CMD_GET_LABEL:
+    info    = va_arg(argptr, TFM_BR_DRIVER_INFO *);
+    channel = va_arg(argptr, INT);
+    label   = va_arg(argptr, char *);
+    status  = tfm_br_driver_get_label(info, channel, label);
+    break;
+  default:
+    break;
+  }
+
+  va_end(argptr);
+
+  return status;
+}
