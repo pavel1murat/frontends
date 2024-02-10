@@ -51,10 +51,10 @@ install_daq() {
     git clone https://github.com/art-daq/artdaq_core_demo
 
     git clone https://github.com/mu2e/artdaq_mu2e
+    git clone https://github.com/mu2e/artdaq_mu2e_core
 
     git clone https://github.com/pavel1murat/tfm
     git clone https://github.com/pavel1murat/frontends
-
 #------------------------------------------------------------------------------
 # 2023-08-12 P.M. : today, need mu2e_pcie_utils. That may change later
 #------------------------------------------------------------------------------
@@ -90,11 +90,14 @@ install_daq() {
     source localProducts_${MRB_PROJECT}_${bundle}_${qual}/setup
     mrb uc
 
-    cp srcs/otsdaq_mu2e_config/setup_ots.sh ./setup_ots.sh ; chmod 444 ./setup_ots.sh
-    source ./setup_ots.sh $partition
+    cp srcs/frontends/scripts/setup_daq.sh   ./setup_daq.sh   ; chmod 444 ./setup_daq.sh
+    cp srcs/frontends/scripts/setup_midas.sh ./setup_midas.sh
+    cp srcs/frontends/scripts/source_me      ./source_me
+
+    source ./setup_daq.sh $partition
 
     mrbsetenv
-    mrb b
+    mrb b --generator=ninja
 }
 #------------------------------------------------------------------------------
 # just call install_daq and pass all parameters to it

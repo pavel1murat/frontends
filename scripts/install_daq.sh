@@ -4,8 +4,8 @@
 # the one where mhttpd is submitted from
 #------------------------------------------------------------------------------
 function install_daq_() {
-    top=$MRB_TOP
-    mkdir $MRB_TOP/daq_scripts
+    top=$MU2E_DAQ_DIR
+    if [[ ! -d $top/daq_scripts ]] ; then mkdir $top/daq_scripts ; fi
 
     cp srcs/frontends/scripts/setup_ots.sh   $top/.
     cp srcs/frontends/scripts/setup_midas.sh $top/.

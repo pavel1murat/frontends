@@ -1,7 +1,21 @@
 #+startup:fold
+# note: everything below is work in progress.
+# if you notice smth missing, don't ask permissions, go ahead, and fix it
 * ------------------------------------------------------------------------------
 * [[file:news.org][News]]                                                                       
-* [[file:build_instructions.org][build instructions]]
+* [[file:build_instructions.org][installation and build instructions]]
+* configuration instructions                                                 
+- the folowing assumes that you read instructions on MIDAS website: 
+  https://daq00.triumf.ca/MidasWiki/index.php/Quickstart_Linux#Installation                                            
+
+- first time , one-time configuration step:               
+
+  - edit $MU2E_DAQ_DIR/setup_midas.sh to setup MIDAS, the MIDAS experiment, and ODB area
+  - edit $MU2E_DAQ_DIR/source_me 
+
+- any time after that 
+
+    source source_me
 * ARTDAQ                                                                     
    boardreader, eventbuilder, and datalogger are started by ARTDAQManager 
    during the *configure* transition. At this point the run number is not defined,
@@ -25,9 +39,16 @@ mu2etrk  15636  0.0  0.0 16546880 13112 pts/3  Sl   19:43   0:00 datalogger -c i
 * [[file:trace.org][TRACE]]
 * [[file:code_repositories.org][code repositories]]                                                        
 * frontends                                                                  
-** [[file:tfm_frontend.org][tfm_frontend]] : trigger farm manager (TFM) frontend
-** [[file:dtc_frontend][dtc_frontend]] : DTC slow monitoring frontend
-** [[file:roc_frontend.org][roc_frontend]] : ROC slow monitoring frontend, presently - a tracker ROC frontend
+** [[file:tfm_launch_fe.org][tfm_launch_fe]] : trigger farm manager (TFM) launching frontend
+** [[file:tfm_mon_fe.org][tfm_mon_fe]]    : ARTDAQ monitoring frontend, one per node
+** [[file:dtc_frontend][dtc_frontend]]  : DTC slow monitoring frontend, also monitors the DTC's ROCs, one per node
+* SCREEN cheat sheet                                                         
+#+begin_src 
+screen -ls                 # see all screen sessions
+screen -r 11882.tfm        # connect to one 
+Ctrl-a d                   # disconnect
+#+end_src
+more details: https://www.geeksforgeeks.org/screen-command-in-linux-with-examples/
 * ------------------------------------------------------------------------------
 * additional documentation on MIDAS: file:midas.org
 * ------------------------------------------------------------------------------

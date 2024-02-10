@@ -1,12 +1,21 @@
 #!/usr/bin/bash
 #------------------------------------------------------------------------------
 # this is just an example
+# to be executed in $MU2E_DAQ_DIR
+# setup_daq.sh is also sourced by the ARTDAQ processes, so make sure 
+# is is first sourced before mhttpd is launched - mhttps needs a 
+# configured environment
 #------------------------------------------------------------------------------
-source setup_ots.sh
+source $MU2E_DAQ_DIR/setup_daq.sh
 export DTCLIB_DTC=1
 source Setup_DTC.sh
-source setup_midas.sh test_001
-source srcs/tfm/bin/tfm_configure vst_001 8 
+source setup_midas.sh test_001                 # use your experiment name
+# rely on setup_daq.sh defining $TFM_CONFIG_DIR, pass only the configuration name
+# need to get rid of passing the partition number
+source srcs/tfm/bin/tfm_configure trk_vst_001 8    # 
+#------------------------------------------------------------------------------
+# make sure connection to PG database exists
+#------------------------------------------------------------------------------
 ssh -f -KX -N -o ExitOnForwardFailure=yes -L 5434:mu2e-dcs-01:5434 -J mu2eshift@mu2egateway01.fnal.gov mu2eshift@mu2e-dcs-01.fnal.gov
 #------------------------------------------------------------------------------
 # how to automate this ? check if the ssh connection is functional
