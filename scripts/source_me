@@ -6,7 +6,7 @@ source setup_ots.sh
 export DTCLIB_DTC=1
 source Setup_DTC.sh
 source setup_midas.sh test_001
-source srcs/tfm/bin/tfm_configure /home/mu2etrk/test_stand/pasha_020/config/vst_001 8 
+source srcs/tfm/bin/tfm_configure vst_001 8 
 ssh -f -KX -N -o ExitOnForwardFailure=yes -L 5434:mu2e-dcs-01:5434 -J mu2eshift@mu2egateway01.fnal.gov mu2eshift@mu2e-dcs-01.fnal.gov
 #------------------------------------------------------------------------------
 # how to automate this ? check if the ssh connection is functional

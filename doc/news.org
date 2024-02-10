@@ -1,0 +1,20 @@
+#+startup:fold
+# ------------------------------------------------------------------------------
+# development news
+# ------------------------------------------------------------------------------ ------------------------------------------------------------------------------
+* <2024-02-08 Thu> a number of updates to frontends merged into to the main branch :
+*** all Mu2e-specific configuration parameters moved to a single top-level subtree- /Mu2e in ODB 
+*** the subtree is saved in git and could be loaded from  https://github.com/pavel1murat/frontends/blob/main/odb/Mu2e/Mu2e.json
+*** there are two monitoring frontends per DAQ node , one monitoring both DTC's and another one - the artdaq processes
+*** variable number of ARTDAQ processes per node is suported
+*** if PostgreSQL is used, the start and the end of each  transition are recorded  there
+*** TFM is submitted via SCREEN - an idea by Simon, SCREEN is really cool! 
+*** unification of the FCL file names in all examples: 
+  to facilitate assigning names to the monitoring variables,
+- all boardreader FCL name have been changed to brXX.fcl, i.e. br01.fcl etc 
+- event builder FCL file names became ebXX.fcl, data logger - to dlXX.fcl, dispatcher - dsXX.fcl
+*** all frontend scripts moved to https://github.com/pavel1murat/frontends/blob/main/scripts subdirectory
+* <2023-06-29 Thu> ROOT interface to DTC available
+* ------------------------------------------------------------------------------
+* back to [[file:frontends.org]]
+* ------------------------------------------------------------------------------

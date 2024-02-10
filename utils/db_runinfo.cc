@@ -26,7 +26,7 @@ db_runinfo::db_runinfo(const char* UID, int DebugLevel) {
     return;
   }
 
-	db_find_key(hDB, 0, "/Runinfo/PostgresqlDB", &hKey);
+	db_find_key(hDB, 0, "/Mu2e/PostgresqlDB", &hKey);
  
   int  sz;
   char database[32], host[32], port[32], user[32], pwd[32], schema[32];
@@ -89,8 +89,10 @@ int db_runinfo::checkConnection() {
   return openConnection();
 }
 
-//==============================================================================
-int db_runinfo::registerTransition(int RunNumber, uint TransitionType) {
+//-----------------------------------------------------------------------------
+// transition cause:0:start 1:end
+//-----------------------------------------------------------------------------
+int db_runinfo::registerTransition(int RunNumber, uint TransitionType, uint CauseType) {
 
   int       rc(0);
   PGresult* res;
@@ -102,11 +104,12 @@ int db_runinfo::registerTransition(int RunNumber, uint TransitionType) {
 // connection OK, register transition
 //-----------------------------------------------------------------------------
   snprintf(buffer,sizeof(buffer),
-           "INSERT INTO %s.run_transition(run_number, \
+           "INSERT INTO %s.run_transition(run_number,      \
                                           transition_type, \
-                                          transition_time)    \
-                      VALUES (%ld,'%d',CURRENT_TIMESTAMP);",
-           _dbSchema.data(), (long int) (RunNumber), TransitionType);
+                                          cause_type,      \
+                                          transition_time) \
+                      VALUES (%ld,%d,'%d',CURRENT_TIMESTAMP);",
+           _dbSchema.data(), (long int) (RunNumber), TransitionType, CauseType);
 
   res = PQexec(_runInfoDbConn,buffer);
 

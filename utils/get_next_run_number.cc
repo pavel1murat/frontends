@@ -1,6 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // interface to MIDAS: get next run number from Postgresql and store it in ODB
 // perhaps migrate to python ? - should be a few-liner
+// dbInfo::nextRunNumber stores the next run number in ODB
 ///////////////////////////////////////////////////////////////////////////////
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "get_next_run_number"
@@ -9,7 +10,6 @@
 #include "db_runinfo.hh"
 
 #define DEFAULT_TIMEOUT  10000       /* 10 seconds for watchdog timeout */
-
 
 int main(int argc, const char** argv) {
   HNDLE       hDB(0); // , hKey;
@@ -26,7 +26,7 @@ int main(int argc, const char** argv) {
   int status = cm_connect_experiment1(host_name, exp_name, "get_next_run_number",
                                       NULL, DEFAULT_ODB_SIZE, DEFAULT_TIMEOUT);
   if (status != CM_SUCCESS) {
-    cm_msg(MERROR, "mainFE", "Cannot connect to experiment \'%s\' on host \'%s\', status %d", exp_name, host_name,
+    cm_msg(MERROR, "get_next_run_number", "Cannot connect to experiment \'%s\' on host \'%s\', status %d", exp_name, host_name,
            status);
     /* let user read message before window might close */
     ss_sleep(5000);
@@ -35,17 +35,20 @@ int main(int argc, const char** argv) {
 
   rc = cm_get_experiment_database(&hDB, NULL);
   if (rc != CM_SUCCESS) {
-    TLOG(TLVL_ERROR) << "couldnt connect to  ODB";
+    TLOG(TLVL_ERROR) << "couldn\'t connect to  ODB";
     return -2;                  // no need to disconnect
   }
 //-----------------------------------------------------------------------------
-// open new connection to Postgresql
+// open new connection to Postgresql and store the next run number in ODB
+// x.nextRunNumber(run_configuration,1) does that
 //-----------------------------------------------------------------------------
   db_runinfo x("aa");
 
   const char* run_configuration = argv[1];
-
   int rn = x.nextRunNumber(run_configuration,1);
+
+  TLOG(TLVL_DEBUG) << "run_configuration:" << run_configuration << " next run_number=" << rn;
+
   if (rn < 0) {
 //-----------------------------------------------------------------------------
 // if rn < 0, it is an error return code. Print an error and exit

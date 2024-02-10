@@ -1,5 +1,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // trigger farm monitoring frontend
+// this is a monitoring frontend running on a single node
+// try to make it work
+// frontend needs to know on which node it is running, so always use -h flag
+// start : 'tfm_mon_fe -h mu2edaq09.fnal.gov'
 ///////////////////////////////////////////////////////////////////////////////
 #undef NDEBUG // midas required assert() to be always enabled
 
@@ -23,14 +27,13 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
+#include "utils/utils.hh"
 #include "tfm_frontend/tfm_mon_fe.hh"
-
 //-----------------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------------
-/* The frontend name (client name) as seen by other MIDAS clients   */
-const char *frontend_name      = TRACE_NAME;
-const char *frontend_file_name = __FILE__  ; // The frontend file name, don't change
+const char *frontend_name      = TRACE_NAME; // frontend name (client name) as seen by other MIDAS clients 
+const char *frontend_file_name = __FILE__  ; // frontend file name, don't change
 BOOL        frontend_call_loop = TRUE      ; // frontend_loop is called periodically if TRUE
 INT         display_period     = 3000      ; // display freq in ms for the frontend status page
 
@@ -90,7 +93,20 @@ std::string _xmlrpcUrl = "http://localhost:15000/RPC2";
   resume_run:     When a run is resumed. Should enable trigger events.
 \********************************************************************/
 
-static xmlrpc_env     _env;
+namespace {
+  xmlrpc_env     _env;
+  //  char           _artdaq_conf[50];
+}
+
+// DEVICE_DRIVER driver_list[] = {
+//   {"tfm_driver"   , tfm_driver   , TFM_DRIVER_NWORDS   , null, DF_INPUT},
+//   {"tfm_br_driver", tfm_br_driver, TFM_BR_DRIVER_NWORDS, null, DF_INPUT},
+//   {""}
+// };
+
+namespace {
+  DEVICE_DRIVER* _driver_list(nullptr);
+}
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the frontend (or not ?)
 // print message and return FE_ERR_HW if frontend should not be started 
@@ -99,7 +115,7 @@ static xmlrpc_env     _env;
 INT frontend_init() {
   int         argc;
   char**      argv;
-  HNDLE       hDB, hKey;
+  HNDLE       hDB;
   char        active_conf[100];
 
   mfe_get_args(&argc,&argv);
@@ -108,21 +124,28 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   cm_get_experiment_database(&hDB, NULL);
   int   sz = sizeof(active_conf);
-  db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
-
-  char key[200];
-  sprintf(key,"/Experiment/RunConfigurations/%s",active_conf);
-	db_find_key(hDB, 0, key, &hKey);
+  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
 //-----------------------------------------------------------------------------
-// ARTDAQ_PARTITION_NUMBER also comes from the active configuration ODB
+// h_active_run_conf is the key corresponding the the active run configuration
+//-----------------------------------------------------------------------------
+  HNDLE    h_active_run_conf;
+  char     key[1000];
+  sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
+	db_find_key(hDB, 0, key, &h_active_run_conf);
+//-----------------------------------------------------------------------------
+// ARTDAQ_PARTITION_NUMBER also comes from the active run configuration
 //-----------------------------------------------------------------------------
   int partition;
   sz = sizeof(int);
-  db_get_value(hDB, hKey, "ARTDAQ_PARTITION_NUMBER", &partition, &sz, TID_INT32, TRUE);
+  db_get_value(hDB, h_active_run_conf, "ARTDAQ_PARTITION_NUMBER", &partition, &sz, TID_INT32, TRUE);
   int port_number = 10000+1000*partition;
+//-----------------------------------------------------------------------------
+// get port number used by the TF manager 
+//-----------------------------------------------------------------------------
+  std::string host = get_full_host_name(host_name);
 
   char url[100];
-  sprintf(url,"http://localhost:%i/RPC2",port_number);
+  sprintf(url,"http://%s:%i/RPC2",host.data(),port_number);
   _xmlrpcUrl = url;
 
   TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
@@ -134,6 +157,97 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS, "tfm_mon_fe", "v1_0");
   xmlrpc_env_init(&_env);
+//-----------------------------------------------------------------------------
+// try to initialize the driver list dynamically. 
+// 1. First try a simple thing and it seems to work
+// 2. next, loop over components in the detector configuration and create 
+//    a driver for each one
+// find ARTDAQ configuration , 'host_name' (hostname, i.e. mu2edaq09.fnal.gov) 
+// is a global from midas/src/mfe.cxx and should be defined on the command line! 
+//-----------------------------------------------------------------------------
+  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",active_conf,host.data());
+  std::string k1 = key;
+
+  HNDLE h_artdaq_conf;
+	if (db_find_key(hDB, 0, k1.data(), &h_artdaq_conf) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "0012 no handle for:" << k1 << ", got:" << h_artdaq_conf;
+  }
+//-----------------------------------------------------------------------------
+// got active artdaq configuration/host
+// first, figure out the number of components
+//-----------------------------------------------------------------------------
+  HNDLE h_component;
+  KEY   component;
+  int   ncomp(0);
+  for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+    db_get_key(hDB, h_component, &component);
+    printf("Subkey %d: %s, Type: %d\n", i, component.name, component.type);
+    ncomp++;
+  }
+//-----------------------------------------------------------------------------
+// knowing the number of components, create a driver list
+// the total number of "drivers" should be ncomp+1 (including the "disk driver")
+// nothing for dispatcher so far
+//-----------------------------------------------------------------------------
+  DEVICE_DRIVER* x = new DEVICE_DRIVER[ncomp+1];
+  _driver_list = x;
+  
+  for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+//-----------------------------------------------------------------------------
+// for each active component, define a driver
+// use the component label 
+// so far, output of all drivers goes into the same common "Input" array
+//-----------------------------------------------------------------------------
+    db_get_key(hDB, h_component, &component);
+
+    char label[100];
+    sz = sizeof(label);
+    db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, TRUE);
+
+    DEVICE_DRIVER driver;
+    if (strstr(component.name,"BoardReader") == component.name) {
+      snprintf(driver.name,NAME_LENGTH,"%s",label);
+      driver.dd       = tfm_br_driver;               //  this is a function ..
+      driver.channels = TFM_BR_DRIVER_NWORDS;
+      driver.bd       = null;
+      driver.flags    = DF_INPUT;
+      _driver_list[i] = driver;
+    }
+    else if (strstr(component.name,"EventBuilder") == component.name) {
+      snprintf(driver.name,NAME_LENGTH,"%s",label);
+      driver.dd       = tfm_dr_driver;
+      driver.channels = TFM_DR_DRIVER_NWORDS;
+      driver.bd       = null;
+      driver.flags    = DF_INPUT;
+      _driver_list[i] = driver;
+    }
+    else if (strstr(component.name,"DataLogger"  ) == component.name) {
+      snprintf(driver.name,NAME_LENGTH,"%s",label);
+      driver.dd       = tfm_dr_driver;
+      driver.channels = TFM_DR_DRIVER_NWORDS;
+      driver.bd       = null;
+      driver.flags    = DF_INPUT;
+      _driver_list[i] = driver;
+    }
+    else if (strstr(component.name,"Dispatcher"  ) == component.name) {
+      // so far, do nothing
+    }
+  }
+//-----------------------------------------------------------------------------
+// disk reporting , nothing for dispatcher, so ncomp-1
+//-----------------------------------------------------------------------------
+  DEVICE_DRIVER* drv = &_driver_list[ncomp-1];
+  snprintf(drv->name,NAME_LENGTH,"%s","diskmon");
+  drv->dd            = tfm_disk_driver;
+  drv->channels      = TFM_DISK_DRIVER_NWORDS;
+  drv->bd            = null;
+  drv->flags         = DF_INPUT;
+//-----------------------------------------------------------------------------
+// end of the list - a driver with an empty name
+//-----------------------------------------------------------------------------
+  _driver_list[ncomp].name[0] = 0;
+
+  equipment[0].driver = _driver_list;
 
   return SUCCESS;
 }
@@ -191,9 +305,8 @@ INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
   return 1;
 };
 
-
 /*-- Event readout -------------------------------------------------*/
-// This function gets called whenever poll_event() returns TRUE (the
+// This function gets called whenever poll_event() returns TRUE (the 
 // MFE framework calls poll_event() regularly).
 
 //-----------------------------------------------------------------------------

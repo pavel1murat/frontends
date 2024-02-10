@@ -2,20 +2,13 @@
 # Build this project's executables:
 
 find_package(messagefacility REQUIRED)
-#------------------------------------------------------------------------------
-# link directories 
-#------------------------------------------------------------------------------
+
 include_directories($ENV{TRACE_INC})
 include_directories($ENV{MIDASSYS}/include)
 include_directories($ENV{MIDASSYS})
 include_directories(${PostgreSQL_INCLUDE_DIRS})
-#------------------------------------------------------------------------------
-# library directories 
-#------------------------------------------------------------------------------
-link_directories($ENV{TRACE_LIB})
+
 link_directories($ENV{MIDASSYS}/lib)
-link_directories($ENV{MESSAGEFACILITY_LIB})
-link_directories($ENV{XMLRPC_C_FQ_DIR}/lib)
 
 cet_set_compiler_flags(
         DIAGS VIGILANT
@@ -27,11 +20,9 @@ cet_set_compiler_flags(
         # -g -O0 # Equivalent to debug qualifier, for testing
         -pthread 
 )
-cet_make_exec(NAME      dtc_frontend
-              SOURCE    dtc_frontend.cc dtc_driver.cc 
-                        $ENV{MIDASSYS}/drivers/bus/null.cxx
-              LIBRARIES frontends mu2e_pcie_utils::DTCInterface
-                        mfe midas 
+cet_make_exec(NAME      test_001
+              SOURCE    test_001.cc 
+              LIBRARIES midas 
                         stdc++ m util pthread rt
 )
 
