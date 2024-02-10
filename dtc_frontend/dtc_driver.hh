@@ -54,5 +54,5 @@ struct DtcData_t {
 // internally, a MIDAS driver stored only floats
 // reserve seven (7) words just for the first attempt to display
 //-----------------------------------------------------------------------------
-int const DTC_DRIVER_NWORDS =  7;
+int const DTC_DRIVER_NWORDS =  4;
 

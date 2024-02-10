@@ -7,6 +7,7 @@
     <script src="midas.js"></script>
     <script src="mhttpd.js"></script>
     <title>Tracker</title>
+
   </head>
 
   <body class="mcss" onload="mhttpd_init('Tracker');">
@@ -40,6 +41,38 @@
          </td>
       </tr>
 
+          <input type=button value='Push me'
+                 onClick='var paths = [
+                 "/Equipment/mu2edaq09#DTC0/Variables/Input[4]",
+                 ];
+                 mjsonrpc_db_get_values(paths).then(function(rpc) {
+                 document.getElementById("db_get_values_json_data").innerHTML = JSON.stringify(rpc);
+                 var now       = new Date().getTime()/1000;
+                 var status    = rpc.result.status;
+                 var runinfo   = rpc.result.data[0];
+                 document.getElementById("db_get_values_runstate").innerHTML = runinfo
+                 }).catch(function(error) { mjsonrpc_error_alert(error); });'>
+             </input>
+
+      <tr>
+        <td>Reg 9004</td>
+        <td class ="ODB-Monitor" id="conf">
+          <span name="modbvalue" data-odb-path="/Equipment/mu2edaq09#DTC0/Variables/Input[4]" data-format="%X">
+          </span> 
+          <tt id='db_get_values_runstate'></tt>
+          <script type="text/javascript">
+            document.write(v)
+          </script>
+        </td>
+      </tr>
+
+      <tr>
+        <td>DTC0 Temp</td>
+        <td class ="ODB-Monitor" id="conf">
+          <span name="modbvalue" data-odb-path="/Equipment/mu2edaq09#DTC0/Variables/Input[0]" data-format="%f2">
+          </span>
+        </td>
+      </tr>
       <tr>
          <th colspan="3" class="mtableheader">Future tracker page</th>
       </tr>
