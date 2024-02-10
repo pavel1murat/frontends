@@ -5,9 +5,10 @@
 #define __tfm_mon_fe_hh_
 
 #include "drivers/bus/null.h"
-#include "drivers/class/multi.h"
-#include "tfm_frontend/tfm_driver.hh"
+#include "utils/mu2e_sc.hh"
 #include "tfm_frontend/tfm_br_driver.hh"
+#include "tfm_frontend/tfm_dr_driver.hh"
+#include "tfm_frontend/tfm_disk_driver.hh"
 //-----------------------------------------------------------------------------
 /* device driver list */
 //-----------------------------------------------------------------------------
@@ -15,18 +16,19 @@
 // is a good idea, "multi" would by a natural choice
 // but how would that play with the total number of threads ?
 // in both cases, reserve array sizes > than immediate needs for driver internal buffers 
+// *_NWORDS are defined in the corresponding include files respectively
 //-----------------------------------------------------------------------------
-DEVICE_DRIVER driver_list[] = {
-  {"tfm_driver"   , tfm_driver   , 100, null, DF_INPUT},
-  {"tfm_br_driver", tfm_br_driver,  30, null, DF_INPUT},
-  {""}
-};
+// DEVICE_DRIVER driver_list[] = {
+//   {"tfm_driver"   , tfm_driver   , TFM_DRIVER_NWORDS   , null, DF_INPUT},
+//   {"tfm_br_driver", tfm_br_driver, TFM_BR_DRIVER_NWORDS, null, DF_INPUT},
+//   {""}
+// };
 
 BOOL equipment_common_overwrite = TRUE;
 
 EQUIPMENT equipment[] = {
   {
-    "trigger_farm",                       // eq name
+    "${HOSTNAME}#artdaq",                 // eq name
     EQUIPMENT_INFO {
       2, 0,                               // event ID, trigger mask
       "SYSTEM",                           // event buffer name
@@ -37,8 +39,8 @@ EQUIPMENT equipment[] = {
       TRUE,                               // enable flag value
                                           // combination of Read-On flags R)_xxx - read when running and on transitions 
                                           // and on ODB updates
-      RO_RUNNING | RO_TRANSITIONS, // RO_ALWAYS,
-      10000,                              // readout interval/polling time in ms (1 sec)
+      RO_ALWAYS, // RO_RUNNING | RO_TRANSITIONS, // RO_ALWAYS,
+      10000,                              // readout interval/polling time in ms (10 sec)
       0,                                  // stop run after this event limit - probably, 0=never
       0,                                  // number of sub events
       20,                                 // log history every 20 seconds
@@ -50,9 +52,10 @@ EQUIPMENT equipment[] = {
       0,                                  // hidden flag
       0                                   // event buffer write cache size
     },
-    cd_multi_read,                        // pointer to user readout routine
-    cd_multi,                             // class driver routine
-    driver_list,                          // device driver list
+    cd_mu2e_sc_read,                      // pointer to user readout routine, for monitoring-only client could be a nullptr
+    cd_mu2e_sc     ,                      // class driver routine
+    //    driver_list,                          // device driver list
+    nullptr,                              // device driver list, initialized dynamically in frontend_init (P.M.)
     nullptr,                              // init string for fixed events or bank list
     nullptr,                              // private data for class driver
     0,                                    // one of FE_xxx

@@ -6,7 +6,8 @@
 
 #include "drivers/device/nulldev.h"
 #include "drivers/bus/null.h"
-#include "drivers/class/multi.h"
+//#include "drivers/class/multi.h"
+#include "utils/mu2e_sc.hh"
 //-----------------------------------------------------------------------------
 /* device driver list */
 DEVICE_DRIVER driver_list[] = {
@@ -42,8 +43,10 @@ EQUIPMENT equipment[] = {
       0,                                  // hidden flag
       0                                   // event buffer write cache size
     },
-    cd_multi_read,                        // pointer to user readout routine
-    cd_multi,                             // class driver routine
+    // cd_multi_read,                        // pointer to user readout routine
+    // cd_multi,                             // class driver routine
+    cd_mu2e_sc_read,                        // pointer to user readout routine
+    cd_mu2e_sc,                             // class driver routine
     driver_list,                          // device driver list
     nullptr,                              // init string for fixed events or bank list
     nullptr,                              // private data for class driver

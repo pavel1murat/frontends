@@ -1,6 +1,9 @@
 //------------------------------------------------------------------------------
 // P.Murat: this frontend just launches the farm manager
-// make sure the TRACE name is the same as the 
+// make sure to use the correct TRACE name 
+// the host name has to be specified upon submission
+// start: tfm_launch_fe -h mu2edaq09.fnal.gov
+// host_name is defined in midas/include/mfe.h
 //-----------------------------------------------------------------------------
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "tfm_launch_fe"
@@ -24,7 +27,8 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
-#include "tfm_frontend/db_runinfo.hh"
+#include "utils/utils.hh"
+#include "utils/db_runinfo.hh"
 #include "tfm_frontend/tfm_launch_fe.hh"
 
 /*-- Globals -------------------------------------------------------*/
@@ -95,11 +99,11 @@ std::unique_ptr<artdaq::CommanderInterface>  _commander;
 static uint          _useRunInfoDB(0);
 static int           _partition(0);
 static int           _port(0);
-static char          _artdaq_conf[100];
+//static char          _artdaq_conf[100];
 static char          _xmlrpcUrl  [100];
 static xmlrpc_env    _env;
 static int           _init(0);
-static bool          _use_screen(false);
+static bool          _use_screen(true);
 static bool          _tfm_messages(false);
 
 //-----------------------------------------------------------------------------
@@ -111,7 +115,7 @@ INT frontend_init() {
   int         argc;
   char**      argv;
   std::string fcl_fn;
-  HNDLE       hDB, hKey;
+  HNDLE       hDB, hKey, h_active_run_conf;
   char        active_conf[100];
 
   set_equipment_status(equipment[0].name, "Initializing...", "yellow");
@@ -123,27 +127,28 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   cm_get_experiment_database(&hDB, NULL);
   int   sz = sizeof(active_conf);
-  db_get_value(hDB, 0, "/Experiment/ActiveConfiguration", &active_conf, &sz, TID_STRING, TRUE);
+  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
 
   char key[200];
-  sprintf(key,"/Experiment/RunConfigurations/%s",active_conf);
-	db_find_key(hDB, 0, key, &hKey);
+  sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
+	db_find_key(hDB, 0, key, &h_active_run_conf);
 //-----------------------------------------------------------------------------
 // check whether or not use run number from the DB
 //-----------------------------------------------------------------------------
   sz = sizeof(_useRunInfoDB);
-  db_get_value(hDB, hKey, "UseRunInfoDB", &_useRunInfoDB, &sz, TID_BOOL, TRUE);
+  db_get_value(hDB, h_active_run_conf, "UseRunInfoDB", &_useRunInfoDB, &sz, TID_BOOL, TRUE);
+//-----------------------------------------------------------------------------
+// handle the name of the host we'running
+//-----------------------------------------------------------------------------
+  std::string host = get_full_host_name("local");
 //-----------------------------------------------------------------------------
 // ARTDAQ_PARTITION_NUMBER and configuration name are defined in the active run configuration
 // TF manager port is defined by the partition number
 //-----------------------------------------------------------------------------
   sz = sizeof(_partition);
-  db_get_value(hDB, hKey, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
+  db_get_value(hDB, h_active_run_conf, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
   _port = 10000+1000*_partition;
-  sprintf(_xmlrpcUrl,"http://localhost:%i/RPC2",_port);
-
-  sz = sizeof(_artdaq_conf);
-  db_get_value(hDB, hKey, "ArtdaqConfiguration", _artdaq_conf, &sz, TID_STRING, TRUE);
+  sprintf(_xmlrpcUrl,"http://%s:%i/RPC2",host.data(),_port);
 
   sz = sizeof(_use_screen);
   sprintf(key,"/Equipment/%s/UseScreen", equipment[0].name);
@@ -173,19 +178,18 @@ INT frontend_init() {
 // launch the farm manager via dbus-console
 //-----------------------------------------------------------------------------
   cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s', artdaq config '%s', partition %i", 
-         active_conf, _artdaq_conf, _partition);
+         active_conf, _partition);
   char cmd[200];
   sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e daq_scripts/start_farm_manager %s %i",
-          _artdaq_conf,_partition);
+          active_conf, _partition);
   if(_use_screen) {
     // todo, kill all remaining sessions?
     sprintf(cmd,"screen -dmS tfm bash -c \"daq_scripts/start_farm_manager %s %i\"",
-            _artdaq_conf,_partition); 
+            active_conf, _partition); 
   }
   TLOG(TLVL_DEBUG+4) << "before launching: cmd=" << cmd;
   system(cmd);
   TLOG(TLVL_DEBUG+4) << "after launching: cmd=" << cmd;
-  
 //-----------------------------------------------------------------------------
 // init XML RPC
 //-----------------------------------------------------------------------------
@@ -281,7 +285,6 @@ int wait_for(const char* State, int MaxWaitingTime) {
     TLOG(TLVL_DEBUG) << "000:WAITING state=" << state;
     set_equipment_status(equipment[0].name, state.c_str(), "yellow");
 
-
     waiting_time += 1;
     if (waiting_time > MaxWaitingTime) {
       rc = -1;
@@ -299,6 +302,19 @@ int wait_for(const char* State, int MaxWaitingTime) {
 INT begin_of_run(INT RunNumber, char *error) {
   xmlrpc_env    env;
   xmlrpc_value* resultP;
+//-----------------------------------------------------------------------------
+// register beginning of the transition 
+//-----------------------------------------------------------------------------
+  int rc(0);
+  if (_useRunInfoDB) {
+    try { 
+      db_runinfo db("aaa");
+      rc = db.registerTransition(RunNumber,db_runinfo::START,0);
+    }
+    catch(char* err) {
+      TLOG(TLVL_ERROR) << "failed to register beginning of the START transition rc=" << rc;
+    }
+  }
 
   set_equipment_status(equipment[0].name, "Run starting...", "yellow");
 
@@ -328,8 +344,6 @@ INT begin_of_run(INT RunNumber, char *error) {
 //-----------------------------------------------------------------------------
 // now wait till completion
 //-----------------------------------------------------------------------------
-  int rc(0);
-
   rc = wait_for("configured:100",100);
 
   printf("tfm_frontend::%s 0011: DONE configuring, rc=%i\n",__func__,rc);
@@ -359,16 +373,19 @@ INT begin_of_run(INT RunNumber, char *error) {
   rc = wait_for("running:100",70);
 
   printf("tfm_frontend::%s ERROR: wait for running run=%6i rc=%i\n",__func__,RunNumber,rc);
-
+//-----------------------------------------------------------------------------
+// register the end of the start completion
+//-----------------------------------------------------------------------------
   if (_useRunInfoDB) {
     try { 
       db_runinfo db("aaa");
-      rc = db.registerTransition(RunNumber,db_runinfo::START);
+      rc = db.registerTransition(RunNumber,db_runinfo::START,1);
     }
     catch(char* err) {
-      TLOG(TLVL_ERROR) << "failed to register START transition rc=" << rc;
+      TLOG(TLVL_ERROR) << "failed to register end of the START transition rc=" << rc;
     }
   }
+
   printf("tfm_frontend::%s 003: done starting, run=%6i rc=%i\n",__func__,RunNumber,rc);
 
   return SUCCESS;
@@ -388,7 +405,21 @@ INT end_of_run(INT RunNumber, char *Error) {
 
   size_t        length;
   const char*   value;
+//-----------------------------------------------------------------------------
+// write beginning of the transition into the DB
+//-----------------------------------------------------------------------------
+  int rc(0);
 
+  if (_useRunInfoDB) {
+    db_runinfo db("aaa");
+    rc = db.registerTransition(RunNumber,db_runinfo::STOP,0);
+    if (rc < 0) {
+      TLOG(TLVL_ERROR) << "failed to register beginning of the END_RUN transition rc=" << rc;
+    }
+  }
+//-----------------------------------------------------------------------------
+// send the transition request 
+//-----------------------------------------------------------------------------
   xmlrpc_env_init(&env);
   resultP = xmlrpc_client_call(&_env, 
                                _xmlrpcUrl,
@@ -407,31 +438,26 @@ INT end_of_run(INT RunNumber, char *Error) {
   std::string result = value;
 
   xmlrpc_DECREF(resultP);
-  //  xmlrpc_env_clean(&_env);
 
   TLOG(TLVL_INFO) << "after my_xmlrpc command run=" << RunNumber << "result:" << result;
 //-----------------------------------------------------------------------------
 // now wait till completion
 //-----------------------------------------------------------------------------
-  int rc(0);
-
   TLOG(TLVL_DEBUG) << "wait for completion";
 
   rc = wait_for("stopped:100",100);
 
   TLOG(TLVL_DEBUG) << "DONE stopping rc=" << rc;
 //-----------------------------------------------------------------------------
-// write end of transition into the DB
+// write end of STOP_RUN transition into the DB
 //-----------------------------------------------------------------------------
   if (_useRunInfoDB) {
     db_runinfo db("aaa");
-    rc = db.registerTransition(RunNumber,db_runinfo::STOP);
+    rc = db.registerTransition(RunNumber,db_runinfo::STOP,1);
     if (rc < 0) {
-      TLOG(TLVL_ERROR) << "failed to register STOP transition rc=" << rc;
-      sprintf(Error,"tfm_frontend::%s ERROR: line %i failed to regiser STOP transition",__func__,__LINE__);
+      TLOG(TLVL_ERROR) << "failed to register end of the STOP_RUN transition rc=" << rc;
     }
   }
-
 
   set_equipment_status(equipment[0].name, "OK", "green");
 
@@ -452,16 +478,20 @@ INT resume_run(INT RunNumber, char *error) {
 INT frontend_loop() {
    /* if frontend_call_loop is true, this routine gets called when
       the frontend is idle or once between every event */
-  if(_init > 0) {
+  if (_init > 0) {
 
-  int         rc (0);
+    //    int         rc (0);
 
-  std::string         state;
+    std::string         state;
+    xmlrpc_env          env;
+    xmlrpc_value*       resultP;
+    size_t              length;
+    const char*         value;
 
-  xmlrpc_env          env;
-  xmlrpc_value*       resultP;
-  size_t              length;
-  const char*         value;
+    try {
+      xmlrpc_env_init(&env);
+                                        // "({s:i,s:i})",
+      resultP = xmlrpc_client_call(&env,_xmlrpcUrl,"get_state","(s)","daqint");
 
   int                 waiting_time = 0;
 
@@ -595,6 +625,22 @@ rank      = INT : 0";
         }
     }
   }
+      if (env.fault_occurred) {
+        TLOG(TLVL_ERROR) << "001: XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
+        // cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string); 
+        set_equipment_status(equipment[0].name, "booting", "greenLight");
+      } 
+      else {
+        xmlrpc_read_string_lp(&env, resultP, &length, &value);
+        state = value;
+        
+        set_equipment_status(equipment[0].name, state.c_str(), "greenLight");
+        //cm_msg(MINFO,"tfm", "TFM state: '%s'", state.c_str()); 
+      }
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "002: XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
+    }
   } 
   ss_sleep(1000);
   return SUCCESS;

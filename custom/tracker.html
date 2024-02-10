@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="midas.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <title>Tracker</title>
+  </head>
+
+  <body class="mcss" onload="mhttpd_init('Tracker');">
+
+    <!-- header and side navigation will be filled in mhttpd_start -->
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+
+    <div id="mmain" style="padding-top: 32px; margin-left: 194px; opacity: 1;">
+      <br/>
+      <!--div class = "col-md-8">-->
+
+   <table class="mtable">
+      <tr>
+         <td colspan="2" style="text-align: center;">
+            <!-- three buttons to change an ODB entry (run number in this example) -->
+            <button class="modbbutton mbutton" data-odb-path="/Runinfo/Run number" data-odb-value="1">Set run
+               number to 1
+            </button>
+            <button class="modbbutton mbutton" data-odb-path="/Runinfo/Run number" data-odb-value="5">Set run
+               number to 5
+            </button>
+            <button class="modbbutton mbutton" data-odb-path="/Runinfo/Run number" data-odb-value="10">Set run
+               number to 10
+            </button>
+         </td>
+         <td>
+            <b>modbbuttons</b> which change <i>/Runinfo/Run number</i> directly. Note how the displays above
+            change if the run number gets changed. The same can be achieved by changing the run number by any other
+            program such as odbedit.
+         </td>
+      </tr>
+
+      <tr>
+         <th colspan="3" class="mtableheader">Future tracker page</th>
+      </tr>
+
+      <tr>
+         <td rowspan="6">
+            <b>ARTDAQ rate</b>
+         </td>
+
+         <td>
+            <div class="modbvalue" data-odb-path="/Runinfo/Run number"></div>
+         </td>
+
+         <td>
+            rate <i>/Runinfo/Run number</i>
+         </td>
+      </tr>
+   </table>
+</div>
+
+<h2>JavaScript Statements</h2>
+
+<p>In HTML, JavaScript statements are executed by the browser.</p>
+
+<p id="demo"></p>
+
+<script>
+document.getElementById("demo").innerHTML = "Hello Dolly.";
+</script>
+
+<p>Click "Try it" to call a function with arguments</p>
+
+<button onclick="myFunction('Harry Potter','Wizard')">Try it</button>
+
+<p id="demo2"></p>
+
+<script>
+function myFunction(name,job) {
+  document.getElementById("demo2").innerHTML = "Welcome " + name + ", the " + job + ".";
+}
+</script>
+
+<h2>The onclick Attribute</h2>
+
+<button onclick="document.getElementById('demo3').innerHTML=Date()">The time is?</button>
+
+<p id="demo3"></p>
+
+<script>
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})() (
+
+{1:[function(require,module,exports){
+const execSync = require('child_process').execSync;
+
+function fx() {
+    const output = execSync('ls', { encoding: 'utf-8' });  // the default is 'buffer'
+  
+    document.getElementById("demo4").innerHTML = "output: " + output;
+    // console.log(output);
+}
+
+},{"child_process":2  </div>
+</script>
+
+<p id="demo4"></p>
+<button onclick="document.getElementById('demo4').innerHTML=fx()">try ls</button>
+
+  </body>
+</html>

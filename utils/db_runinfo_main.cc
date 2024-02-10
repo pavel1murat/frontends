@@ -24,7 +24,7 @@ int main(int argc, const char** argv) {
 //-----------------------------------------------------------------------------
   int rn = x.nextRunNumber(runConfiguration,0);
 
-  x.registerTransition(rn,db_runinfo::START);
-  x.registerTransition(rn,db_runinfo::STOP );
+  x.registerTransition(rn,db_runinfo::START,0);
+  x.registerTransition(rn,db_runinfo::STOP ,0);
   return 0;
 }

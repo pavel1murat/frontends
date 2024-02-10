@@ -1,0 +1,80 @@
+* ------------------------------------------------------------------------------
+* installation and build instructions, validated <2023-10-30 Mon>            
+
+  OTSDAQ bundle to use 
+  - version   : v2_07_00   
+  - qualifiers: e28_s126_debug
+
+  - all available OTSDAQ bundles: https://scisoft.fnal.gov/scisoft/packages/otsdaq/
+
+  - the build procedure itself:
+    0) make sure you have access to *otsdaq_mu2e_config* repo - it is a private Mu2e repository. Ask Rob Kutschke for permissions.
+    1) go to https://github.com/mu2e/otsdaq_mu2e_config/blob/main/mu2e_ots_install.sh
+    2) convert the page to raw format (click on the "raw" button), wget the resulting raw URL (that will have an odd ending)
+
+#+begin_src 
+  wget -O mu2e_ots_install.sh  <raw-URL>      # see example below
+  source mu2e_ots_install.sh work_area partition [otsdaq_bundle] [qualifiers]
+#+end_src 
+
+  - work_area    : name of the OTSDAQ work area, to be created in the current directory 
+  - partition    : see https://github.com/mu2e/otsdaq_mu2e/blob/develop/doc/otsdaq_mu2e.org#partitions
+  - otsdaq_bundle: version of the OTSDAQ bundle, see above 
+  - qualifiers   : build qualifiers, see above
+
+An example follows. In the middle of the installation you will be asked for a password to access the *otsdaq_mu2e_config* repo. 
+#+begin_src 
+  wget -O mu2e_ots_install.sh https://raw.githubusercontent.com/Mu2e/otsdaq_mu2e_config/main/mu2e_ots_install.sh?token=GHSAT0AAAAAAB5R6WEFJZB7JMSKCUB3OHKMZKAOHMA
+  source mu2e_ots_install.sh pasha_001 8 v2_06_11 e28_s124_prof
+#+end_src
+
+  here 'pasha_001' is the name of created work area
+
+  - if you need to pull locally more repos, cd to 'pasha_001/srcs',  pull needed repos, cd back to 'pasha_001'
+  - recompile:
+#+begin_src
+mrb uc
+mrb b
+#+end_src
+
+* ROOT interface to mu2e_pcie_utils    validated <2023-07-19 Wed>            
+- If you got here, you already have built the OTS libraries
+- ROOT interface library is not available by default, you have to build it
+#+begin_src
+cd srcs
+git clone https://github.com/mu2e/mu2e_pcie_utils
+cd mu2e_pcie_utils
+git checkout pasha
+cd ../..
+export BUILD_ROOT_INTERFACE=1
+mrb b
+#+end_src
+after that, you can do the following:
+#+begin_src
+root.exe
+root [0] DTCLib::DTC dtc(DTCLib::DTC_SimMode_NoCFO,-1,0x1,"");
+06-18 17:41:07.271940                      DTC_Registers     INFO DTC_Registers(...): Sim Mode is NoCFO
+06-18 17:41:07.271997                      DTC_Registers     INFO DTC_Registers(...): DTC ID is 1
+06-18 17:41:07.272011                      DTC_Registers     INFO SetSimMode(...): Initializing device, sim mode is NoCFO
+06-18 17:41:07.278490                      DTC_Registers     INFO SetSimMode(...): SKIPPING Initializing device
+06-18 17:41:07.283713                            DTC.cpp     INFO DTC(...): CONSTRUCTOR
+root [1] mu2edev* dev = dtc.GetDevice();
+root [2]   uint32_t res; 
+root [3]   int      rc;
+root [4]   rc = dev->read_register(0x9100,100,&res); printf("0x9100: DTC status       : 0x%08x\n",res); // expect: 0x40808404
+0x9100: DTC status       : 0x40808404
+#+end_src
+
+*Comments*
+
+- for examples, see https://github.com/Mu2e/otsdaq_mu2e_tracker/blob/pasha/scripts/test_buffer_async.C , 
+  or any other .C script in that area
+- every script should have the following line on top"
+#+begin_src
+#define __CLING__ 1
+#+end_src
+- because of the complexity of the C++ code, ROOT needs to be restarted every time you reload your script
+
+* ------------------------------------------------------------------------------
+* back to [[file:frontends.org][frontends]]
+* ------------------------------------------------------------------------------
