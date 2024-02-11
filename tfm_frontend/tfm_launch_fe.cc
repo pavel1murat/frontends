@@ -177,7 +177,7 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 // launch the farm manager via dbus-console
 //-----------------------------------------------------------------------------
-  cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s', artdaq config '%s', partition %i", 
+  cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s', partition %i", 
          active_conf, _partition);
   char cmd[200];
   sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e daq_scripts/start_farm_manager %s %i",
@@ -493,7 +493,7 @@ INT frontend_loop() {
                                         // "({s:i,s:i})",
       resultP = xmlrpc_client_call(&env,_xmlrpcUrl,"get_state","(s)","daqint");
 
-  int                 waiting_time = 0;
+  //int                 waiting_time = 0;
 
   xmlrpc_env_init(&env);
   resultP = xmlrpc_client_call(&env, 
@@ -652,13 +652,13 @@ rank      = INT : 0";
 /*-- Dummy routines ------------------------------------------------*/
 INT poll_event(INT source, INT count, BOOL test) {
   return 1;
-};
+}
 
 
 //-----------------------------------------------------------------------------
 INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
   return 1;
-};
+}
 
 
 /*-- Event readout -------------------------------------------------*/
