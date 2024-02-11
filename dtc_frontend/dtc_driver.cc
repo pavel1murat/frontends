@@ -146,9 +146,6 @@ INT dtc_driver_get_label(DTC_DRIVER_INFO * Info, INT Channel, char* Label) {
   else if (Channel == 1) sprintf(Label,"DTC%i#VCCINT",Info->driver_settings.dtcID);
   else if (Channel == 2) sprintf(Label,"DTC%i#VCCAUX",Info->driver_settings.dtcID);
   else if (Channel == 3) sprintf(Label,"DTC%i#VCBRAM",Info->driver_settings.dtcID);
-  else if (Channel == 4) sprintf(Label,"DTC%i#0x9004",Info->driver_settings.dtcID);
-  else if (Channel == 5) sprintf(Label,"DTC%i#0x9100",Info->driver_settings.dtcID);
-  else if (Channel == 6) sprintf(Label,"DTC%i#0x9140",Info->driver_settings.dtcID);
   else {
     TLOG(TLVL_ERROR) << "channel:" << Channel << ". Do nothing";  
   }
@@ -171,10 +168,16 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
     0x9010, 0x9014, 0x9018, 0x901c              // temperature, voltages
   };
 
-  int DTC_DRIVER_NREGISTERS = 3;
+  int DTC_DRIVER_NREGISTERS = 3+12;
 
   const int regn [DTC_DRIVER_NREGISTERS] = {
-    0x9004, 0x9100, 0x9140
+    0x9004, 0x9100, 0x9140, 
+    0x9630, 0x9650,                  // Link 0: N(DTC requests) and N(heartbeats) 
+    0x9634, 0x9654,                  // Link 1: N(DTC requests) and N(heartbeats) 
+    0x9638, 0x9658,                  // Link 2: N(DTC requests) and N(heartbeats) 
+    0x963c, 0x965c,                  // Link 3: N(DTC requests) and N(heartbeats) 
+    0x9640, 0x9660,                  // Link 4: N(DTC requests) and N(heartbeats) 
+    0x9644, 0x9664                   // Link 5: N(DTC requests) and N(heartbeats) 
   };
 
   uint32_t val(0);
