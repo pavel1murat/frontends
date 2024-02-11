@@ -131,7 +131,10 @@ INT frontend_init() {
   HNDLE    h_active_run_conf;
   char     key[1000];
   sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
-	db_find_key(hDB, 0, key, &h_active_run_conf);
+  if(db_find_key(hDB, 0, key, &h_active_run_conf) != DB_SUCCESS){
+    TLOG(TLVL_ERROR) << "The configuration '" << key << "' was not found in /Mu2e/RunConfigurations. Got=" << h_active_run_conf;
+    return FE_ERR_ODB; 
+  }
 //-----------------------------------------------------------------------------
 // ARTDAQ_PARTITION_NUMBER also comes from the active run configuration
 //-----------------------------------------------------------------------------
@@ -171,6 +174,7 @@ INT frontend_init() {
   HNDLE h_artdaq_conf;
 	if (db_find_key(hDB, 0, k1.data(), &h_artdaq_conf) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "0012 no handle for:" << k1 << ", got:" << h_artdaq_conf;
+    return FE_ERR_ODB; 
   }
 //-----------------------------------------------------------------------------
 // got active artdaq configuration/host
@@ -200,7 +204,7 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
     db_get_key(hDB, h_component, &component);
 
-    char label[100];
+    char label[NAME_LENGTH];
     sz = sizeof(label);
     db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, TRUE);
 
@@ -297,13 +301,13 @@ INT frontend_loop() {
 /*-- Dummy routines ------------------------------------------------*/
 INT poll_event(INT source, INT count, BOOL test) {
   return 1;
-};
+}
 
 
 //-----------------------------------------------------------------------------
 INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
   return 1;
-};
+}
 
 /*-- Event readout -------------------------------------------------*/
 // This function gets called whenever poll_event() returns TRUE (the 

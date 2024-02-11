@@ -38,7 +38,8 @@ using std::vector, std::string;
 #define TFM_DISK_DRIVER_SETTINGS_STR "\
 Link     = INT    : 0\n\
 Active   = INT    : 0\n\
-HostName = STRING : \n\
+CompName = STRING : [32]\n\
+HostName = STRING : [32]\n\
 "
 
 typedef INT(func_t) (INT cmd, ...);
@@ -109,7 +110,11 @@ INT tfm_disk_driver_init(HNDLE hkey, TFM_DISK_DRIVER_INFO **pinfo, INT channels,
 // make sure it won't compile before that
 // the driver name is the same as the component name
 //-----------------------------------------------------------------------------
-  strcpy(info->driver_settings.HostName,FrontendsGlobals::_driver->name);
+  strcpy(info->driver_settings.CompName,FrontendsGlobals::_driver->name);
+  strcpy(info->driver_settings.HostName, host.data());
+
+  // at this point, update the driver record
+  db_set_record(hDB, hkeydd, &info->driver_settings, size, 0);
 //-----------------------------------------------------------------------------
 // it looks that the 'bus driver' function should be defined no matter what.
 //-----------------------------------------------------------------------------

@@ -15,6 +15,7 @@
 typedef struct {
   int  Link;
   int  Active;
+  char CompName[NAME_LENGTH];
   char HostName[NAME_LENGTH];
 } TFM_DISK_DRIVER_SETTINGS;
 

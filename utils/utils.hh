@@ -15,7 +15,7 @@
 //-----------------------------------------------------------------------------
 namespace FrontendsGlobals {
   extern DEVICE_DRIVER* _driver;
-};
+}
 
 //-----------------------------------------------------------------------------
 // assume Hostname is either a fully domain-qualified name, or 'local'
