@@ -6,7 +6,7 @@
 
 #include "drivers/bus/null.h"
 
-#include "frontends/utils/mu2e_sc.hh"
+#include "utils/mu2e_sc.hh"
 #include "dtc_frontend/dtc_driver.hh"
 /*-- Equipment list ------------------------------------------------*/
 
@@ -17,6 +17,16 @@
 //   {"dtc1" , dtc_driver,  4, null, DF_INPUT},
 //   {""}
 // };
+
+
+ DEVICE_DRIVER driver_list_1[] = {
+     {""},
+     {""}
+ };
+ DEVICE_DRIVER driver_list_2[] = {
+     {""},
+     {""}
+ };
 
 BOOL equipment_common_overwrite = TRUE;
 
@@ -45,8 +55,8 @@ EQUIPMENT equipment[] = {
    } ,
    cd_mu2e_sc_read,              /* readout routine */
    cd_mu2e_sc,                   /* class driver main routine */
-   //   driver_list,                /* device driver list */
-   nullptr,                    // driver (driver list) initialized in frontend_init
+   driver_list_1,                /* device driver list */
+   //nullptr,                    // driver (driver list) initialized in frontend_init
    NULL,                       /* init string */
   },
 
@@ -72,8 +82,8 @@ EQUIPMENT equipment[] = {
    } ,
    cd_mu2e_sc_read,            /* readout routine */
    cd_mu2e_sc,                 /* class driver main routine */
-   //   driver_list,           /* device driver list */
-   nullptr,                    // driver (driver list) initialized in frontend_init
+   driver_list_2,           /* device driver list */
+   //nullptr,                    // driver (driver list) initialized in frontend_init
    NULL,                       /* init string */
   },
   {""}

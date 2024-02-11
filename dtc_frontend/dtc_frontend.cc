@@ -28,8 +28,8 @@
 #include "midas.h"
 #include "mfe.h"
 
-#include "frontends/utils/utils.hh"
-#include "frontends/dtc_frontend/dtc_frontend.hh"
+#include "utils/utils.hh"
+#include "dtc_frontend/dtc_frontend.hh"
 //-----------------------------------------------------------------------------
 // Globals
 // The frontend name (client name) as seen by other MIDAS clients
@@ -65,12 +65,12 @@ INT event_buffer_size          = 10*10000; // buffer size to hold events */
 /*-- Dummy routines ------------------------------------------------*/
 INT poll_event(INT source, INT count, BOOL test) {
   return 1;
-};
+}
 
 //-----------------------------------------------------------------------------
 INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
   return 1;
-};
+}
 
 //-----------------------------------------------------------------------------
 // Frontend Init
@@ -113,8 +113,67 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 // DTC is the equipment, two are listed in the header, both should be listed in ODB
 //-----------------------------------------------------------------------------
-  HNDLE h_subkey;
-  KEY   subkey;
+  //HNDLE h_subkey;
+  //KEY   subkey;
+  
+  // Simons proposal
+  // Do we reall need two equipments, if we label the channels one might be just fine?
+
+  // check if a DTC exists (and if its enabled), needed?
+  // if a DTC doesn't exist in the detector configuration (or is disabled), 
+  // I'd propose to not start (or kill?) the corresponding equipment
+
+  int n_dtc_present = 0;
+  for(int dtc_no = 0; dtc_no < 2; ++dtc_no) {
+     sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/DTC%i",active_run_conf,host.c_str(),dtc_no);
+     HNDLE h_dtc;
+     if (db_find_key(hDB, 0, key, &h_dtc) != DB_SUCCESS) {
+         // if the DTC doesn't exist in the config, don't generate the corresponding equipment
+         equipment[dtc_no] = EQUIPMENT(); // this doesn't seem to work
+             BOOL en = false;
+             sprintf(key,"/Equipment/%s/Common/Enabled", equipment[dtc_no].name);
+             db_set_value(hDB, 0, key, &en, sizeof(en), 1, TID_BOOL);
+     } else {
+         INT32 enabled;
+         sz = sizeof(enabled);
+         if(db_get_value(hDB, h_dtc, "Enabled", &enabled, &sz, TID_INT32, FALSE) != DB_SUCCESS) {
+             // TODO
+         }
+         //if(enabled) {
+             ++n_dtc_present;
+	     DEVICE_DRIVER* drv = &(equipment[dtc_no].driver[0]);
+	     //DEVICE_DRIVER* drv = &_driver_list[0];
+	     snprintf(drv->name,NAME_LENGTH,"dtc%i", dtc_no);
+	     drv->dd         = dtc_driver;
+	     drv->channels   = DTC_DRIVER_NWORDS;
+	     drv->bd         = null;
+	     drv->flags      = DF_INPUT;
+	     drv->enabled    = true;
+	     drv->dd_info    = nullptr;
+	     drv->pequipment = nullptr;
+             drv->enabled    = enabled; 
+         /*} else {
+             BOOL en = false;
+             sprintf(key,"/Equipment/%s/Common/Enabled",equipment[dtc_no].name);
+             db_set_value(hDB, 0, key, &en, sizeof(en), 1, TID_BOOL);
+
+             // still create a driver but disable it
+	     DEVICE_DRIVER* drv = &(equipment[dtc_no].driver[0]);
+	     //DEVICE_DRIVER* drv = &_driver_list[0];
+	     snprintf(drv->name,NAME_LENGTH,"dtc%i", dtc_no);
+	     drv->dd         = dtc_driver;
+	     drv->channels   = DTC_DRIVER_NWORDS;
+	     drv->bd         = null;
+	     drv->flags      = DF_INPUT;
+	     drv->enabled    = true;
+	     drv->dd_info    = nullptr;
+	     drv->pequipment = nullptr; 
+             drv->enabled    = false;
+         }*/           
+     }
+  }
+
+  /*
   for (int i=0; db_enum_key(hDB,h_daq_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
 //-----------------------------------------------------------------------------
 // skip 'Artdaq' folder
@@ -125,8 +184,9 @@ INT frontend_init() {
 // for each DTC, define a driver
 // so far, output of all drivers goes into the same common "Input" array
 //-----------------------------------------------------------------------------
+    
     _driver_list        = new DEVICE_DRIVER[2];
-    _driver_list[1]     = {""};
+    //_driver_list[1]     = {""};//DEVICE_DRIVER();
 
     DEVICE_DRIVER* drv = &_driver_list[0];
     
@@ -141,7 +201,7 @@ INT frontend_init() {
     drv->pequipment = nullptr;
 
     equipment[i].driver = _driver_list;
-  }
+  }*/
 
 
   return CM_SUCCESS;
