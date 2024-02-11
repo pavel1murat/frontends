@@ -5,7 +5,9 @@
 * [[file:news.org][News]]                                                                       
 * [[file:build_instructions.org][installation and build instructions]]
 * configuration instructions                                                 
-- the folowing assumes that you read instructions on MIDAS website: 
+
+- step 1: the folowing assumes that you read instructions on MIDAS website: 
+ 
   https://daq00.triumf.ca/MidasWiki/index.php/Quickstart_Linux#Installation                                            
 
 - first time , one-time configuration step:               
@@ -16,6 +18,18 @@
 - any time after that 
 
     source source_me
+
+- step 2: configuring MIDAS
+
+- 2.1: run odbedit to setup the initial ODB 
+- 2.2: start mhttpd 
+- 2.3: run odbedit again to redefine the local port 
+- 2.4: restart mhttpd to listen to the right port   (these steps are defined 
+- 2.5: load the Mu2e configuration tree - it should show up as a top-level directory called Mu2e:
+-      run odbedit, create a top-level "Mu2e" subdirectory":
+-      mkdir Mu2e
+-      cd Mu2e
+-      load srcs/frontends/odb/Mu2e/Mu2e.json
 * ARTDAQ                                                                     
    boardreader, eventbuilder, and datalogger are started by ARTDAQManager 
    during the *configure* transition. At this point the run number is not defined,
