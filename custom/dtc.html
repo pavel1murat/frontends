@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="midas.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <title>DTC</title>
+  </head>
+
+  <body class="mcss" onload="mhttpd_init('Wideband');">
+
+    <!-- header and side navigation will be filled in mhttpd_start -->
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+
+    <div id="mmain" style="padding-top: 32px; margin-left: 194px; opacity: 1;">
+      <br/>
+      <!--div class = "col-md-8">-->
+      <table class="mtable" style="display: table;">
+        <tbody><tr><td>
+          <table class="mtable" id="Feedback" width="100%"> 
+            <tr>
+              <td colspan="3" class = "mtableheader" style="background-color:#8cbdff">DTC Status</td>
+            </tr>
+            <tr>
+              <td>register</td>
+              <td>value</td>
+              <td>flags</td>
+            </tr>
+            <tr>
+              <td>0x9000: Version Timestmap</td>
+              <td class ="ODB-Monitor" id="conf"><span name="modbvalue" data-odb-path="/Equipment/mu2edaq08#DTC0/Registers/0x9000" data-format="%x"></span></td>
+              <td class ="ODB-Monitor" id="conf"><span id="pars9000"></span></td>
+            </tr>
+            <tr>
+              <td>0x9004: Version Timestmap</td>
+              <td class ="ODB-Monitor" id="conf"><span name="modbvalue" data-odb-path="/Equipment/mu2edaq08#DTC0/Registers/0x9004" data-format="%x"></span></td>
+              <td class ="ODB-Monitor" id="conf"><span id="pars9004"></span></td>
+            </tr>
+
+            <tr>
+              <td>0x9100: Control Register</td>
+              <td class ="ODB-Monitor" id="conf"><span name="modbvalue" data-odb-path="/Equipment/mu2edaq08#DTC0/Registers/0x9100" data-format="%x" onChange="pars9100(this)"></span></td>
+              <td class ="ODB-Monitor" id="conf"><span id="pars9100"></span></td>
+            </tr>
+
+            <tr>
+              <td>0x9114: Link Enable</td>
+              <td class ="ODB-Monitor" id="conf"><span name="modbvalue" data-odb-path="/Equipment/mu2edaq08#DTC0/Registers/0x9114" data-format="%x8"></span></td>
+              <td class ="ODB-Monitor" id="conf"><span id="pars9140"></span></td>
+            </tr>
+            <tr>
+              <td>0x9140: RX CDR Lock</td>
+              <td class ="ODB-Monitor" id="conf"><span name="modbvalue" data-odb-path="/Equipment/mu2edaq08#DTC0/Registers/0x9140" data-format="%x8"></span></td>
+              <td class ="ODB-Monitor" id="conf"><span id="pars9140"></span></td>
+            </tr>
+
+<!--
+0x93E0 LOOK into this one!
+
+0x9154: DTC ID / EVB Mode / EVB Partition ID / EVB Local MAC Index 
+0x9190: FIFO	Full	Error	Flag    Register 0
+0x9194: FIFO	Full	Error	Flag	Register 1 
+0x9198: FIFO	Full	Error	Flag	Register 2
+0x919C: Receive	Packet	Error	Register	
+0x91CC: RX	Packet	Count	Error	Flags
+0x9200: Receive	Byte	Count	Data	Link	0
+0x9204: Receive	Byte	Count	Data	Link	1
+0x9208: Receive	Byte	Count	Data	Link	2
+0x920C: Receive	Byte	Count	Data	Link	3
+0x9210: Receive	Byte	Count	Data	Link	4	Register
+0x9214: Receive	Byte	Count	Data	Link	5	
+0x9218: Receive	Byte	Count	CFO	Link	
+0x9220: Receive	Packet	Count	Data	Link	0
+0x9224
+0x9228
+0x922C
+0x9230
+0x9234
+0x9238: Receive	Packet	Count	CFO	Link
+0x9240: Transmit	Byte	Count	Data	Link	
+-->
+
+
+          </table>
+        </td></tr></tbody>
+      </table>
+    </div>
+
+<script>
+    function pars9100(event) {
+        let value = parseInt(event.innerHTML, 16);
+        let bits = value.toString(2).split('');
+        let dcs        = bits[bits.length-3] === '1' ? 'on' : 'off';
+        let retransmit = 0
+        const dtcmap = {
+            "DCS" : 2,
+            "Packet Retransmit" : 3,
+            "Fanout Input Select" : 4,
+            "Comma Tolerance" : 5,
+            "RX Packet Error Feedback" : 6, 
+            "Punch Enable" : 9,
+            "Sequence Number not" : 10,
+            "DRP Prefetch" : 12,
+            "CFO Emulation Mode" : 15,
+            "Software DRP" : 22,
+            "DTC Autogenerate DRP" : 23, 
+            "CFO Emulator DRP" : 24, 
+            "CFO Link Output Control" : 28, 
+            "CFO Emulation Continuous" : 29,
+            "CFO Emulation" : 30
+        } 
+        let out = document.getElementById("pars9100")    
+        for (let [key, value] of Object.entries(dtcmap)) {  
+        //Object.keys(dtcmap).forEach(key => {
+            let span = document.createElement("SPAN")
+            span.innerHTML = dtcmap[key]+" - "+key+": "+(bits[bits.length-dtcmap[key]] === '1' ? "enabled" : "disabled")
+            span.style = "display: block;"
+            className = bits[bits.length-dtcmap[key]] === '1' ? "greenLight" : "yellowLight";
+            span.classList.add(className);
+            out.appendChild(span)
+            console.log(key, dtcmap[key]);
+        }
+    }
+</script>
+
+  </body>
+</html>
+
+
