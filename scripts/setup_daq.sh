@@ -150,10 +150,6 @@ source /cvmfs/mu2e.opensciencegrid.org/setupmu2e-art.sh
 
 unsetup_all >/dev/null 2>&1
 
-# unalias because the original VM aliased for users
-unalias kx  >/dev/null 2>&1
-unalias ots >/dev/null 2>&1
-
 PRODUCTS=/cvmfs/mu2e.opensciencegrid.org/artexternals:/cvmfs/fermilab.opensciencegrid.org/products/artdaq:/mu2e/ups
 
 setup mrb 
@@ -181,7 +177,6 @@ export REMOTE_PRODUCTS_DIR=$otsdir/$remote_products_dir
 #------------------------------------------------------------------------------
 setup gdb
 
-# mrbsetenv 2>&1 >/dev/null
 while true;do
   mrbsetenv >/dev/null
   test -x $TRACE_BIN/trace_cntl && break || { sleep 1; echo Retrying mrbsetenv; }
@@ -278,63 +273,10 @@ export           USER_WEB_PATH=$otsdir/srcs/$repository/UserWebGUI
 dataFilesDir=$OTSDAQ_DATA
 export  FHICL_FILE_PATH=$FHICL_FILE_PATH:$USER_DATA:$offlineFhiclDir:$triggerEpilogDir:$dataFilesDir:/mu2e/DataFiles
 export MU2E_SEARCH_PATH=$MU2E_SEARCH_PATH:/cvmfs/mu2e.opensciencegrid.org/DataFiles:$MRB_TOP/srcs
-# #------------------------------------------------------------------------------
-# # make sure links are pointing to the right place
-# #------------------------------------------------------------------------------
-# linkPath=$(readlink $USER_DATA/Logs)
-# if [ "$linkPath" != "${OTS_SCRATCH}/Logs" ] ; then
-#     echo -e "setup [${LINENO}]  \t Fixing found link path as ... found {${linkPath}} expecting {${OTS_SCRATCH}/Logs}"
-#     rm $USER_DATA/Logs
-#     ln -s $OTS_SCRATCH/Logs $USER_DATA/Logs
-# fi
-# linkPath=$(readlink $USER_DATA/ARTDAQConfigurations)
-# if [ "$linkPath" != "$OTS_SCRATCH/ARTDAQConfigurations" ] ; then
-#     echo -e "setup [$LINENO]  \t Fixing found link path as ... found {$linkPath} expecting {$OTS_SCRATCH/ARTDAQConfigurations}"
-#     rm $USER_DATA/ARTDAQConfigurations
-#     ln -s $OTS_SCRATCH/ARTDAQConfigurations $USER_DATA/ARTDAQConfigurations
-# fi
-# linkPath=$(readlink $USER_DATA/TriggerConfigurations)
-# if [ "$linkPath" != "${OTS_SCRATCH}/TriggerConfigurations" ] ; then
-#     echo -e "setup [$LINENO]  \t Fixing found link path as ... found {$linkPath} expecting {$OTS_SCRATCH/TriggerConfigurations}"
-#     rm $USER_DATA/TriggerConfigurations
-#     ln -s $OTS_SCRATCH/TriggerConfigurations $USER_DATA/TriggerConfigurations
-# fi
-# linkPath=$(readlink $USER_DATA/OutputData)
-# if [ "$linkPath" != "$OTS_SCRATCH/OutputData" ] ; then
-#     echo -e "setup [$LINENO]  \t Fixing found link path as ... found {$linkPath} expecting {$OTS_SCRATCH/OutputData}"
-#     rm $USER_DATA/OutputData
-#     ln -s $OTS_SCRATCH/OutputData $USER_DATA/OutputData
-# fi
-
-# echo -e "setup [$LINENO]   Now your user data path   is USER_DATA           : $USER_DATA"
-# echo -e "setup [$LINENO]   Now your database path    is ARTDAQ_DATABASE_URI : $ARTDAQ_DATABASE_URI"
-# echo -e "setup [$LINENO]   Now your output data path is OTSDAQ_DATA         : $OTSDAQ_DATA"
-# echo -e "setup [$LINENO]   Now your user web path    is USER_WEB_PATH       : $USER_WEB_PATH"
-# echo
-# if [ -z $ARTDAQ_PARTITION ]; then
-#     echo -e "setup [${LINENO}] \t WARNING: You have not set an ARTDAQ Partition!"
-# else
-#     echo -e "setup [${LINENO}] \t Your ARTDAQ Partition is ARTDAQ_PARTITION \t = ${ARTDAQ_PARTITION}"
-# fi
-# 
-# echo
 
 alias rawEventDump="art -c ${otsdir}/srcs/otsdaq/artdaq-ots/ArtModules/fcl/rawEventDump.fcl"
 # alias kx='ots -k'
 
-# echo
-# echo -e "setup [$LINENO]   use 'ots --wiz' to configure otsdaq"
-# echo -e "setup [$LINENO]   use 'ots' to start otsdaq"
-# echo -e "setup [$LINENO]   use 'ots --help' for more options"
-# echo
-# echo -e "setup [$LINENO]   use 'kx' to kill otsdaq processes"
-# echo
-#------------------------------------------------------------------------------
-# setup ninja generator : v1_11_0 instead of latest
-#============================
-# ninjaver=`ups list -aKVERSION ninja|sort -V|tail -1|sed 's|"||g'`
-# setup ninja $ninjaver
-# setup ninja v1_11_0
  alias  mb='pushd $MRB_BUILDDIR; ninja -j$CETPKG_J; popd'
  alias mbb='mrb b --generator ninja'
  alias  mz='mrb z; mrbsetenv; mrb b --generator ninja'
@@ -395,5 +337,5 @@ fi
 # before the mhttpd server is launched
 #------------------------------------------------------------------------------
 export Mu2E_DAQ_DIR=$PWD
-export TFM_CONFIG_DIR=$MRB_TOP/config
+export TFM_CONFIG_DIR=$MU2E_DAQ_DIR/config
 return 0
