@@ -6,7 +6,7 @@
 # is is first sourced before mhttpd is launched - mhttps needs a 
 # configured environment
 #------------------------------------------------------------------------------
-source $MU2E_DAQ_DIR/setup_daq.sh
+source $MU2E_DAQ_DIR/setup_daq.sh 8
 export DTCLIB_DTC=1
 source Setup_DTC.sh
 source setup_midas.sh test_001                 # use your experiment name
