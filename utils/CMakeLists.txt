@@ -1,6 +1,7 @@
 # ----------------------------------------------------------------------
 # Build this project's executables:
 
+include_directories($ENV{MRB_SOURCE})
 include_directories($ENV{MIDASSYS} $ENV{MIDASSYS}/include)
 include_directories($ENV{XMLRPC_C_INCLUDE_DIR})
 include_directories(${PostgreSQL_INCLUDE_DIRS})
