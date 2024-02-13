@@ -5,6 +5,7 @@ find_package(messagefacility REQUIRED)
 #------------------------------------------------------------------------------
 # link directories 
 #------------------------------------------------------------------------------
+include_directories($ENV{MRB_SOURCE})
 include_directories($ENV{TRACE_INC})
 include_directories($ENV{MIDASSYS}/include)
 include_directories($ENV{MIDASSYS})
