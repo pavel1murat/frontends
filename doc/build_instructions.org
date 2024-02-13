@@ -1,5 +1,5 @@
 * ------------------------------------------------------------------------------
-* installation and build instructions, validated <2023-10-30 Mon>            
+* installation and build instructions, validated <2024-02-13 Mon>            
 
   OTSDAQ bundle to use 
   - version   : v2_07_00   
@@ -8,7 +8,7 @@
   - all available OTSDAQ bundles: https://scisoft.fnal.gov/scisoft/packages/otsdaq/
 
   - the build procedure itself:
-    1) go to https://github.com/pavel1murat/frontends/blob/main/mu2e_install_daq.sh
+    1) go to https://github.com/pavel1murat/frontends/tree/main/scripts/mu2e_install_daq.sh
     2) convert the page to raw format (click on the "raw" button), wget the resulting raw URL (the URL will have an odd ending)
 
 #+begin_src 
