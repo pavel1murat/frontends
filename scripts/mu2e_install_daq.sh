@@ -51,7 +51,7 @@ install_daq() {
     git clone https://github.com/art-daq/artdaq_core_demo
 
     git clone https://github.com/mu2e/artdaq_mu2e
-    git clone https://github.com/mu2e/artdaq_mu2e_core
+    git clone https://github.com/mu2e/artdaq_core_mu2e
 
     git clone https://github.com/pavel1murat/tfm
     git clone https://github.com/pavel1murat/frontends
