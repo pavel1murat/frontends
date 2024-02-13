@@ -24,7 +24,7 @@ debug=0 ; if [ -n $3 ] ; then debug=$3 ; fi
 #------------------------------------------------------------------------------
 # this defines ARTDAQ_PARTITION_NUMBER
 #------------------------------------------------------------------------------
-source ./setup_ots.sh $partition
+source ./setup_daq.sh $partition
 
 config_dir=$PWD/config/$artdaq_config
 
