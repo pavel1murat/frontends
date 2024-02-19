@@ -90,10 +90,14 @@ install_daq() {
     cp srcs/frontends/scripts/source_me      ./source_me
 
     mkdir $MU2E_DAQ_DIR/daq_scripts
-    cp srcs/frontends/scripts/start_farm_manager  $MU2E_DAQ_DIR/daq_scripts/.
+    cp srcs/frontends/scripts/start_farm_manager   $MU2E_DAQ_DIR/daq_scripts/.
     cp srcs/frontends/scripts/get_output_file_size $MU2E_DAQ_DIR/daq_scripts/.
 #------------------------------------------------------------------------------
-# start build
+# 2024-02-19 PM: perhaps, at this point it makes sense to stop and reassess
+# 1. fix Offline/ups/product_deps
+# 2. comment out everything in TEveEventDisplay/CmakeLists.txt
+# 3. setup MIDAS, defining MIDAS experiment at this point may not be needed 
+# 4. start build
 #------------------------------------------------------------------------------
     source /cvmfs/mu2e.opensciencegrid.org/setupmu2e-art.sh
     setup mrb 
@@ -103,9 +107,8 @@ install_daq() {
     source localProducts_${MRB_PROJECT}_${bundle}_${qual}/setup
     mrb uc
 
-    source ./setup_daq.sh $partition
-#------------------------------------------------------------------------------
-# because of the Offline, setup
+    source ./setup_daq.sh   $partition
+    source ./setup_midas.sh xxxx
 
     mrbsetenv
     mrb b --generator=ninja
