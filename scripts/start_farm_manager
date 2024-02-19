@@ -11,7 +11,7 @@
 # partition    : ARTDAQ_PARTITION_NUMBER
 #
 # assumes :
-# - presence of the $PWD/setup_ots.sh 
+# - presence of the $PWD/setup_daq.sh 
 # - presence of the $PWD/config/$artdaq_config
 #
 # ?? what is needed from setup_ots.sh ? 
@@ -24,7 +24,7 @@ debug=0 ; if [ -n $3 ] ; then debug=$3 ; fi
 #------------------------------------------------------------------------------
 # this defines ARTDAQ_PARTITION_NUMBER
 #------------------------------------------------------------------------------
-source ./setup_daq.sh $partition
+source $MU2E_DAQ_DIR/setup_daq.sh $partition
 
 config_dir=$PWD/config/$artdaq_config
 

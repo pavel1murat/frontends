@@ -28,11 +28,12 @@ install_daq() {
 
     echo $LINENO : bundle:$bundle  qual:$qual 
 #------------------------------------------------------------------------------
-# $top may need to be created
+# $top may need to be created, it becomes MU2E_DAQ_DIR
 #------------------------------------------------------------------------------
     if [ ! -d $top ] ; then mkdir $top ; fi ; cd $top
+    export MU2E_DAQ_DIR=$top
 #------------------------------------------------------------------------------
-#                   mu2e-dsc cloned in top directory
+#   mu2e-dsc cloned in top directory
 #------------------------------------------------------------------------------
 # git clone https://cdcvs.fnal.gov/projects/mu2e-dcs 
 
@@ -43,8 +44,10 @@ install_daq() {
 #------------------------------------------------------------------------------
     git clone https://github.com/pavel1murat/artdaq
     cd artdaq; git checkout pasha/update_metrics ; cd .. ;
+
     git clone https://github.com/pavel1murat/artdaq_core
     cd artdaq_core; git checkout pasha/add_run_number ; cd .. ;
+
     git clone https://github.com/pavel1murat/artdaq_demo
 
     cd artdaq_core; git checkout pasha/rootwebgui ; cd .. ;
@@ -80,6 +83,16 @@ install_daq() {
     ./pullProducts remoteProducts_mu2e_${bundle}_${qual} slf7 otsdaq-${bundle} ${squal}-${equal} $oqual
     rm *.tar.bz2
 #------------------------------------------------------------------------------
+# copy various back-end scripts to their operational locations
+#------------------------------------------------------------------------------
+    cp srcs/frontends/scripts/setup_daq.sh   ./setup_daq.sh   ; chmod 444 ./setup_daq.sh
+    cp srcs/frontends/scripts/setup_midas.sh ./setup_midas.sh
+    cp srcs/frontends/scripts/source_me      ./source_me
+
+    mkdir $MU2E_DAQ_DIR/daq_scripts
+    cp srcs/frontends/scripts/start_farm_manager  $MU2E_DAQ_DIR/daq_scripts/.
+    cp srcs/frontends/scripts/get_output_file_size $MU2E_DAQ_DIR/daq_scripts/.
+#------------------------------------------------------------------------------
 # start build
 #------------------------------------------------------------------------------
     source /cvmfs/mu2e.opensciencegrid.org/setupmu2e-art.sh
@@ -90,11 +103,9 @@ install_daq() {
     source localProducts_${MRB_PROJECT}_${bundle}_${qual}/setup
     mrb uc
 
-    cp srcs/frontends/scripts/setup_daq.sh   ./setup_daq.sh   ; chmod 444 ./setup_daq.sh
-    cp srcs/frontends/scripts/setup_midas.sh ./setup_midas.sh
-    cp srcs/frontends/scripts/source_me      ./source_me
-
     source ./setup_daq.sh $partition
+#------------------------------------------------------------------------------
+# because of the Offline, setup
 
     mrbsetenv
     mrb b --generator=ninja

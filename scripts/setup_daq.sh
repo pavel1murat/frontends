@@ -4,13 +4,6 @@
 # so having it sourcing /cvmfs/... before any other setups is critical
 # example: source ./setup_ots.sh 8
 #------------------------------------------------------------------------------
-# if [ -e "srcs/otsdaq_utilities/tools/UpdateOTS.sh" ] ; then
-#     alias UpdateOTS.sh=${PWD}/srcs/otsdaq_utilities/tools/UpdateOTS.sh
-# fi
-#------------------------------------------------------------------------------
-# for now, assume that ots is always launched from $MRB_TOP and otsdir 
-# is the same with MRB_TOP
-#------------------------------------------------------------------------------
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 otsdir=$SCRIPT_DIR
 
@@ -190,13 +183,6 @@ echo -e "setup [${LINENO}]  \t To use trace, do \"tshow | grep . | tdelta -d 1 -
 echo -e "setup [${LINENO}]  \t filter traces. Piping into the tdelta command to add deltas and convert"
 echo -e "setup [${LINENO}]  \t the timestamp."
 
-# Setup environment when building with MRB (as there's no setupARTDAQOTS file)
-
-# export OTSDAQ_DEMO_LIB=${MRB_BUILDDIR}/${repository}/lib
-# export OTSDAQ_LIB=${MRB_BUILDDIR}/otsdaq/lib
-# export OTSDAQ_UTILITIES_LIB=${MRB_BUILDDIR}/otsdaq_utilities/lib
-# Done with Setup environment when building with MRB (As there's no setupARTDAQOTS file)
-
 # MRB should set this itself
 # export CETPKG_INSTALL=/home/mu2edaq/sync_demo/ots/products
  
@@ -207,34 +193,9 @@ export CETPKG_J=$((`cat /proc/cpuinfo|grep processor|tail -1|awk '{print $3}'` +
 # $OTS_USER_STUB includes username, subdetector, and the local directory
 # scratch configuration, scratch is 'per-working-area'
 #------------------------------------------------------------------------------
-export            OTS_SCRATCH=/scratch/mu2e/$OTS_USER_STUB
-export            OTS_LOG_DIR=$OTS_USER_STUB/Logs
-export OTS_TRIGGER_CONFIG_DIR=$OTS_SCRATCH/TriggerConfigurations
-export  OTS_ARTDAQ_CONFIG_DIR=$OTS_SCRATCH/ARTDAQConfigurations
-export      ARTDAQ_OUTPUT_DIR=$OTS_SCRATCH/OutputData
-export            OTSDAQ_DATA=$OTS_SCRATCH/OutputData
-export           OTS_HIST_DIR=$ARTDAQ_OUTPUT_DIR/OtsHistos
-
-echo -e "setup [${LINENO}]  \t Checking SCRATCH directories at ... {${OTS_SCRATCH}}"
-if [ ! -d $OTS_LOG_DIR            ] ; then mkdir -p $OTS_LOG_DIR            ; fi
-if [ ! -d $OTS_ARTDAQ_CONFIG_DIR  ] ; then mkdir -p $OTS_ARTDAQ_CONFIG_DIR  ; fi
-if [ ! -d $OTS_TRIGGER_CONFIG_DIR ] ; then mkdir -p $OTS_TRIGGER_CONFIG_DIR ; fi
-if [ ! -d $ARTDAQ_OUTPUT_DIR      ] ; then mkdir -p $ARTDAQ_OUTPUT_DIR      ; fi
-if [ ! -d $OTS_HIST_DIR           ] ; then mkdir -p $OTS_HIST_DIR           ; fi
-
-#------------------------------------------------------------------------------
-# local configuration in srcs/otsdaq_mu2e_config :
-# local configuration is already located in the working area, so, for now, it is 'per-subsystem'
-# USED_DATA, in fact, points to the user config data! 
-# moving to a common subsystem=mu2e
-#------------------------------------------------------------------------------
-configDir=$otsdir/srcs/otsdaq_mu2e_config
-export    USER_DATA=$configDir/Data_$subsystem
-
 export       OTS_OWNER=Mu2e
 export      MU2E_OWNER=$subsystem
 export DISABLE_DOXYGEN=1            # speed up the code builds
-
 
 # export ARTDAQ_DATABASE_URI=filesystemdb://$configDir/databases_$subsystem/filesystemdb/test_db
 export ARTDAQ_DATABASE_URI=mongodb://un:pw@localhost:27017/teststand_db?authSource=admin
@@ -263,19 +224,15 @@ export EPICS_CA_AUTO_ADDR_LIST=NO
 export      EPICS_CA_ADDR_LIST=''
 export          CERT_DATA_PATH=/home/mu2edaq/artdaq-utilities-node-server/certs/authorized_users
 
-export             OTSDAQ_DATA=$USER_DATA/OutputData
 export           USER_WEB_PATH=$otsdir/srcs/$repository/UserWebGUI
 
-               offlineFhiclDir=$OFFLINE_DIR/config:$OFFLINE_DIR/config/Offline
-              triggerEpilogDir=$OTS_TRIGGER_CONFIG_DIR
-                  dataFilesDir=$OTSDAQ_DATA
+               offlineFhiclDir=$OFFLINE_DIR
+              triggerEpilogDir=$OFFLINE_DIR # may need to be fixed
 
-dataFilesDir=$OTSDAQ_DATA
-export  FHICL_FILE_PATH=$FHICL_FILE_PATH:$USER_DATA:$offlineFhiclDir:$triggerEpilogDir:$dataFilesDir:/mu2e/DataFiles
-export MU2E_SEARCH_PATH=$MU2E_SEARCH_PATH:/cvmfs/mu2e.opensciencegrid.org/DataFiles:$MRB_TOP/srcs
+export  FHICL_FILE_PATH=$FHICL_FILE_PATH:$USER_DATA:$offlineFhiclDir:$triggerEpilogDir:$dataFilesDir
+export MU2E_SEARCH_PATH=$MU2E_SEARCH_PATH:/cvmfs/mu2e.opensciencegrid.org/DataFiles:$MRB_SOURCE
 
 alias rawEventDump="art -c ${otsdir}/srcs/otsdaq/artdaq-ots/ArtModules/fcl/rawEventDump.fcl"
-# alias kx='ots -k'
 
  alias  mb='pushd $MRB_BUILDDIR; ninja -j$CETPKG_J; popd'
  alias mbb='mrb b --generator ninja'
@@ -285,7 +242,7 @@ alias rawEventDump="art -c ${otsdir}/srcs/otsdaq/artdaq-ots/ArtModules/fcl/rawEv
  alias  mi='pushd $MRB_BUILDDIR; ninja -j$CETPKG_J install;popd'
  alias mii='mrb i --generator ninja'
 
-shopt -u progcomp #let environment variables be tabbed
+shopt -u progcomp                         #let environment variables be tabbed
 #------------------------------------------------------------------------------
 # Trace setup and helpful commented lines
 #------------------------------------------------------------------------------
