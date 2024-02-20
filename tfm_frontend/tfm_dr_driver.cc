@@ -98,7 +98,10 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
 // the frontend monitors only ARTDAQ processes running on the same node with it
 // this is convenient for book-keeping reasons
 //-----------------------------------------------------------------------------
-  std::string host = get_full_host_name(host_name);
+  std::string hname=host_name;
+  if (hname == "") hname = "local";
+
+  std::string host = get_full_host_name(hname.data());
   sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",active_conf,host.data());
 
   HNDLE h_artdaq_conf;

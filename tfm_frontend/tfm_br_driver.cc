@@ -102,7 +102,10 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
 // find out the port numbers for the first boardreader, first event builder, 
 // and first datalogger
 //-----------------------------------------------------------------------------
-  std::string host = get_full_host_name(host_name);
+  std::string hname=host_name;
+  if (hname == "") hname = "local";
+
+  std::string host = get_full_host_name(hname.data());
 
   sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",active_conf,host.data());
   std::string k1 = key;
@@ -128,9 +131,23 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
 //-----------------------------------------------------------------------------
 // for the boardreader, store the number of fragment types - that defined the number of lines in the 
 // boardreader metrics report
+// need to loop over components and find the one with a given label
 //-----------------------------------------------------------------------------
-  HNDLE h_component;
-  db_find_key(hDB,h_artdaq_conf,FrontendsGlobals::_driver->name,&h_component);
+  int found(0);
+  HNDLE h_component; 
+  for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+    char label[100];
+    int sz = sizeof(label);
+    db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, FALSE);
+    if (strcmp(FrontendsGlobals::_driver->name,label) == 0) {
+      found = 1;
+      break;
+    }
+  }
+
+  if (found == 0) {
+    TLOG(TLVL_ERROR) << "00121 no handle for key=" << FrontendsGlobals::_driver->name << "in conf=" << k1;
+  }
 
   sz = sizeof(int);
   db_get_value(hDB, h_component, "NFragmentTypes", &info->driver_settings.NFragmentTypes, &sz, TID_INT32, FALSE);
