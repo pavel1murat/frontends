@@ -141,8 +141,9 @@ INT frontend_init() {
   int port_number = 10000+1000*partition;
 //-----------------------------------------------------------------------------
 // get port number used by the TF manager 
+// assume the farm_manager is running locally
 //-----------------------------------------------------------------------------
-  std::string host = get_full_host_name(host_name);
+  std::string host = get_full_host_name("local");
 
   char url[100];
   sprintf(url,"http://%s:%i/RPC2",host.data(),port_number);
@@ -202,7 +203,10 @@ INT frontend_init() {
 
     char label[100];
     sz = sizeof(label);
-    db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, TRUE);
+    //    db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, TRUE);
+    if (db_get_value(hDB,h_component, "Label", &label, &sz, TID_STRING, FALSE) !=  DB_SUCCESS) {
+      TLOG(TLVL_ERROR) << "0013 faild";
+    }
 
     DEVICE_DRIVER driver;
     if (strstr(component.name,"BoardReader") == component.name) {

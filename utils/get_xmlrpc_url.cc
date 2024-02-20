@@ -17,7 +17,7 @@ int get_xmlrpc_url(HNDLE& hDB, HNDLE& H_artdaq_conf, const char* Hostname, int P
   for (int i=0; db_enum_key(hDB, H_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
     char label[100];
     int sz = sizeof(label);
-    db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, TRUE);
+    db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, FALSE);
     if (strcmp(ComponentLabel,label) == 0) {
       found = 1;
       break;
