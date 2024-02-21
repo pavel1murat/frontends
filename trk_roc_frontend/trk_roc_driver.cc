@@ -12,7 +12,7 @@
 #include "artdaq-core-mu2e/Overlays/DTC_Types.h"
 #include "dtcInterfaceLib/DTC.h"
 
-#include "frontends/roc_frontend/roc_driver.hh"
+#include "frontends/trk_roc_frontend/trk_roc_driver.hh"
 
 using namespace DTCLib; 
 
@@ -297,7 +297,7 @@ INT driver_get(DRIVER_INFO* Info, INT Channel, float *Pvalue) {
      monica_digi_clear     (_dtc,_roc);
 //-----------------------------------------------------------------------------
 // after writing into reg 258, sleep for some time, 
-// then wait till reg 128 returns non-zero
+// then wait     till reg 128  returns non-zero
 //-----------------------------------------------------------------------------
     _dtc->WriteROCRegister   (_roc,258,0x0000,false,100);
     std::this_thread::sleep_for(std::chrono::microseconds(_sleepTimeROC));

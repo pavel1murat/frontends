@@ -22,8 +22,8 @@ cet_set_compiler_flags(
         -pthread 
 )
 
-cet_make_exec(NAME      roc_frontend
-              SOURCE    roc_frontend.cc roc_driver.cc 
+cet_make_exec(NAME      trk_roc_frontend
+              SOURCE    trk_roc_frontend.cc trk_roc_driver.cc 
                         $ENV{MIDASSYS}/drivers/class/multi.cxx
                         $ENV{MIDASSYS}/drivers/bus/null.cxx
               LIBRARIES mu2e_pcie_utils::DTCInterface
