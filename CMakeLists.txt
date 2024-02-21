@@ -75,11 +75,11 @@ find_package(messagefacility REQUIRED EXPORT QUIET)
 
 include(BuildPlugins)
 #------------------------------------------------------------------------------
-# Code
+# subdirectories
 #------------------------------------------------------------------------------
 add_subdirectory(utils)
 add_subdirectory(dtc_frontend)
-add_subdirectory(roc_frontend)
+add_subdirectory(trk_roc_frontend)
 add_subdirectory(tfm_frontend)
 add_subdirectory(test)
 
