@@ -83,15 +83,24 @@ install_daq() {
     ./pullProducts remoteProducts_mu2e_${bundle}_${qual} slf7 otsdaq-${bundle} ${squal}-${equal} $oqual
     rm *.tar.bz2
 #------------------------------------------------------------------------------
-# copy various back-end scripts to their operational locations
+# copy setup scripts to their operational locations
 #------------------------------------------------------------------------------
     cp srcs/frontends/scripts/setup_daq.sh   ./setup_daq.sh   ; chmod 444 ./setup_daq.sh
     cp srcs/frontends/scripts/setup_midas.sh ./setup_midas.sh
     cp srcs/frontends/scripts/source_me      ./source_me
-
+#------------------------------------------------------------------------------
+# copy back-end scripts to their operational locations
+#------------------------------------------------------------------------------
     mkdir $MU2E_DAQ_DIR/daq_scripts
     cp srcs/frontends/scripts/start_farm_manager   $MU2E_DAQ_DIR/daq_scripts/.
     cp srcs/frontends/scripts/get_output_file_size $MU2E_DAQ_DIR/daq_scripts/.
+#------------------------------------------------------------------------------
+# copy test configuration
+# and create an .exptab for the first MIDAS "experiment"
+#------------------------------------------------------------------------------
+    mkdir $MU2E_DAQ_DIR/config
+    cp srcs/tfm/config/demo                        $MU2E_DAQ_DIR/config
+    echo "test_001 $MRB_DAQ_DIR/test_001/online  mu2e" > $MU2E_DAQ_DIR/config/test_001.exptab
 #------------------------------------------------------------------------------
 # 2024-02-19 PM: perhaps, at this point it makes sense to stop and reassess
 # 1. fix Offline/ups/product_deps
@@ -108,7 +117,7 @@ install_daq() {
     mrb uc
 
     source ./setup_daq.sh   $partition
-    source ./setup_midas.sh xxxx
+    source ./setup_midas.sh test_001
 
     mrbsetenv
     mrb b --generator=ninja
