@@ -132,7 +132,7 @@ INT frontend_init() {
     
     snprintf(drv->name,NAME_LENGTH,"dtc%i",i);
     drv->dd         = dtc_driver;
-    drv->channels   = DTC_DRIVER_NWORDS;
+    drv->channels   = DTC_NREG_HIST;    // nwords recorded as history (4)
     drv->bd         = null;
     drv->flags      = DF_INPUT;
     drv->enabled    = true;
