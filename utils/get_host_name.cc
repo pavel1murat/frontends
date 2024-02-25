@@ -12,7 +12,7 @@ std::string get_full_host_name(const char* Hostname) {
   std::string name;
   char buf[100];
 
-  if (strstr(Hostname,"local") != Hostname) {
+  if ((strstr(Hostname,"local") != Hostname) && (Hostname[0])) {
 //-----------------------------------------------------------------------------
 // assume the Hostname is already fully qualified with the domain name
 //-----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ std::string get_short_host_name(const char* Hostname) {
   std::string name;
   char buf[100];
 
-  if (strstr(Hostname,"local") != Hostname) {
+  if ((strstr(Hostname,"local") != Hostname) && (Hostname[0])) {
 //-----------------------------------------------------------------------------
 // assume the Hostname is already fully qualified with the domain name
 //-----------------------------------------------------------------------------
