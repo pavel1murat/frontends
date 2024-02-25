@@ -93,6 +93,12 @@ install_daq() {
     cp srcs/frontends/scripts/start_farm_manager   $MU2E_DAQ_DIR/daq_scripts/.
     cp srcs/frontends/scripts/get_output_file_size $MU2E_DAQ_DIR/daq_scripts/.
 #------------------------------------------------------------------------------
+# make a config directory and copy the ARTDAQ demo configuration to there
+#------------------------------------------------------------------------------
+    mkdir $MU2E_DAQ_DIR/config
+    cp srcs/tfm/config/demo/*       $MU2E_DAQ_DIR/config/demo/.
+    echo "test_023 $MU2E_DAQ_DIR/test_023/online  $USER" > $MU2E_DAQ_DIR/config/test_023.exptab
+#------------------------------------------------------------------------------
 # 2024-02-19 PM: perhaps, at this point it makes sense to stop and reassess
 # 1. fix Offline/ups/product_deps
 # 2. comment out everything in TEveEventDisplay/CmakeLists.txt
@@ -108,7 +114,7 @@ install_daq() {
     mrb uc
 
     source ./setup_daq.sh   $partition
-    source ./setup_midas.sh xxxx
+    source ./setup_midas.sh test_023
 
     mrbsetenv
     mrb b --generator=ninja
