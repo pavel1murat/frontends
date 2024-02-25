@@ -37,7 +37,6 @@ mrb uc
 mrbsetenv
 mrb b
 #+end_src
-
 * ROOT interface to mu2e_pcie_utils    validated <2023-07-19 Wed>            
 - If you got here, you already have built the OTS libraries
 - ROOT interface library is not available by default, you have to build it
