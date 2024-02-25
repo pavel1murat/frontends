@@ -1,0 +1,7 @@
+///////////////////////////////////////////////////////////////////////////////
+//  P.Murat
+//  Name:         mu2e_sc_new.hh
+//  class driver: handles multiple drivers, each driver with its own history buffer
+///////////////////////////////////////////////////////////////////////////////
+INT cd_mu2e_sc_new     (INT cmd, PEQUIPMENT pequipment);
+INT cd_mu2e_sc_new_read(char *pevent, int);
