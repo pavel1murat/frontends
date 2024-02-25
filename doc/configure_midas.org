@@ -1,0 +1,46 @@
+#+startup:fold
+#
+* configure MIDAS
+                                                            
+1) configure mhttpd
+#+begin_src
+mhttpd -D                    # start mhttpd
+odbedit
+cd WebServer
+set "localhost port" <your_port_number>
+set "Enable IPv6"    no
+exit
+#+end_src
+- restart mhttpd, it will be listening to the specified port at the local host
+
+2) run odbedit again
+#+begin_src
+mu2etrk@mu2edaq09:~/test_stand/pasha_023>odbedit
+[local:test_023:S]/>mkdir Mu2e
+[local:test_023:S]/>cd Mu2e/
+[local:test_023:S]/Mu2e>load srcs/frontends/odb/Mu2e/Mu2e.json
+[local:test_023:S]/Mu2e>exit
+#+end_src
+- setup an ssh tunnel to the mhttpd running host
+- start web browser, direct it to http://localhost:<your_port_number> 
+
+3) configure ARTDAQ control frontend: tfm_launch_fe
+#+begin_src
+tfm_launch_fe
+#+end_src
+- go to web interface http://localhost:3123/?cmd=Programs, click om tfm_launch_fe, set 
+Required "yes"
+Start Command "tfm_launch_fe"
+- restart tfm_launch_fe using the web interface
+
+4) configure TFM monitoring frontend tfm_mon_fe
+#+begin_src
+tfm_mon_fe
+#+end_src
+- go to web interface http://localhost:3123/?cmd=Programs, click om tfm_launch_fe, set 
+Required "yes"
+Start Command "tfm_mon_fe"
+- restart tfm_mon_fe using the web interface
+* ------------------------------------------------------------------------------
+* back to file:frontends.org
+* ------------------------------------------------------------------------------
