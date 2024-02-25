@@ -198,6 +198,7 @@ int db_runinfo::nextRunNumber(const char* RunConfiguration, int StoreInODB) { //
   res = PQexec(_runInfoDbConn, buffer);
 
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    TLOG(TLVL_ERROR) << PQresultErrorMessage(res);
     PQclear(res);
     return -1;
   }

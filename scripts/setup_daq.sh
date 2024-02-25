@@ -65,8 +65,8 @@ fi
 
 repository="notGoodRepository"
 # will look like 'mu2etrk_pasha_020', removing useless 'mu2e' in between
-export OTS_USER_STUB=${USER}_`echo $SCRIPT_DIR | awk -F / '{print $NF}' | sed 's/ots//'`
-export DAQ_USER_STUB=${USER}_`echo $SCRIPT_DIR | awk -F / '{print $NF}' | sed 's/ots//'`
+export OTS_USER_STUB=${USER}_`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}' | sed 's/ots//'`
+export DAQ_USER_STUB=${USER}_`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}' | sed 's/ots//'`
 
 # if   [ $subsystem == "mu2e" ]; then
 # #------------------------------------------------------------------------------

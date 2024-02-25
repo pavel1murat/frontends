@@ -103,6 +103,8 @@ static int           _port(0);
 static char          _xmlrpcUrl  [100];
 static xmlrpc_env    _env;
 static int           _init(0);
+static bool          _use_screen(true);
+static bool          _tfm_messages(false);
 
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the monitoring frontend
@@ -113,7 +115,7 @@ INT frontend_init() {
   int         argc;
   char**      argv;
   std::string fcl_fn;
-  HNDLE       hDB, h_active_run_conf;
+  HNDLE       hDB, hKey, h_active_run_conf;
   char        active_conf[100];
 
   set_equipment_status(equipment[0].name, "Initializing...", "yellow");
@@ -148,14 +150,35 @@ INT frontend_init() {
   _port = 10000+1000*_partition;
   sprintf(_xmlrpcUrl,"http://%s:%i/RPC2",host.data(),_port);
 
+  sz = sizeof(_use_screen);
+  sprintf(key,"/Equipment/%s/UseScreen", equipment[0].name);
+  db_get_value(hDB, 0, key, &_use_screen, &sz, TID_BOOL, TRUE);
+
+  sz = sizeof(_tfm_messages);
+  sprintf(key,"/Equipment/%s/CheckTfmMessages", equipment[0].name);
+  db_get_value(hDB, 0, key, &_tfm_messages, &sz, TID_BOOL, TRUE);
+
+  cm_msg(MINFO,"debug","_use_screen: %i", _use_screen);
+  cm_msg(MINFO,"debug","_tfm_messages: %i", _tfm_messages);
   TLOG(TLVL_DEBUG+4) << "farm_manager _useRunInfoDB:" << _useRunInfoDB;
   TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
+
+  // Create or clear the Clients ODB tree
+  sprintf(key,"/Equipment/%s/Clients", equipment[0].name); 
+  if(db_find_key(hDB, 0, key, &hKey) == DB_SUCCESS) {
+     db_delete_key(hDB, hKey, false);
+  } 
+  db_create_key(hDB, 0, key, TID_KEY);
+  //db_find_key(hDB, 0, str, hKey);
+
+
+
+
 //-----------------------------------------------------------------------------
 // launch the farm manager via dbus-console
 //-----------------------------------------------------------------------------
-  cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s' partition %i", 
+  cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s', partition %i", 
          active_conf, _partition);
-
   char cmd[200];
   // sprintf(cmd,"dbus-launch konsole -p tabtitle=farm_manager -e daq_scripts/start_farm_manager %s %i",
   //         active_conf,_partition);
@@ -203,6 +226,17 @@ INT frontend_exit() {
 
   xmlrpc_env_clean(&_env);
   xmlrpc_client_cleanup();
+
+
+  // clean up "Clients" in ODB, remove them all
+  HNDLE hDB, hKey;
+  char key[200];
+  cm_get_experiment_database(&hDB, NULL); 
+  sprintf(key,"/Equipment/%s/Clients", equipment[0].name); 
+  if(db_find_key(hDB, 0, key, &hKey) == DB_SUCCESS) {
+     db_delete_key(hDB, hKey, false);
+  } 
+  db_create_key(hDB, 0, key, TID_KEY);
 
   return SUCCESS;
 }
@@ -457,6 +491,138 @@ INT frontend_loop() {
                                         // "({s:i,s:i})",
       resultP = xmlrpc_client_call(&env,_xmlrpcUrl,"get_state","(s)","daqint");
 
+  //int                 waiting_time = 0;
+
+  xmlrpc_env_init(&env);
+  resultP = xmlrpc_client_call(&env, 
+                               _xmlrpcUrl,
+                               "get_state",
+                               // "({s:i,s:i})",
+                               "(s)", 
+                               "daqint");
+  if (env.fault_occurred) {
+    TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << "."; 
+    //cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string); 
+    set_equipment_status(equipment[0].name, "booting", "yellow");
+  } else {
+
+    xmlrpc_read_string_lp(&env, resultP, &length, &value);
+    state = value;
+  
+    set_equipment_status(equipment[0].name, state.c_str(), "greenLight");
+    //cm_msg(MINFO,"tfm", "TFM state: '%s'", state.c_str());
+
+    // only if getting the status of the farm manager worked, try update the status of all farm processes here
+    
+    resultP = xmlrpc_client_call(&env, 
+                                 _xmlrpcUrl,
+                                 "artdaq_process_info",
+                                 // "({s:i,s:i})",
+                                 "(s)", 
+                                 "daqint");
+    if (env.fault_occurred) {
+        TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << ".";
+        cm_msg(MERROR,"frontend_loop","Failed to `artdaq_process_info` with '%s'.", env.fault_string); 
+    } else {
+        
+        xmlrpc_read_string_lp(&env, resultP, &length, &value);
+        state = value;
+        std::istringstream iss(state);
+        std::string line;
+
+        const char *client_str =
+"[.]\n\
+host      = STRING : [64] \n\
+status    = STRING : [64] \n\
+subsystem = INT : 0\n\
+rank      = INT : 0";
+        
+       typedef struct {
+           //char name[64];
+           char host[64];
+           char status[64];
+           INT subsystem;
+           INT rank;
+        } client_t;
+        client_t client;
+
+        std::string name;
+
+        HNDLE hDB, hKey, hKeyClient;
+        cm_get_experiment_database(&hDB, NULL);
+        char key[200]; 
+        sprintf(key,"/Equipment/%s/Clients", equipment[0].name);
+        db_find_key(hDB, 0, key, &hKey); // check if found?
+
+        int cnt = 0;
+        while (std::getline(iss, line)) {
+           cnt++;
+           // 
+           std::istringstream words(line);
+           std::string word;
+           int wcnt = 0;
+           strcpy(client.status, "n/a");
+           while (getline(words, word,' ')) { 
+              if(wcnt == 0) name = word;
+              if(wcnt == 2) strcpy(client.host, word.c_str());
+              if(wcnt == 4) client.subsystem = std::stoi(word.substr(0, word.size()-1));
+              if(wcnt == 6) client.rank = std::stoi(word.substr(0, word.size()-2));
+              if(wcnt == 7) strcpy(client.status, word.c_str());
+              wcnt++;
+           }
+
+           if(wcnt != 8) { // check that the word count is write, if not, something is off
+              cm_msg(MERROR,"frontend_loop","Parsing '%s' failed with wrong word count of %i. Expect 8.", name.c_str(), wcnt);
+              strcpy(client.status, "read error");
+           }
+
+           //check if client alread exists, if not add it
+           sprintf(key,"%s", name.c_str());
+           if(db_find_key(hDB, hKey, key, &hKeyClient) != DB_SUCCESS) {
+               db_create_record(hDB, hKey, key, client_str);
+               db_find_key(hDB, hKey, key, &hKeyClient);
+           }
+
+           // update the client's status 
+           db_set_record(hDB, hKeyClient, &client, sizeof(client_t), 0);
+        }
+    }
+    if(_tfm_messages) {
+        // check for new messages
+        resultP = xmlrpc_client_call(&env, 
+                                     _xmlrpcUrl,
+                                     "get_messages",
+                                     "(s)",
+                                     "daqint");
+        if (env.fault_occurred) {
+            TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << ".";
+            cm_msg(MERROR,"frontend_loop","Failed to `get_messages` with '%s'.", env.fault_string); 
+        } else {
+            xmlrpc_read_string_lp(&env, resultP, &length, &value);
+            state = value;
+            if(! state.empty()) {
+                std::istringstream iss(state);
+                std::string line;
+                size_t cnt = 0;
+                while (std::getline(iss, line)) {
+                    std::cout << cnt << std::endl;
+                    if(cnt++ > 3) {
+                        cm_msg(MINFO,"artdaq","Additional messages were suppressed.");
+                    }
+                    size_t pos = line.find(":");
+                    if(line.substr(0, pos) == "error") {
+                        cm_msg(MERROR,"artdaq","%s", line.substr(pos+1).c_str());
+                    } else if(line.substr(0, pos) == "alarm") {
+                        al_trigger_alarm("artdaq", line.substr(pos+1).c_str(), "artdaq", "unhappy", AT_INTERNAL);
+                        //cm_msg(MERROR,"artdaq","%s", state.substr(pos+1).c_str()); // todo, midas alarm
+                    } else {
+                        cm_msg(MINFO,"artdaq","%s", line.substr(pos+1).c_str());
+                    }
+                 }
+            }
+        }
+    }
+  }
       if (env.fault_occurred) {
         TLOG(TLVL_ERROR) << "001: XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
         // cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string); 
@@ -484,13 +650,13 @@ INT frontend_loop() {
 /*-- Dummy routines ------------------------------------------------*/
 INT poll_event(INT source, INT count, BOOL test) {
   return 1;
-};
+}
 
 
 //-----------------------------------------------------------------------------
 INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
   return 1;
-};
+}
 
 
 /*-- Event readout -------------------------------------------------*/
