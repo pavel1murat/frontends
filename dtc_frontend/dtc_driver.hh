@@ -50,6 +50,22 @@ struct DtcData_t {
 
 //-----------------------------------------------------------------------------
 // internally, a MIDAS driver stored only floats
-// reserve seven (4) words just for the first attempt to display
+// reserve 4 words per DTC for a temp and three voltages
 //-----------------------------------------------------------------------------
-int const DTC_DRIVER_NWORDS =  4;
+int const DTC_NREG_HIST     =  4;       // number of registers to monitor as a part of history
+int const DTC_NREG_NON_HIST = 3+12;     // number of DTC registers to monitor (but not save to history)
+
+const int DTC_REG_HIST[DTC_NREG_HIST] = {
+  0x9010, 0x9014, 0x9018, 0x901c              // temperature, voltages
+};
+
+const int DTC_REG_NON_HIST[DTC_NREG_NON_HIST] = {
+  0x9004, 0x9100, 0x9140, 
+  0x9630, 0x9650,                  // Link 0: N(DTC requests) and N(heartbeats) 
+  0x9634, 0x9654,                  // Link 1: N(DTC requests) and N(heartbeats) 
+  0x9638, 0x9658,                  // Link 2: N(DTC requests) and N(heartbeats) 
+  0x963c, 0x965c,                  // Link 3: N(DTC requests) and N(heartbeats) 
+  0x9640, 0x9660,                  // Link 4: N(DTC requests) and N(heartbeats) 
+  0x9644, 0x9664                   // Link 5: N(DTC requests) and N(heartbeats) 
+};
+

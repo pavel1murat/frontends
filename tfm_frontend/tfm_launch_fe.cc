@@ -302,7 +302,7 @@ INT begin_of_run(INT RunNumber, char *error) {
     
   std::string res = value;
 
-  printf("tfm_frontend::%s  after XMLRPC command: result:%s\n",__func__,res.data());
+  printf("tfm_launch_fe::%s  after XMLRPC command: result:%s\n",__func__,res.data());
 
   xmlrpc_DECREF   (resultP);
 //-----------------------------------------------------------------------------
@@ -310,7 +310,7 @@ INT begin_of_run(INT RunNumber, char *error) {
 //-----------------------------------------------------------------------------
   rc = wait_for("configured:100",100);
 
-  printf("tfm_frontend::%s 0011: DONE configuring, rc=%i\n",__func__,rc);
+  printf("tfm_launch_fe::%s 0011: DONE configuring, rc=%i\n",__func__,rc);
 //-----------------------------------------------------------------------------
 // how do I know that the configure step suceeded ?
 // have to wait and make sure ? wait for a message from the farm manager
@@ -350,7 +350,7 @@ INT begin_of_run(INT RunNumber, char *error) {
     }
   }
 
-  printf("tfm_frontend::%s 003: done starting, run=%6i rc=%i\n",__func__,RunNumber,rc);
+  printf("tfm_launch_fe::%s 003: done starting, run=%6i rc=%i\n",__func__,RunNumber,rc);
 
   return SUCCESS;
 }
@@ -454,6 +454,10 @@ INT frontend_loop() {
 
     try {
       xmlrpc_env_init(&env);
+//-----------------------------------------------------------------------------
+// 'daqint' here is the name of the FarmManager (former artdaq_DAQInterface) 
+// doesn't seem to be used anywhere, but still have to pass (or change the interfaces)
+//-----------------------------------------------------------------------------
                                         // "({s:i,s:i})",
       resultP = xmlrpc_client_call(&env,_xmlrpcUrl,"get_state","(s)","daqint");
 

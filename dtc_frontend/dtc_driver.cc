@@ -164,22 +164,6 @@ INT dtc_driver_get_label(DTC_DRIVER_INFO * Info, INT Channel, char* Label) {
 //-----------------------------------------------------------------------------
 INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
 
-  const int reg [DTC_DRIVER_NWORDS] = {
-    0x9010, 0x9014, 0x9018, 0x901c              // temperature, voltages
-  };
-
-  int DTC_DRIVER_NREGISTERS = 3+12;
-
-  const int regn [DTC_DRIVER_NREGISTERS] = {
-    0x9004, 0x9100, 0x9140, 
-    0x9630, 0x9650,                  // Link 0: N(DTC requests) and N(heartbeats) 
-    0x9634, 0x9654,                  // Link 1: N(DTC requests) and N(heartbeats) 
-    0x9638, 0x9658,                  // Link 2: N(DTC requests) and N(heartbeats) 
-    0x963c, 0x965c,                  // Link 3: N(DTC requests) and N(heartbeats) 
-    0x9640, 0x9660,                  // Link 4: N(DTC requests) and N(heartbeats) 
-    0x9644, 0x9664                   // Link 5: N(DTC requests) and N(heartbeats) 
-  };
-
   uint32_t val(0);
 //-----------------------------------------------------------------------------
 // 
@@ -208,25 +192,25 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
     sprintf(key,"/Equipment/%s#DTC%i/Registers",shname.data(),dtc_id);
     db_find_key(hDB, 0, key, &h_dtc);
 
-    for (int i=0; i<DTC_DRIVER_NWORDS; i++) {
-      dtc->GetDevice()->read_register(reg[i],100,&val); 
+    for (int i=0; i<DTC_NREG_HIST; i++) {
+      dtc->GetDevice()->read_register(DTC_REG_HIST[i],100,&val); 
       if      (i == 0) Info->array[i] = (val/4096.)*503.975 - 273.15; // temperature
       else if (i <  4) Info->array[i] = (val/4095.)*3.;               // voltage
     }
 
-    for (int i=0; i<DTC_DRIVER_NREGISTERS; i++) {
-      dtc->GetDevice()->read_register(regn[i],100,&val); 
+    for (int i=0; i<DTC_NREG_NON_HIST; i++) {
+      dtc->GetDevice()->read_register(DTC_REG_NON_HIST[i],100,&val); 
 //-----------------------------------------------------------------------------
-// don't want any conversion
+// registers: don't want any conversion, save as is
 //-----------------------------------------------------------------------------
       HNDLE    h_reg;
-      sprintf(key,"/Equipment/%s#DTC%i/Registers/0x%04x",shname.data(),dtc_id,regn[i]);
+      sprintf(key,"/Equipment/%s#DTC%i/Registers/0x%04x",shname.data(),dtc_id,DTC_REG_NON_HIST[i]);
       int rc = db_find_key (hDB, 0, key, &h_reg);
       rc     = db_set_value(hDB, 0, key, &val, sizeof(int), 1, TID_INT);
     }
   }
 
-   if (Channel  < DTC_DRIVER_NWORDS) *PValue = Info->array[Channel];
+   if (Channel  < DTC_NREG_HIST) *PValue = Info->array[Channel];
    else {
      TLOG(TLVL_ERROR) << "002 channel:" << Channel;
    }
