@@ -38,8 +38,8 @@ using std::vector, std::string;
 #define TFM_DR_DRIVER_SETTINGS_STR "\
 Link      = INT : 0\n\
 Active    = INT : 0\n\
-CompName  = STRING :\n\
-XmlrpcUrl = STRING[64] :\n\
+CompName  = STRING : [32]\n\
+XmlrpcUrl = STRING : [64]\n\
 "
 
 typedef INT(func_t) (INT cmd, ...);
@@ -107,6 +107,7 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
   HNDLE h_artdaq_conf;
 	if (db_find_key(hDB, 0, key, &h_artdaq_conf) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "0012 no handle for:" << key << ", got:" << h_artdaq_conf;
+    return FE_ERR_ODB;
   }
 //-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
@@ -118,6 +119,9 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
   std::string  url;       // XML-RPC url of the data receiver
   get_xmlrpc_url(hDB,h_artdaq_conf,host.data(),_partition,FrontendsGlobals::_driver->name,url);
   strcpy(info->driver_settings.XmlrpcUrl,url.data());
+
+  // at this point, update the driver record
+  db_set_record(hDB, hkeydd, &info->driver_settings, size, 0);
 //-----------------------------------------------------------------------------
 // it looks that the 'bus driver' function should be defined no matter what.
 //-----------------------------------------------------------------------------
