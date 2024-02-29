@@ -79,7 +79,8 @@ include(BuildPlugins)
 #------------------------------------------------------------------------------
 add_subdirectory(utils)
 add_subdirectory(dtc_frontend)
-add_subdirectory(trk_roc_frontend)
+add_subdirectory(roc_crv_frontend)
+add_subdirectory(roc_trk_frontend)
 add_subdirectory(tfm_frontend)
 add_subdirectory(test)
 

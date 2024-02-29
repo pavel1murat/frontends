@@ -1,14 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 //////////////////////////////////////////////////////////////////////////////
-#ifndef __roc_frontend_hh__
-#define __roc_frontend_hh__
+#ifndef __roc_trk_frontend_hh__
+#define __roc_trk_frontend_hh__
 
 // #include "drivers/class/hv.h"
 #include "drivers/class/multi.h"
 
 #include "drivers/bus/null.h"
-#include "trk_roc_frontend/trk_roc_driver.hh"
+#include "frontends/roc_trk_frontend/roc_trk_driver.hh"
 
 /*-- Equipment list ------------------------------------------------*/
 
