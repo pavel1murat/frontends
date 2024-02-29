@@ -12,7 +12,7 @@
 #include "artdaq-core-mu2e/Overlays/DTC_Types.h"
 #include "dtcInterfaceLib/DTC.h"
 
-#include "frontends/trk_roc_frontend/trk_roc_driver.hh"
+#include "frontends/roc_trk_frontend/roc_trk_driver.hh"
 
 using namespace DTCLib; 
 
