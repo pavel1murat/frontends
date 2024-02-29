@@ -3,18 +3,22 @@
 # this script is also sourced by the ARTDAQ supervisor process 
 # so having it sourcing /cvmfs/... before any other setups is critical
 # example: source ./setup_ots.sh 8
+# it has to be sourced in $MU2E_DAQ_DIR
 #------------------------------------------------------------------------------
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-otsdir=$SCRIPT_DIR
-
-echo $LINENO" SCRIPT_DIR=$SCRIPT_DIR"
-echo $LINENO"     otsdir=$otsdir"
+export MU2E_DAQ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+echo $LINENO"       MU2E_DAQ_DIR=$MU2E_DAQ_DIR"
+#------------------------------------------------------------------------------
+# all temporary files reside in /scratch/mu2e/$DAQ_USER_STUB
+# where DAQ_USER_STUB looks like 'mu2etrk_pasha_020'
+#------------------------------------------------------------------------------
+export  DAQ_USER_STUB=${USER}_`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`
+export DAQ_OUTPUT_TOP=/scratch/mu2e/$DAQ_USER_STUB
 #------------------------------------------------------------------------------
 # moving to a single user space with different partitions
 #------------------------------------------------------------------------------
        subsystem=mu2e
 artdaq_partition=$1
-     status_file=$SCRIPT_DIR/.ots_setup_type.txt
+     status_file=$MU2E_DAQ_DIR/.ots_setup_type.txt
 #------------------------------------------------------------------------------
 # create a status file caching the partition
 #------------------------------------------------------------------------------
@@ -62,80 +66,61 @@ if [ ".$subsystem" == "." ]; then
     return 1;
 fi
 
-repository="notGoodRepository"
-# will look like 'mu2etrk_pasha_020', removing useless 'mu2e' in between
-export OTS_USER_STUB=${USER}_`echo $SCRIPT_DIR | awk -F / '{print $NF}' | sed 's/ots//'`
-
-if   [ $subsystem == "mu2e" ]; then
-#------------------------------------------------------------------------------
-# figure out which ports to use; is the CONSOLE_SUPERVISOR_IP used for anything now ? 
-#------------------------------------------------------------------------------
-    if   [ $ARTDAQ_PARTITION_NUMBER == 2 ] ; then # old style: subsystem=sync why ports are different ?
-        export          OTS_MAIN_PORT=2015
-        export OTS_WIZ_MODE_MAIN_PORT=3015
-        repository="otsdaq_mu2e"
-    elif [ $ARTDAQ_PARTITION_NUMBER == 4 ] ; then # old style: subsystem=calo
-        export          OTS_MAIN_PORT=3025
-        export OTS_WIZ_MODE_MAIN_PORT=3025
-        repository="otsdaq_mu2e_calorimeter"
-    elif [ $ARTDAQ_PARTITION_NUMBER == 5 ] ; then # old style: subsystem=stm
-        export          OTS_MAIN_PORT=3035
-        export OTS_WIZ_MODE_MAIN_PORT=3035
-        repository="otsdaq_mu2e_stm"
-    elif [ $ARTDAQ_PARTITION_NUMBER == 6 ] ; then # old style: subsystem=trigger
-        export          OTS_MAIN_PORT=3045
-        export OTS_WIZ_MODE_MAIN_PORT=3045
-        repository="otsdaq_mu2e_trigger"
-    elif [ $ARTDAQ_PARTITION_NUMBER == 7 ] ; then # old style: subsystem=hwdev
-        export          OTS_MAIN_PORT=3055
-        export OTS_WIZ_MODE_MAIN_PORT=3055
-        repository="otsdaq_mu2e_hwdev"
-    elif [ $ARTDAQ_PARTITION_NUMBER == 8 ] ; then # Pasha
-        export          OTS_MAIN_PORT=3065
-        export OTS_WIZ_MODE_MAIN_PORT=3065
-        export        FEWRITE_RUNFILE=1
-        repository="otsdaq_mu2e_tracker"
-    elif [ $ARTDAQ_PARTITION_NUMBER == 9 ] ; then # old style: subsystem=crv
-        export          OTS_MAIN_PORT=3085
-        export OTS_WIZ_MODE_MAIN_PORT=3085
-        repository="otsdaq_mu2e_crv"
-    elif [ $ARTDAQ_PARTITION_NUMBER == 10 ] ; then # Kamal
-        export          OTS_MAIN_PORT=3085
-        export OTS_WIZ_MODE_MAIN_PORT=3085
-        repository="otsdaq_mu2e_crv"
-    elif [ $ARTDAQ_PARTITION_NUMBER == 14 ] ; then # Antonio, old style: subsystem=dqmtrk
-        export          OTS_MAIN_PORT=3070
-        export OTS_WIZ_MODE_MAIN_PORT=3070
-        ##export      FEWRITE_RUNFILE=1
-        repository="otsdaq_mu2e_tracker"
-    elif [ $ARTDAQ_PARTITION_NUMBER == 15 ] ; then # Sara, mu2edaq09
-        export          OTS_MAIN_PORT=3075
-        export OTS_WIZ_MODE_MAIN_PORT=3075
-        repository="otsdaq_mu2e_tracker"
-    elif [ $ARTDAQ_PARTITION_NUMBER == 16 ] ; then # Gennagiy, mu2edaq09
-        export          OTS_MAIN_PORT=3080
-        export OTS_WIZ_MODE_MAIN_PORT=3080
-        repository="otsdaq_mu2e_tracker"
-    fi
-elif [ $subsystem == "HWDev" ]; then
-    export  CONSOLE_SUPERVISOR_IP=192.168.157.5
-    export          OTS_MAIN_PORT=3055
-    export OTS_WIZ_MODE_MAIN_PORT=3055
-    export       ARTDAQ_PARTITION_NUMBER=7
-    repository="otsdaq_mu2e"
-elif [ $subsystem == "HWDev2" ]; then
-    export  CONSOLE_SUPERVISOR_IP=192.168.157.5
-    export          OTS_MAIN_PORT=3055
-    export OTS_WIZ_MODE_MAIN_PORT=3055
-    export       ARTDAQ_PARTITION_NUMBER=7
-    repository="otsdaq_mu2e"
-else
-    echo -e "Invalid parameter!"
-    return 1;
-fi
+# if   [ $subsystem == "mu2e" ]; then
+# #------------------------------------------------------------------------------
+# # figure out which ports to use; is the CONSOLE_SUPERVISOR_IP used for anything now ? 
+# #------------------------------------------------------------------------------
+#     if   [ $ARTDAQ_PARTITION_NUMBER == 2 ] ; then # old style: subsystem=sync why ports are different ?
+#         export          OTS_MAIN_PORT=2015
+#         export OTS_WIZ_MODE_MAIN_PORT=3015
+#     elif [ $ARTDAQ_PARTITION_NUMBER == 4 ] ; then # old style: subsystem=calo
+#         export          OTS_MAIN_PORT=3025
+#         export OTS_WIZ_MODE_MAIN_PORT=3025
+#     elif [ $ARTDAQ_PARTITION_NUMBER == 5 ] ; then # old style: subsystem=stm
+#         export          OTS_MAIN_PORT=3035
+#         export OTS_WIZ_MODE_MAIN_PORT=3035
+#     elif [ $ARTDAQ_PARTITION_NUMBER == 6 ] ; then # old style: subsystem=trigger
+#         export          OTS_MAIN_PORT=3045
+#         export OTS_WIZ_MODE_MAIN_PORT=3045
+#     elif [ $ARTDAQ_PARTITION_NUMBER == 7 ] ; then # old style: subsystem=hwdev
+#         export          OTS_MAIN_PORT=3055
+#         export OTS_WIZ_MODE_MAIN_PORT=3055
+#     elif [ $ARTDAQ_PARTITION_NUMBER == 8 ] ; then # Pasha
+#         export          OTS_MAIN_PORT=3065
+#         export OTS_WIZ_MODE_MAIN_PORT=3065
+#         export        FEWRITE_RUNFILE=1
+#     elif [ $ARTDAQ_PARTITION_NUMBER == 9 ] ; then # old style: subsystem=crv
+#         export          OTS_MAIN_PORT=3085
+#         export OTS_WIZ_MODE_MAIN_PORT=3085
+#     elif [ $ARTDAQ_PARTITION_NUMBER == 10 ] ; then # Kamal
+#         export          OTS_MAIN_PORT=3085
+#         export OTS_WIZ_MODE_MAIN_PORT=3085
+#     elif [ $ARTDAQ_PARTITION_NUMBER == 14 ] ; then # Antonio, old style: subsystem=dqmtrk
+#         export          OTS_MAIN_PORT=3070
+#         export OTS_WIZ_MODE_MAIN_PORT=3070
+#         ##export      FEWRITE_RUNFILE=1
+#     elif [ $ARTDAQ_PARTITION_NUMBER == 15 ] ; then # Sara, mu2edaq09
+#         export          OTS_MAIN_PORT=3075
+#         export OTS_WIZ_MODE_MAIN_PORT=3075
+#     elif [ $ARTDAQ_PARTITION_NUMBER == 16 ] ; then # Gennagiy, mu2edaq09
+#         export          OTS_MAIN_PORT=3080
+#         export OTS_WIZ_MODE_MAIN_PORT=3080
+#     fi
+# elif [ $subsystem == "HWDev" ]; then
+#     export  CONSOLE_SUPERVISOR_IP=192.168.157.5
+#     export          OTS_MAIN_PORT=3055
+#     export OTS_WIZ_MODE_MAIN_PORT=3055
+#     export       ARTDAQ_PARTITION_NUMBER=7
+# elif [ $subsystem == "HWDev2" ]; then
+#     export  CONSOLE_SUPERVISOR_IP=192.168.157.5
+#     export          OTS_MAIN_PORT=3055
+#     export OTS_WIZ_MODE_MAIN_PORT=3055
+#     export       ARTDAQ_PARTITION_NUMBER=7
+# else
+#     echo -e "Invalid parameter!"
+#     return 1;
+# fi
 # ------------------------------------------------------------------------------
-sh -c "[ `ps $$ | grep bash | wc -l` -gt 0 ] || { echo 'Please switch to the bash shell before running the otsdaq-demo.'; exit; }" || exit
-
 echo -e "setup [${LINENO}]  \t ======================================================"
 echo -e "setup [${LINENO}]  \t Initially your products path was PRODUCTS=${PRODUCTS}"
 
@@ -152,18 +137,18 @@ setup mrb
 # also assume that there could be only one directory named 'localProducts_BLAH'
 # use long names to avoid conflicts
 #------------------------------------------------------------------------------
-     local_products_dir=`ls $otsdir | grep localProducts`
+     local_products_dir=`ls $MU2E_DAQ_DIR | grep localProducts`
     local_products_qual=`echo $local_products_dir | sed s/localProducts//`
     remote_products_dir="remoteProducts"$local_products_qual
 
 echo $LINENO local_product_dir:$local_products_dir  remote_products_dir:$remote_products_dir
 unset local_products_qual
 
-source $otsdir/$local_products_dir/setup
-source $otsdir/$remote_products_dir/setup
+source $MU2E_DAQ_DIR/$local_products_dir/setup
+source $MU2E_DAQ_DIR/$remote_products_dir/setup
 
 # P.M. make remote_products an environment variable - need in artdaq settings...
-export REMOTE_PRODUCTS_DIR=$otsdir/$remote_products_dir
+export REMOTE_PRODUCTS_DIR=$MU2E_DAQ_DIR/$remote_products_dir
 #------------------------------------------------------------------------------
 # P.Murat: add setup gdb - it is helpful to have it by default, 
 #          the system gdb is useless - too old
@@ -189,8 +174,6 @@ echo -e "setup [${LINENO}]  \t the timestamp."
 #make the number of build threads dependent on the number of cores on the machine:
 export CETPKG_J=$((`cat /proc/cpuinfo|grep processor|tail -1|awk '{print $3}'` + 1))
 #------------------------------------------------------------------------------
-# all temporary files reside in /scratch/mu2e/otsdaq_$OTS_USER_STUB
-# $OTS_USER_STUB includes username, subdetector, and the local directory
 # scratch configuration, scratch is 'per-working-area'
 #------------------------------------------------------------------------------
 export       OTS_OWNER=Mu2e
@@ -224,7 +207,7 @@ export EPICS_CA_AUTO_ADDR_LIST=NO
 export      EPICS_CA_ADDR_LIST=''
 export          CERT_DATA_PATH=/home/mu2edaq/artdaq-utilities-node-server/certs/authorized_users
 
-export           USER_WEB_PATH=$otsdir/srcs/$repository/UserWebGUI
+# export           USER_WEB_PATH=$otsdir/srcs/$repository/UserWebGUI
 
                offlineFhiclDir=$OFFLINE_DIR
               triggerEpilogDir=$OFFLINE_DIR # may need to be fixed
@@ -232,7 +215,7 @@ export           USER_WEB_PATH=$otsdir/srcs/$repository/UserWebGUI
 export  FHICL_FILE_PATH=$FHICL_FILE_PATH:$USER_DATA:$offlineFhiclDir:$triggerEpilogDir:$dataFilesDir
 export MU2E_SEARCH_PATH=$MU2E_SEARCH_PATH:/cvmfs/mu2e.opensciencegrid.org/DataFiles:$MRB_SOURCE
 
-alias rawEventDump="art -c ${otsdir}/srcs/otsdaq/artdaq-ots/ArtModules/fcl/rawEventDump.fcl"
+# alias rawEventDump="art -c ${otsdir}/srcs/otsdaq/artdaq-ots/ArtModules/fcl/rawEventDump.fcl"
 
  alias  mb='pushd $MRB_BUILDDIR; ninja -j$CETPKG_J; popd'
  alias mbb='mrb b --generator ninja'
@@ -293,6 +276,5 @@ fi
 # TFM and friends .. assume this script is sourced in the top DAQ directory
 # before the mhttpd server is launched
 #------------------------------------------------------------------------------
-export Mu2E_DAQ_DIR=$PWD
 export TFM_CONFIG_DIR=$MU2E_DAQ_DIR/config
 return 0

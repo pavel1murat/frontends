@@ -1,15 +1,17 @@
 #!/usr/bin/bash
 #------------------------------------------------------------------------------
-# this is just an example
-# to be executed in $MU2E_DAQ_DIR
+# to resolve the 'chicken-egg' problem, assume that this script is executed 
+# in the $MU2E_DAQ_DIR before mhttpd is started
+# 
 # setup_daq.sh is also sourced by the ARTDAQ processes, so make sure 
-# is is first sourced before mhttpd is launched - mhttps needs a 
-# configured environment
+# is is first sourced before mhttpd is launched - mhttps needs a configured environment
+# default experiment : the same ID (023) as the work area
 #------------------------------------------------------------------------------
+export MU2E_DAQ_DIR=$PWD
 source $MU2E_DAQ_DIR/setup_daq.sh 8
 export DTCLIB_DTC=1
 source Setup_DTC.sh
-source setup_midas.sh test_001                 # use your experiment name
+source setup_midas.sh test_023                    # use your experiment name
 # rely on setup_daq.sh defining $TFM_CONFIG_DIR, pass only the configuration name
 # need to get rid of passing the partition number
 source srcs/tfm/bin/tfm_configure trk_vst_001 8    # 

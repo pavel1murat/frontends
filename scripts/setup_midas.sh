@@ -6,7 +6,7 @@
 #------------------------------------------------------------------------------
 export MIDAS_EXPT_NAME=$1
 
-export        MIDASSYS=/home/mu2etrk/test_stand/pasha_020/midas
+export        MIDASSYS=/home/mu2etrk/products/midas/adc6217
 export    MIDAS_EXPTAB=/home/mu2etrk/test_stand/pasha_020/config/$MIDAS_EXPT_NAME.exptab
 
 export            PATH=$PATH:$MIDASSYS/bin
