@@ -162,7 +162,7 @@ mu2etrk@mu2edaq09:~/test_stand/pasha_018>tlvls | grep DTC_R
 #+begin_src 
 trace_cntl lvlclr 0x100 0x100 0x100 -N*
 #+end_src
-* loooking at the TRACE memory log:
+* loooking at the TRACE memory log:                                          
 
 tshow | tdelta -ct 1 -d 1 | head -n 100
 

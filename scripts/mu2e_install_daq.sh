@@ -83,17 +83,20 @@ install_daq() {
     ./pullProducts remoteProducts_mu2e_${bundle}_${qual} slf7 otsdaq-${bundle} ${squal}-${equal} $oqual
     rm *.tar.bz2
 #------------------------------------------------------------------------------
-# copy various back-end scripts to their operational locations
+# copy setup scripts to their operational locations
 #------------------------------------------------------------------------------
     cp srcs/frontends/scripts/setup_daq.sh   ./setup_daq.sh   ; chmod 444 ./setup_daq.sh
     cp srcs/frontends/scripts/setup_midas.sh ./setup_midas.sh
     cp srcs/frontends/scripts/source_me      ./source_me
-
+#------------------------------------------------------------------------------
+# copy back-end scripts to their operational locations
+#------------------------------------------------------------------------------
     mkdir $MU2E_DAQ_DIR/daq_scripts
     cp srcs/frontends/scripts/start_farm_manager   $MU2E_DAQ_DIR/daq_scripts/.
     cp srcs/frontends/scripts/get_output_file_size $MU2E_DAQ_DIR/daq_scripts/.
 #------------------------------------------------------------------------------
-# make a config directory and copy the ARTDAQ demo configuration to there
+# copy test configuration
+# and create an .exptab for the first MIDAS "experiment"
 #------------------------------------------------------------------------------
     mkdir $MU2E_DAQ_DIR/config
     cp srcs/tfm/config/demo/*       $MU2E_DAQ_DIR/config/demo/.
