@@ -45,8 +45,8 @@ using std::vector, std::string;
 Link           = INT : 0\n\
 Active         = INT : 0\n\
 NFragmentTypes = INT : 1\n\
-CompName       = STRING :\n\
-XmlrpcUrl      = STRING[64] :\n\
+CompName       = STRING : [32]\n\
+XmlrpcUrl      = STRING : [64] :\n\
 "
 
 typedef INT(func_t) (INT cmd, ...);
@@ -151,6 +151,9 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
 
   sz = sizeof(int);
   db_get_value(hDB, h_component, "NFragmentTypes", &info->driver_settings.NFragmentTypes, &sz, TID_INT32, FALSE);
+
+  // at this point, update the driver record
+  db_set_record(hDB, hkeydd, &info->driver_settings, size, 0);
 //-----------------------------------------------------------------------------
 // it looks that the 'bus driver' function should be defined no matter what.
 //-----------------------------------------------------------------------------
