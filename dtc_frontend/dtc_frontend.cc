@@ -65,12 +65,12 @@ INT event_buffer_size          = 10*10000; // buffer size to hold events */
 /*-- Dummy routines ------------------------------------------------*/
 INT poll_event(INT source, INT count, BOOL test) {
   return 1;
-};
+}
 
 //-----------------------------------------------------------------------------
 INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
   return 1;
-};
+}
 
 //-----------------------------------------------------------------------------
 // Frontend Init
