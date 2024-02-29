@@ -1,24 +1,24 @@
 {
   "/MIDAS version" : "2.1",
-  "/MIDAS git revision" : "Sun Jan 14 13:18:48 2024 +0100 - midas-2022-05-c-980-gc19b4e69-dirty on branch HEAD",
+  "/MIDAS git revision" : "Tue Feb 27 10:12:19 2024 -0800 - midas-2022-05-c-1049-gadc62173 on branch develop",
   "/filename" : "Mu2e.json",
   "/ODB path" : "/Mu2e",
 
-  "DaqHome/key" : { "type" : 12, "item_size" : 35, "access_mode" : 7, "last_written" : 1707444466 },
-  "DaqHome" : "/home/mu2etrk/test_stand/pasha_020",
-  "ArtdaqConfigDir/key" : { "type" : 12, "item_size" : 42, "access_mode" : 7, "last_written" : 1707007317 },
-  "ArtdaqConfigDir" : "/home/mu2etrk/test_stand/pasha_020/config",
-  "ActiveRunConfiguration/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707321169 },
-  "ActiveRunConfiguration" : "demo",
+  "MU2E_DAQ_DIR/key" : { "type" : 12, "item_size" : 35, "access_mode" : 7, "last_written" : 1708481371 },
+  "MU2E_DAQ_DIR" : "/home/mu2etrk/test_stand/pasha_023",
+  "ArtdaqConfigDir/key" : { "type" : 12, "item_size" : 42, "access_mode" : 7, "last_written" : 1708481378 },
+  "ArtdaqConfigDir" : "/home/mu2etrk/test_stand/pasha_023/config",
+  "ActiveRunConfiguration/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708901362 },
+  "ActiveRunConfiguration" : "trk_vst_001",
   "RunConfigurations" : {
     "demo" : {
-      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707004598 },
-      "ARTDAQ_PARTITION_NUMBER" : 12,
-      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707004598 },
+      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708482478 },
+      "ARTDAQ_PARTITION_NUMBER" : 11,
+      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
       "RunType" : 4,
-      "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707004598 },
+      "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
       "TriggerTable" : "demo_tt_v00",
-      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1707432127 },
+      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1708481222 },
       "UseRunInfoDB" : true,
       "DetectorConfiguration" : {
         "Calorimeter" : {
@@ -28,68 +28,68 @@
         "DAQ" : {
           "mu2edaq09.fnal.gov" : {
             "DTC0" : {
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
               "Enabled" : 0,
-              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1707200691 },
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1708481222 },
               "Link" : [ 0, 0, 0, 0, 0, 0 ]
             },
             "DTC1" : {
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
               "Enabled" : 0,
-              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1707200691 },
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1708481222 },
               "Link" : [ 0, 0, 0, 0, 0, 0 ]
             },
             "Artdaq" : {
               "BoardReader_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366062 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "br01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 0,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1,
-                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707361808 },
+                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "NFragmentTypes" : 1
               },
               "BoardReader_02" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366072 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "br02",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 1,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1,
-                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707361824 },
+                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "NFragmentTypes" : 1
               },
               "EventBuilder_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366080 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "eb01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 2,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "EventBuilder_02" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366087 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "eb02",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 3,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "DataLogger_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366094 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "dl01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 4,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "Dispatcher_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366101 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "ds01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 5,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200691 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               }
             }
@@ -103,16 +103,18 @@
         },
         "Trigger" : {
         }
-      }
+      },
+      "OutputDir/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709070168 },
+      "OutputDir" : "/scratch/mu2e/mu2etrk_pasha_023"
     },
     "demo_001" : {
-      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707004598 },
+      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
       "ARTDAQ_PARTITION_NUMBER" : 11,
-      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707004598 },
+      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
       "RunType" : 4,
-      "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707004598 },
+      "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
       "TriggerTable" : "demo_001_tt_v00",
-      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1707004598 },
+      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1708481222 },
       "UseRunInfoDB" : true,
       "DetectorConfiguration" : {
         "Calorimeter" : {
@@ -122,68 +124,68 @@
         "DAQ" : {
           "mu2edaq09.fnal.gov" : {
             "DTC0" : {
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
               "Enabled" : 0,
-              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1707200770 },
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1708481222 },
               "Link" : [ 0, 0, 0, 0, 0, 0 ]
             },
             "DTC1" : {
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
               "Enabled" : 0,
-              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1707200770 },
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1708481222 },
               "Link" : [ 0, 0, 0, 0, 0, 0 ]
             },
             "Artdaq" : {
               "BoardReader_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366143 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "br01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 0,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1,
-                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707361854 },
+                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "NFragmentTypes" : 1
               },
               "BoardReader_02" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366154 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "br02",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 1,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1,
-                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707361868 },
+                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "NFragmentTypes" : 1
               },
               "EventBuilder_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366163 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "eb01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 2,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "EventBuilder_02" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366171 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "eb02",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 3,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "DataLogger_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366177 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "dl01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 4,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "Dispatcher_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366184 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "ds01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 5,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200770 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               }
             }
@@ -200,13 +202,13 @@
       }
     },
     "demo_002" : {
-      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200926 },
+      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
       "ARTDAQ_PARTITION_NUMBER" : 11,
-      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200926 },
+      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
       "RunType" : 4,
-      "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707200926 },
+      "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
       "TriggerTable" : "demo_001_tt_v00",
-      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1707200926 },
+      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1708481222 },
       "UseRunInfoDB" : true,
       "DetectorConfiguration" : {
         "Calorimeter" : {
@@ -216,50 +218,50 @@
         "DAQ" : {
           "localhost" : {
             "DTC0" : {
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200926 },
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
               "Enabled" : 0,
-              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1707200926 },
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1708481222 },
               "Link" : [ 0, 0, 0, 0, 0, 0 ]
             },
             "DTC1" : {
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200926 },
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
               "Enabled" : 0,
-              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1707200926 },
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1708481222 },
               "Link" : [ 0, 0, 0, 0, 0, 0 ]
             },
             "Artdaq" : {
               "BoardReader_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366209 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "br01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200926 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 0,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200926 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1,
-                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707361892 },
+                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "NFragmentTypes" : 1
               },
               "EventBuilder_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366216 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "eb01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201001 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 1,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200926 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "DataLogger_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366222 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "dl01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201010 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 2,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200926 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "Dispatcher_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707366228 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "ds01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201020 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 3,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200926 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               }
             }
@@ -276,13 +278,13 @@
       }
     },
     "stm_swtest_001" : {
-      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707004598 },
+      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
       "ARTDAQ_PARTITION_NUMBER" : 5,
-      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707004598 },
+      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
       "RunType" : 5,
-      "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707004598 },
+      "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
       "TriggerTable" : "stm_swtest_tt_v01",
-      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1707004598 },
+      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1708481222 },
       "UseRunInfoDB" : false,
       "DetectorConfiguration" : {
         "Calorimeter" : {
@@ -292,48 +294,48 @@
         "DAQ" : {
           "localhost" : {
             "DTC0" : {
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201166 },
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
               "Enabled" : 0,
-              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1707201166 },
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1708481222 },
               "Link" : [ 0, 0, 0, 0, 0, 0 ]
             },
             "DTC1" : {
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201166 },
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
               "Enabled" : 0,
-              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1707201166 },
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1708481222 },
               "Link" : [ 0, 0, 0, 0, 0, 0 ]
             },
             "Artdaq" : {
               "BoardReader_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707201166 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "boardreader01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201166 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 0,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201166 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "EventBuilder_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707201166 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "eventbuilder01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201166 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 1,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201166 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "DataLogger_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707201166 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "datalogger01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201166 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 2,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201166 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               },
               "Dispatcher_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707201166 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
                 "Label" : "dispatcher01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201166 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Rank" : 3,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707201166 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
                 "Active" : 1
               }
             }
@@ -350,15 +352,97 @@
       }
     },
     "trk_vst_001" : {
-      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707004598 },
+      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
       "ARTDAQ_PARTITION_NUMBER" : 8,
-      "OutputDir/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707004598 },
+      "OutputDir/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
       "OutputDir" : "${TFM_OUTPUT_DIR}",
-      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707004598 },
+      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
       "RunType" : 1,
-      "TriggerTable/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1707004598 },
+      "TriggerTable/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1708481222 },
       "TriggerTable" : "trkvst_tt_v01",
-      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1707004598 },
+      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1708913798 },
+      "UseRunInfoDB" : false,
+      "DetectorConfiguration" : {
+        "Calorimeter" : {
+        },
+        "CRV" : {
+        },
+        "DAQ" : {
+          "mu2edaq09.fnal.gov" : {
+            "DTC0" : {
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+              "Enabled" : 1,
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1708481222 },
+              "Link" : [ 0, 0, 0, 0, 0, 0 ]
+            },
+            "DTC1" : {
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+              "Enabled" : 0,
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1708481222 },
+              "Link" : [ 0, 0, 0, 0, 0, 0 ]
+            },
+            "Artdaq" : {
+              "BoardReader_01" : {
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
+                "Label" : "br01",
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "Rank" : 0,
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "Active" : 1,
+                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "NFragmentTypes" : 2
+              },
+              "EventBuilder_01" : {
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
+                "Label" : "eb01",
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "Rank" : 1,
+                "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "XmlrpcPort" : 18101,
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "Active" : 1
+              },
+              "DataLogger_01" : {
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
+                "Label" : "dl01",
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "Rank" : 2,
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "Active" : 1
+              },
+              "Dispatcher_01" : {
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
+                "Label" : "dp01",
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "Rank" : 3,
+                "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "XmlrpcPort" : 10500,
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1708481222 },
+                "Active" : 1
+              }
+            }
+          }
+        },
+        "EXM" : {
+        },
+        "STM" : {
+        },
+        "Tracker" : {
+        },
+        "Trigger" : {
+        }
+      }
+    },
+    "global_run_001" : {
+      "ARTDAQ_PARTITION_NUMBER/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071686 },
+      "ARTDAQ_PARTITION_NUMBER" : 7,
+      "OutputDir/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709071554 },
+      "OutputDir" : "${TFM_OUTPUT_DIR}",
+      "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073650 },
+      "RunType" : 5,
+      "TriggerTable/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1709071742 },
+      "TriggerTable" : "global_run_tt_001",
+      "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1709073658 },
       "UseRunInfoDB" : true,
       "DetectorConfiguration" : {
         "Calorimeter" : {
@@ -368,54 +452,108 @@
         "DAQ" : {
           "mu2edaq09.fnal.gov" : {
             "DTC0" : {
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
               "Enabled" : 1,
-              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1707200880 },
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1709071554 },
               "Link" : [ 0, 0, 0, 0, 0, 0 ]
             },
             "DTC1" : {
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
               "Enabled" : 0,
-              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1707200880 },
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1709071554 },
               "Link" : [ 0, 0, 0, 0, 0, 0 ]
             },
             "Artdaq" : {
               "BoardReader_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707278048 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709071554 },
                 "Label" : "br01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
                 "Rank" : 0,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
                 "Active" : 1,
-                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707361769 },
+                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
                 "NFragmentTypes" : 2
               },
               "EventBuilder_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707278055 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709071554 },
                 "Label" : "eb01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
                 "Rank" : 1,
-                "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+                "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
                 "XmlrpcPort" : 18101,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
                 "Active" : 1
               },
               "DataLogger_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707278062 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709071554 },
                 "Label" : "dl01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
                 "Rank" : 2,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
                 "Active" : 1
               },
               "Dispatcher_01" : {
-                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707278070 },
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709071554 },
                 "Label" : "dp01",
-                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
                 "Rank" : 3,
-                "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+                "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
                 "XmlrpcPort" : 10500,
-                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1707200880 },
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709071554 },
+                "Active" : 1
+              }
+            }
+          },
+          "mu2edaq10.fnal.gov" : {
+            "DTC0" : {
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+              "Enabled" : 1,
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1709073698 },
+              "Link" : [ 0, 0, 0, 0, 0, 0 ]
+            },
+            "DTC1" : {
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+              "Enabled" : 0,
+              "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1709073698 },
+              "Link" : [ 0, 0, 0, 0, 0, 0 ]
+            },
+            "Artdaq" : {
+              "BoardReader_01" : {
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709073698 },
+                "Label" : "br01",
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+                "Rank" : 0,
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+                "Active" : 1,
+                "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+                "NFragmentTypes" : 2
+              },
+              "EventBuilder_01" : {
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709073698 },
+                "Label" : "eb01",
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+                "Rank" : 1,
+                "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+                "XmlrpcPort" : 18101,
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+                "Active" : 1
+              },
+              "DataLogger_01" : {
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709073698 },
+                "Label" : "dl01",
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+                "Rank" : 2,
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+                "Active" : 1
+              },
+              "Dispatcher_01" : {
+                "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709073698 },
+                "Label" : "dp01",
+                "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+                "Rank" : 3,
+                "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
+                "XmlrpcPort" : 10500,
+                "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1709073698 },
                 "Active" : 1
               }
             }
@@ -433,17 +571,17 @@
     }
   },
   "PostgresqlDB" : {
-    "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
     "Host" : "localhost",
-    "Port/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "Port/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
     "Port" : "5434",
-    "User/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "User/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
     "User" : "run_user",
-    "Schema/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "Schema/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
     "Schema" : "test",
-    "Database/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "Database/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
     "Database" : "run_info",
-    "Pwd/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1707444328 },
+    "Pwd/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1708481222 },
     "Pwd" : "ask_Antonio"
   }
 }

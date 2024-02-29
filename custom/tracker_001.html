@@ -20,6 +20,8 @@
       <br/>
       <!--div class = "col-md-8">-->
 
+      <a href="http://localhost:3065/home/mu2etrk/test_stand/pasha_020/srcs/frontends/custom/trk/trk_001.html">trk/trk_001.html</a>
+
    <table class="mtable">
       <tr>
          <td colspan="2" style="text-align: center;">
@@ -43,7 +45,7 @@
 
           <input type=button value='Push me'
                  onClick='var paths = [
-                 "/Equipment/mu2edaq09#DTC0/Variables/Input[4]",
+                 "/Equipment/mu2edaq09#DTC0/Registers/0x9004",
                  ];
                  mjsonrpc_db_get_values(paths).then(function(rpc) {
                  document.getElementById("db_get_values_json_data").innerHTML = JSON.stringify(rpc);
@@ -57,7 +59,7 @@
       <tr>
         <td>Reg 9004</td>
         <td class ="ODB-Monitor" id="conf">
-          <span name="modbvalue" data-odb-path="/Equipment/mu2edaq09#DTC0/Variables/Input[4]" data-format="%X">
+          <span name="modbvalue" data-odb-path="/Equipment/mu2edaq09#DTC0/Registers/0x9004" data-format="%X">
           </span> 
           <tt id='db_get_values_runstate'></tt>
           <script type="text/javascript">
@@ -69,7 +71,7 @@
       <tr>
         <td>DTC0 Temp</td>
         <td class ="ODB-Monitor" id="conf">
-          <span name="modbvalue" data-odb-path="/Equipment/mu2edaq09#DTC0/Variables/Input[0]" data-format="%f2">
+          <span name="modbvalue" data-odb-path="/Equipment/mu2edaq09#DTC0/Registers/0x9004" data-format="%X">
           </span>
         </td>
       </tr>

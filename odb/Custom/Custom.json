@@ -1,0 +1,31 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Tue Feb 27 10:12:19 2024 -0800 - midas-2022-05-c-1049-gadc62173 on branch develop",
+  "/filename" : "Custom.json",
+  "/ODB path" : "/Custom",
+
+  "Path/key" : { "type" : 12, "item_size" : 57, "access_mode" : 7, "last_written" : 1709005870 },
+  "Path" : "/home/mu2etrk/test_stand/pasha_023/srcs/frontends/custom",
+  "Tracker" : {
+    "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709005970 },
+    "main" : "tracker_main.html",
+    "TS1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709006007 },
+    "TS1" : "tracker_ts1.html"
+  },
+  "artdaq" : {
+    "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709006553 },
+    "main" : "artdaq_main.html",
+    "nodes" : {
+      "mu2edaq08/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709040208 },
+      "mu2edaq08" : "mu2edaq08.html",
+      "mu2edaq09/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709040173 },
+      "mu2edaq09" : "mu2edaq09.html",
+      "mu2edaq10/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709040194 },
+      "mu2edaq10" : "mu2edaq10.html"
+    }
+  },
+  "CRV" : {
+    "DTC/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709143288 },
+    "DTC" : "dtc.html"
+  }
+}
