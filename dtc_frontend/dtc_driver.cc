@@ -206,7 +206,7 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
       HNDLE    h_reg;
       sprintf(key,"/Equipment/%s#DTC%i/Registers/0x%04x",shname.data(),dtc_id,DTC_REG_NON_HIST[i]);
       int rc = db_find_key (hDB, 0, key, &h_reg);
-      rc     = db_set_value(hDB, 0, key, &val, sizeof(int), 1, TID_INT);
+      rc     = db_set_value(hDB, 0, key, &val, sizeof(int), 1, TID_UINT32);
     }
   }
 
