@@ -158,7 +158,6 @@ INT frontend_init() {
   sprintf(key,"/Equipment/%s/CheckTfmMessages", equipment[0].name);
   db_get_value(hDB, 0, key, &_tfm_messages, &sz, TID_BOOL, TRUE);
 
-  // cm_msg(MINFO,"debug","_use_screen: %i", _use_screen);
   cm_msg(MINFO,"debug","_tfm_messages: %i", _tfm_messages);
   TLOG(TLVL_DEBUG+4) << "farm_manager _useRunInfoDB:" << _useRunInfoDB;
   TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
@@ -178,8 +177,8 @@ INT frontend_init() {
          active_conf, _partition);
   char cmd[200];
 
-  sprintf(cmd,"screen -dmS tfm bash -c \"daq_scripts/start_farm_manager %s %i\"",
-          active_conf,_partition);
+  sprintf(cmd,"screen -dmS tfm_%i bash -c \"daq_scripts/start_farm_manager %s %i\"",
+          _partition,active_conf,_partition);
   TLOG(TLVL_DEBUG+4) << "before launching: cmd=" << cmd;
   system(cmd);
   TLOG(TLVL_DEBUG+4) << "after launching: cmd=" << cmd;
