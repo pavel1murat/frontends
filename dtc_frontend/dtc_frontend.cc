@@ -1,23 +1,7 @@
-/********************************************************************\
-
-  Name:         frontend.c
-  Created by:   Stefan Ritt
-
-  Contents:     Example Slow Control Frontend program. Defines two
-                slow control equipments, one for a HV device and one
-                for a multimeter (usually a general purpose PC plug-in
-                card with A/D inputs/outputs. As a device driver,
-                the "null" driver is used which simulates a device
-                without accessing any hardware. The used class drivers
-                cd_hv and cd_multi act as a link between the ODB and
-                the equipment and contain some functionality like
-                ramping etc. To form a fully functional frontend,
-                the device driver "null" has to be replaces with
-                real device drivers.
-
-  $Id$
-
-\********************************************************************/
+///////////////////////////////////////////////////////////////////////////////
+// a DTC frontend is always started on a node local to the DTC
+// -h host:port parameter points back to the MIDAS mserver
+///////////////////////////////////////////////////////////////////////////////
 #undef NDEBUG // midas required assert() to be always enabled
 
 #include "TRACE/tracemf.h"
@@ -102,7 +86,7 @@ INT frontend_init() {
 // nodes/DTC's to be monitored 
 // MIDAS 'host_name' could be 'local'..
 //-----------------------------------------------------------------------------
-  std::string host = get_full_host_name(host_name);
+  std::string host = get_full_host_name("local");
   sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s",active_run_conf,host.data());
   std::string k1 = key;
                                         // DTC configuration on 'host_name'

@@ -56,7 +56,6 @@ typedef struct {
 #endif
 
 /*----------------------------------------------------------------------------*/
-
 static void free_mem(MU2E_SC_NEW_INFO *m_info) {
    free(m_info->names_input);
    free(m_info->names_output);
@@ -88,7 +87,6 @@ static void free_mem(MU2E_SC_NEW_INFO *m_info) {
 }
 
 /*----------------------------------------------------------------------------*/
-
 void mu2e_sc_new_read(EQUIPMENT *pequipment, int channel) {
    int i, status;
    MU2E_SC_NEW_INFO *m_info;
@@ -181,7 +179,6 @@ void mu2e_sc_new_read(EQUIPMENT *pequipment, int channel) {
 }
 
 /*----------------------------------------------------------------------------*/
-
 void mu2e_sc_new_read_output(EQUIPMENT *pequipment, int channel) {
    int i;
    float value;
@@ -239,7 +236,6 @@ void mu2e_sc_new_read_output(EQUIPMENT *pequipment, int channel) {
 }
 
 /*----------------------------------------------------------------------------*/
-
 void mu2e_sc_new_output(INT, INT, void *info) {
    INT i;
    MU2E_SC_NEW_INFO *m_info;
@@ -264,7 +260,6 @@ void mu2e_sc_new_output(INT, INT, void *info) {
 }
 
 /*------------------------------------------------------------------*/
-
 void mu2e_sc_new_update_label(INT, INT, void *info) {
    INT i;
    MU2E_SC_NEW_INFO *m_info;
@@ -286,7 +281,6 @@ void mu2e_sc_new_update_label(INT, INT, void *info) {
 }
 
 /*----------------------------------------------------------------------------*/
-
 void formula_invalidate_new(INT hDB, INT hKey, void *info) {
    MU2E_SC_NEW_INFO *m_info = (MU2E_SC_NEW_INFO *) info;
 
@@ -339,8 +333,11 @@ INT mu2e_sc_new_init(EQUIPMENT *pequipment) {
       cm_msg(MERROR, "mu2e_sc_new_init", "No channels found in device driver list");
       return FE_ERR_ODB;
    }
-
-   /* Allocate memory for buffers */
+//-----------------------------------------------------------------------------
+// Allocate memory for buffers 
+// in our case, the memory allocation should be done for each driver separately
+// so the info structure below has to become a part of the driver info
+//-----------------------------------------------------------------------------
    if (m_info->num_channels_input) {
       m_info->names_input          = (char  *) calloc(m_info->num_channels_input, NAME_LENGTH);
       m_info->var_input            = (float *) calloc(m_info->num_channels_input, sizeof(float));

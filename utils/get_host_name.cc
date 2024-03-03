@@ -1,5 +1,7 @@
-//
-
+///////////////////////////////////////////////////////////////////////////////
+// P.M. need names on the data network  "*-data'
+// the host names just to be encoded into the DTC names
+///////////////////////////////////////////////////////////////////////////////
 #include <string>
 #include <cstring>
 #include "frontends/utils/utils.hh"
@@ -33,6 +35,8 @@ std::string get_full_host_name(const char* Hostname) {
     }
     pclose(pipe);
   }
+
+  //  name += "-data.fnal.gov";
   return name;
 }
 
@@ -52,7 +56,7 @@ std::string get_short_host_name(const char* Hostname) {
   }
   else {
 //-----------------------------------------------------------------------------
-// assume "local" or "localhost", replace it with the fully qualified name
+// assume "local" or "localhost", replace it with the short name
 //-----------------------------------------------------------------------------
     FILE* pipe = popen("hostname -s", "r");
     while (!feof(pipe)) {
@@ -65,6 +69,8 @@ std::string get_short_host_name(const char* Hostname) {
     }
     pclose(pipe);
   }
+
+  //  name += "-data";
   return name;
 }
 
