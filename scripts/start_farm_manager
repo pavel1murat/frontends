@@ -14,7 +14,7 @@
 # - presence of the $PWD/setup_daq.sh 
 # - presence of the $PWD/config/$artdaq_config
 #
-# ?? what is needed from setup_ots.sh ? 
+# ?? what is needed from setup_daq.sh ? 
 # - setting up TFM_DIR and ARTDAQ_PARTITION_NUMBER
 #------------------------------------------------------------------------------
 artdaq_config=$1
@@ -29,10 +29,19 @@ source $MU2E_DAQ_DIR/setup_daq.sh $partition
 config_dir=$PWD/config/$artdaq_config
 
 if [[ $debug -ne 0 ]] ; then echo "[$0:$LINENO]" config_dir=$config_dir ; fi
-
+#------------------------------------------------------------------------------
+# this sets ARTDAQ_PARTITION_NUMBER and TFM_CONFIG_DIR
+#------------------------------------------------------------------------------
 source $TFM_DIR/bin/tfm_configure $artdaq_config $partition
 
-if [[ $debug -ne 0 ]] ; then echo "[$0:$LINENO]" starting farm_manager.py ; fi
-$TFM_DIR/rc/control/farm_manager.py --config-dir=$config_dir
+ts=`date +"%Y%m%d_%H%M%S"`
+logfile=/scratch/mu2e/mu2etrk_pasha_023/$artdaq_config/logs/tfm/${ts}-tfm.log
+
+cmd="$TFM_DIR/rc/control/farm_manager.py --config-dir=$config_dir \>\| $logfile 2\>\&1 \&"
+
+if [[ $debug -ne 0 ]] ; then echo "[$0:$LINENO]" $cmd ; fi
+
+$TFM_DIR/rc/control/farm_manager.py --config-dir=$config_dir >| $logfile 2>&1 &
+tail -f $logfile
 
 # sleep 10
