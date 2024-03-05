@@ -87,17 +87,18 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
 //-----------------------------------------------------------------------------
 // now figure out what needs to be initialized
 //-----------------------------------------------------------------------------
-  char        active_conf[100];
-  int   sz = sizeof(active_conf);
+  int sz;
+  sz = sizeof(int);
+  db_get_value(hDB, 0, "/Mu2e/ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
+
+  char    active_conf[100];
+  sz    = sizeof(active_conf);
   db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
 
-  HNDLE      h_active_conf;
-  char       key[200];
+  HNDLE  h_active_conf;
+  char   key[200];
   sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
 	db_find_key(hDB, 0, key, &h_active_conf);
-
-  sz = sizeof(int);
-  db_get_value(hDB, h_active_conf, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
 //-----------------------------------------------------------------------------
 // find out the port numbers for the first boardreader, first event builder, 
 // and first datalogger

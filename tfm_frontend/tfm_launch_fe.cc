@@ -146,7 +146,7 @@ INT frontend_init() {
 // TF manager port is defined by the partition number
 //-----------------------------------------------------------------------------
   sz = sizeof(_partition);
-  db_get_value(hDB, h_active_run_conf, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
+  db_get_value(hDB, 0, "/Mu2e/ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
   _port = 10000+1000*_partition;
   sprintf(_xmlrpcUrl,"http://%s:%i/RPC2",host.data(),_port);
 

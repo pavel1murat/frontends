@@ -98,7 +98,7 @@ INT tfm_disk_driver_init(HNDLE hkey, TFM_DISK_DRIVER_INFO **pinfo, INT channels,
 	db_find_key(hDB, 0, key, &h_active_conf);
 
   sz = sizeof(int);
-  db_get_value(hDB, h_active_conf, "ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
+  db_get_value(hDB, 0, "/Mu2e/ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
 //-----------------------------------------------------------------------------
 // the frontend monitors only ARTDAQ processes running on the same node with it
 // this is convenient for book-keeping reasons

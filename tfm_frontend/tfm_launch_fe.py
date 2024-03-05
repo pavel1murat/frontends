@@ -11,13 +11,18 @@ from rc.control.component import Component
 import rc.control.farm_manager as farm_manager
 import traceback
 
+#------------------------------------------------------------------------------
+# TFM logfiles are stored in $TFM_LOGDIR/tfm. 
+# $TFM_LOGDIR is defined by tfm/bin/tfm_configure which is sourced by 
+# $MU2E_DAQ_DIR/daq_scripts/start_farm_manager, so it can be relied upon
+#------------------------------------------------------------------------------
 def set_logfile_loc():
     current_datetime = datetime.datetime.now()
     timestamp = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
     client2 = midas.client.MidasClient("Mu2e")
     active_config = client2.odb_get("/Mu2e/ActiveRunConfiguration/")
     output_dir = f"/Mu2e/RunConfigurations/{active_config}/OutputDir/"
-    log_path = client2.odb_get(output_dir)
+    log_path   = client2.odb_get(output_dir)
     client2.disconnect()
     log_directory = f"{log_path}/logs/"
     os.makedirs(log_directory, exist_ok=True)
