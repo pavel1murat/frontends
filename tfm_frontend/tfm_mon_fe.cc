@@ -140,7 +140,7 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   int partition;
   sz = sizeof(int);
-  db_get_value(hDB, h_active_run_conf, "ARTDAQ_PARTITION_NUMBER", &partition, &sz, TID_INT32, TRUE);
+  db_get_value(hDB, 0, "/Mu2e/ARTDAQ_PARTITION_NUMBER", &partition, &sz, TID_INT32, TRUE);
   int port_number = 10000+1000*partition;
 //-----------------------------------------------------------------------------
 // get port number used by the TF manager 

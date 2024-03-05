@@ -140,25 +140,29 @@ int db_runinfo::nextRunNumber(const char* RunConfiguration, int StoreInODB) { //
 //-----------------------------------------------------------------------------
 // retrieve from ODB parameters to be stored in Postgresql
 //-----------------------------------------------------------------------------
-  HNDLE       hDB, hKey;
+  HNDLE       hDB;
   rc = cm_get_experiment_database(&hDB, NULL);
   if (rc != CM_SUCCESS) {
     TLOG(TLVL_ERROR) << "failed to connect to ODB";
     return rc;
   }
 
-  char run_conf_key[200];
-  sprintf(run_conf_key,"/Experiment/RunConfigurations/%s",RunConfiguration);
-	db_find_key(hDB, 0, run_conf_key, &hKey);
-
-  int sz = sizeof(runType);
-  db_get_value(hDB, hKey, "RunType", &runType, &sz, TID_INT, FALSE);
-
+  int sz;
   sz = sizeof(partition_number);
-  db_get_value(hDB, hKey, "ARTDAQ_PARTITION_NUMBER", &partition_number, &sz, TID_INT, FALSE);
+  db_get_value(hDB, 0, "/Mu2e/ARTDAQ_PARTITION_NUMBER", &partition_number, &sz, TID_INT, FALSE);
+//-----------------------------------------------------------------------------
+// everything else comes from the active configuration
+//-----------------------------------------------------------------------------
+  HNDLE       h_run_conf_key;
+  char        run_conf_key[200];
+  sprintf(run_conf_key,"/Mu2e/RunConfigurations/%s",RunConfiguration);
+	db_find_key(hDB, 0, run_conf_key, &h_run_conf_key);
+
+  sz = sizeof(runType);
+  db_get_value(hDB, h_run_conf_key, "RunType", &runType, &sz, TID_INT, FALSE);
 
   sz = sizeof(trigger_table_name);
-  db_get_value(hDB, hKey, "TriggerTable", trigger_table_name, &sz, TID_STRING, FALSE);
+  db_get_value(hDB, h_run_conf_key, "TriggerTable", trigger_table_name, &sz, TID_STRING, FALSE);
 
   const char* hostName        = getenv("HOSTNAME");
 //-----------------------------------------------------------------------------
