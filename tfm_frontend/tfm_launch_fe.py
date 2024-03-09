@@ -1,15 +1,18 @@
-import midas
-import midas.frontend
-import midas.event
-import random
-import ctypes
-import time
-import os, sys
-import datetime
+#------------------------------------------------------------------------------
+# Namitha: TFM launch frontend - python version
+#------------------------------------------------------------------------------
+import  ctypes, os, sys, datetime, random, time, traceback
+
+sys.path.append(os.environ["MIDASSYS"]+'/python')
+import  midas
+import  midas.frontend
+import  midas.event
+
 sys.path.append(os.environ["TFM_DIR"])
-from rc.control.component import Component
+
+# from   rc.control.component import Component
+# import rc.control.farm_manager as farm_manager
 import rc.control.farm_manager as farm_manager
-import traceback
 
 #------------------------------------------------------------------------------
 # TFM logfiles are stored in $TFM_LOGDIR/tfm. 
@@ -18,14 +21,17 @@ import traceback
 #------------------------------------------------------------------------------
 def set_logfile_loc():
     current_datetime = datetime.datetime.now()
-    timestamp = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
-    client2 = midas.client.MidasClient("Mu2e")
-    active_config = client2.odb_get("/Mu2e/ActiveRunConfiguration/")
-    output_dir = f"/Mu2e/RunConfigurations/{active_config}/OutputDir/"
-    log_path   = client2.odb_get(output_dir)
+    timestamp        = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
+
+    client2          = midas.client.MidasClient("Mu2e")
+    active_config    = client2.odb_get("/Mu2e/ActiveRunConfiguration/")
+    output_dir       = f"/Mu2e/RunConfigurations/{active_config}/OutputDir/"
+    log_path         = client2.odb_get(output_dir)
     client2.disconnect()
-    log_directory = f"{log_path}/logs/"
+
+    log_directory    = f"{log_path}/logs/"
     os.makedirs(log_directory, exist_ok=True)
+
     if os.path.exists(log_directory):
       print("Directory created successfully.")
       output_filename = os.path.join(log_directory, f"tfm_launch_{timestamp}.log")
@@ -35,25 +41,26 @@ def set_logfile_loc():
 
 set_logfile_loc()
 
-class MyPeriodicEquipment(midas.frontend.EquipmentBase):
+#------------------------------------------------------------------------------
+class TfmEquipment(midas.frontend.EquipmentBase):
     def __init__(self, client):
         # The name of our equipment. This name will be used on the midas status
         # page, and our info will appear in /Equipment/MyPeriodicEquipment in
         # the ODB.
-        equip_name = "tfm_launch_fe_python"
+        equip_name = "tfm_launch_fe_equipment"
         
         # Define the "common" settings of a frontend. These will appear in
         # /Equipment/MyPeriodicEquipment/Common. The values you set here are
         # only used the very first time this frontend/equipment runs; after 
         # that the ODB settings are used.
-        default_common = midas.frontend.InitialEquipmentCommon()
-        default_common.equip_type = midas.EQ_PERIODIC
-        default_common.buffer_name = "SYSTEM"
+        default_common              = midas.frontend.InitialEquipmentCommon()
+        default_common.equip_type   = midas.EQ_PERIODIC
+        default_common.buffer_name  = "SYSTEM"
         default_common.trigger_mask = 0
-        default_common.event_id = 1
-        default_common.period_ms = 100
-        default_common.read_when = midas.RO_RUNNING
-        default_common.log_history = 1
+        default_common.event_id     = 1
+        default_common.period_ms    = 100
+        default_common.read_when    = midas.RO_RUNNING
+        default_common.log_history  = 1
         
         # You MUST call midas.frontend.EquipmentBase.__init__ in your equipment's __init__ method!
         midas.frontend.EquipmentBase.__init__(self, client, equip_name, default_common)
@@ -78,33 +85,46 @@ class MyPeriodicEquipment(midas.frontend.EquipmentBase):
         
         return event
 
-class MyFrontend(midas.frontend.FrontendBase):
+#------------------------------------------------------------------------------
+# FE name : 'tfm_launch_fe_python'
+#------------------------------------------------------------------------------
+class TfmLaunchFrontend(midas.frontend.FrontendBase):
     """
     A frontend contains a collection of equipment.
     You can access self.client to access the ODB etc (see `midas.client.MidasClient`).
     """
     def __init__(self):
-        config_dir = MyFrontend.get_client_state()
         global active_conf
-        active_conf = config_dir
-        midas.frontend.FrontendBase.__init__(self, "tfm_launch_python")
-        # You can add equipment at any time before you call `run()`, but doing
-        # it in __init__() seems logical.
-        self.add_equipment(MyPeriodicEquipment(self.client))
-        fm = farm_manager.FarmManager(config_dir=config_dir)
-        #breakpoint()
-        fm.do_boot()
 
-    def get_client_state():
-        client2 = midas.client.MidasClient("Mu2e")
+        config_dir  = TfmLaunchFrontend.get_config_dir()
+        active_conf = config_dir
+
+        midas.frontend.FrontendBase.__init__(self, "tfm_launch_fe_python")
+#------------------------------------------------------------------------------
+# You can add equipment at any time before you call `run()`, but doing
+# it in __init__() seems logical.
+#-------v----------------------------------------------------------------------
+        self.add_equipment(TfmEquipment(self.client))
+
+        self.fm   = farm_manager.FarmManager(config_dir=config_dir)
+        #breakpoint()
+
+        self.fm.do_boot()
+        return;
+#-------^----------------------------------------------------------------------
+# return configuration directory for current active configuration in ODB
+#---v--------------------------------------------------------------------------
+    def get_config_dir():
+        client2       = midas.client.MidasClient("Mu2e")
         active_config = client2.odb_get("/Mu2e/ActiveRunConfiguration")       
         client2.disconnect()
         #breakpoint()
-        tfm_dir = os.environ.get('TFM_DIR', '')
-        config_dir = os.path.join(os.environ.get('MU2E_DAQ_DIR', ''), 'config', active_config)
+        tfm_dir       = os.environ.get('TFM_DIR', '')
+        config_dir    = os.path.join(os.environ.get('MU2E_DAQ_DIR', ''), 'config', active_config)
         #print(config_dir)
         return config_dir
 
+#------------------------------------------------------------------------------
     def begin_of_run(self, run_number):
         """
         This function will be called at the beginning of the run.
@@ -112,19 +132,27 @@ class MyFrontend(midas.frontend.FrontendBase):
         You can access individual equipment classes through the `self.equipment`
         dict if needed.
         """
+
         self.set_all_equipment_status("Running", "greenLight")
         self.client.msg("Frontend has seen start of run number %d" % run_number)
+
         #print(active_conf)
-        fm = farm_manager.FarmManager(config_dir=active_conf)
-        fm.do_config(run_number=run_number)
-        fm.do_start_running()
+
+        # fm   = farm_manager.FarmManager(config_dir=active_conf)
+        self.fm.do_config(run_number=run_number)
+        self.fm.do_start_running()
+
         return midas.status_codes["SUCCESS"]
-        
+
+#------------------------------------------------------------------------------
+#
+#---v--------------------------------------------------------------------------        
     def end_of_run(self, run_number):
         self.set_all_equipment_status("Finished", "greenLight")
         self.client.msg("Frontend has seen end of run number %d" % run_number)
         return midas.status_codes["SUCCESS"]
-    
+
+#------------------------------------------------------------------------------
     def frontend_exit(self):
         """
         Most people won't need to define this function, but you can use
@@ -135,5 +163,5 @@ class MyFrontend(midas.frontend.FrontendBase):
 if __name__ == "__main__":
     # The main executable is very simple - just create the frontend object,
     # and call run() on it.
-    with MyFrontend() as tfm_launch:
+    with TfmLaunchFrontend() as tfm_launch:
         tfm_launch.run()
