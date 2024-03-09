@@ -46,16 +46,6 @@ INT max_event_size             = 10000;    // maximum event size produced by thi
 INT max_event_size_frag        = 5*10000;  // maximum event size for fragmented events (EQ_FRAGMENTED)
 INT event_buffer_size          = 10*10000; // buffer size to hold events */
 
-/*-- Dummy routines ------------------------------------------------*/
-INT poll_event(INT source, INT count, BOOL test) {
-  return 1;
-}
-
-//-----------------------------------------------------------------------------
-INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
-  return 1;
-}
-
 //-----------------------------------------------------------------------------
 // Frontend Init
 // use 'channel' as the DTC ID
@@ -129,6 +119,16 @@ INT frontend_init() {
 
 
   return CM_SUCCESS;
+}
+
+/*-- Dummy routines ------------------------------------------------*/
+INT poll_event(INT source, INT count, BOOL test) {
+  return 1;
+}
+
+//-----------------------------------------------------------------------------
+INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
+  return 1;
 }
 
 /*-- Frontend Exit -------------------------------------------------*/
