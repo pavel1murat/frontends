@@ -78,6 +78,11 @@ include(BuildPlugins)
 # subdirectories
 #------------------------------------------------------------------------------
 add_subdirectory(utils)
+if($ENV{BUILD_CFO_FRONTEND})
+  message(-- BUILD_CFO_FRONTEND=${BUILD_CFO_FRONTEND})
+  add_subdirectory(cfo_frontend)
+endif()
+
 add_subdirectory(dtc_frontend)
 add_subdirectory(roc_crv_frontend)
 add_subdirectory(roc_trk_frontend)
