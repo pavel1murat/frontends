@@ -125,7 +125,7 @@ int db_runinfo::registerTransition(int RunNumber, uint TransitionType, uint Caus
 }
 
 //-----------------------------------------------------------------------------
-// integrate with ODB
+// integrate with ODB, assume we're connected to ODB
 //-----------------------------------------------------------------------------
 int db_runinfo::nextRunNumber(const char* RunConfiguration, int StoreInODB) { // int RunType, const std::string& RunInfoConditions) {
   int   runNumber(-1);
