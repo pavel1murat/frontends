@@ -94,11 +94,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
     You can access self.client to access the ODB etc (see `midas.client.MidasClient`).
     """
     def __init__(self):
-        global active_conf
-
         config_dir  = TfmLaunchFrontend.get_config_dir()
-        active_conf = config_dir
-
         midas.frontend.FrontendBase.__init__(self, "tfm_launch_fe_python")
 #------------------------------------------------------------------------------
 # You can add equipment at any time before you call `run()`, but doing
@@ -135,10 +131,6 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 
         self.set_all_equipment_status("Running", "greenLight")
         self.client.msg("Frontend has seen start of run number %d" % run_number)
-
-        #print(active_conf)
-
-        # fm   = farm_manager.FarmManager(config_dir=active_conf)
         self.fm.do_config(run_number=run_number)
         self.fm.do_start_running()
 
