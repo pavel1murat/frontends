@@ -40,6 +40,7 @@ cet_set_compiler_flags(
 find_package(canvas_root_io  REQUIRED EXPORT QUIET)
 find_package(canvas          REQUIRED EXPORT QUIET)
 find_package(messagefacility REQUIRED EXPORT QUIET)
+find_package(artdaq_core     REQUIRED EXPORT QUIET)
 
 
 #------------------------------------------------------------------------------

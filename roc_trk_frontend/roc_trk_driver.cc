@@ -9,7 +9,6 @@
 #include <string.h>
 #include "midas.h"
 
-#include "artdaq-core-mu2e/Overlays/DTC_Types.h"
 #include "dtcInterfaceLib/DTC.h"
 
 #include "frontends/roc_trk_frontend/roc_trk_driver.hh"
