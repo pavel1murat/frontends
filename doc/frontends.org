@@ -32,15 +32,60 @@
 -      load srcs/frontends/odb/Mu2e/Mu2e.json
 * ARTDAQ                                                                     
 ** artdaq repo: https://github.com/art-daq/artdaq
-** mu2e-45544: artdaq intro by Eric: https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=45544&filename=ArtdaqOverview.pdf
-*** artdaq::Fragment                                                          
+** mu2e-45544: artdaq intro by Eric:                                         
+   https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=45544&filename=ArtdaqOverview.pdf
+** artdaq::Fragment                                                          
    - fragment type: tells the type of the data stored in the fragment
    - fragment ID  : in essense, the fragment generator type
      - a single generator can write out fragments of different types
+** transfer plugins                                                          
+- see file:../../artdaq/artdaq/TransferPlugins   (capitalization important)                             
+-  "Autodetect" - in local case, seems to default to Shmem (?)
+-  "Bundle"     - in a local case, seems to default to "TCPSocket"
+-  "Shmem"
+-  "TCPSocket"
+-  "RTIDDS"
+-  "Null"
+* CFO                                                                        
+** interface                                                                 
+   file:../../mu2e_pcie_utils/cfoInterfaceLib/CFO.h
+
+   file:../../mu2e_pcie_utils/cfoInterfaceLib/CFO_Registers.h
+   file:../../mu2e_pcie_utils/cfoInterfaceLib/CFO_Registers.cpp
+
+** CFO macros                                                                
+- defined in file:../../otsdaq_mu2e/otsdaq-mu2e/FEInterfaces/CFOFrontEndInterface_interface.cc
+*** CFOReset                                                                 
+    file:../../otsdaq_mu2e/otsdaq-mu2e/FEInterfaces/CFOFrontEndInterface_interface.cc::/CFOReset/
+#+begin_src
+   CFO* cfo = .... ;
+   cfo->SoftReset();
+#+end_src
+*** TODO CFOHalt           
+    file:../../otsdaq_mu2e/otsdaq-mu2e/FEInterfaces/CFOFrontEndInterface_interface.cc::/CFOHalt/
+-- why halting and disabling the beam "off" mode is the same ?
+    file:../../mu2e_pcie_utils/cfoInterfaceLib/CFO_Registers.cpp::/DisableBeamOffMode/
+#+begin_src
+   CFO* cfo = .... ;
+   cfo->DisableBeamOffMode(CFOLib::CFO_Link_ID::CFO_Link_ALL);
+#+end_src
+*** WriteCFO
+*** CFO Write --> CFOFrontEndInterface::WriteCFO
+*** LoopbackTest
+    file:../../otsdaq_mu2e/otsdaq-mu2e/FEInterfaces/CFOFrontEndInterface_interface.cc::/LoopbackTest/
+
+*** TestMarker
+*** "CFO Read" --> CFOFrontEndInterface::ReadCFO
+*** ResetRunplan
+*** CompileRunplan
+*** SetRunplan
+*** LaunchRunplan
+*** ConfigureForTimingChain
 * [[file:dtc.org][DTC]]
 * [[file:rocs.org][ROCs]]
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=19095][mu2e-19095]] : Mu2e beam timing
-* [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=37376&filename=20220922_DAQNodes.pdf][mu2e-37376]] : DAQ node configuration in the DAQ room 
+* [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=37376&filename=20220922_DAQNodes.pdf][mu2e-37376]] : DAQ node configuration in the DAQ room                        
+* [[file:ots.org][ots]]                                                                        
 * [[file:trace.org][TRACE]]
 * [[file:code_repositories.org][code repositories]]                                                        
 * frontends                                                                  
@@ -54,6 +99,11 @@ screen -r 11882.tfm        # connect to one
 Ctrl-a d                   # disconnect
 #+end_src
 more details: https://www.geeksforgeeks.org/screen-command-in-linux-with-examples/
+* vivado cheat sheet                                                         
+#+begin_src 
+source /home/xilinx/Vivado_Lab/2021.2/settings64.sh
+vivado_lab 
+#+end_src
 * ------------------------------------------------------------------------------
 * additional documentation on MIDAS: file:midas.org
 * ------------------------------------------------------------------------------
