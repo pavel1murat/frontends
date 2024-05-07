@@ -1,0 +1,13 @@
+#+startup:fold
+
+* starting xdaq.exe  (example)
+#+begin_src 
+xdaq.exe -p 3025 -h mu2edaq22.fnal.gov \
+        -e /home/mu2ecalo/ots/Data_calo/XDAQConfigurations/otsConfiguration_CMake.xml \
+        -c /home/mu2ecalo/ots/Data_calo/XDAQConfigurations/otsConfiguration_MacroMaker_CMake_Run.xml
+#+end_src
+
+* run in macromaker mode: ( in file:~mu2ecalo/ots )
+#+begin_src 
+ots -mm MacroMakerMode_devCFO_config.fcl
+#+end_src

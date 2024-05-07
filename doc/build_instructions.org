@@ -2,8 +2,8 @@
 * installation and build instructions, validated <2024-02-13 Mon>            
 
   OTSDAQ bundle to use 
-  - version   : v2_07_00   
-  - qualifiers: e28_s126_debug
+  - version   : v2_08_00   
+  - qualifiers: e28_s128_debug
 
   - all available OTSDAQ bundles: https://scisoft.fnal.gov/scisoft/packages/otsdaq/
 

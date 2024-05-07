@@ -2,7 +2,7 @@
 
 parameters describing run configuration are stored in the [/Experiment/RunConfigurations] folder
 
-*** */Experiment/RunConfigurations/$conf/ARTDAQ_PARTITION_NUMBER*          
+*** */Experiment/RunConfigurations/$conf/ARTDAQ_PARTITION_NUMBER*           
 the partition number used by artdaq, the same as os.getenv("ARTDAQ_PARTITION_NUMBER")
 *** */Experiment/RunConfigurations/$conf/UseRunInfoDB*                      
 - if "Yes", gets next run number from Postgresql DB
