@@ -1,0 +1,97 @@
+#+startup:fold
+
+
+* programming DTC and CFO  (as root)
+#+begin_src 
+bash ~mu2ehwdev/program_both_DTCs.sh /home/mu2ehwdev/DTC_Firmware/DTC2024Apr18_11_22.1/DTC.bit /home/mu2ehwdev/CFO_Firmware/CFO2024Mar14_14_22.1/CFO.bit
+program_both_DTCs.sh:10 |        Programming both bitfiles on mu2edaq22.fnal.gov...
+program_both_DTCs.sh:11 |        Number of arguments: 2
+program_both_DTCs.sh:27 |        JTAG-0 bitfile: /home/mu2ehwdev/DTC_Firmware/DTC2024Apr18_11_22.1/DTC.bit
+program_both_DTCs.sh:28 |        JTAG-1 bitfile: /home/mu2ehwdev/CFO_Firmware/CFO2024Mar14_14_22.1/CFO.bit
+
+program_both_DTCs.sh:30 |        vivado_lab -mode batch -source /home/mu2ecalo/ots/srcs/otsdaq_mu2e/tools/program_both_DTCs.tcl -tclargs /home/mu2ehwdev/DTC_Firmware/DTC2024Apr18_11_22.1/DTC.bit /home/mu2ehwdev/CFO_Firmware/CFO2024Mar14_14_22.1/CFO.bit
+
+****** Vivado Lab Edition v2021.2 (64-bit)
+  **** SW Build 3367213 on Tue Oct 19 02:47:39 MDT 2021
+    ** Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+
+source /home/mu2ecalo/ots/srcs/otsdaq_mu2e/tools/program_both_DTCs.tcl
+# puts "JTAG-0 bitfile to program: [lindex $argv 0]"
+JTAG-0 bitfile to program: /home/mu2ehwdev/DTC_Firmware/DTC2024Apr18_11_22.1/DTC.bit
+# puts "JTAG-1 bitfile to program: [lindex $argv 1]"
+JTAG-1 bitfile to program: /home/mu2ehwdev/CFO_Firmware/CFO2024Mar14_14_22.1/CFO.bit
+# open_hw_manager
+# connect_hw_server
+INFO: [Labtools 27-2285] Connecting to hw_server url TCP:localhost:3121
+INFO: [Labtools 27-2222] Launching hw_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+****** Xilinx hw_server v2021.2
+  **** Build date : Oct 19 2021 at 03:13:42
+    ** Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+
+
+INFO: [Labtools 27-3415] Connecting to cs_server url TCP:localhost:3042
+INFO: [Labtools 27-3417] Launching cs_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+
+******** Xilinx cs_server v2021.2.0
+  ****** Build date   : Sep 27 2021-16:44:20
+    **** Build number : 2021.2.1632779060
+      ** Copyright 2017-2024 Xilinx, Inc. All Rights Reserved.
+
+
+
+# open_hw_target [lindex [get_hw_targets *] 0]
+INFO: [Labtoolstcl 44-466] Opening hw_target localhost:3121/xilinx_tcf/Xilinx/00001b8d75ad01
+# set_property PROGRAM.FILE [lindex $argv 0] [lindex [get_hw_devices] 0]
+# program_hw_devices [lindex [get_hw_devices] 0]
+INFO: [Labtools 27-3164] End of startup status: HIGH
+program_hw_devices: Time (s): cpu = 00:00:32 ; elapsed = 00:00:32 . Memory (MB): peak = 2418.434 ; gain = 0.000 ; free physical = 59555 ; free virtual = 69614
+# close_hw_target
+INFO: [Labtoolstcl 44-464] Closing hw_target localhost:3121/xilinx_tcf/Xilinx/00001b8d75ad01
+# open_hw_target [lindex [get_hw_targets *] 1]
+INFO: [Labtoolstcl 44-466] Opening hw_target localhost:3121/xilinx_tcf/Xilinx/00001b8d782001
+# set_property PROGRAM.FILE [lindex $argv 1] [lindex [get_hw_devices] 0]
+# program_hw_devices [lindex [get_hw_devices] 0]
+INFO: [Labtools 27-3164] End of startup status: HIGH
+program_hw_devices: Time (s): cpu = 00:00:32 ; elapsed = 00:00:32 . Memory (MB): peak = 2418.438 ; gain = 0.000 ; free physical = 59545 ; free virtual = 69605
+# close_hw_target
+INFO: [Labtoolstcl 44-464] Closing hw_target localhost:3121/xilinx_tcf/Xilinx/00001b8d782001
+# disconnect_hw_server
+INFO: [Common 17-206] Exiting vivado_lab at Sat May  4 13:01:31 2024...
+
+program_both_DTCs.sh:33 |        Done programming bitfile to both DTCs on mu2edaq22.fnal.gov
+program_both_DTCs.sh:37 |        Resetting PCIe on mu2edaq22.fnal.gov...
+SCRIPT_DIR: /home/mu2ecalo/ots/srcs/otsdaq_mu2e/tools
+31:00.0 Communication controller: Xilinx Corporation Device 7042
+65:00.0 Communication controller: Xilinx Corporation Device 7042
+Found DTC or CFO (Xilinx) card; removing mu2e driver;
+first killing any processes that may be using the device.
+xdaq.exe: no process found
+
+Removing each PCIe Xilinx device on mu2edaq22.fnal.gov...
+
+Removing... 31:00.0 Communication controller: Xilinx Corporation Device 7042
+Removing... 65:00.0 Communication controller: Xilinx Corporation Device 7042
+
+Recanning for PCIe devices on mu2edaq22.fnal.gov...
+
+Now attempt to reload mu2e module via modprobe mu2e
+Attempting to read firmware version on mu2edaq22.fnal.gov...
+
+PCIe Device 0 firmware version on mu2edaq22.fnal.gov:
+my_cntl: error while loading shared libraries: libartdaq-core_Data.so: cannot open shared object file: No such file or directory
+
+PCIe Device 1 firmware version on mu2edaq22.fnal.gov:
+my_cntl: error while loading shared libraries: libartdaq-core_Data.so: cannot open shared object file: No such file or directory
+
+
+Done with mu2edaq22.fnal.gov PCIe reset script!
+
+echo
+echo
+program_both_DTCs.sh:42 |        ===> Done with mu2edaq22.fnal.gov programming bitfile and PCIe reset!
+echo
+#+end_src

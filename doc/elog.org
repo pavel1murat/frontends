@@ -1,0 +1,36 @@
+#+startup:fold
+* ------------------------------------------------------------------------------
+* MIDAS elog                                                                 
+
+- details: https://daq00.triumf.ca/MidasWiki/index.php/Electronic_Logbook_(ELOG)
+
+- elog : reserve port 9085 for it                                            
+- on mu2edaq13: (elogd will listen to local port 9085) 
+
+#+begin_src
+~/products/elog/elogd -c $HOME/test_stand/logbooks/konstantin.conf &
+#+end_src
+
+- password recovery works
+- external elog URL: http://localhost:9085/Mu2eTracker/
+-   the slash in the end important
+
+in the configuration file : 
+
+resource dir  = /home/mu2etrk/products/elog
+
+logbook dir   = /home/mu2etrk/test_stand/logbooks
+  - log file is also created there
+  - contains the logbooks, the password file, the configuration file
+
+- on a MIDAS host (the host running mhttpd) - needed for mhttpd to connect to logbook
+#+begin_src
+ssh -f -KX -N -L 9085:localhost:9085 mu2edaq13.fnal.gov
+#+end_src
+
+** how to add a new logbook named 'NewLogbook':                              
+- look at the configuration file, add one more section starting from 
+  [NewLogbook]
+* ------------------------------------------------------------------------------
+* back to file:frontends.org
+* ------------------------------------------------------------------------------

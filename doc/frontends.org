@@ -82,6 +82,8 @@
 *** LaunchRunplan
 *** ConfigureForTimingChain
 * [[file:dtc.org][DTC]]
+* [[file:elog.org][elog]]
+* file:firmware.org                 
 * [[file:rocs.org][ROCs]]
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=19095][mu2e-19095]] : Mu2e beam timing
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=37376&filename=20220922_DAQNodes.pdf][mu2e-37376]] : DAQ node configuration in the DAQ room                        
