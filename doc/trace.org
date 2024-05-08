@@ -18,9 +18,9 @@ from the command line without recompilation.
 TLOG(TLVL_DEBUG) << "TrackerVST_generator CONSTRUCTOR";
 
  export TRACE_FILE=/tmp/trace_buffer_pasha.txt
- 
-- tshow : see messages that are sent to memory. 
-- tonM  : turn on additional messages to memory, 
+
+- tshow : see messages that are sent to memory.
+- tonM  : turn on additional messages to memory,
 - tonS  : send those messages to the log files
 
  set format of TRACE printouts: TRACE_PRINT="%m-%d %H:%M:%S.%%06d %T %*n %*L %F: %M"

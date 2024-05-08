@@ -32,5 +32,5 @@ ssh -f -KX -N -L 9085:localhost:9085 mu2edaq13.fnal.gov
 - look at the configuration file, add one more section starting from 
   [NewLogbook]
 * ------------------------------------------------------------------------------
-* back to file:frontends.org
+* back to [[file:frontends.org][frontends.org]]
 * ------------------------------------------------------------------------------
