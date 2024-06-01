@@ -231,7 +231,7 @@ int db_runinfo::nextRunNumber(const char* RunConfiguration, int StoreInODB) { //
 //-----------------------------------------------------------------------------
 // P.M. hopefully, the next part will not be needed
 // insert a new row in the run_condition table if 
-// it pk(runConfiguration,runConfigurationVersion, runContext,runContextVersion) doesn't exist yet
+// its pk(runConfiguration,runConfigurationVersion, runContext,runContextVersion) doesn't exist yet
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // these are going away

@@ -1,17 +1,23 @@
-///////////////////////////////////////////////////////////////////////////////
-// Store any parameters the device driver needs in following 
-//   structure. Edit the DTC_DRIVER_SETTINGS_STR accordingly. This 
-//   contains usually the address of the device. For a CAMAC device
-//   this could be crate and station for example.
-///////////////////////////////////////////////////////////////////////////////
+#ifndef __cfo_frontend_cfo_interface_hh__
+#define __cfo_frontend_cfo_interface_hh__
 
-#include "dtcInterfaceLib/DTC.h"
+#include "otsdaq-mu2e-tracker/ui/CfoInterface.hh"
 
 typedef struct {
-  int          address;
-  int          dtcID;
-  DTCLib::DTC* dtc;
+  int           pcieAddr;
+  int           cfoType;       // 0: "emulated": 'interface' is of DtcInterface type
+                               // 1: "external": real CFO, 'interface' is of CfoInterface type
+  void*         interface;     // pointer (CfoInterface* or DtcInterface*, see above)
+                               // before use, 'interface' need to be cast
+  int           n_ewm_per_sec; // N(EWMs) per second
 } CFO_DRIVER_SETTINGS;
+
+#define CFO_DRIVER_SETTINGS_STR "\
+PcieAddr   = INT    : %i\n\
+CfoType    = INT    : %i\n\
+Cfo        = INT64  :  0\n\
+NEwmPerSec = INT    : %i\n\
+"
 
 /* the following structure contains private variables to the device
    driver. It is necessary to store it here in case the device
@@ -28,5 +34,4 @@ typedef struct {
   HNDLE               hkey;                    /* ODB key for bus driver info */
 } CFO_DRIVER_INFO;
 
-
-INT cfo_driver(INT cmd, ...);
+#endif

@@ -13,6 +13,8 @@
 #include "mfe.h"
 
 #include "frontends/utils/utils.hh"
+#include "frontends/utils/OdbInterface.hh"
+
 #include "frontends/dtc_frontend/dtc_frontend.hh"
 //-----------------------------------------------------------------------------
 // Globals
@@ -53,8 +55,8 @@ INT event_buffer_size          = 10*10000; // buffer size to hold events */
 INT frontend_init() {
   int         argc;
   char**      argv;
-  char        active_run_conf[100];
-  char        key[1000];
+  std::string active_run_conf;
+  // char        key[1000];
 //-----------------------------------------------------------------------------
 // get command line arguments - perhaps can use that one day
 //-----------------------------------------------------------------------------
@@ -63,33 +65,25 @@ INT frontend_init() {
 // figure out the active configuration from ODB
 //-----------------------------------------------------------------------------
   cm_get_experiment_database(&hDB, NULL);
-  int   sz = sizeof(active_run_conf);
-  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_run_conf, &sz, TID_STRING, TRUE);
-//-----------------------------------------------------------------------------
-// h_active_run_conf is the key corresponding the the active run configuration
-//-----------------------------------------------------------------------------
-  HNDLE    h_active_run_conf;
-  sprintf(key,"/Mu2e/RunConfigurations/%s",active_run_conf);
-	db_find_key(hDB, 0, key, &h_active_run_conf);
+
+  OdbInterface* odb_i = OdbInterface::Instance(hDB);
+
+  odb_i->GetActiveRunConfig(hDB,active_run_conf);
+  HNDLE h_active_run_conf = odb_i->GetRunConfigHandle(hDB,active_run_conf);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/DetectorConfigurations/$detector_conf/DAQ to get a list of 
 // nodes/DTC's to be monitored 
 // MIDAS 'host_name' could be 'local'..
 //-----------------------------------------------------------------------------
   std::string host = get_full_host_name("local");
-  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s",active_run_conf,host.data());
-  std::string k1 = key;
-                                        // DTC configuration on 'host_name'
-  HNDLE h_daq_conf;
-	if (db_find_key(hDB, 0, k1.data(), &h_daq_conf) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "0012 no handle for:" << k1 << ", got:" << h_daq_conf;
-  }
+
+  HNDLE h_daq_host_conf = odb_i->GetDaqHostHandle(hDB,h_active_run_conf,host);
 //-----------------------------------------------------------------------------
 // DTC is the equipment, two are listed in the header, both should be listed in ODB
 //-----------------------------------------------------------------------------
   HNDLE h_subkey;
   KEY   subkey;
-  for (int i=0; db_enum_key(hDB,h_daq_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
+  for (int i=0; db_enum_key(hDB,h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
 //-----------------------------------------------------------------------------
 // skip 'Artdaq' folder
 //-----------------------------------------------------------------------------
@@ -100,7 +94,7 @@ INT frontend_init() {
 // so far, output of all drivers goes into the same common "Input" array
 //-----------------------------------------------------------------------------
     _driver_list        = new DEVICE_DRIVER[2];
-    _driver_list[1]     = {""};
+    _driver_list[1]     = {"",};
 
     DEVICE_DRIVER* drv = &_driver_list[0];
     

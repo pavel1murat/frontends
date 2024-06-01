@@ -1,8 +1,15 @@
 #+startup:fold
 
+* ------------------------------------------------------------------------------
+* setting up and starting vivado                                             
 
-* programming DTC and CFO  (as root)
-#+begin_src 
+#+begin_src
+source /home/xilinx/Vivado_Lab/2021.2/settings64.sh
+vivado_lab
+#+end_src 
+
+* programming DTC and CFO  (as root)                                         
+#+begin_src                                                                  
 bash ~mu2ehwdev/program_both_DTCs.sh /home/mu2ehwdev/DTC_Firmware/DTC2024Apr18_11_22.1/DTC.bit /home/mu2ehwdev/CFO_Firmware/CFO2024Mar14_14_22.1/CFO.bit
 program_both_DTCs.sh:10 |        Programming both bitfiles on mu2edaq22.fnal.gov...
 program_both_DTCs.sh:11 |        Number of arguments: 2
@@ -11,7 +18,7 @@ program_both_DTCs.sh:28 |        JTAG-1 bitfile: /home/mu2ehwdev/CFO_Firmware/CF
 
 program_both_DTCs.sh:30 |        vivado_lab -mode batch -source /home/mu2ecalo/ots/srcs/otsdaq_mu2e/tools/program_both_DTCs.tcl -tclargs /home/mu2ehwdev/DTC_Firmware/DTC2024Apr18_11_22.1/DTC.bit /home/mu2ehwdev/CFO_Firmware/CFO2024Mar14_14_22.1/CFO.bit
 
-****** Vivado Lab Edition v2021.2 (64-bit)
+ ****** Vivado Lab Edition v2021.2 (64-bit)
   **** SW Build 3367213 on Tue Oct 19 02:47:39 MDT 2021
     ** Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
 
@@ -26,7 +33,7 @@ INFO: [Labtools 27-2285] Connecting to hw_server url TCP:localhost:3121
 INFO: [Labtools 27-2222] Launching hw_server...
 INFO: [Labtools 27-2221] Launch Output:
 
-****** Xilinx hw_server v2021.2
+ ****** Xilinx hw_server v2021.2
   **** Build date : Oct 19 2021 at 03:13:42
     ** Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
 
@@ -36,7 +43,7 @@ INFO: [Labtools 27-3417] Launching cs_server...
 INFO: [Labtools 27-2221] Launch Output:
 
 
-******** Xilinx cs_server v2021.2.0
+ ******** Xilinx cs_server v2021.2.0
   ****** Build date   : Sep 27 2021-16:44:20
     **** Build number : 2021.2.1632779060
       ** Copyright 2017-2024 Xilinx, Inc. All Rights Reserved.
@@ -95,3 +102,4 @@ echo
 program_both_DTCs.sh:42 |        ===> Done with mu2edaq22.fnal.gov programming bitfile and PCIe reset!
 echo
 #+end_src
+* ------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
-// 
+//
 //////////////////////////////////////////////////////////////////////////////
 #ifndef __tfm_launch_fend_hh_
 #define __tfm_launch_fend_hh_
@@ -9,7 +9,8 @@
 //#include "drivers/class/multi.h"
 #include "frontends/utils/mu2e_sc.hh"
 //-----------------------------------------------------------------------------
-/* device driver list */
+// for the TFM frontend, there is nothing to read, so the actual driver=nulldev
+//-----------------------------------------------------------------------------
 DEVICE_DRIVER driver_list[] = {
   {"tfm_launch_fend_driver", nulldev ,  1 , null, DF_INPUT},  // reserve the array larger than the immediate need
   {""}
@@ -28,7 +29,7 @@ EQUIPMENT equipment[] = {
       0,                                  // event source (LAM/IRQ)
       "FIXED",                            // data format to produce
       TRUE,                               // enable flag value
-                                          // combination of Read-On flags R)_xxx - read when running and on transitions 
+                                          // combination of Read-On flags R)_xxx - read when running and on transitions
                                           // and on ODB updates
       RO_RUNNING | RO_TRANSITIONS, // RO_ALWAYS,
       10000,                              // readout interval/polling time in ms (1 sec)

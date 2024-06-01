@@ -15,10 +15,11 @@
 
 #include "dtcInterfaceLib/DTC.h"
 
+#include "otsdaq-mu2e-tracker/ui/DtcInterface.hh"
+
 typedef struct {
-  int          address;
-  int          dtcID;
-  DTCLib::DTC* dtc;
+  int                   pcieAddr;
+  trkdaq::DtcInterface* dtc_i;
 } DTC_DRIVER_SETTINGS;
 
 /* the following structure contains private variables to the device

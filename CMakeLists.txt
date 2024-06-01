@@ -13,7 +13,7 @@ find_package(PostgreSQL 13.2 REQUIRED)
 
 # project(otsdaq_mu2e_tracker VERSION 1.03.02)
 
-find_package(cetmodules 3.16.00 REQUIRED)
+find_package(cetmodules 3.19.02 REQUIRED)
 project(frontends VERSION 1.01.01)
 
 include(CetCMakeEnv)
@@ -84,6 +84,7 @@ if($ENV{BUILD_CFO_FRONTEND})
   add_subdirectory(cfo_frontend)
 endif()
 
+add_subdirectory(cfo_frontend)
 add_subdirectory(dtc_frontend)
 add_subdirectory(roc_crv_frontend)
 add_subdirectory(roc_trk_frontend)

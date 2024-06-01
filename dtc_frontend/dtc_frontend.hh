@@ -4,6 +4,10 @@
 #ifndef __dtc_frontend_hh__
 #define __dtc_frontend_hh__
 
+#include "midas.h"
+
+typedef int INT;
+
 #include "drivers/bus/null.h"
 
 #include "frontends/utils/mu2e_sc.hh"

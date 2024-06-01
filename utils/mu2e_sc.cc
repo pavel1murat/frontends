@@ -27,14 +27,14 @@ typedef struct {
    HNDLE hKeyOutput, hKeyInput;
 
    /* globals */
-   INT num_channels_input, num_channels_output;
-   INT format;
-   INT last_channel;
+   INT   num_channels_input, num_channels_output;
+   INT   format;
+   INT   last_channel;
    DWORD last_update_input;
    DWORD last_update_output;
 
    /* items in /Variables record */
-   char *names_input, *names_output;
+   char  *names_input, *names_output;
    float *var_input;
    float *var_output;
 
@@ -43,16 +43,16 @@ typedef struct {
    float *factor_input, *factor_output;
    float *offset_input, *offset_output;
 
-   char *formula_input;
+   char     *formula_input;
    te_expr **expr_input;
-   double *expr_x;
+   double   *expr_x;
 
    /* mirror arrays */
    float *input_mirror;
    float *output_mirror;
 
    DEVICE_DRIVER **driver_input, **driver_output;
-   INT *channel_offset_input, *channel_offset_output;
+   INT           *channel_offset_input, *channel_offset_output;
 
 } MU2E_SC_INFO;
 
@@ -327,7 +327,7 @@ INT mu2e_sc_init(EQUIPMENT *pequipment) {
    if      (equal_ustring(str, "Fixed")) m_info->format = FORMAT_FIXED;
    else if (equal_ustring(str, "MIDAS")) m_info->format = FORMAT_MIDAS;
    else if (equal_ustring(str, "YBOS" )) m_info->format = FORMAT_YBOS;
-//-----------------------------------------------------------------------------   
+//-----------------------------------------------------------------------------
 // count total number of channels, they are lumped into a single array
 // this is what I may try to avoid in the future
 //-----------------------------------------------------------------------------

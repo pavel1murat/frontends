@@ -11,7 +11,7 @@
 //  $Id$
 ///////////////////////////////////////////////////////////////////////////////
 #include "TRACE/tracemf.h"
-#define TRACE_NAME "cfo_driver"
+#define TRACE_NAME "cfo_gen_driver"
 
 #include <math.h>
 #include <stdio.h>
@@ -21,23 +21,21 @@
 #include "midas.h"
 #include "mfe.h"
 
-#include "dtcInterfaceLib/DTC.h"
-using namespace DTCLib; 
-
 #include "frontends/utils/utils.hh"
-#include "frontends/cfo_frontend/cfo_driver.hh"
+#include "frontends/utils/OdbInterface.hh"
 
-DTC* _dtc(nullptr);
+#include "frontends/cfo_frontend/cfo_interface.hh"
+#include "frontends/cfo_frontend/cfo_gen_driver.hh"
+
+#include "otsdaq-mu2e-tracker/ui/DtcInterface.hh"
+#include "otsdaq-mu2e-tracker/ui/CfoInterface.hh"
+
+using namespace DTCLib; 
+using namespace trkdaq;
 
 /*---- globals -----------------------------------------------------*/
 
 #define DEFAULT_TIMEOUT 10000   /* 10 sec. */
-
-#define CFO_DRIVER_SETTINGS_STR "\
-Address = INT   : 1\n\
-DTC_ID  = INT   : %i\n\
-Dtc     = INT64 : 0\n\
-"
 
 typedef INT(func_t) (INT cmd, ...);
 
@@ -45,9 +43,11 @@ typedef INT(func_t) (INT cmd, ...);
 // the init function creates a ODB record which contains the
 // settings and initializes it variables as well as the bus driver
 //-----------------------------------------------------------------------------
-INT cfo_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *bd) {
+INT cfo_gen_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *bd) {
   int              status, size  ;
   HNDLE            hDB   , hkeydd;
+  std::string      active_run_conf;
+
   CFO_DRIVER_INFO  *info;
 
   TLOG(TLVL_INFO+10) << "001 channels:" << channels;
@@ -58,14 +58,24 @@ INT cfo_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *b
   *pinfo = info;
 
   cm_get_experiment_database(&hDB, NULL);
+  OdbInterface* odb_i = OdbInterface::Instance(hDB);
+
+  odb_i->GetActiveRunConfig(hDB,active_run_conf);
+  HNDLE h_active_run_conf   = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+
+  std::string host          = get_full_host_name("local");
+  HNDLE       h_cfo_conf    = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
+
+  int         cfo_type      = odb_i->GetCFOType         (hDB,h_cfo_conf);
+  int         n_ewm_per_sec = odb_i->GetCFONEwmPerSecond(hDB,h_cfo_conf);
+  int         pcie_addr     = odb_i->GetPcieAddress     (hDB,h_cfo_conf);
 //-----------------------------------------------------------------------------
-// create DTC_DRIVER settings record - what is that already exists ? - not overwritten?
+// create CFO_DRIVER settings record - what if it already exists ? - not overwritten?
 // assume index = 0 corresponds to the PCIE card address=0
 //------------------------------------------------------------------------------
   char str[1000];
 
-  int cfo_pcie_address(0);                                   // frontend_index % 2;
-  sprintf(str,CFO_DRIVER_SETTINGS_STR,cfo_pcie_address);
+  sprintf(str,CFO_DRIVER_SETTINGS_STR,pcie_addr,cfo_type,n_ewm_per_sec);
   status = db_create_record(hDB, hkey, "DD", str);
 
   if (status != DB_SUCCESS)                                 return FE_ERR_ODB;
@@ -80,10 +90,12 @@ INT cfo_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *b
   info->bd           = bd;
   info->hkey         = hkey;
 //-----------------------------------------------------------------------------
-// initialize CFO, assume that for some magic the ODB has the proper value of 
-// dtcID stored in it
-// force dtc_id to come from the driver name
+// CfoInterface has been initialized in the frontend, just use the pointer
+// 0: emulated
+// 1: external CFO
 //-----------------------------------------------------------------------------
+  info->driver_settings.cfoType   = cfo_type;
+  info->driver_settings.interface = CfoInterface::Instance(pcie_addr);
 
   /* initialize bus driver */
   status = info->bd(CMD_INIT, info->hkey, &info->bd_info);
@@ -100,7 +112,7 @@ INT cfo_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *b
 
 
 /*----------------------------------------------------------------------------*/
-INT cfo_driver_exit(CFO_DRIVER_INFO * info) {
+INT cfo_gen_driver_exit(CFO_DRIVER_INFO * info) {
 
   /* call EXIT function of bus driver, usually closes device */
   info->bd(CMD_EXIT, info->bd_info);
@@ -112,7 +124,7 @@ INT cfo_driver_exit(CFO_DRIVER_INFO * info) {
 }
 
 /*----------------------------------------------------------------------------*/
-INT cfo_driver_set(CFO_DRIVER_INFO * info, INT channel, float value) {
+INT cfo_gen_driver_set(CFO_DRIVER_INFO * info, INT channel, float value) {
   char str[80];
 
   /* set channel to a specific value, something like ... */
@@ -129,7 +141,7 @@ INT cfo_driver_set(CFO_DRIVER_INFO * info, INT channel, float value) {
 }
 
 //-----------------------------------------------------------------------------
-INT cfo_driver_get_label(CFO_DRIVER_INFO * Info, INT Channel, char* Label) {
+INT cfo_gen_driver_get_label(CFO_DRIVER_INFO * Info, INT Channel, char* Label) {
   if      (Channel == 0) sprintf(Label,"CFO#nev");
   else {
     TLOG(TLVL_ERROR) << "channel:" << Channel << ". Do nothing";  
@@ -139,41 +151,43 @@ INT cfo_driver_get_label(CFO_DRIVER_INFO * Info, INT Channel, char* Label) {
 }
 
 //-----------------------------------------------------------------------------
-INT cfo_driver_get(CFO_DRIVER_INFO * Info, INT Channel, float *PValue) {
+// this function is supposed to be called once per second to generate N EVMs
+// assume only one channel
+//-----------------------------------------------------------------------------
+INT cfo_gen_driver_get(CFO_DRIVER_INFO* Info, INT Channel, float *PValue) {
 
-  //  uint32_t val(0);
-
-  TLOG(TLVL_DEBUG+10) << "cfo_driver_get: Channel: " << Channel;
+  TLOG(TLVL_DEBUG+10) << "Channel: " << Channel;
 
   if      (Channel == 0) {
-    cm_get_experiment_database(&hDB, NULL);
-    char     key[100];
-    HNDLE    h_cfo;
-
-    sprintf(key,"/Equipment/CFO/nev");
-    db_find_key(hDB, 0, key, &h_cfo);
-
-    Info->array[0] = Info->array[0]+1;                // nevents
+    int newm = Info->driver_settings.n_ewm_per_sec;
+//-----------------------------------------------------------------------------
+// once per second, generate N EWMs
+// they are mot necessarily distributed in tme uniformly
+// for now, assume that n_ewm*ew_length <= 1 sec; and implement proper logic later
+//-----------------------------------------------------------------------------
+    if (Info->driver_settings.cfoType == 1) {
+                                        // external CFO
+      trkdaq::CfoInterface* cfo_i = (trkdaq::CfoInterface*) Info->driver_settings.interface;
+      cfo_i->LaunchRunPlan();
+    }
+    else {
+      trkdaq::DtcInterface* dtc_i = (trkdaq::DtcInterface*) Info->driver_settings.interface;
+      dtc_i->LaunchRunPlan(newm);
+    }
   }
 
-  *PValue = Info->array[0];
+  *PValue = 0;
 //-----------------------------------------------------------------------------
 // assume success for now and implement handling of timeouts/errors etc later
 //-----------------------------------------------------------------------------
    TLOG(TLVL_INFO+10) << "010 cfo:" << " PValue:" << *PValue;
-//-----------------------------------------------------------------------------
-// assume success for now and implement handling of timeouts/errors etc later
-// and at this point implement sleep
-// I don't need to read the DTC too often
-//-----------------------------------------------------------------------------
-   sleep(1);
 
    return FE_SUCCESS;
 }
 
 /*---- device driver entry point -----------------------------------*/
 
-INT cfo_driver(INT cmd, ...) {
+INT cfo_gen_driver(INT cmd, ...) {
    va_list         argptr;
    HNDLE           hKey;
    INT             channel, status;
@@ -193,7 +207,7 @@ INT cfo_driver(INT cmd, ...) {
       channel                 = va_arg(argptr, INT);
       va_arg(argptr, DWORD);
       func_t* bd              = va_arg(argptr, func_t*);
-      status                  = cfo_driver_init(hKey, pinfo, channel, bd);
+      status                  = cfo_gen_driver_init(hKey, pinfo, channel, bd);
 //-----------------------------------------------------------------------------
 // and now need to add some
 //-----------------------------------------------------------------------------
@@ -201,28 +215,28 @@ INT cfo_driver(INT cmd, ...) {
    }
    case CMD_EXIT:
       info = va_arg(argptr, CFO_DRIVER_INFO *);
-      status = cfo_driver_exit(info);
+      status = cfo_gen_driver_exit(info);
       break;
 
    case CMD_SET:
       info = va_arg(argptr, CFO_DRIVER_INFO *);
       channel = va_arg(argptr, INT);
       value = (float) va_arg(argptr, double);   // floats are passed as double
-      status = cfo_driver_set(info, channel, value);
+      status = cfo_gen_driver_set(info, channel, value);
       break;
 
    case CMD_GET:
       info = va_arg(argptr, CFO_DRIVER_INFO *);
       channel = va_arg(argptr, INT);
       pvalue = va_arg(argptr, float *);
-      status = cfo_driver_get(info, channel, pvalue);
+      status = cfo_gen_driver_get(info, channel, pvalue);
       break;
 
    case CMD_GET_LABEL:
       info    = va_arg(argptr, CFO_DRIVER_INFO *);
       channel = va_arg(argptr, INT);
       label   = va_arg(argptr, char *);
-      status  = cfo_driver_get_label(info, channel, label);
+      status  = cfo_gen_driver_get_label(info, channel, label);
       break;
 
    default:

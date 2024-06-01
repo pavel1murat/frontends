@@ -2,6 +2,9 @@
 # ------------------------------------------------------------------------------
 # development news
 # ------------------------------------------------------------------------------
+* <2024-05-10 Fri>                                                           
+- python version of the tfm_launch is the default
+- first successful test of running with the remote frontend
 * <2024-03-04 Mon>                                                           
 - as ARTDAQ_PARTITION_NUMBER is used only for the port assignment, make is a global variable, 
   /Mu2e/ARTDAQ_PARTITION_NUMBER, not a part of a configuration
