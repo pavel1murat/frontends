@@ -7,19 +7,33 @@ ROC firmware is subdetector-specific
 * 0x0000 : 0x1234, if everything is OK                                       
   - if not, powercycle the ROC 
   - if that doesn't help, try resetting the DTC
-* 0x0008 : "lane enable" register                                            
+* 0x0008 : "lane enable / pattern enable" register                           
+
   after adding external clock and evmarker control to the ROC,
-  one needs to write bit(8)=1 and bit(9)=1 on register 8, ie 0x300 (0r 768)
-  0x300 + link enable 
+  one needs to write bit(8)=1 and bit(9)=1 on register 8, ie 0x300 (or 768)
+  0x300 + lane enable 
 
-  0x1: CAL lane 0
-  0x2: CAL lane 1
-  0x4: HV  lane 0
-  0x8: HV  lane 1
+  0x0001: CAL lane 0
+  0x0002: CAL lane 1
+  0x0004: HV  lane 0
+  0x0008: HV  lane 1
 
-  0xf: all four lanes enabled, 0x30f to be written
+  0x000f: all four lanes enabled, for that 0x30f to be written 
+
+  0x0010: pattern mode (?)
   
 * 0x0014 : ROC reset register                                                
+  write 1 ro 0x0014 to reset the ROC
+* 0x0029 : data version register                                             
+  <2024-05-12 Sun> : current version: 1
+* TODO 0x0030 : mode register so far, I used only mode=0                     
+  what is the mode ? - it has to be written in the beginning  
+  write mode to 0x0030 
+  - mode (from Monica's script): 
+  - 0: status bit = 0x55 what is it ?
+  - 1: STATUS_BIT_0=DREQ_EMPY, BIT_1=DREQ_FULL, BIT_2=ETFIFO_FULL, STATUS_BIT_3=DDR_WRAP
+  - 2: STATUS_BIT=DREQ_WRCNT
+  - 3: STATUS_BIT=EWM_COUNTER
 #+begin_src 
 rocUtil write_register -a 14 -w 1 -l $LINK 
 rocUtil simple_read    -a 14

@@ -16,6 +16,9 @@ sys.path.append(os.environ["TFM_DIR"])
 # import rc.control.farm_manager as farm_manager
 import rc.control.farm_manager as farm_manager
 
+sys.path.append(os.environ["FRONTENDS_DIR"])
+from utils.runinfodb import RuninfoDB
+
 #------------------------------------------------------------------------------
 # TFM 'equipment' is just a placeholder
 # 'client' is the Midas frontend client which connects to ODB
@@ -110,32 +113,32 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 # determine active configuration
 #------------------------------------------------------------------------------
-        _config_name                 = self.client.odb_get("/Mu2e/ActiveRunConfiguration")
+        self.config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration")
         self.artdaq_partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER")
-        TRACE.TRACE(7,f":0014: artdaq_partition_number={self.artdaq_partition_number}")
-        config_path          = "/Mu2e/RunConfigurations/"+_config_name;
-        _use_runinfo_db      = self.client.odb_get(config_path+'/UseRuninfoDB')
-        _output_dir          = self.client.odb_get("/Mu2e/OutputDir")
 
-        config_dir           = os.path.join(os.environ.get('MU2E_DAQ_DIR', ''), 'config', _config_name)
-        TRACE.TRACE(7,":0014:config_dir=%s use_runinfo_db=%i" % (config_dir,_use_runinfo_db))
+        TRACE.TRACE(7,f":0014: artdaq_partition_number={self.artdaq_partition_number}")
+
+        config_path                  = "/Mu2e/RunConfigurations/"+self.config_name;
+        self.use_runinfo_db          = self.client.odb_get(config_path+'/UseRuninfoDB')
+        self.output_dir                  = self.client.odb_get("/Mu2e/OutputDir")
+
+        config_dir = os.path.join(os.environ.get('MU2E_DAQ_DIR', ''), 'config', self.config_name)
+        TRACE.TRACE(7,":0014:config_dir=%s use_runinfo_db=%i" % (config_dir,self.use_runinfo_db))
 
         os.environ["TFM_SETUP_FHICLCPP"] = f"{config_dir}/.setup_fhiclcpp"
 
-        self.tfm_logfile = self.get_logfile(_output_dir)
+        self.tfm_logfile = self.get_logfile(self.output_dir)
         os.environ["TFM_LOGFILE"       ] = self.tfm_logfile
-#------------------------------------------------------------------------------
-# strip '/dev/' from tty 
-# TODO : TFM_TTY is not needed, remove....
-#------------------------------------------------------------------------------
         TRACE.TRACE(7,"0016: after get_logfile")
-        try:
-            fd  = open("/dev/stdout");
-            os.environ["TFM_TTY"           ] = os.ttyname(fd.fileno())[5:];
-        except:
-            os.environ["TFM_TTY"           ] = "undefined"
 
-#        TRACE.TRACE(7,"0017: after open /dev/stdout TFM_TTY=%s"%(os.environ["TFM_TTY"]))
+# 2024-05-11 P.Murat: comment out the TTY stuff - not used so far
+#         try:
+#             fd  = open("/dev/stdout");
+#             os.environ["TFM_TTY"           ] = os.ttyname(fd.fileno())[5:];
+#         except:
+#             os.environ["TFM_TTY"           ] = "undefined"
+# 
+# #        TRACE.TRACE(7,"0017: after open /dev/stdout TFM_TTY=%s"%(os.environ["TFM_TTY"]))
 #------------------------------------------------------------------------------
 # You can add equipment at any time before you call `run()`, but doing
 # it in __init__() seems logical.
@@ -145,7 +148,14 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 
         self.fm   = farm_manager.FarmManager(config_dir=config_dir)
         TRACE.TRACE(7,"004: tfm instantiated")
-
+#------------------------------------------------------------------------------
+# runinfo DB related stuff
+#-------v----------------------------------------------------------------------
+        self.runinfo_db   = None;
+        if (self.use_runinfo_db):
+            self.runinfo_db   = RuninfoDB(self.client);
+            
+            
 #------------------------------------------------------------------------------
 # strt screen process tailing the logfile
 #-------v----------------------------------------------------------------------
@@ -165,11 +175,29 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
     def begin_of_run(self, run_number):
 
-        self.set_all_equipment_status("Running", "greenLight")
         self.client.msg("Frontend has seen start of run number %d" % run_number)
+
+        if (self.use_runinfo_db):
+            try:
+                db = runinfo_db("aaa");
+                rc = db.register_transition(run_number,runinfo.START,0);
+            except:
+                TRACE.ERROR("failed to register beginning of the START transition")
+
+        self.set_all_equipment_status("Run starting", "yellow")
+
         self.fm.do_config(run_number=run_number)
         self.fm.do_start_running()
         TRACE.TRACE(7,"001:BEGIN_OF_RUN")
+
+        if (self.use_runinfo_db):
+            try:
+                db = runinfo_db("aaa");
+                rc = db.register_transition(run_number,runinfo.END,1);
+            except:
+                TRACE.ERROR("failed to register endof the START transition")
+
+        self.set_all_equipment_status("Running", "greenLight")
 
         return midas.status_codes["SUCCESS"]
 
@@ -177,10 +205,28 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #
 #---v--------------------------------------------------------------------------
     def end_of_run(self, run_number):
+
+        if (self.use_runinfo_db):
+            try:
+                db = runinfo_db("aaa");
+                rc = db.register_transition(run_number,runinfo.STOP,0);
+            except:
+                TRACE.ERROR("failed to register beginning of the END_RUN transition")
+
         self.fm.do_stop_running()
+        TRACE.TRACE(7,"001:END_RUN")
+
+        if (self.use_runinfo_db):
+            try:
+                db = runinfo_db("aaa");
+                rc = db.register_transition(run_number,runinfo.STOP,1);
+            except:
+                TRACE.ERROR("failed to register end of the END_RUN transition")
+
+
         self.set_all_equipment_status("Finished", "greenLight")
         self.client.msg("Frontend has seen end of run number %d" % run_number)
-        TRACE.TRACE(7,"001:END_OF_RUN")
+
         return midas.status_codes["SUCCESS"]
 
 #------------------------------------------------------------------------------

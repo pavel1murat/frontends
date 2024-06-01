@@ -71,10 +71,12 @@
 #+end_src
 *** WriteCFO
 *** CFO Write --> CFOFrontEndInterface::WriteCFO
-*** LoopbackTest
+*** LoopbackTest                                                             
     file:../../otsdaq_mu2e/otsdaq-mu2e/FEInterfaces/CFOFrontEndInterface_interface.cc::/LoopbackTest/
 
-*** TestMarker
+*** TestMarker               
+    file:../../otsdaq_mu2e/otsdaq-mu2e/FEInterfaces/CFOFrontEndInterface_interface.cc::/TestMarker/
+- calls once function 'measureDelay' : 
 *** "CFO Read" --> CFOFrontEndInterface::ReadCFO
 *** ResetRunplan
 *** CompileRunplan
@@ -83,7 +85,7 @@
 *** ConfigureForTimingChain
 * [[file:dtc.org][DTC]]
 * [[file:elog.org][elog]]
-* file:firmware.org                 
+* [[file:firmware.org][firmware]]
 * [[file:rocs.org][ROCs]]
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=19095][mu2e-19095]] : Mu2e beam timing
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=37376&filename=20220922_DAQNodes.pdf][mu2e-37376]] : DAQ node configuration in the DAQ room                        
@@ -106,6 +108,11 @@ more details: https://www.geeksforgeeks.org/screen-command-in-linux-with-example
 source /home/xilinx/Vivado_Lab/2021.2/settings64.sh
 vivado_lab 
 #+end_src
+
+- DAQ22:
+- CFO(pcie index=0) JTAG: localhost/xilinx_tcf/Xilinx/00001b8d782001
+- DTC(pcie index=1) JTAG: localhost/xilinx_tcf/Xilinx/00001b8d75ad01
+- hw_ila_16 (cfo_counters): 
 * ------------------------------------------------------------------------------
 * additional documentation on MIDAS: file:midas.org
 * ------------------------------------------------------------------------------

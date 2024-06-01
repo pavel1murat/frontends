@@ -32,6 +32,7 @@ cet_make_library(LIBRARY_NAME frontends
                               # mu2e_sc_new.cc
                               get_xmlrpc_url.cc utils.cc
                               get_host_name.cc
+                              OdbInterface.cc
                  LIBRARIES PUBLIC 
                  midas
                  ${PostgreSQL_LIBRARIES} 

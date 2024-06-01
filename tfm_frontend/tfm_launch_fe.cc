@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 // P.Murat: this frontend just launches the farm manager
-// make sure to use the correct TRACE name 
+// make sure to use the correct TRACE name
 // the host name has to be specified upon submission
 // start: tfm_launch_fe -h mu2edaq09.fnal.gov
 // host_name is defined in midas/include/mfe.h
@@ -108,7 +108,7 @@ static bool          _tfm_messages(false);
 
 //-----------------------------------------------------------------------------
 // the farm should be started independent on the monitoring frontend
-// print message and return FE_ERR_HW if frontend should not be started 
+// print message and return FE_ERR_HW if frontend should not be started
 // P.M. use _argc and _argv provided by Stefan
 //-----------------------------------------------------------------------------
 INT frontend_init() {
@@ -164,16 +164,16 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 // Create or clear the "/Equipment/tfm_launch/Clients" ODB sub-tree
 //-----------------------------------------------------------------------------
-  sprintf(key,"/Equipment/%s/Clients", equipment[0].name); 
+  sprintf(key,"/Equipment/%s/Clients", equipment[0].name);
   if(db_find_key(hDB, 0, key, &hKey) == DB_SUCCESS) {
      db_delete_key(hDB, hKey, false);
-  } 
+  }
   db_create_key(hDB, 0, key, TID_KEY);
   //db_find_key(hDB, 0, str, hKey);
 //-----------------------------------------------------------------------------
 // launch the farm manager via screen
 //-----------------------------------------------------------------------------
-  cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s', partition %i", 
+  cm_msg(MINFO, "tfm_manager", "Launch the farm manager with run config '%s', partition %i",
          active_conf, _partition);
   char cmd[200];
 
@@ -201,7 +201,7 @@ INT frontend_exit() {
   xmlrpc_value* resultP;
   size_t        length;
   const char*   value;
- 
+
   cm_msg(MINFO, "tfm_manager", "Shuting down the farm manager.");
   //cm_disconnect_experiment();
   resultP = xmlrpc_client_call(&_env,_xmlrpcUrl,"shutdown","(s)","daqint");
@@ -225,11 +225,11 @@ INT frontend_exit() {
 //-----------------------------------------------------------------------------
   HNDLE hDB, hKey;
   char key[200];
-  cm_get_experiment_database(&hDB, NULL); 
-  sprintf(key,"/Equipment/%s/Clients", equipment[0].name); 
+  cm_get_experiment_database(&hDB, NULL);
+  sprintf(key,"/Equipment/%s/Clients", equipment[0].name);
   if(db_find_key(hDB, 0, key, &hKey) == DB_SUCCESS) {
      db_delete_key(hDB, hKey, false);
-  } 
+  }
   db_create_key(hDB, 0, key, TID_KEY);
 
   return SUCCESS;
@@ -254,11 +254,11 @@ int wait_for(const char* State, int MaxWaitingTime) {
 
   while (state != State) {
 
-    resultP = xmlrpc_client_call(&env, 
+    resultP = xmlrpc_client_call(&env,
                                  _xmlrpcUrl,
                                  "get_state",
                                  // "({s:i,s:i})",
-                                 "(s)", 
+                                 "(s)",
                                  "daqint");
     if (env.fault_occurred) {
       TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING...";
@@ -295,11 +295,11 @@ INT begin_of_run(INT RunNumber, char *error) {
   xmlrpc_env    env;
   xmlrpc_value* resultP;
 //-----------------------------------------------------------------------------
-// register beginning of the transition 
+// register beginning of the transition
 //-----------------------------------------------------------------------------
   int rc(0);
   if (_useRunInfoDB) {
-    try { 
+    try {
       db_runinfo db("aaa");
       rc = db.registerTransition(RunNumber,db_runinfo::START,0);
     }
@@ -311,11 +311,11 @@ INT begin_of_run(INT RunNumber, char *error) {
   set_equipment_status(equipment[0].name, "Run starting...", "yellow");
 
   xmlrpc_env_init(&env);
-  resultP = xmlrpc_client_call(&env, 
+  resultP = xmlrpc_client_call(&env,
                                _xmlrpcUrl,
                                "state_change",
                                                          // "({s:i,s:i})",
-                               "(ss{s:i})", 
+                               "(ss{s:i})",
                                "daqint",
                                "configuring",
                                "run_number", RunNumber);
@@ -327,7 +327,7 @@ INT begin_of_run(INT RunNumber, char *error) {
   const char* value;
   size_t      length;
   xmlrpc_read_string_lp(&env, resultP, &length, &value);
-    
+
   std::string res = value;
 
   printf("tfm_frontend::%s  after XMLRPC command: result:%s\n",__func__,res.data());
@@ -345,11 +345,11 @@ INT begin_of_run(INT RunNumber, char *error) {
 //
 // // assuming it was OK, 'start'
 //-----------------------------------------------------------------------------
-  resultP = xmlrpc_client_call(&env, 
+  resultP = xmlrpc_client_call(&env,
                                _xmlrpcUrl,
                                "state_change",
                                                            // "({s:i,s:i})",
-                               "(ss{s:i})", 
+                               "(ss{s:i})",
                                "daqint",
                                "starting",
                                "ignored_variable", 9999);
@@ -369,7 +369,7 @@ INT begin_of_run(INT RunNumber, char *error) {
 // register the end of the start completion
 //-----------------------------------------------------------------------------
   if (_useRunInfoDB) {
-    try { 
+    try {
       db_runinfo db("aaa");
       rc = db.registerTransition(RunNumber,db_runinfo::START,1);
     }
@@ -410,14 +410,14 @@ INT end_of_run(INT RunNumber, char *Error) {
     }
   }
 //-----------------------------------------------------------------------------
-// send the transition request 
+// send the transition request
 //-----------------------------------------------------------------------------
   xmlrpc_env_init(&env);
-  resultP = xmlrpc_client_call(&_env, 
+  resultP = xmlrpc_client_call(&_env,
                                _xmlrpcUrl,
                                "state_change",
                                                                                 // "({s:i,s:i})",
-                               "(ss{s:i})", 
+                               "(ss{s:i})",
                                "daqint",
                                "stopping",
                                "ignored_variable", 9999);
@@ -479,11 +479,11 @@ INT frontend_loop() {
     xmlrpc_value*       resultP;
     size_t              length;
     const char*         value;
-    
+
     try {
       xmlrpc_env_init(&env);
 //-----------------------------------------------------------------------------
-// 'daqint' here is the name of the FarmManager (former artdaq_DAQInterface) 
+// 'daqint' here is the name of the FarmManager (former artdaq_DAQInterface)
 // doesn't seem to be used anywhere, but still have to pass (or change the interfaces)
 //-----------------------------------------------------------------------------
                                         // "({s:i,s:i})",
@@ -492,42 +492,42 @@ INT frontend_loop() {
   //int                 waiting_time = 0;
 
       xmlrpc_env_init(&env);
-      resultP = xmlrpc_client_call(&env, 
+      resultP = xmlrpc_client_call(&env,
                                    _xmlrpcUrl,
                                    "get_state",
                                    // "({s:i,s:i})",
-                                   "(s)", 
+                                   "(s)",
                                    "daqint");
       if (env.fault_occurred) {
-        TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << "."; 
-        //cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string); 
+        TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << ".";
+        //cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string);
         set_equipment_status(equipment[0].name, "booting", "yellow");
-      } 
+      }
       else {
-        
+
         xmlrpc_read_string_lp(&env, resultP, &length, &value);
         state = value;
-  
+
         set_equipment_status(equipment[0].name, state.c_str(), "greenLight");
         //cm_msg(MINFO,"tfm", "TFM state: '%s'", state.c_str());
 //-----------------------------------------------------------------------------
 // only if getting the status of the farm manager worked, try update the status of all farm processes here
 // P.M. this is an idea of Simon - this idea is good
-// the command returns status of all artdaq processes - putting all into one string 
+// the command returns status of all artdaq processes - putting all into one string
 // could be a bit of an overkill
 // what if the number of clients is too large ? - how does this approach scale ?
 // this is how a very long string shows up on the front page
 //-----------------------------------------------------------------------------
-        resultP = xmlrpc_client_call(&env, 
+        resultP = xmlrpc_client_call(&env,
                                      _xmlrpcUrl,
                                      "artdaq_process_info",
                                      // "({s:i,s:i})",
-                                     "(s)", 
+                                     "(s)",
                                      "daqint");
         if (env.fault_occurred) {
           TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << ".";
-          cm_msg(MERROR,"frontend_loop","Failed to `artdaq_process_info` with '%s'.", env.fault_string); 
-        } 
+          cm_msg(MERROR,"frontend_loop","Failed to `artdaq_process_info` with '%s'.", env.fault_string);
+        }
         else {
 //-----------------------------------------------------------------------------
 // trying to parse potentially long output 'artdaq_process_info'
@@ -536,14 +536,14 @@ INT frontend_loop() {
           std::string artdaq_process_info = value;
           std::istringstream iss(artdaq_process_info);
           std::string line;
-          
+
           const char *client_str =
 "[.]\n\
 host      = STRING : [64] \n\
 status    = STRING : [64] \n\
 subsystem = INT : 0\n\
 rank      = INT : 0";
-        
+
           typedef struct {
             //char name[64];
             char host  [64];
@@ -552,24 +552,24 @@ rank      = INT : 0";
             INT  rank;
           } client_t;
           client_t client;
-          
+
           std::string name;
-          
+
           HNDLE hDB, hKey, hKeyClient;
           cm_get_experiment_database(&hDB, NULL);
-          char key[200]; 
+          char key[200];
           sprintf(key,"/Equipment/%s/Clients", equipment[0].name);
           db_find_key(hDB, 0, key, &hKey); // check if found?
-          
+
           int cnt = 0;
           while (std::getline(iss, line)) {
             cnt++;
-            // 
+            //
             std::istringstream words(line);
             std::string word;
             int wcnt = 0;
             strcpy(client.status, "n/a");
-            while (getline(words, word,' ')) { 
+            while (getline(words, word,' ')) {
               if (wcnt == 0) name             = word;
               if (wcnt == 2) strcpy(client.host, word.c_str());
               if (wcnt == 4) client.subsystem = std::stoi(word.substr(0, word.size()-1));
@@ -590,24 +590,24 @@ rank      = INT : 0";
               db_create_record(hDB, hKey, key, client_str);
               db_find_key(hDB, hKey, key, &hKeyClient);
             }
-            
-            // update the client's status 
+
+            // update the client's status
            db_set_record(hDB, hKeyClient, &client, sizeof(client_t), 0);
           }
         }
 //-----------------------------------------------------------------------------
-// 
+//
 //-----------------------------------------------------------------------------
         if (_tfm_messages) {
           // check for new messages
-          resultP = xmlrpc_client_call(&env, 
+          resultP = xmlrpc_client_call(&env,
                                        _xmlrpcUrl,
                                        "get_messages",
                                        "(s)",
                                        "daqint");
           if (env.fault_occurred) {
             TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string << ".";
-            cm_msg(MERROR,"frontend_loop","Failed to `get_messages` with '%s'.", env.fault_string); 
+            cm_msg(MERROR,"frontend_loop","Failed to `get_messages` with '%s'.", env.fault_string);
           }
           else {
             xmlrpc_read_string_lp(&env, resultP, &length, &value);
@@ -624,11 +624,11 @@ rank      = INT : 0";
                 size_t pos = line.find(":");
                 if(line.substr(0, pos) == "error") {
                   cm_msg(MERROR,"artdaq","%s", line.substr(pos+1).c_str());
-                } 
+                }
                 else if(line.substr(0, pos) == "alarm") {
                   al_trigger_alarm("artdaq", line.substr(pos+1).c_str(), "artdaq", "unhappy", AT_INTERNAL);
                   //cm_msg(MERROR,"artdaq","%s", state.substr(pos+1).c_str()); // todo, midas alarm
-                } 
+                }
                 else {
                   cm_msg(MINFO,"artdaq","%s", line.substr(pos+1).c_str());
                 }
@@ -638,19 +638,19 @@ rank      = INT : 0";
         }
       }
       if (env.fault_occurred) {
-        TLOG(TLVL_ERROR) << "001: XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
-        // cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string); 
+        TLOG(TLVL_ERROR) << "001: XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING...";
+        // cm_msg(MERROR,"tfm","XML-RPC rc=%i %s", env.fault_code, env.fault_string);
         set_equipment_status(equipment[0].name, "booting", "greenLight");
-      } 
+      }
       else {
 //-----------------------------------------------------------------------------
 // everything looks OK, define the frontend state (status)
 //-----------------------------------------------------------------------------
-      resultP = xmlrpc_client_call(&env, 
+      resultP = xmlrpc_client_call(&env,
                                    _xmlrpcUrl,
                                    "get_state",
                                    // "({s:i,s:i})",
-                                   "(s)", 
+                                   "(s)",
                                    "daqint");
         xmlrpc_read_string_lp(&env, resultP, &length, &value);
 //-----------------------------------------------------------------------------
@@ -658,13 +658,13 @@ rank      = INT : 0";
 //-----------------------------------------------------------------------------
         std::string fe_state = value;
         set_equipment_status(equipment[0].name, fe_state.data(), "greenLight");
-        //cm_msg(MINFO,"tfm", "TFM state: '%s'", state.c_str()); 
+        //cm_msg(MINFO,"tfm", "TFM state: '%s'", state.c_str());
       }
     }
     catch(...) {
-      TLOG(TLVL_ERROR) << "002: XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING..."; 
+      TLOG(TLVL_ERROR) << "002: XML-RPC rc=" << env.fault_code << " " << env.fault_string << " EXITING...";
     }
-  } 
+  }
 //-----------------------------------------------------------------------------
 // sleeep for a second
 //-----------------------------------------------------------------------------

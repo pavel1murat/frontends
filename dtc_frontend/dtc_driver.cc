@@ -34,9 +34,8 @@ DTC* _dtc(nullptr);
 #define DEFAULT_TIMEOUT 10000   /* 10 sec. */
 
 #define DTC_DRIVER_SETTINGS_STR "\
-Address = INT   : 1\n\
-DTC_ID  = INT   : %i\n\
-Dtc     = INT64 : 0\n\
+PcieAddr = INT   : %i\n\
+Dtc      = INT64 : 0\n\
 "
 
 typedef INT(func_t) (INT cmd, ...);
@@ -80,17 +79,19 @@ INT dtc_driver_init(HNDLE hkey, DTC_DRIVER_INFO **pinfo, INT channels, func_t *b
   info->bd           = bd;
   info->hkey         = hkey;
 //-----------------------------------------------------------------------------
-// initialize DTC, assume that for some magic the ODB has the proper value of 
-// dtcID stored in it
-// force dtc_id to come from the driver name
+// force dtc pcie addr to come from the driver name
 //-----------------------------------------------------------------------------
-  if (info->driver_settings.dtc == nullptr) {
-    printf(" DTC_ID = %i\n",info->driver_settings.dtcID);
-    int dtc_id(-1);
-    if (strcmp(FrontendsGlobals::_driver->name,"dtc0") == 0) dtc_id = 0;
-    if (strcmp(FrontendsGlobals::_driver->name,"dtc1") == 0) dtc_id = 1;
-    info->driver_settings.dtcID = dtc_id;
-    info->driver_settings.dtc = new DTC(DTC_SimMode_NoCFO,info->driver_settings.dtcID,0x0,"");
+  if (info->driver_settings.dtc_i == nullptr) {
+    printf(" PCIE address = %i\n",info->driver_settings.pcieAddr);
+    int pcie_addr(-1);
+    if (strcmp(FrontendsGlobals::_driver->name,"dtc0") == 0) pcie_addr = 0;
+    if (strcmp(FrontendsGlobals::_driver->name,"dtc1") == 0) pcie_addr = 1;
+    info->driver_settings.pcieAddr = pcie_addr;
+    info->driver_settings.dtc_i    = trkdaq::DtcInterface::Instance(pcie_addr);
+//-----------------------------------------------------------------------------
+// at this point need to initialize the DTC for a given running mode - this part 
+// is so far missing
+//-----------------------------------------------------------------------------
   }
 
   if (!bd)                                                  return FE_ERR_ODB;
@@ -142,10 +143,10 @@ INT dtc_driver_set(DTC_DRIVER_INFO * info, INT channel, float value) {
 
 //-----------------------------------------------------------------------------
 INT dtc_driver_get_label(DTC_DRIVER_INFO * Info, INT Channel, char* Label) {
-  if      (Channel == 0) sprintf(Label,"DTC%i#Temp"  ,Info->driver_settings.dtcID);
-  else if (Channel == 1) sprintf(Label,"DTC%i#VCCINT",Info->driver_settings.dtcID);
-  else if (Channel == 2) sprintf(Label,"DTC%i#VCCAUX",Info->driver_settings.dtcID);
-  else if (Channel == 3) sprintf(Label,"DTC%i#VCBRAM",Info->driver_settings.dtcID);
+  if      (Channel == 0) sprintf(Label,"DTC%i#Temp"  ,Info->driver_settings.pcieAddr);
+  else if (Channel == 1) sprintf(Label,"DTC%i#VCCINT",Info->driver_settings.pcieAddr);
+  else if (Channel == 2) sprintf(Label,"DTC%i#VCCAUX",Info->driver_settings.pcieAddr);
+  else if (Channel == 3) sprintf(Label,"DTC%i#VCBRAM",Info->driver_settings.pcieAddr);
   else {
     TLOG(TLVL_ERROR) << "channel:" << Channel << ". Do nothing";  
   }
@@ -166,19 +167,11 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
 
   uint32_t val(0);
 //-----------------------------------------------------------------------------
-// 
-//-----------------------------------------------------------------------------
-  // char str[80];
-  // sprintf(str, "GET %d", channel);
-  // BD_PUTS(str);
-  // BD_GETS(str, sizeof(str), ">", DEFAULT_TIMEOUT);
-
-//-----------------------------------------------------------------------------
 // FPGA temperature
 //-----------------------------------------------------------------------------
-  DTCLib::DTC* dtc = Info->driver_settings.dtc;
-  int dtc_id = Info->driver_settings.dtcID;
-  TLOG(TLVL_INFO+10) << "001 DTC_ID:" << dtc_id << " Channel:" << Channel;
+  DTCLib::DTC* dtc = Info->driver_settings.dtc_i->Dtc();
+  int pcie_addr = Info->driver_settings.pcieAddr;
+  TLOG(TLVL_INFO+10) << "001 PCIE address:" << pcie_addr << " Channel:" << Channel;
 //-----------------------------------------------------------------------------
 // channel=0: temperature, the rest three - voltages ; 
 //            read all four registers, convert into the right units, and store in the internal buffer 
@@ -189,7 +182,7 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
     HNDLE    h_dtc;
     std::string shname = get_short_host_name("local");
 
-    sprintf(key,"/Equipment/%s#DTC%i/Registers",shname.data(),dtc_id);
+    sprintf(key,"/Equipment/%s#DTC%i/Registers",shname.data(),pcie_addr);
     db_find_key(hDB, 0, key, &h_dtc);
 
     for (int i=0; i<DTC_NREG_HIST; i++) {
@@ -201,10 +194,10 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
     for (int i=0; i<DTC_NREG_NON_HIST; i++) {
       dtc->GetDevice()->read_register(DTC_REG_NON_HIST[i],100,&val); 
 //-----------------------------------------------------------------------------
-// registers: don't want any conversion, save as is
+// DTC registers: don't want any conversion, save as is
 //-----------------------------------------------------------------------------
       HNDLE    h_reg;
-      sprintf(key,"/Equipment/%s#DTC%i/Registers/0x%04x",shname.data(),dtc_id,DTC_REG_NON_HIST[i]);
+      sprintf(key,"/Equipment/%s#DTC%i/Registers/0x%04x",shname.data(),pcie_addr,DTC_REG_NON_HIST[i]);
       int rc = db_find_key (hDB, 0, key, &h_reg);
       rc     = db_set_value(hDB, 0, key, &val, sizeof(int), 1, TID_UINT32);
     }
@@ -217,7 +210,7 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
 //-----------------------------------------------------------------------------
 // assume success for now and implement handling of timeouts/errors etc later
 //-----------------------------------------------------------------------------
-   TLOG(TLVL_INFO+10) << "010 dtc_id:" << dtc_id << " Channel:" << Channel << " PValue:" << *PValue;
+   TLOG(TLVL_INFO+10) << "010 pcie_addr:" << pcie_addr << " Channel:" << Channel << " PValue:" << *PValue;
 //-----------------------------------------------------------------------------
 // assume success for now and implement handling of timeouts/errors etc later
 // and at this point implement sleep
