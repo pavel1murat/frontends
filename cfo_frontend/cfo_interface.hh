@@ -13,10 +13,10 @@ typedef struct {
 } CFO_DRIVER_SETTINGS;
 
 #define CFO_DRIVER_SETTINGS_STR "\
-PcieAddr   = INT    : %i\n\
-CfoType    = INT    : %i\n\
-Cfo        = INT64  :  0\n\
-NEwmPerSec = INT    : %i\n\
+PcieAddr       = INT    : %i\n\
+CfoType        = INT    : %i\n\
+Cfo            = INT64  :  0\n\
+NEwmsPerSecond = INT    : %i\n\
 "
 
 /* the following structure contains private variables to the device

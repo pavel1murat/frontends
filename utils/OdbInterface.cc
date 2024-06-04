@@ -73,7 +73,7 @@ int OdbInterface::GetCFOEnabled(HNDLE hDB, HNDLE hCFO) {
 int OdbInterface::GetCFONEwmPerSecond(HNDLE hDB, HNDLE hCFO) {
   INT   data;
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "NEwmPerSecond", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+  if (db_get_value(hDB, hCFO, "NEwmsPerSecond", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
     return data;
   }
   else {
