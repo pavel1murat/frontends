@@ -6,20 +6,16 @@
 #  buildtool
 # ======================================================================
 cmake_minimum_required (VERSION 3.19 FATAL_ERROR)
-
-# find_package(otsdaq_mu2e 1.02.00 REQUIRED)
-find_package(PostgreSQL 13.2 REQUIRED)
-
+find_package(cetmodules 3.19.02 REQUIRED)
 
 # project(otsdaq_mu2e_tracker VERSION 1.03.02)
 
-find_package(cetmodules 3.19.02 REQUIRED)
 project(frontends VERSION 1.01.01)
 
 include(CetCMakeEnv)
 cet_cmake_env()
 
-cet_cmake_module_directories(Modules BINARY)
+cet_cmake_module_directories(cmake/Modules BINARY)
 
 cet_set_compiler_flags(
         DIAGS VIGILANT
@@ -33,14 +29,40 @@ cet_set_compiler_flags(
 #  cet_add_compiler_flags(-fsanitize=address)
 #endif()
 
+message("---------- frontends: PRINT CMAKE VARIABLES " )
+
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+  message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
+  
 #cet_report_compiler_flags()
-# find_package(TRACE  3.17.04 REQUIRED EXPORT)
+find_package(TRACE  3.17.04              REQUIRED EXPORT)
+message(-- frontends: Trace_inc_dir=.${Trace_inc_dir}. )
 
 # these are minimum required versions, not the actual product versions
-find_package(canvas_root_io  REQUIRED EXPORT QUIET)
-find_package(canvas          REQUIRED EXPORT QUIET)
-find_package(messagefacility REQUIRED EXPORT QUIET)
-find_package(artdaq_core     REQUIRED EXPORT QUIET)
+# find_package(canvas_root_io  REQUIRED EXPORT QUIET)
+# find_package(canvas          REQUIRED EXPORT QUIET)
+find_package(otsdaq_mu2e_tracker 3.01.00 REQUIRED EXPORT)
+find_package(mu2e_pcie_utils     3.01.00 REQUIRED EXPORT)
+
+find_package(SQLite3                     REQUIRED EXPORT QUIET)
+find_package(messagefacility             REQUIRED EXPORT QUIET)
+
+find_package(Midas                       REQUIRED EXPORT)
+find_package(PostgreSQL 13.2 REQUIRED)
+# find_package(canvas_root_io              REQUIRED EXPORT)
+
+string (REGEX REPLACE "/include" ""  MIDAS_INSTALL_DIR ${MIDAS_INCLUDE_DIR})
+
+message(-- frontends: MIDAS_ROOT=.${MIDAS_ROOT}. )
+message(-- frontends: MIDAS_INSTALL_DIR=.${MIDAS_INSTALL_DIR}. )
+message(-- frontends: MIDAS_INCLUDE_DIR=.${MIDAS_INCLUDE_DIR}. "    "  MIDAS_LIBRARY_DIR=.${MIDAS_LIBRARY_DIR})
+message(-- frontends: current dir : .${CMAKE_SOURCE_DIR}.)
+message(-- frontends: midas include dirs : .${MIDAS_INCLUDE_DIRS}.)
+
+# find_package(artdaq_core     REQUIRED EXPORT QUIET)
 
 
 #------------------------------------------------------------------------------
