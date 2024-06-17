@@ -23,7 +23,7 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
-#include "frontends/utils/utils.hh"
+#include "utils/utils.hh"
 #include "tfm_frontend/tfm_dr_driver.hh"
 
 using std::vector, std::string;

@@ -27,8 +27,8 @@
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
 
-#include "frontends/utils/utils.hh"
-#include "frontends/tfm_frontend/tfm_mon_fe.hh"
+#include "utils/utils.hh"
+#include "tfm_frontend/tfm_mon_fe.hh"
 //-----------------------------------------------------------------------------
 // Globals
 //-----------------------------------------------------------------------------

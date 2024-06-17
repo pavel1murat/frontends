@@ -8,7 +8,7 @@
 #include "drivers/class/multi.h"
 
 #include "drivers/bus/null.h"
-#include "frontends/roc_trk_frontend/roc_trk_driver.hh"
+#include "roc_trk_frontend/roc_trk_driver.hh"
 
 /*-- Equipment list ------------------------------------------------*/
 

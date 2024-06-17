@@ -15,7 +15,7 @@
 
 #include "dtcInterfaceLib/DTC.h"
 
-#include "otsdaq-mu2e-tracker/ui/DtcInterface.hh"
+#include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
 typedef struct {
   int                   pcieAddr;

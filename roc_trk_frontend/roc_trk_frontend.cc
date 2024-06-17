@@ -26,7 +26,7 @@
 // #include "class/hv.h"
 // #include "class/multi.h"
 // #include "bus/null.h"
-#include "frontends/roc_trk_frontend/roc_trk_frontend.hh"
+#include "roc_trk_frontend/roc_trk_frontend.hh"
 //-----------------------------------------------------------------------------
 // Globals
 // The frontend name (client name) as seen by other MIDAS clients

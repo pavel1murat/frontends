@@ -7,7 +7,7 @@
 #include "drivers/device/nulldev.h"
 #include "drivers/bus/null.h"
 //#include "drivers/class/multi.h"
-#include "frontends/utils/mu2e_sc.hh"
+#include "utils/mu2e_sc.hh"
 //-----------------------------------------------------------------------------
 // for the TFM frontend, there is nothing to read, so the actual driver=nulldev
 //-----------------------------------------------------------------------------

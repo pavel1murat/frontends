@@ -1,12 +1,12 @@
 #------------------------------------------------------------------------------
 # Build this project's executables
 #------------------------------------------------------------------------------
-find_package(messagefacility REQUIRED)
+# find_package(messagefacility REQUIRED)
 
 include_directories($ENV{MRB_SOURCE})
 include_directories($ENV{TRACE_INC})
 include_directories(${MIDAS_INSTALL_DIR}/include)
-include_directories(${MIDAS_INCLUDE_DIR})
+include_directories(${MIDAS_INSTALL_DIR})
 include_directories(${PostgreSQL_INCLUDE_DIRS})
 
 link_directories(${MIDAS_INSTALL_DIR}/lib)
@@ -26,7 +26,7 @@ cet_make_exec(NAME      roc_trk_frontend
               SOURCE    roc_trk_frontend.cc roc_trk_driver.cc 
                         ${MIDAS_INSTALL_DIR}/drivers/class/multi.cxx
                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-              LIBRARIES mu2e-pcie-utils::DTCInterface
+              LIBRARIES mu2e_pcie_utils::DTCInterface
                         mfe midas 
                         stdc++ m util pthread rt
 )

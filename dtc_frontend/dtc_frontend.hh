@@ -10,7 +10,7 @@ typedef int INT;
 
 #include "drivers/bus/null.h"
 
-#include "frontends/utils/mu2e_sc.hh"
+#include "utils/mu2e_sc.hh"
 #include "dtc_frontend/dtc_driver.hh"
 /*-- Equipment list ------------------------------------------------*/
 

@@ -51,7 +51,7 @@ find_package(SQLite3                     REQUIRED EXPORT QUIET)
 find_package(messagefacility             REQUIRED EXPORT QUIET)
 
 find_package(Midas                       REQUIRED EXPORT)
-find_package(PostgreSQL 13.2 REQUIRED)
+find_package(PostgreSQL 13.2             REQUIRED EXPORT)
 # find_package(canvas_root_io              REQUIRED EXPORT)
 
 string (REGEX REPLACE "/include" ""  MIDAS_INSTALL_DIR ${MIDAS_INCLUDE_DIR})

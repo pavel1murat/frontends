@@ -4,7 +4,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <string>
 #include <cstring>
-#include "frontends/utils/utils.hh"
+#include "utils/utils.hh"
 
 //-----------------------------------------------------------------------------
 // assume Hostname is either fully domain-qualified name, or 'local'

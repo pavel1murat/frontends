@@ -26,7 +26,7 @@ cet_make_exec(NAME      roc_crv_frontend
                         #$ENV{MIDASSYS}/drivers/class/multi.cxx
                         cd_multi.cxx
                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-              LIBRARIES mu2e-pcie-utils::DTCInterface
+              LIBRARIES mu2e_pcie_utils::DTCInterface
                         mfe midas 
                         stdc++ m util pthread rt
 )

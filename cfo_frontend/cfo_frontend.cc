@@ -15,16 +15,16 @@
 #include "cfoInterfaceLib/CFO.h"
 #include "dtcInterfaceLib/DTC.h"
 
-#include "otsdaq-mu2e-tracker/ui/CfoInterface.hh"
-#include "otsdaq-mu2e-tracker/ui/DtcInterface.hh"
+#include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
+#include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
-#include "frontends/utils/utils.hh"
-#include "frontends/utils/OdbInterface.hh"
+#include "utils/utils.hh"
+#include "utils/OdbInterface.hh"
 
-#include "frontends/cfo_frontend/cfo_interface.hh"
-#include "frontends/cfo_frontend/cfo_frontend.hh"
-#include "frontends/cfo_frontend/cfo_gen_driver.hh"
-#include "frontends/cfo_frontend/cfo_mon_driver.hh"
+#include "cfo_frontend/cfo_interface.hh"
+#include "cfo_frontend/cfo_frontend.hh"
+#include "cfo_frontend/cfo_gen_driver.hh"
+#include "cfo_frontend/cfo_mon_driver.hh"
 
 using namespace DTCLib; 
 using namespace CFOLib; 

@@ -5,10 +5,10 @@
 #define __tfm_mon_fe_hh_
 
 #include "drivers/bus/null.h"
-#include "frontends/utils/mu2e_sc.hh"
-#include "frontends/tfm_frontend/tfm_br_driver.hh"
-#include "frontends/tfm_frontend/tfm_dr_driver.hh"
-#include "frontends/tfm_frontend/tfm_disk_driver.hh"
+#include "utils/mu2e_sc.hh"
+#include "tfm_frontend/tfm_br_driver.hh"
+#include "tfm_frontend/tfm_dr_driver.hh"
+#include "tfm_frontend/tfm_disk_driver.hh"
 //-----------------------------------------------------------------------------
 /* device driver list */
 //-----------------------------------------------------------------------------
