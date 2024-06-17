@@ -5,16 +5,16 @@ find_package(messagefacility REQUIRED)
 #------------------------------------------------------------------------------
 # link directories 
 #------------------------------------------------------------------------------
-include_directories($ENV{MRB_SOURCE})
+# include_directories($ENV{MRB_SOURCE})
 include_directories($ENV{TRACE_INC})
-include_directories($ENV{MIDASSYS})
-include_directories($ENV{MIDASSYS}/include)
+include_directories(${MIDAS_INSTALL_DIR})
+include_directories(${MIDAS_INSTALL_DIR}/include)
 include_directories(${PostgreSQL_INCLUDE_DIRS})
 #------------------------------------------------------------------------------
 # library directories 
 #------------------------------------------------------------------------------
 link_directories($ENV{TRACE_LIB})
-link_directories($ENV{MIDASSYS}/lib)
+link_directories(${MIDAS_INSTALL_DIR}/lib)
 link_directories($ENV{MESSAGEFACILITY_LIB})
 link_directories($ENV{XMLRPC_C_FQ_DIR}/lib)
 
@@ -30,8 +30,8 @@ cet_set_compiler_flags(
 )
 cet_make_exec(NAME      dtc_frontend
               SOURCE    dtc_frontend.cc dtc_driver.cc 
-                        $ENV{MIDASSYS}/drivers/bus/null.cxx
-              LIBRARIES frontends otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_ui
+                        ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
+              LIBRARIES frontends otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
                         mu2e_pcie_utils::DTCInterface
                         mfe midas 
                         stdc++ m util pthread rt

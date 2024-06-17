@@ -2,7 +2,7 @@
 # Build this project's executables:
 
 include_directories($ENV{MRB_SOURCE})
-include_directories($ENV{MIDASSYS} $ENV{MIDASSYS}/include)
+include_directories(${MIDAS_INSTALL_DIR} ${MIDAS_INSTALL_DIR}/include)
 include_directories($ENV{XMLRPC_C_INCLUDE_DIR})
 include_directories(${PostgreSQL_INCLUDE_DIRS})
 include_directories($ENV{TRACE_INC})
@@ -11,7 +11,7 @@ include_directories($ENV{CETLIB_EXCEPT_INC})
 
 link_directories($ENV{TRACE_LIB})
 link_directories($ENV{MESSAGEFACILITY_LIB})
-link_directories($ENV{MIDASSYS}/lib)
+link_directories(${MIDAS_INSTALL_DIR}/lib)
 link_directories($ENV{XMLRPC_C_FQ_DIR}/lib)
 
 cet_set_compiler_flags(
@@ -38,7 +38,7 @@ cet_make_exec(NAME      tfm_mon_fe
                         tfm_br_driver.cc
                         tfm_dr_driver.cc
                         tfm_disk_driver.cc
-                        $ENV{MIDASSYS}/drivers/bus/null.cxx
+                        ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
               LIBRARIES frontends midas mfe 
                         artdaq_plugin_support::commanderMaker
                         artdaq::Application                       # needed for messagefacility
@@ -51,8 +51,8 @@ cet_make_exec(NAME      tfm_mon_fe
 
 cet_make_exec(NAME      tfm_launch_fe 
               SOURCE    tfm_launch_fe.cc 
-                        $ENV{MIDASSYS}/drivers/device/nulldev.cxx
-                        $ENV{MIDASSYS}/drivers/bus/null.cxx
+                        ${MIDAS_INSTALL_DIR}/drivers/device/nulldev.cxx
+                        ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
               LIBRARIES frontends midas mfe 
                         artdaq_plugin_support::commanderMaker
                         artdaq::Application                       # needed for messagefacility

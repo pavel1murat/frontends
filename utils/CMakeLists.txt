@@ -2,7 +2,7 @@
 # Build this project's executables:
 
 include_directories($ENV{MRB_SOURCE})
-include_directories($ENV{MIDASSYS} $ENV{MIDASSYS}/include)
+include_directories(${MIDAS_INSTALL_DIR} ${MIDAS_INSTALL_DIR}/include)
 include_directories($ENV{XMLRPC_C_INCLUDE_DIR})
 include_directories(${PostgreSQL_INCLUDE_DIRS})
 include_directories($ENV{TRACE_INC})
@@ -11,7 +11,7 @@ include_directories($ENV{CETLIB_EXCEPT_INC})
 
 link_directories($ENV{TRACE_LIB})
 link_directories($ENV{MESSAGEFACILITY_LIB})
-link_directories($ENV{MIDASSYS}/lib)
+link_directories(${MIDAS_INSTALL_DIR}/lib)
 link_directories($ENV{XMLRPC_C_FQ_DIR}/lib)
 
 cet_set_compiler_flags(
