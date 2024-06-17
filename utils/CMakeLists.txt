@@ -35,11 +35,12 @@ cet_make_library(LIBRARY_NAME frontends
                               OdbInterface.cc
                  LIBRARIES PUBLIC 
                  midas
-                 ${PostgreSQL_LIBRARIES} 
                  tracelib
                  MF_MessageLogger
                  xmlrpc++ xmlrpc_client xmlrpc 
                  xmlrpc_util xmlrpc_util++ 
+                 #                 ${PostgreSQL_LIBRARIES}
+                 pq
                  pthread rt util
 )
 #------------------------------------------------------------------------------
@@ -47,18 +48,25 @@ cet_make_library(LIBRARY_NAME frontends
 #------------------------------------------------------------------------------
 cet_make_exec(NAME      register_transitions
               SOURCE    register_transitions.cc 
-              LIBRARIES frontends  ${PostgreSQL_LIBRARIES} util stdc++
+              LIBRARIES frontends
+              #              ${PostgreSQL_LIBRARIES}
+              pq
+              util stdc++
 )                  
 
 cet_make_exec(NAME        db_runinfo_main
               SOURCE      db_runinfo_main.cc
               LIBRARIES   frontends
-#                         ${PostgreSQL_LIBRARIES} util stdc++
+              #                         ${PostgreSQL_LIBRARIES} util stdc++
+              pq util stdc++
 )                  
 
 cet_make_exec(NAME      get_next_run_number
               SOURCE    get_next_run_number.cc 
-              LIBRARIES frontends ${PostgreSQL_LIBRARIES} util stdc++
+              LIBRARIES frontends
+#              ${PostgreSQL_LIBRARIES}
+              pq
+              util stdc++
 )                  
 
 # install_fhicl(SUBDIRS fcl)

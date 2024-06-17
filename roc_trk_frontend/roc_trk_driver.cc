@@ -11,7 +11,7 @@
 
 #include "dtcInterfaceLib/DTC.h"
 
-#include "frontends/roc_trk_frontend/roc_trk_driver.hh"
+#include "roc_trk_frontend/roc_trk_driver.hh"
 
 using namespace DTCLib; 
 

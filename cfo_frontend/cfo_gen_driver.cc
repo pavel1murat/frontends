@@ -21,14 +21,14 @@
 #include "midas.h"
 #include "mfe.h"
 
-#include "frontends/utils/utils.hh"
-#include "frontends/utils/OdbInterface.hh"
+#include "utils/utils.hh"
+#include "utils/OdbInterface.hh"
 
-#include "frontends/cfo_frontend/cfo_interface.hh"
-#include "frontends/cfo_frontend/cfo_gen_driver.hh"
+#include "cfo_frontend/cfo_interface.hh"
+#include "cfo_frontend/cfo_gen_driver.hh"
 
-#include "otsdaq-mu2e-tracker/ui/DtcInterface.hh"
-#include "otsdaq-mu2e-tracker/ui/CfoInterface.hh"
+#include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
+#include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
 
 using namespace DTCLib; 
 using namespace trkdaq;

@@ -24,8 +24,8 @@
 #include "dtcInterfaceLib/DTC.h"
 using namespace DTCLib; 
 
-#include "frontends/utils/utils.hh"
-#include "frontends/dtc_frontend/dtc_driver.hh"
+#include "utils/utils.hh"
+#include "dtc_frontend/dtc_driver.hh"
 
 DTC* _dtc(nullptr);
 

@@ -7,7 +7,7 @@
 
 #include "drivers/bus/null.h"
 
-#include "frontends/utils/mu2e_sc.hh"
+#include "utils/mu2e_sc.hh"
 // #include "frontends/cfo_frontend/cfo_interface.hh"
 
 BOOL equipment_common_overwrite = TRUE;

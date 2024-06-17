@@ -24,10 +24,10 @@
 #include "dtcInterfaceLib/DTC.h"
 using namespace DTCLib; 
 
-#include "frontends/utils/utils.hh"
-#include "frontends/utils/OdbInterface.hh"
+#include "utils/utils.hh"
+#include "utils/OdbInterface.hh"
 
-#include "frontends/cfo_frontend/cfo_mon_driver.hh"
+#include "cfo_frontend/cfo_mon_driver.hh"
 
 DTC* _dtc(nullptr);
 

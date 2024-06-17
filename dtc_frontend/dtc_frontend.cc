@@ -12,10 +12,10 @@
 #include "midas.h"
 #include "mfe.h"
 
-#include "frontends/utils/utils.hh"
-#include "frontends/utils/OdbInterface.hh"
+#include "utils/utils.hh"
+#include "utils/OdbInterface.hh"
 
-#include "frontends/dtc_frontend/dtc_frontend.hh"
+#include "dtc_frontend/dtc_frontend.hh"
 //-----------------------------------------------------------------------------
 // Globals
 // The frontend name (client name) as seen by other MIDAS clients

@@ -1,7 +1,7 @@
 #ifndef __cfo_frontend_cfo_interface_hh__
 #define __cfo_frontend_cfo_interface_hh__
 
-#include "otsdaq-mu2e-tracker/ui/CfoInterface.hh"
+#include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
 
 typedef struct {
   int           pcieAddr;

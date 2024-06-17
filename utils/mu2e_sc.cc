@@ -15,8 +15,8 @@
 #include "midas.h"
 #include "tinyexpr.h"
 
-#include "frontends/utils/utils.hh"
-#include "frontends/utils/mu2e_sc.hh"
+#include "utils/utils.hh"
+#include "utils/mu2e_sc.hh"
 
 
 #define FORMULA_SIZE 64
