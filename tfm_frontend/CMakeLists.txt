@@ -63,6 +63,8 @@ cet_make_exec(NAME      tfm_launch_fe
                         artdaq_core::artdaq-core_Plugins
 )                  
 
+install(PROGRAMS tfm_launch_fe.py DESTINATION bin)
+
 # install_fhicl(SUBDIRS fcl)
 # install_headers()
 # install_source()

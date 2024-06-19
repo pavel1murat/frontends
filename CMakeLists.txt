@@ -73,20 +73,6 @@ message(-- frontends: midas include dirs : .${MIDAS_INCLUDE_DIRS}.)
 
 # message(>>> OTSDAQ_MU2E_TRACKER: XDAQ_INC=$ENV{XDAQ_INC})
 # 
-# link_directories($ENV{XDAQ_LIB})
-# 
-# set(XDAQ_BASIC_LIB_LIST 
-#    log4cplus
-#    executive
-#    xcept
-#    xoap
-#    xdaq
-#    toolbox
-#    xerces-c
-#    cgicc
-#  )
-#  set(XDAQ_XERCES-C xerces-c)
-
 #string(REGEX MATCHALL "[0-9][0-9]?[0-9]?" ART_VERSION_LIST "$ENV{ART_VERSION}")
 #list(GET ART_VERSION_LIST 0 ART_MAJOR_VERSION)
 #list(GET ART_VERSION_LIST 1 ART_MINOR_VERSION)
@@ -101,11 +87,6 @@ include(BuildPlugins)
 # subdirectories
 #------------------------------------------------------------------------------
 add_subdirectory(utils)
-if($ENV{BUILD_CFO_FRONTEND})
-  message(-- BUILD_CFO_FRONTEND=${BUILD_CFO_FRONTEND})
-  add_subdirectory(cfo_frontend)
-endif()
-
 add_subdirectory(cfo_frontend)
 add_subdirectory(dtc_frontend)
 add_subdirectory(roc_crv_frontend)
@@ -117,15 +98,5 @@ add_subdirectory(test)
 #add_subdirectory(tools)
 
 # Data
-#FILE(COPY ConfigurationDataExamples DESTINATION Data)
-#INSTALL(DIRECTORY ConfigurationDataExamples DESTINATION ${product}/${version}/Data)
-#FILE(COPY XDAQConfigurations DESTINATION Data)
-#INSTALL(DIRECTORY XDAQConfigurations DESTINATION ${product}/${version}/Data)
-#FILE(COPY ServiceData DESTINATION Data)
-#INSTALL(DIRECTORY ServiceData DESTINATION ${product}/${version}/Data)
-#FILE(COPY Data DESTINATION .)
-#INSTALL(DIRECTORY Data DESTINATION ${product}/${version})
-#FILE(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Data/ServiceData/LoginData)
-#INSTALL(DIRECTORY DESTINATION ${product}/${version}/Data/ServiceData/LoginData)
 
 cet_cmake_config()
