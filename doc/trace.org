@@ -1,4 +1,4 @@
-#startup:fold
+#+startup:fold -*- buffer-read-only:t -*- 
 # ------------------------------------------------------------------------------
 # info on what is TRACE and how to use it
 # ------------------------------------------------------------------------------
@@ -165,7 +165,36 @@ trace_cntl lvlclr 0x100 0x100 0x100 -N*
 * loooking at the TRACE memory log:                                          
 
 tshow | tdelta -ct 1 -d 1 | head -n 100
+* Ron's hints from different setup files and examples
+ --  enable kernel trace to memory buffer:
+#+test -f /proc/trace/buffer && { export TRACE_FILE=/proc/trace/buffer; tlvls | grep 'KERNEL 0xffffffff00ffffff' >/dev/null || { tonMg 0-63; toffM 24-31 -nKERNEL; }; }
 
+
+if [ -d ${TRACE_BIN} ]; then 
+  echo -e "setup [${LINENO}]  \t     Setting up TRACE defaults..."
+  # echo Turning on all memory tracing via: tonMg 0-63 
+  
+  # Default setup moved from setup_trace to here so it can be disabled
+  #${TRACE_BIN}/trace_cntl lvlmskg 0xfff 0x1ff 0  # <memory> <slow> <trigger>, tonSg 0-8 (debug is 8 := TLVL_{FATAL,ALERT,CRIT,ERROR,WARNING,NOTICE,INFO,LOG,DEBUG}) OBSOLETE as of 8/08/2023
+  ${TRACE_BIN}/trace_cntl mode 3   # ton*
+  
+  # Disable some very verbose trace outputs 
+  TRACE_NAMLVLSET="\
+CONF:LdStrD_C    0x1ff 0 0
+FileDB:RDWRT_C   0x1ff 0 0
+CONF:CrtCfD_C    0x1ff 0 0
+COFS:DpFle_C     0x1ff 0 0
+PRVDR:FileDBIX_C 0x1ff 0 0
+JSNU:DocUtils_C  0x1ff 0 0
+JSNU:Document_C  0x1ff 0 0
+CONF:OpLdStr_C   0x1ff 0 0
+PRVDR:FileDB_C   0x1ff 0 0
+CONF:OpBase_C    0x1ff 0 0
+" $TRACE_BIN/trace_cntl namlvlset
+fi
+
+** using debug+x semantics int tonM                                          
+ tonM -N*:farm_manager.py debug+1-debug+20
 * ------------------------------------------------------------------------------
 * back to [[file:frontends.org][frontends]]
 * ------------------------------------------------------------------------------

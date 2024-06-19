@@ -1,4 +1,4 @@
-#!/user/bin/env python
+#!/usr/bin/env python
 #------------------------------------------------------------------------------
 # Namitha: TFM launch frontend - python implementation
 # frontend name : python_tfm_launch_fe
@@ -144,10 +144,10 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 # it in __init__() seems logical.
 #-------v----------------------------------------------------------------------
         self.add_equipment(TfmEquipment(self.client))
-        TRACE.TRACE(7,"003: equipment added")
+        TRACE.TRACE(7,"003: equipment added , config_dir=%s"%(config_dir))
 
         self.fm   = farm_manager.FarmManager(config_dir=config_dir)
-        TRACE.TRACE(7,"004: tfm instantiated")
+        TRACE.TRACE(7,"004: tfm instantiated, self.use_runinfo_db=%i"%(self.use_runinfo_db))
 #------------------------------------------------------------------------------
 # runinfo DB related stuff
 #-------v----------------------------------------------------------------------
@@ -234,6 +234,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #        it for final cleanup if needed.
 #---v--------------------------------------------------------------------------
     def frontend_exit(self):
+        # breakpoint()
         print("Goodbye from user code!")
         TRACE.TRACE(7,"001:END")
 
@@ -245,6 +246,14 @@ if __name__ == "__main__":
 # just create the frontend object, and call run() on it.
 #---v--------------------------------------------------------------------------
     TRACE.Instance = sys.argv[0].encode()
+
+    TRACE.TRACE(7,"000: TRACE.Instance : %s"%TRACE.Instance)
     with TfmLaunchFrontend() as tfm_launch:
         # breakpoint()
+        TRACE.TRACE(7,"001: in the loop")
         tfm_launch.run()
+        TRACE.TRACE(7,"002: after frontend::run")
+
+    TRACE.TRACE(7,"003: DONE, exiting")
+
+        
