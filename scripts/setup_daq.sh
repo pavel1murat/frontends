@@ -22,7 +22,7 @@ export TFM_FHICL_DIRECTORY=$MU2E_DAQ_DIR/config
 
 export    ARTDAQ_PARTITION_NUMBER=11
 export ARTDAQ_PORTS_PER_PARTITION=1000
-export           ARTDAQ_BASE_PORT=21000
+export           ARTDAQ_BASE_PORT=10000
 #------------------------------------------------------------------------------
 # trace
 #------------------------------------------------------------------------------
