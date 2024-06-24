@@ -5,7 +5,7 @@
 
 typedef struct {
   int           pcieAddr;
-  int           cfoType;       // 0: "emulated": 'interface' is of DtcInterface type
+  int           external;      // 0: "emulated": 1: "external"
                                // 1: "external": real CFO, 'interface' is of CfoInterface type
   void*         interface;     // pointer (CfoInterface* or DtcInterface*, see above)
                                // before use, 'interface' need to be cast
@@ -13,10 +13,10 @@ typedef struct {
 } CFO_DRIVER_SETTINGS;
 
 #define CFO_DRIVER_SETTINGS_STR "\
-PcieAddr       = INT    : %i\n\
-CfoType        = INT    : %i\n\
-Cfo            = INT64  :  0\n\
-NEwmsPerSecond = INT    : %i\n\
+PcieAddr       = INT        : %i\n\
+External       = INT        : %i\n\
+Cfo            = INT64      :  0\n\
+NEwmsPerSecond = INT        : %i\n\
 "
 
 /* the following structure contains private variables to the device

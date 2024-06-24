@@ -64,7 +64,7 @@ INT cfo_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *b
   std::string host          = get_full_host_name("local");
   HNDLE       h_cfo_conf    = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
 
-  int         cfo_type      = odb_i->GetCFOType         (hDB,h_cfo_conf);
+  int         external      = odb_i->GetCFOExternal     (hDB,h_cfo_conf);
   int         n_ewm_per_sec = odb_i->GetCFONEwmPerSecond(hDB,h_cfo_conf);
   int         pcie_addr     = odb_i->GetPcieAddress     (hDB,h_cfo_conf);
 //-----------------------------------------------------------------------------
@@ -73,7 +73,7 @@ INT cfo_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *b
 //------------------------------------------------------------------------------
   char str[1000];
 
-  sprintf(str,CFO_DRIVER_SETTINGS_STR,pcie_addr,cfo_type,n_ewm_per_sec);
+  sprintf(str,CFO_DRIVER_SETTINGS_STR,pcie_addr,external,n_ewm_per_sec);
   status = db_create_record(hDB, hkey, "DD", str);
 
   if (status != DB_SUCCESS)                                 return FE_ERR_ODB;

@@ -108,7 +108,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
     def __init__(self):
         TRACE.TRACE(7,"0010: START")
-        midas.frontend.FrontendBase.__init__(self, "python_tfm_launch_fe")
+        midas.frontend.FrontendBase.__init__(self, "tfm_launch_fe")
         TRACE.TRACE(7,"0011: FrontendBase initialized")
 #------------------------------------------------------------------------------
 # determine active configuration

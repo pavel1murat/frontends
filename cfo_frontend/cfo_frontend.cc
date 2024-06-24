@@ -88,7 +88,7 @@ INT frontend_init() {
 
   std::string host        = get_full_host_name("local");
   HNDLE       h_cfo       = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
-  int         cfo_type    = odb_i->GetCFOType(hDB,h_cfo);
+  int         external    = odb_i->GetCFOExternal(hDB,h_cfo);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/DetectorConfigurations/$detector_conf/DAQ to get a list of
 // nodes and DTC's to be monitored
@@ -123,7 +123,7 @@ INT frontend_init() {
     drv->flags      = DF_INPUT;
     drv->enabled    = true;             // default true
     CFO_DRIVER_INFO* cdi  = new CFO_DRIVER_INFO;
-    if (cfo_type == 1) {  // external
+    if (external == 1) {  // external
       cdi->driver_settings.n_ewm_per_sec = odb_i->GetCFONEwmPerSecond(hDB,h_cfo);
     }
     else {
@@ -153,7 +153,7 @@ INT frontend_init() {
   drv->bd         = null;
   drv->flags      = DF_INPUT;
 
-  if (cfo_type == 1) drv->enabled    = true;
+  if (external == 1) drv->enabled    = true;
   else               drv->enabled    = false;
 
   drv->dd_info    = nullptr;

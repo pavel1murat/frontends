@@ -29,8 +29,14 @@ public:
                                         // hostname - short, w/o the domain name
   int         GetDaqHostHandle    (HNDLE Hdb, HNDLE h_CFO, const std::string& Hostname);
 
-                                        // "external" or "emulated"
-  int         GetCFOType          (HNDLE Hdb, HNDLE h_CFO);
+                                        // returns: 1="external" or 0="emulated"
+  int         GetCFOExternal      (HNDLE Hdb, HNDLE h_CFO);
+
+                                        // N events to be generated in emulated mode
+  int         GetNEvents          (HNDLE Hdb, HNDLE h_CFO);
+
+                                        // event window size in units of 25 ns (40 MHz)
+  int         GetEventWindowSize  (HNDLE Hdb, HNDLE h_CFO);
 };
 
 #endif
