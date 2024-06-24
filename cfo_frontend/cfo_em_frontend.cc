@@ -5,7 +5,7 @@
 #undef NDEBUG // midas required assert() to be always enabled
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "cfo_frontend"
+#define  TRACE_NAME "cfo_em_frontend"
 
 #include <stdio.h>
 #include <string.h>
@@ -22,8 +22,7 @@
 #include "utils/OdbInterface.hh"
 
 #include "cfo_frontend/cfo_interface.hh"
-#include "cfo_frontend/cfo_frontend.hh"
-#include "cfo_frontend/cfo_gen_driver.hh"
+#include "cfo_frontend/cfo_em_frontend.hh"
 #include "cfo_frontend/cfo_mon_driver.hh"
 
 using namespace DTCLib; 
@@ -37,7 +36,7 @@ using namespace trkdaq;
 const char* frontend_name;
 
 const char* frontend_file_name  = __FILE__; // The frontend file name, don't change it
-BOOL        frontend_call_loop  =     TRUE; // frontend_loop is called periodically if this variable is TRUE
+BOOL        frontend_call_loop  =    FALSE; // frontend_loop is called periodically if this variable is TRUE
 INT         display_period      =        0; // 1000; // if !=0, a frontend status page is displayed 
                                             //          with this frequency in ms
 INT         max_event_size      =    10000; // maximum event size produced by this frontend
@@ -51,7 +50,7 @@ namespace {
     std::string name;
   public:
     FeName() { 
-      name         += "cfo_frontend";
+      name         += "cfo_em_frontend";
       frontend_name = name.data();  // frontend_name is a global variable
     }
   }; 
@@ -59,8 +58,12 @@ namespace {
 // need to figure how to get name, but that doesn't seem overwhelmingly difficult
 //-----------------------------------------------------------------------------
   FeName         xx;
-  DEVICE_DRIVER  gen_driver[2];
+  // DEVICE_DRIVER  gen_driver[2];
   DEVICE_DRIVER  mon_driver[2];
+
+  trkdaq::DtcInterface* _dtc_i          (nullptr);
+  int                   _nEvents        (-1);
+  int                   _eventWindowSize(-1);
 }
 
 //-----------------------------------------------------------------------------
@@ -88,80 +91,37 @@ INT frontend_init() {
 
   std::string host        = get_full_host_name("local");
   HNDLE       h_cfo       = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
-  int         external    = odb_i->GetCFOExternal(hDB,h_cfo);
+  int         external    = odb_i->GetCFOExternal    (hDB,h_cfo);
+  int         cfo_enabled = odb_i->GetCFOEnabled     (hDB,h_cfo);
+
+  _nEvents                = odb_i->GetNEvents        (hDB,h_cfo);
+  _eventWindowSize        = odb_i->GetEventWindowSize(hDB,h_cfo);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/DetectorConfigurations/$detector_conf/DAQ to get a list of
 // nodes and DTC's to be monitored
 // MIDAS 'host_name' could be 'local'..
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 // initialize the CFO
 //-----------------------------------------------------------------------------
-  int cfo_enabled = odb_i->GetCFOEnabled(hDB,h_cfo);
-  DEVICE_DRIVER*  drv;
+//  DEVICE_DRIVER*  drv;
   if (cfo_enabled == 1) {
 //-----------------------------------------------------------------------------
-// initialize drivers
-// 1. gen_griver
-// get the CFO PCIE address and create the CFO interface
+// get the PCIE address and create the DTC interface
 //-----------------------------------------------------------------------------
-    // EQUIPMENT* eq = &equipment[0];
     int pcie_addr = odb_i->GetPcieAddress(hDB,h_cfo);
-
-    CfoInterface::Instance(pcie_addr);
-//-----------------------------------------------------------------------------
-// for each DTC, define a driver
-// so far, output of all drivers goes into the same common "Input" array
-//-----------------------------------------------------------------------------
-    drv             = &gen_driver[0];
-
-    snprintf(drv->name,NAME_LENGTH,"cfo_gen_driver");
-
-    drv->dd         = cfo_gen_driver;   // the cfo_gen_driver, a function
-    drv->channels   = 1;                // nwords in history - this one will be the number of events
-    drv->bd         = null;
-    drv->flags      = DF_INPUT;
-    drv->enabled    = true;             // default true
-    CFO_DRIVER_INFO* cdi  = new CFO_DRIVER_INFO;
-    if (external == 1) {  // external
-      cdi->driver_settings.n_ewm_per_sec = odb_i->GetCFONEwmPerSecond(hDB,h_cfo);
-    }
-    else {
+    _dtc_i        = DtcInterface::Instance(pcie_addr);
 //-----------------------------------------------------------------------------
 // emulated CFO - todo
 //-----------------------------------------------------------------------------
-    }
-    drv->dd_info    = cdi;
-    drv->mt_buffer  = nullptr;
-    drv->pequipment = nullptr;
+    // drv->dd_info    = cdi;
+    // drv->mt_buffer  = nullptr;
+    // drv->pequipment = nullptr;
   }
 //-----------------------------------------------------------------------------
 // this is just to be able to use multidriver equipment type everywhere...
 // could do a bit cleaner here with a single-driver equipment type
 //-----------------------------------------------------------------------------
-  gen_driver[1].name[0] = 0;
-  equipment[0].driver   = gen_driver;
-//-----------------------------------------------------------------------------
-// 2. mon_driver - need only for external CFO
-//-----------------------------------------------------------------------------
-  drv             = &mon_driver[0];
-
-  snprintf(drv->name,NAME_LENGTH,"cfo_mon_driver");
-
-  drv->dd         = cfo_mon_driver; // the cfo_mon_driver, a function
-  drv->channels   = 1;              // nwords in history - this one will be the number of events
-  drv->bd         = null;
-  drv->flags      = DF_INPUT;
-
-  if (external == 1) drv->enabled    = true;
-  else               drv->enabled    = false;
-
-  drv->dd_info    = nullptr;
-  drv->mt_buffer  = nullptr;
-  drv->pequipment = nullptr;
-    
-  mon_driver[1].name[0] = 0;
-  equipment[1].driver   = mon_driver;
+  mon_driver[0].name[0] = 0;
+  equipment [0].driver  = mon_driver;
 
   return CM_SUCCESS;
 }
@@ -192,10 +152,14 @@ INT frontend_loop() {
 }
 
 //-----------------------------------------------------------------------------
-// at begin run want to clear all DTC counters
+// at begin run : send EWMs separatd by 
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT run_number, char *error) {
   TLOG(TLVL_DEBUG+10) << "BEGIN RUN";
+
+  _dtc_i->RocPatternConfig();
+  _dtc_i->InitEmulatedCFOReadoutMode(_eventWindowSize,_nEvents+1,0);
+
   return CM_SUCCESS;
 }
 

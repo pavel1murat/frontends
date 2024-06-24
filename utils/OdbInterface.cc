@@ -78,16 +78,40 @@ int OdbInterface::GetCFONEwmPerSecond(HNDLE hDB, HNDLE hCFO) {
   }
   else {
     TLOG(TLVL_ERROR) << "no CFO , return 0 (disabled)";
-    return 0;
+    return -1;
   }
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetCFOType(HNDLE hDB, HNDLE hCFO) {
+int OdbInterface::GetCFOExternal(HNDLE hDB, HNDLE hCFO) {
   int data(-1);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "Type", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(hDB, hCFO, "External", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "no CFO Type, return type = -1";
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetNEvents(HNDLE hDB, HNDLE hCFO) {
+  INT   data;
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hCFO, "NEvents", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+    return data;
+  }
+  else {
+    TLOG(TLVL_ERROR) << "no CFO , return 0 (disabled)";
+    return -1;
+  }
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetEventWindowSize(HNDLE hDB, HNDLE hCFO) {
+  INT   data(-1);
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hCFO, "EventWindowSize", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "no CFO , return 0 (disabled)";
+    data = -1;
   }
   return data;
 }

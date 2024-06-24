@@ -66,7 +66,7 @@ INT cfo_gen_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_
   std::string host          = get_full_host_name("local");
   HNDLE       h_cfo_conf    = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
 
-  int         cfo_type      = odb_i->GetCFOType         (hDB,h_cfo_conf);
+  int         external      = odb_i->GetCFOExternal     (hDB,h_cfo_conf);
   int         n_ewm_per_sec = odb_i->GetCFONEwmPerSecond(hDB,h_cfo_conf);
   int         pcie_addr     = odb_i->GetPcieAddress     (hDB,h_cfo_conf);
 //-----------------------------------------------------------------------------
@@ -75,7 +75,7 @@ INT cfo_gen_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_
 //------------------------------------------------------------------------------
   char str[1000];
 
-  sprintf(str,CFO_DRIVER_SETTINGS_STR,pcie_addr,cfo_type,n_ewm_per_sec);
+  sprintf(str,CFO_DRIVER_SETTINGS_STR,pcie_addr,external,n_ewm_per_sec);
   status = db_create_record(hDB, hkey, "DD", str);
 
   if (status != DB_SUCCESS)                                 return FE_ERR_ODB;
@@ -94,7 +94,7 @@ INT cfo_gen_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_
 // 0: emulated
 // 1: external CFO
 //-----------------------------------------------------------------------------
-  info->driver_settings.cfoType   = cfo_type;
+  info->driver_settings.external  = external;
   info->driver_settings.interface = CfoInterface::Instance(pcie_addr);
 
   /* initialize bus driver */
@@ -165,7 +165,7 @@ INT cfo_gen_driver_get(CFO_DRIVER_INFO* Info, INT Channel, float *PValue) {
 // they are mot necessarily distributed in tme uniformly
 // for now, assume that n_ewm*ew_length <= 1 sec; and implement proper logic later
 //-----------------------------------------------------------------------------
-    if (Info->driver_settings.cfoType == 1) {
+    if (Info->driver_settings.external == 1) {
                                         // external CFO
       trkdaq::CfoInterface* cfo_i = (trkdaq::CfoInterface*) Info->driver_settings.interface;
       cfo_i->LaunchRunPlan();
