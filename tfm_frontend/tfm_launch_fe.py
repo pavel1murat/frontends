@@ -12,12 +12,11 @@ import  midas.frontend
 import  midas.event
 
 sys.path.append(os.environ["TFM_DIR"])
-# from   rc.control.component import Component
-# import rc.control.farm_manager as farm_manager
-import rc.control.farm_manager as farm_manager
+
+import tfm.rc.control.farm_manager as farm_manager
 
 sys.path.append(os.environ["FRONTENDS_DIR"])
-from utils.runinfodb import RuninfoDB
+from frontends.util.runinfodb import RuninfoDB
 
 #------------------------------------------------------------------------------
 # TFM 'equipment' is just a placeholder

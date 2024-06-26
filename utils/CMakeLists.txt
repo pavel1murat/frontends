@@ -69,6 +69,8 @@ cet_make_exec(NAME      get_next_run_number
               util stdc++
 )                  
 
+install(FILES runinfodb.py DESTINATION python/frontends/util)
+  
 # install_fhicl(SUBDIRS fcl)
 # install_headers()
 install_source()

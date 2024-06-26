@@ -61,6 +61,9 @@ namespace {
   // DEVICE_DRIVER  gen_driver[2];
   DEVICE_DRIVER  mon_driver[2];
 
+  OdbInterface*         _odb_i          (nullptr);
+  HNDLE                 _h_cfo ;
+
   trkdaq::DtcInterface* _dtc_i          (nullptr);
   int                   _nEvents        (-1);
   int                   _eventWindowSize(-1);
@@ -85,17 +88,17 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   cm_get_experiment_database(&hDB, NULL);
 
-  OdbInterface* odb_i = OdbInterface::Instance(hDB);
-  odb_i->GetActiveRunConfig(hDB,active_run_conf);
-  HNDLE h_active_run_conf = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  _odb_i = OdbInterface::Instance(hDB);
+  _odb_i->GetActiveRunConfig(hDB,active_run_conf);
+  HNDLE h_active_run_conf = _odb_i->GetRunConfigHandle(hDB,active_run_conf);
 
   std::string host        = get_full_host_name("local");
-  HNDLE       h_cfo       = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
-  int         external    = odb_i->GetCFOExternal    (hDB,h_cfo);
-  int         cfo_enabled = odb_i->GetCFOEnabled     (hDB,h_cfo);
+  _h_cfo                  = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
 
-  _nEvents                = odb_i->GetNEvents        (hDB,h_cfo);
-  _eventWindowSize        = odb_i->GetEventWindowSize(hDB,h_cfo);
+  TLOG(TLVL_DEBUG+3) << "hDB : " << hDB << " _h_cfo: " << _h_cfo;
+
+  int         external    = _odb_i->GetCFOExternal    (hDB,_h_cfo);
+  int         cfo_enabled = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/DetectorConfigurations/$detector_conf/DAQ to get a list of
 // nodes and DTC's to be monitored
@@ -107,7 +110,7 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 // get the PCIE address and create the DTC interface
 //-----------------------------------------------------------------------------
-    int pcie_addr = odb_i->GetPcieAddress(hDB,h_cfo);
+    int pcie_addr = _odb_i->GetPcieAddress(hDB,_h_cfo);
     _dtc_i        = DtcInterface::Instance(pcie_addr);
 //-----------------------------------------------------------------------------
 // emulated CFO - todo
@@ -128,7 +131,7 @@ INT frontend_init() {
 
 /*-- Dummy routines ------------------------------------------------*/
 INT poll_event(INT source, INT count, BOOL test) {
-  TLOG(TLVL_DEBUG+10) << "poll_event ENTERED";
+  TLOG(TLVL_DEBUG+2) << "poll_event ENTERED";
   return 1;
 }
 
@@ -139,7 +142,7 @@ INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
 
 /*-- Frontend Exit -------------------------------------------------*/
 INT frontend_exit() {
-  TLOG(TLVL_DEBUG+10) << "called";
+  TLOG(TLVL_DEBUG+2) << "called";
   return CM_SUCCESS;
 }
 
@@ -147,7 +150,7 @@ INT frontend_exit() {
 // Frontend Loop : for CFO, can't sleep here
 //-----------------------------------------------------------------------------
 INT frontend_loop() {
-  TLOG(TLVL_DEBUG+10) << "frontend_loop ENTERED";
+  TLOG(TLVL_DEBUG+2) << "frontend_loop ENTERED";
   return CM_SUCCESS;
 }
 
@@ -155,7 +158,14 @@ INT frontend_loop() {
 // at begin run : send EWMs separatd by 
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT run_number, char *error) {
-  TLOG(TLVL_DEBUG+10) << "BEGIN RUN";
+  TLOG(TLVL_DEBUG+2) << "BEGIN RUN";
+
+  TLOG(TLVL_DEBUG+3) << "hDB : " << hDB << " _h_cfo: " << _h_cfo;
+
+  _nEvents                = _odb_i->GetNEvents        (hDB,_h_cfo);
+  _eventWindowSize        = _odb_i->GetEventWindowSize(hDB,_h_cfo);
+
+  TLOG(TLVL_DEBUG+2) << "_nEvents: " << _nEvents << " _eventWindowSize: " << _eventWindowSize;
 
   _dtc_i->RocPatternConfig();
   _dtc_i->InitEmulatedCFOReadoutMode(_eventWindowSize,_nEvents+1,0);
@@ -165,17 +175,19 @@ INT begin_of_run(INT run_number, char *error) {
 
 /*-- End of Run ----------------------------------------------------*/
 INT end_of_run(INT run_number, char *error) {
-  TLOG(TLVL_DEBUG+10) << "END RUN";
+  TLOG(TLVL_DEBUG+2) << "END RUN";
   return CM_SUCCESS;
 }
 
 /*-- Pause Run -----------------------------------------------------*/
 INT pause_run(INT run_number, char *error) {
+  TLOG(TLVL_DEBUG+2) << "PAUSE RUN";
    return CM_SUCCESS;
 }
 
 /*-- Resume Run ----------------------------------------------------*/
 INT resume_run(INT run_number, char *error) {
+  TLOG(TLVL_DEBUG+2) << "RESUME RUN";
    return CM_SUCCESS;
 }
 
