@@ -1,31 +1,49 @@
 {
   "/MIDAS version" : "2.1",
-  "/MIDAS git revision" : "Tue Feb 27 10:12:19 2024 -0800 - midas-2022-05-c-1049-gadc62173 on branch develop",
+  "/MIDAS git revision" : "Fri Jun 14 14:14:40 2024 +0000 - midas-2022-05-c-1280-g82b28ff4-dirty on branch develop",
   "/filename" : "Custom.json",
   "/ODB path" : "/Custom",
 
-  "Path/key" : { "type" : 12, "item_size" : 57, "access_mode" : 7, "last_written" : 1709005870 },
-  "Path" : "/home/mu2etrk/test_stand/pasha_023/srcs/frontends/custom",
-  "Tracker" : {
-    "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709005970 },
-    "main" : "tracker_main.html",
-    "TS1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709006007 },
-    "TS1" : "tracker_ts1.html"
-  },
-  "artdaq" : {
-    "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709006553 },
-    "main" : "artdaq_main.html",
-    "nodes" : {
-      "mu2edaq08/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709040208 },
-      "mu2edaq08" : "mu2edaq08.html",
-      "mu2edaq09/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709040173 },
-      "mu2edaq09" : "mu2edaq09.html",
-      "mu2edaq10/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709040194 },
-      "mu2edaq10" : "mu2edaq10.html"
-    }
+  "Path/key" : { "type" : 12, "item_size" : 57, "access_mode" : 7, "last_written" : 1717528437 },
+  "Path" : "/home/mu2etrk/test_stand/pasha_025/srcs/frontends/custom",
+  "Calorimeter" : {
   },
   "CRV" : {
-    "DTC/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1709143288 },
-    "DTC" : "dtc.html"
+    "DTC/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1714005836 },
+    "DTC" : "dtc.html",
+    "wideband/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530249 },
+    "wideband" : "crv/crv_wideband.html"
+  },
+  "DAQ" : {
+    "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530722 },
+    "main" : "daq/daq_main.html",
+    "nodes" : {
+      "mu2edaq07/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530903 },
+      "mu2edaq07" : "daq/nodes/mu2edaq07.html",
+      "mu2edaq08/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530756 },
+      "mu2edaq08" : "daq/nodes/mu2edaq08.html",
+      "mu2edaq09/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530771 },
+      "mu2edaq09" : "daq/nodes/mu2edaq09.html",
+      "mu2edaq10/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530781 },
+      "mu2edaq10" : "daq/nodes/mu2edaq10.html",
+      "mu2edaq13/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530966 },
+      "mu2edaq13" : "daq/nodes/mu2edaq13.html",
+      "mu2edaq22/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530925 },
+      "mu2edaq22" : "daq/nodes/mu2edaq22.html"
+    }
+  },
+  "EXM" : {
+  },
+  "STM" : {
+  },
+  "Tracker" : {
+    "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1714005836 },
+    "main" : "tracker_main.html",
+    "TS1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717706305 },
+    "TS1" : "tracker_ts1.html",
+    "TS2" : {
+      "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717528809 },
+      "main" : "ts2/ts2_main.html"
+    }
   }
 }
