@@ -6,7 +6,7 @@
 import  ctypes, os, sys, datetime, random, time, traceback, subprocess
 import  TRACE
 
-sys.path.append(os.environ["MIDASSYS"]+'/python')
+# sys.path.append(os.environ["MIDASSYS"]+'/python')
 import  midas
 import  midas.frontend
 import  midas.event
@@ -15,7 +15,7 @@ sys.path.append(os.environ["TFM_DIR"])
 
 import tfm.rc.control.farm_manager as farm_manager
 
-sys.path.append(os.environ["FRONTENDS_DIR"])
+# sys.path.append(os.environ["FRONTENDS_DIR"])
 from frontends.util.runinfodb import RuninfoDB
 
 #------------------------------------------------------------------------------
@@ -112,6 +112,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 # determine active configuration
 #------------------------------------------------------------------------------
+        self.output_dir              = self.client.odb_get("/Mu2e/OutputDir")
         self.config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration")
         self.artdaq_partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER")
 
@@ -119,10 +120,11 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 
         config_path                  = "/Mu2e/RunConfigurations/"+self.config_name;
         self.use_runinfo_db          = self.client.odb_get(config_path+'/UseRuninfoDB')
-        self.output_dir                  = self.client.odb_get("/Mu2e/OutputDir")
+        self.tfm_rpc_host            = self.client.odb_get(config_path+'/TfmRpcHost'  )
 
         config_dir = os.path.join(os.environ.get('MU2E_DAQ_DIR', ''), 'config', self.config_name)
-        TRACE.TRACE(7,":0014:config_dir=%s use_runinfo_db=%i" % (config_dir,self.use_runinfo_db))
+
+        TRACE.TRACE(7,f":0014:config_dir={config_dir} use_runinfo_db={self.use_run_info_db} rpc_host={self.tfm_rpc_host}")
 
         os.environ["TFM_SETUP_FHICLCPP"] = f"{config_dir}/.setup_fhiclcpp"
 
@@ -145,7 +147,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         self.add_equipment(TfmEquipment(self.client))
         TRACE.TRACE(7,"003: equipment added , config_dir=%s"%(config_dir))
 
-        self.fm   = farm_manager.FarmManager(config_dir=config_dir)
+        self.fm   = farm_manager.FarmManager(config_dir=config_dir,rpc_host=self.tfm_rpc_host)
         TRACE.TRACE(7,"004: tfm instantiated, self.use_runinfo_db=%i"%(self.use_runinfo_db))
 #------------------------------------------------------------------------------
 # runinfo DB related stuff
@@ -153,8 +155,6 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         self.runinfo_db   = None;
         if (self.use_runinfo_db):
             self.runinfo_db   = RuninfoDB(self.client);
-            
-            
 #------------------------------------------------------------------------------
 # strt screen process tailing the logfile
 #-------v----------------------------------------------------------------------
@@ -244,7 +244,7 @@ if __name__ == "__main__":
 # The main executable is very simple:
 # just create the frontend object, and call run() on it.
 #---v--------------------------------------------------------------------------
-    TRACE.Instance = sys.argv[0].encode()
+    TRACE.Instance = "tfm_launch_fe".encode();
 
     TRACE.TRACE(7,"000: TRACE.Instance : %s"%TRACE.Instance)
     with TfmLaunchFrontend() as tfm_launch:
