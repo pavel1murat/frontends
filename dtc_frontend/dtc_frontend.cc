@@ -68,7 +68,7 @@ INT frontend_init() {
 
   OdbInterface* odb_i = OdbInterface::Instance(hDB);
 
-  odb_i->GetActiveRunConfig(hDB,active_run_conf);
+  active_run_conf = odb_i->GetActiveRunConfig(hDB);
   HNDLE h_active_run_conf = odb_i->GetRunConfigHandle(hDB,active_run_conf);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/DetectorConfigurations/$detector_conf/DAQ to get a list of 

@@ -15,12 +15,24 @@ OdbInterface* OdbInterface::Instance(HNDLE Hdb) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetActiveRunConfig(HNDLE hDB, std::string& RunConf) {
-  char run_conf[100];
-  int   sz = sizeof(run_conf);
-  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &run_conf, &sz, TID_STRING, FALSE);
-  RunConf = run_conf;
-  return 0;
+std::string OdbInterface::GetString(HNDLE hDB, HNDLE hDir, const char* Key) {
+  std::string res;
+  char        val[1000];
+
+  int         sz = sizeof(val);
+  if (db_get_value(hDB, 0, Key, &val, &sz, TID_STRING, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "cant find handle for:" << Key ;
+  }
+  else {
+    res = val;
+  }
+
+  return res;
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetActiveRunConfig(HNDLE hDB) {
+  return GetString(hDB,0,"/Mu2e/ActiveRunConfiguration");
 }
 
 //-----------------------------------------------------------------------------
@@ -93,6 +105,20 @@ int OdbInterface::GetCFOExternal(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
+int OdbInterface::GetNDTCs(HNDLE hDB, HNDLE hCFO, int* NDtcs) {
+  int   rc(0);
+  int   n_timing_chains(8);
+  
+  int   sz = sizeof(int)*n_timing_chains;
+  
+  if (db_get_value(hDB, hCFO, "NDtcs", NDtcs, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "no CFO Type, return type = -1";
+    rc = -1;
+  }
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetNEvents(HNDLE hDB, HNDLE hCFO) {
   INT   data;
   int   sz = sizeof(data);
@@ -116,6 +142,7 @@ int OdbInterface::GetEventWindowSize(HNDLE hDB, HNDLE hCFO) {
   return data;
 }
 
+
 //-----------------------------------------------------------------------------
 int OdbInterface::GetDaqHostHandle(HNDLE hDB, HNDLE hConf, const std::string& Hostname) {
 
@@ -130,3 +157,15 @@ int OdbInterface::GetDaqHostHandle(HNDLE hDB, HNDLE hConf, const std::string& Ho
   }
   return h;
 }
+
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetCFORunPlanDir(HNDLE hDB) {
+  return GetString(hDB,0,"/Mu2e/RunPlanDir");
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetCFORunPlan(HNDLE hDB, HNDLE hCFO) {
+  return GetString(hDB,hCFO,"RunPlan");
+}
+

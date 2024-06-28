@@ -5,20 +5,11 @@
 #------------------------------------------------------------------------------
 # link directories 
 #------------------------------------------------------------------------------
-# include_directories($ENV{MRB_SOURCE})
-include_directories($ENV{FRONTENDS_DIR})
-# include_directories($ENV{TRACE_INC})
 include_directories(${MIDAS_INSTALL_DIR}/include)
 include_directories(${MIDAS_INSTALL_DIR})
-# include_directories(${PostgreSQL_INCLUDE_DIRS})
 #------------------------------------------------------------------------------
 # library directories 
 #------------------------------------------------------------------------------
-# link_directories($ENV{TRACE_LIB})
-# link_directories(${MIDAS_INSTALL_DIR}/lib)
-# link_directories($ENV{MESSAGEFACILITY_LIB})
-# link_directories($ENV{XMLRPC_C_FQ_DIR}/lib)
-
 cet_set_compiler_flags(
         DIAGS VIGILANT
         # WERROR          
@@ -28,7 +19,8 @@ cet_set_compiler_flags(
         # -v
         -g -O0 # Equivalent to debug qualifier, for testing
         -pthread 
-)
+        )
+      
 cet_make_exec(NAME      cfo_frontend
               SOURCE    cfo_frontend.cc 
                         cfo_gen_driver.cc 
@@ -44,6 +36,18 @@ cet_make_exec(NAME      cfo_frontend
 
 cet_make_exec(NAME      cfo_em_frontend
               SOURCE    cfo_em_frontend.cc 
+                        cfo_mon_driver.cc 
+                        ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
+              LIBRARIES frontends 
+                        otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
+                        mu2e_pcie_utils::CFOInterface
+                        mu2e_pcie_utils::DTCInterface
+                        mfe midas 
+                        stdc++ m util pthread rt
+)
+                      
+cet_make_exec(NAME      cfo_ext_frontend
+              SOURCE    cfo_ext_frontend.cc 
                         cfo_mon_driver.cc 
                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
               LIBRARIES frontends 
