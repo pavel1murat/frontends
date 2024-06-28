@@ -1,22 +1,23 @@
 #!/usr/bin/bash
 
-export        MU2E_DAQ_DIR=$PWD;
+if [ ".$MU2E_DAQ_DIR" == "." ] ; then  export        MU2E_DAQ_DIR=$PWD; fi
+
 export       DAQ_USER_STUB=${USER}_`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`
 export      DAQ_OUTPUT_TOP=/scratch/mu2e/$DAQ_USER_STUB
 
 source $MU2E_DAQ_DIR/spack/share/spack/setup-env.sh
-spack env activate tdaq-v3_01_00
+spack env activate murat # tdaq
 
 export          TRACE_FILE=/tmp/mu2etrk_pasha_028.$$
 export TFM_FHICL_DIRECTORY=$MU2E_DAQ_DIR/config
 
-            export TFM_DIR=$MU2E_DAQ_DIR/tdaq-v3_01_00/tfm
-      export FRONTENDS_DIR=$MU2E_DAQ_DIR/tdaq-v3_01_00/frontends
+            export TFM_DIR=$SPACK_ENVtfm
+      export FRONTENDS_DIR=$SPACK_END/frontends
 
-        export  SPACK_VIEW=$MU2E_DAQ_DIR/tdaq-v3_01_00/.spack-env/view
+        export  SPACK_VIEW=$SPACK_ENV/.spack-env/view
         export  PYTHONPATH=$SPACK_VIEW/python
 
-           export MIDASSYS=$MU2E_DAQ_DIR/tdaq-v3_01_00/.spack-env/view
+           export MIDASSYS=$SPACK_VIEW
     export MIDAS_EXPT_NAME=test_025
     export    MIDAS_EXPTAB=$PWD/config/$MIDAS_EXPT_NAME.exptab
 

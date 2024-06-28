@@ -83,7 +83,8 @@ INT frontend_init() {
   cm_get_experiment_database(&hDB, NULL);
 
   OdbInterface* odb_i = OdbInterface::Instance(hDB);
-  odb_i->GetActiveRunConfig(hDB,active_run_conf);
+
+  active_run_conf         = odb_i->GetActiveRunConfig(hDB);
   HNDLE h_active_run_conf = odb_i->GetRunConfigHandle(hDB,active_run_conf);
 
   std::string host        = get_full_host_name("local");

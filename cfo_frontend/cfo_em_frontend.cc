@@ -89,7 +89,8 @@ INT frontend_init() {
   cm_get_experiment_database(&hDB, NULL);
 
   _odb_i = OdbInterface::Instance(hDB);
-  _odb_i->GetActiveRunConfig(hDB,active_run_conf);
+
+  active_run_conf         = _odb_i->GetActiveRunConfig(hDB);
   HNDLE h_active_run_conf = _odb_i->GetRunConfigHandle(hDB,active_run_conf);
 
   std::string host        = get_full_host_name("local");
@@ -97,7 +98,7 @@ INT frontend_init() {
 
   TLOG(TLVL_DEBUG+3) << "hDB : " << hDB << " _h_cfo: " << _h_cfo;
 
-  int         external    = _odb_i->GetCFOExternal    (hDB,_h_cfo);
+  //  int         external    = _odb_i->GetCFOExternal    (hDB,_h_cfo);
   int         cfo_enabled = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/DetectorConfigurations/$detector_conf/DAQ to get a list of
@@ -167,7 +168,7 @@ INT begin_of_run(INT run_number, char *error) {
 
   TLOG(TLVL_DEBUG+2) << "_nEvents: " << _nEvents << " _eventWindowSize: " << _eventWindowSize;
 
-  _dtc_i->RocPatternConfig();
+  _dtc_i->RocPatternConfig(_dtc_i->fLinkMask);
   _dtc_i->InitEmulatedCFOReadoutMode(_eventWindowSize,_nEvents+1,0);
 
   return CM_SUCCESS;
