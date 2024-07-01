@@ -20,14 +20,22 @@ std::string OdbInterface::GetString(HNDLE hDB, HNDLE hDir, const char* Key) {
   char        val[1000];
 
   int         sz = sizeof(val);
-  if (db_get_value(hDB, 0, Key, &val, &sz, TID_STRING, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "cant find handle for:" << Key ;
+  if (db_get_value(hDB, hDir, Key, &val, &sz, TID_STRING, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "cant find hDB=" << hDB << " hDir=" << hDir << " Key=" << Key ;
   }
   else {
     res = val;
   }
 
   return res;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetInteger(HNDLE hDB, HNDLE hCFO, const char* Key, int* Data) {
+  int   sz = sizeof(*Data);
+  int rc = db_get_value(hDB, hCFO, Key, Data, &sz, TID_INT, FALSE);
+  TLOG(TLVL_INFO) << "key:" << Key << " value:" << *Data;
+  return rc;
 }
 
 //-----------------------------------------------------------------------------
@@ -56,16 +64,6 @@ HNDLE OdbInterface::GetCFOConfigHandle(HNDLE h_DB, HNDLE h_RunConf) {
     TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
     return 0;
   }
-}
-
-//-----------------------------------------------------------------------------
-int OdbInterface::GetPcieAddress(HNDLE hDB, HNDLE hCFO) {
-  INT   data(-1);
-  int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "PCIEAddress", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "no CFO PCIE address, return -1";
-  }
-  return data;
 }
 
 //-----------------------------------------------------------------------------
@@ -100,6 +98,79 @@ int OdbInterface::GetCFOExternal(HNDLE hDB, HNDLE hCFO) {
   int   sz = sizeof(data);
   if (db_get_value(hDB, hCFO, "External", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "no CFO Type, return type = -1";
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+// emulated CFO: sleep time for rate throttling
+//-----------------------------------------------------------------------------
+int OdbInterface::GetCFOSleepTime(HNDLE hDB, HNDLE hCFO) {
+  const char* key {"SleepTimeMs"};
+  int   data(-1);
+
+  if (GetInteger(hDB,hCFO,"SleepTimeMs",&data) != DB_SUCCESS) {
+    // data = -1;
+    TLOG(TLVL_ERROR) << key << "not found, return " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcEmulatesCfo(HNDLE hDB, HNDLE hDTC) {
+  const char* key {"EmulatesCFO"};
+  INT   data(0);       // if not found, want all links to be disabled
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcEnabled(HNDLE hDB, HNDLE hDTC) {
+  const char* key {"Enabled"};
+  INT   data(0);       // if not found, want all links to be disabled
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcLinkMask(HNDLE hDB, HNDLE hDTC) {
+  const char* key {"LinkMask"};
+  INT   data(0);       // if not found, want all links to be disabled
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcReadoutMode(HNDLE hDB, HNDLE hDTC) {
+  const char* key {"ReadoutMode"};
+  INT   data(-1);       // if not found, want to be meaningless
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return: " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+// assum hDTC is a DTC handle
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcSampleEdgeMode(HNDLE hDB, HNDLE hDTC) {
+  const char* key {"SampleEdgeMode"};
+  INT   data(-1);       // if not found, want to be meaningless
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return: " << data;
   }
   return data;
 }
@@ -149,11 +220,11 @@ int OdbInterface::GetDaqHostHandle(HNDLE hDB, HNDLE hConf, const std::string& Ho
   char key[100];
   int  sz = sizeof(key);
 
-  snprintf(key,sz-1,"DAQ/%s",Hostname.data());
+  snprintf(key,sz-1,"DetectorConfiguration/DAQ/%s",Hostname.data());
 
   HNDLE h(0);
   if (db_find_key(hDB, hConf, key, &h) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "cant find Host handle for " << Hostname;
+    TLOG(TLVL_ERROR) << key << " not found";
   }
   return h;
 }
@@ -169,3 +240,13 @@ std::string OdbInterface::GetCFORunPlan(HNDLE hDB, HNDLE hCFO) {
   return GetString(hDB,hCFO,"RunPlan");
 }
 
+//-----------------------------------------------------------------------------
+int OdbInterface::GetPcieAddress(HNDLE hDB, HNDLE hCFO) {
+  const char* key {"PCIEAddress"};
+  INT   data(-1);
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hCFO, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "no CFO PCIE address, return -1";
+  }
+  return data;
+}

@@ -34,8 +34,8 @@ cet_make_exec(NAME      cfo_frontend
                         stdc++ m util pthread rt
 )
 
-cet_make_exec(NAME      cfo_em_frontend
-              SOURCE    cfo_em_frontend.cc 
+cet_make_exec(NAME      cfo_emu_frontend
+              SOURCE    cfo_emu_frontend.cc 
                         cfo_mon_driver.cc 
                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
               LIBRARIES frontends 

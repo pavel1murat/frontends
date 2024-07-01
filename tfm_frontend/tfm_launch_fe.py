@@ -6,6 +6,8 @@
 import  ctypes, os, sys, datetime, random, time, traceback, subprocess
 import  TRACE
 
+TRACE_NAME = "tfm_launch_fe.py"
+
 # sys.path.append(os.environ["MIDASSYS"]+'/python')
 import  midas
 import  midas.frontend
@@ -26,7 +28,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
     def __init__(self, client):
         # The name of our equipment. This name will be used on the midas status
         # page, and our info will appear in /Equipment/MyPeriodicEquipment the ODB.
-        TRACE.TRACE(7,":001:START")
+        TRACE.TRACE(7,":001:START",TRACE_NAME)
 #------------------------------------------------------------------------------
 # Define the "common" settings of a frontend. These will appear in
 # /Equipment/MyPeriodicEquipment/Common. 
@@ -50,7 +52,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
 # set the status of the equipment (appears in the midas status page)
 #------------------------------------------------------------------------------
         self.set_status("Initialized")
-        TRACE.TRACE(7,":002:END equipment initialized")
+        TRACE.TRACE(7,":002:END equipment initialized",TRACE_NAME)
         return;
 
 #-------^----------------------------------------------------------------------
@@ -59,7 +61,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
 # or None (if we shouldn't write an event).
 #------------------------------------------------------------------------------
     def readout_func(self):
-        TRACE.TRACE(7,":001")
+        TRACE.TRACE(7,":001",TRACE_NAME)
         # In this example, we just make a simple event with one bank.
 
         # event = midas.event.Event()
@@ -69,7 +71,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
         # data = [1,2,3,4,5,6,7,8]
         # event.create_bank("MYBK", midas.TID_INT, data)
 
-        TRACE.TRACE(7,":002:exit")
+        TRACE.TRACE(7,":002:exit",TRACE_NAME)
         return None;        # event
 
 #------------------------------------------------------------------------------
@@ -124,7 +126,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 
         config_dir = os.path.join(os.environ.get('MU2E_DAQ_DIR', ''), 'config', self.config_name)
 
-        TRACE.TRACE(7,f":0014:config_dir={config_dir} use_runinfo_db={self.use_run_info_db} rpc_host={self.tfm_rpc_host}")
+        TRACE.TRACE(7,f":0014:config_dir={config_dir} use_runinfo_db={self.use_runinfo_db} rpc_host={self.tfm_rpc_host}")
 
         os.environ["TFM_SETUP_FHICLCPP"] = f"{config_dir}/.setup_fhiclcpp"
 
@@ -155,6 +157,10 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         self.runinfo_db   = None;
         if (self.use_runinfo_db):
             self.runinfo_db   = RuninfoDB(self.client);
+#------------------------------------------------------------------------------
+# try to change priority by re-registering the same callback
+#------------------------------------------------------------------------------
+        # self.client.register_transition_callback(midas.TR_START, 502, self._tr_start_callback)
 #------------------------------------------------------------------------------
 # strt screen process tailing the logfile
 #-------v----------------------------------------------------------------------
