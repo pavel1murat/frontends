@@ -23,8 +23,10 @@ typedef int INT;
 // };
 
 BOOL equipment_common_overwrite = TRUE;
-
-EQUIPMENT equipment[] = {
+//-----------------------------------------------------------------------------
+// tree is a max : two DTC's ann an empty structure
+//-----------------------------------------------------------------------------
+EQUIPMENT equipment[3] = {
 
   {"${HOSTNAME}#DTC0",         // equipment name, to become mu2edaq09::DTC
    {3, 0,                      /* event ID, trigger mask */
@@ -45,7 +47,7 @@ EQUIPMENT equipment[] = {
     "",                        // current status
     "",                        // color for status
     0,                         // hidden flag
-    0                          // write cache size
+    500000                     // write cache size
    } ,
    cd_mu2e_sc_read,              /* readout routine */
    cd_mu2e_sc,                   /* class driver main routine */
@@ -72,7 +74,7 @@ EQUIPMENT equipment[] = {
     "",                        // current status
     "",                        // color for status
     FALSE,                     // hidden flag
-    5000000                    // write cache size
+    500000                     // write cache size
    } ,
    cd_mu2e_sc_read,            /* readout routine */
    cd_mu2e_sc,                 /* class driver main routine */
@@ -80,7 +82,7 @@ EQUIPMENT equipment[] = {
    nullptr,                    // driver (driver list) initialized in frontend_init
    NULL,                       /* init string */
   },
-  {""}
+  {"",}
 };
 
 #endif

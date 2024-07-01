@@ -22,11 +22,19 @@ public:
   HNDLE       GetRunConfigHandle  (HNDLE h_DB, std::string& RunConf);
 
   HNDLE       GetCFOConfigHandle  (HNDLE h_DB, HNDLE h_RunConf);
-  int         GetPcieAddress      (HNDLE h_DB, HNDLE h_CFO);
   int         GetCFOEnabled       (HNDLE h_DB, HNDLE h_CFO);
   int         GetCFONEwmPerSecond (HNDLE h_DB, HNDLE h_CFO);
   std::string GetCFORunPlanDir    (HNDLE h_DB);
   std::string GetCFORunPlan       (HNDLE h_DB, HNDLE h_CFO);
+
+  int         GetCFOSleepTime     (HNDLE h_DB, HNDLE h_CFO);
+  
+  int         GetDtcEnabled       (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcEmulatesCfo   (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcLinkMask      (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcReadoutMode   (HNDLE h_DB, HNDLE h_Card); // 0:patterns, 1:data
+  int         GetDtcSampleEdgeMode(HNDLE h_DB, HNDLE h_Card); // 0:force rising; 1: force falling; 2:auto
+  int         GetPcieAddress      (HNDLE h_DB, HNDLE h_Card); // card: either CFO or DTC
 //-----------------------------------------------------------------------------
 // CFO supports up to 8 timing chains, so dimension of NDTCs array should be at least 8
 // NDTCs[i] : number of DTCs in i-th timing chain
@@ -45,6 +53,7 @@ public:
                                         // event window size in units of 25 ns (40 MHz)
   int         GetEventWindowSize  (HNDLE Hdb, HNDLE h_CFO);
 
+  int         GetInteger          (HNDLE hDB, HNDLE hCFO, const char* Key, int* Data);
   std::string GetString           (HNDLE hDB, HNDLE hDir, const char* Key);
 };
 

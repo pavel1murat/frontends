@@ -4,13 +4,12 @@
 // an emulated CFO generated EWMs just once - at begin run,
 // and needs only a monitoring driver
 //////////////////////////////////////////////////////////////////////////////
-#ifndef __cfo_em_frontend_hh__
-#define __cfo_em_frontend_hh__
+#ifndef __cfo_emu_frontend_hh__
+#define __cfo_emu_frontend_hh__
 
 #include "drivers/bus/null.h"
 
 #include "utils/mu2e_sc.hh"
-// #include "frontends/cfo_em_frontend/cfo_interface.hh"
 
 BOOL equipment_common_overwrite = TRUE;
 
@@ -18,7 +17,7 @@ EQUIPMENT equipment[] = {
 //-----------------------------------------------------------------------------
 // emulated CFO : what equipment does it need ? - monitoring ! 
 //-----------------------------------------------------------------------------
-  {"CFO_EM_Mon",               // equipment name, to become mu2edaq09::CFO_EM_Mon
+  {"EMU_CFO",                  // equipment name, to become CFO_EMU
    {3, 0,                      /* event ID, trigger mask */
     "SYSTEM",                  /* event buffer */
     EQ_SLOW,                   // equipment type. PM: make everything slow , we're not reading the data 
@@ -43,7 +42,7 @@ EQUIPMENT equipment[] = {
    cd_mu2e_sc_read,            /* readout routine */
    cd_mu2e_sc,                 /* class driver main routine */
    //   driver_list,           // device driver list
-   nullptr,                    // driver (driver list) initialized in the frontend_init
+   nullptr,                    // driver (driver list) : for emulated CFO, don't need drivers ..
    NULL,                       /* init string */
   },
 

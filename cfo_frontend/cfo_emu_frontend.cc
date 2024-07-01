@@ -5,7 +5,7 @@
 #undef NDEBUG // midas required assert() to be always enabled
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "cfo_em_frontend"
+#define  TRACE_NAME "cfo_emu_frontend"
 
 #include <stdio.h>
 #include <string.h>
@@ -22,7 +22,7 @@
 #include "utils/OdbInterface.hh"
 
 #include "cfo_frontend/cfo_interface.hh"
-#include "cfo_frontend/cfo_em_frontend.hh"
+#include "cfo_frontend/cfo_emu_frontend.hh"
 #include "cfo_frontend/cfo_mon_driver.hh"
 
 using namespace DTCLib; 
@@ -36,7 +36,7 @@ using namespace trkdaq;
 const char* frontend_name;
 
 const char* frontend_file_name  = __FILE__; // The frontend file name, don't change it
-BOOL        frontend_call_loop  =    FALSE; // frontend_loop is called periodically if this variable is TRUE
+BOOL        frontend_call_loop  =   FALSE ; // frontend_loop is called periodically if this variable is TRUE
 INT         display_period      =        0; // 1000; // if !=0, a frontend status page is displayed 
                                             //          with this frequency in ms
 INT         max_event_size      =    10000; // maximum event size produced by this frontend
@@ -50,7 +50,7 @@ namespace {
     std::string name;
   public:
     FeName() { 
-      name         += "cfo_em_frontend";
+      name         += "cfo_emu_frontend";
       frontend_name = name.data();  // frontend_name is a global variable
     }
   }; 
@@ -65,10 +65,16 @@ namespace {
   HNDLE                 _h_cfo ;
 
   trkdaq::DtcInterface* _dtc_i          (nullptr);
-  int                   _nEvents        (-1);
+  long int              _nEvents        (-1);
   int                   _eventWindowSize(-1);
+  long int              _firstEvent     ( 0);
+  int                   _sleepTimeMs    (1000);
 }
 
+//-----------------------------------------------------------------------------
+// callbacks
+//-----------------------------------------------------------------------------
+INT tr_prestart(INT run_number, char *error);
 //-----------------------------------------------------------------------------
 // CFO frontend init
 //----------------------------------------------------------------------------- 
@@ -98,7 +104,6 @@ INT frontend_init() {
 
   TLOG(TLVL_DEBUG+3) << "hDB : " << hDB << " _h_cfo: " << _h_cfo;
 
-  //  int         external    = _odb_i->GetCFOExternal    (hDB,_h_cfo);
   int         cfo_enabled = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/DetectorConfigurations/$detector_conf/DAQ to get a list of
@@ -110,9 +115,21 @@ INT frontend_init() {
   if (cfo_enabled == 1) {
 //-----------------------------------------------------------------------------
 // get the PCIE address and create the DTC interface
+// skip initialization, assume the DTC to be initialized by the corresponding dtc_frontend
+// skip_init=true skips initialization of the ROCs, so the initialization conflicts can only
+// come via the initialization of the DMA engine
 //-----------------------------------------------------------------------------
-    int pcie_addr = _odb_i->GetPcieAddress(hDB,_h_cfo);
-    _dtc_i        = DtcInterface::Instance(pcie_addr);
+    int pcie_addr  = _odb_i->GetPcieAddress(hDB,_h_cfo);
+    bool skip_init = true;
+    _dtc_i         = DtcInterface::Instance(pcie_addr,0,skip_init);
+
+    _nEvents                = _odb_i->GetNEvents        (hDB,_h_cfo);
+    _eventWindowSize        = _odb_i->GetEventWindowSize(hDB,_h_cfo);
+    _sleepTimeMs            = _odb_i->GetCFOSleepTime   (hDB,_h_cfo);
+
+    TLOG(TLVL_DEBUG+2) << "_nEvents: " << _nEvents
+                       << " _sleepTimeMs: " << _sleepTimeMs
+                       << " _eventWindowSize: " << _eventWindowSize;
 //-----------------------------------------------------------------------------
 // emulated CFO - todo
 //-----------------------------------------------------------------------------
@@ -126,9 +143,25 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   mon_driver[0].name[0] = 0;
   equipment [0].driver  = mon_driver;
-
+//-----------------------------------------------------------------------------
+// transitions
+//-----------------------------------------------------------------------------
+  cm_register_transition(TR_START,tr_prestart,510);
   return CM_SUCCESS;
 }
+
+//-----------------------------------------------------------------------------
+// callback (to be called AFTER teh corresponding DTC callback)
+//-----------------------------------------------------------------------------
+INT tr_prestart(INT run_number, char *error)  {
+  // code to perform actions prior to frontend starting 
+
+  TLOG(TLVL_DEBUG+2) << "pre-BEGIN RUN _dtc_i:" << _dtc_i;
+  frontend_call_loop = TRUE ;
+  TLOG(TLVL_DEBUG+3) << "--- pre-BEGIN DONE";
+  return CM_SUCCESS;  
+}
+
 
 /*-- Dummy routines ------------------------------------------------*/
 INT poll_event(INT source, INT count, BOOL test) {
@@ -151,7 +184,21 @@ INT frontend_exit() {
 // Frontend Loop : for CFO, can't sleep here
 //-----------------------------------------------------------------------------
 INT frontend_loop() {
-  TLOG(TLVL_DEBUG+2) << "frontend_loop ENTERED";
+
+  TLOG(TLVL_DEBUG+2) << "--- ENTERED";
+  if (_dtc_i) {
+    TLOG(TLVL_DEBUG+2) << "_nEvents: " << _nEvents
+                       << " _firstEvent: " << _firstEvent
+                       << " _sleepTimeMs: " << _sleepTimeMs
+                       << " _eventWindowSize: " << _eventWindowSize;
+
+    _dtc_i->InitEmulatedCFOReadoutMode(_eventWindowSize,_nEvents+1,_firstEvent);
+    _firstEvent += _nEvents;
+  }
+
+  ss_sleep(_sleepTimeMs);
+  
+  TLOG(TLVL_DEBUG+2) << "--- DONE after sleeping for " << _sleepTimeMs << " milliseconds";
   return CM_SUCCESS;
 }
 
@@ -159,37 +206,30 @@ INT frontend_loop() {
 // at begin run : send EWMs separatd by 
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT run_number, char *error) {
-  TLOG(TLVL_DEBUG+2) << "BEGIN RUN";
-
-  TLOG(TLVL_DEBUG+3) << "hDB : " << hDB << " _h_cfo: " << _h_cfo;
-
-  _nEvents                = _odb_i->GetNEvents        (hDB,_h_cfo);
-  _eventWindowSize        = _odb_i->GetEventWindowSize(hDB,_h_cfo);
-
-  TLOG(TLVL_DEBUG+2) << "_nEvents: " << _nEvents << " _eventWindowSize: " << _eventWindowSize;
-
-  _dtc_i->RocPatternConfig(_dtc_i->fLinkMask);
-  _dtc_i->InitEmulatedCFOReadoutMode(_eventWindowSize,_nEvents+1,0);
-
+  _firstEvent = 0;
+  TLOG(TLVL_DEBUG+2) << "BEGIN RUN _firstEvent:" << _firstEvent;
   return CM_SUCCESS;
 }
 
 /*-- End of Run ----------------------------------------------------*/
 INT end_of_run(INT run_number, char *error) {
   TLOG(TLVL_DEBUG+2) << "END RUN";
+  frontend_call_loop = FALSE ;
   return CM_SUCCESS;
 }
 
 /*-- Pause Run -----------------------------------------------------*/
 INT pause_run(INT run_number, char *error) {
   TLOG(TLVL_DEBUG+2) << "PAUSE RUN";
+  frontend_call_loop = FALSE ;
    return CM_SUCCESS;
 }
 
 /*-- Resume Run ----------------------------------------------------*/
 INT resume_run(INT run_number, char *error) {
   TLOG(TLVL_DEBUG+2) << "RESUME RUN";
-   return CM_SUCCESS;
+  frontend_call_loop = TRUE ;
+  return CM_SUCCESS;
 }
 
 /*------------------------------------------------------------------*/

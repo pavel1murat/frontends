@@ -64,13 +64,18 @@ namespace {
   OdbInterface*         _odb_i          (nullptr);
   HNDLE                 _h_cfo ;
 
+  int                   _cfo_enabled;
   trkdaq::CfoInterface* _cfo_i          (nullptr);
   std::string           _run_plan_dir;
   std::string           _run_plan;
-  int                   _eventWindowSize(-1);
-  int                   _n_dtcs[8];
+  std::string           _run_plan_fn;
+  int                   _n_dtcs[8] = { 0,0,0,0,0,0,0,0};
 }
 
+//-----------------------------------------------------------------------------
+// callbacks
+//-----------------------------------------------------------------------------
+INT tr_prestart(INT run_number, char *error);
 //-----------------------------------------------------------------------------
 // CFO frontend init
 //----------------------------------------------------------------------------- 
@@ -99,10 +104,13 @@ INT frontend_init() {
 
   std::string host        = get_full_host_name("local");
   _h_cfo                  = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
+  _cfo_enabled            = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
 
-  TLOG(TLVL_DEBUG+3) << "hDB : " << hDB << " _h_cfo: " << _h_cfo;
+  TLOG(TLVL_DEBUG+3) << "active_run_conf:" << active_run_conf
+                     << " hDB : " << hDB << " _h_cfo: " << _h_cfo
+                     << " run_plan_dir:" << _run_plan_dir
+                     << " cfo_enabled: " << _cfo_enabled;
 
-  int         cfo_enabled = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/DetectorConfigurations/$detector_conf/DAQ to get a list of
 // nodes and DTC's to be monitored
@@ -110,7 +118,7 @@ INT frontend_init() {
 // initialize the CFO
 //-----------------------------------------------------------------------------
 //  DEVICE_DRIVER*  drv;
-  if (cfo_enabled == 1) {
+  if (_cfo_enabled == 1) {
 //-----------------------------------------------------------------------------
 // get the PCIE address and create the DTC interface
 // DTCs will need to initialize the ROC readout pattern    
@@ -118,6 +126,8 @@ INT frontend_init() {
     int pcie_addr = _odb_i->GetPcieAddress(hDB,_h_cfo);
     _run_plan     = _odb_i->GetCFORunPlan (hDB,_h_cfo);
 
+    TLOG(TLVL_DEBUG+3) << "pcie_addr: " << pcie_addr << " _run_plan: " << _run_plan;
+    
     _cfo_i        = CfoInterface::Instance(pcie_addr);
 //-----------------------------------------------------------------------------
 // emulated CFO - todo
@@ -133,7 +143,42 @@ INT frontend_init() {
   mon_driver[0].name[0] = 0;
   equipment [0].driver  = mon_driver;
 
+//-----------------------------------------------------------------------------
+// transitions
+//-----------------------------------------------------------------------------
+  cm_register_transition(TR_START,tr_prestart,510);
   return CM_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+// callback
+//-----------------------------------------------------------------------------
+INT tr_prestart(INT run_number, char *error)  {
+  // code to perform actions prior to frontend starting 
+
+  TLOG(TLVL_DEBUG+2) << "pre-BEGIN RUN ";
+  
+  if (_cfo_i) {
+    _run_plan               = _odb_i->GetCFORunPlan(hDB,_h_cfo);
+
+    _odb_i->GetNDTCs(hDB,_h_cfo,_n_dtcs);
+  
+    _run_plan_fn = _run_plan_dir+"/"+_run_plan;
+    
+    TLOG(TLVL_DEBUG+2) << "_run_plan_fn: " << _run_plan_fn << " _n_dtcs: "
+                       << _n_dtcs[0] << " " << _n_dtcs[1] << " "
+                       << _n_dtcs[2] << " " << _n_dtcs[3] << " "
+                       << _n_dtcs[4] << " " << _n_dtcs[4] << " "
+                       << _n_dtcs[6] << " " << _n_dtcs[5];
+    
+    TLOG(TLVL_DEBUG+1) << "launching run plan: " << _run_plan_fn;
+
+    _cfo_i->InitReadout(_run_plan_fn.data(),_n_dtcs);
+    _cfo_i->LaunchRunPlan();
+  }
+
+  TLOG(TLVL_DEBUG+3) << "--- pre-BEGIN DONE";
+  return CM_SUCCESS;  
 }
 
 /*-- Dummy routines ------------------------------------------------*/
@@ -162,24 +207,10 @@ INT frontend_loop() {
 }
 
 //-----------------------------------------------------------------------------
-// can afford to re-read the number of DTCs per chain at each begin run
+// can afford to re-initialize the run plan at each begin run
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT run_number, char *error) {
-  TLOG(TLVL_DEBUG+2) << "BEGIN RUN";
-
-  TLOG(TLVL_DEBUG+3) << "hDB : " << hDB << " _h_cfo: " << _h_cfo;
-
-  _eventWindowSize        = _odb_i->GetEventWindowSize(hDB,_h_cfo);
-  _run_plan               = _odb_i->GetCFORunPlan     (hDB,_h_cfo);
-
-  _odb_i->GetNDTCs          (hDB,_h_cfo,_n_dtcs);
-  
-  TLOG(TLVL_DEBUG+2) << "_run_plan: " << _run_plan;
-
-  std::string run_plan_fn = _run_plan_dir+"/"+_run_plan;
-  
-  _cfo_i->InitReadout(run_plan_fn.data(),_n_dtcs);
-  _cfo_i->LaunchRunPlan();
+  TLOG(TLVL_DEBUG+2) << "BEGIN RUN _cfo_i=" << _cfo_i;
 
   return CM_SUCCESS;
 }
@@ -187,6 +218,7 @@ INT begin_of_run(INT run_number, char *error) {
 /*-- End of Run ----------------------------------------------------*/
 INT end_of_run(INT run_number, char *error) {
   TLOG(TLVL_DEBUG+2) << "END RUN";
+  _cfo_i->Halt();
   return CM_SUCCESS;
 }
 
