@@ -108,13 +108,12 @@ INT frontend_init() {
     if (strstr(subkey.name,"DTC") != subkey.name)           continue;
 
     int enabled          = odb_i->GetDtcEnabled    (hDB,h_subkey);
-
-    TLOG(TLVL_DEBUG+2) << "DTC enabled:" << enabled;
-
     int pcie_addr        = odb_i->GetPcieAddress   (hDB,h_subkey);
 
+    TLOG(TLVL_DEBUG+2) << "DTC enabled:" << enabled << " pcie_addr:" << pcie_addr;
+
     equipment[pcie_addr].info.enabled  = (enabled == 1);
-    
+
     if (enabled) {
       int link_mask     = odb_i->GetDtcLinkMask   (hDB,h_subkey);
       _dtc_i[pcie_addr] = DtcInterface::Instance(pcie_addr,link_mask);
@@ -122,11 +121,11 @@ INT frontend_init() {
       _dtc_i[pcie_addr]->fReadoutMode    = odb_i->GetDtcReadoutMode   (hDB,h_subkey);
       _dtc_i[pcie_addr]->fSampleEdgeMode = odb_i->GetDtcSampleEdgeMode(hDB,h_subkey);
       _dtc_i[pcie_addr]->fEmulatesCfo    = odb_i->GetDtcEmulatesCfo   (hDB,h_subkey);
-    }
 
-    TLOG(TLVL_DEBUG+2) << "readout_mode:"      << _dtc_i[pcie_addr]->fReadoutMode
-                       << " sample_edge_mode:" << _dtc_i[pcie_addr]->fSampleEdgeMode
-                       << " emulates_cfo:"     << _dtc_i[pcie_addr]->fEmulatesCfo;
+      TLOG(TLVL_DEBUG+2) << "readout_mode:"      << _dtc_i[pcie_addr]->fReadoutMode
+                         << " sample_edge_mode:" << _dtc_i[pcie_addr]->fSampleEdgeMode
+                         << " emulates_cfo:"     << _dtc_i[pcie_addr]->fEmulatesCfo;
+    }
 //-----------------------------------------------------------------------------
 // for each DTC, define a driver
 // so far, output of all drivers goes into the same common "Input" array
@@ -146,7 +145,7 @@ INT frontend_init() {
     drv->mt_buffer  = nullptr;
     drv->pequipment = nullptr;
 
-    equipment[pcie_addr].driver = _driver_list;
+    equipment[pcie_addr].driver        = _driver_list;
   }
 //-----------------------------------------------------------------------------
 // transitions
