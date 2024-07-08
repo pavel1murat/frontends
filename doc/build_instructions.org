@@ -1,4 +1,26 @@
 * ------------------------------------------------------------------------------
+* installation under spack - hints
+- do mu2e spack thing
+- cd to the top/spack-repos
+- git clone https://github.com/pavel1murat/spack_packages murat-spack
+  spack add repo murat-spack
+
+  spack add frontends@main%gcc@13.1.0
+  spack add tfm@main%gcc@13.1.0
+  spack add midas@develop%gcc@13.1.0~sqlite
+  spack add otsdaq-mu2e-tracker@develop%gcc@13.1.0
+
+  spack develop frontends@main%gcc@13.1.0
+  spack develop tfm@main%gcc@13.1.0
+  spack develop midas@develop%gcc@13.1.0~sqlite
+  spack develop otsdaq-mu2e-tracker@develop%gcc@13.1.0
+  
+  spack add root@6.30.06%gcc@13.1.0+root7+webgui+postgres
+
+  spack concretize -f
+  spack install
+ ... and as always , cairo...
+ 
 * installation and build instructions, validated <2024-02-13 Mon>            
 
   OTSDAQ bundle to use 
