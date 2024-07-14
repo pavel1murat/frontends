@@ -49,21 +49,28 @@ cet_make_exec(NAME      tfm_mon_fe
                         artdaq_core::artdaq-core_Plugins
 )                  
 
-cet_make_exec(NAME      tfm_launch_fe 
-              SOURCE    tfm_launch_fe.cc 
-                        ${MIDAS_INSTALL_DIR}/drivers/device/nulldev.cxx
-                        ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-              LIBRARIES frontends midas mfe 
-                        artdaq_plugin_support::commanderMaker
-                        artdaq::Application                       # needed for messagefacility
-                        artdaq::DAQrate
-                        artdaq::DAQdata
-                        artdaq::BuildInfo
-                        artdaq_core::artdaq-core_Utilities
-                        artdaq_core::artdaq-core_Plugins
-)                  
+# cet_make_exec(NAME      tfm_launch_fe 
+#               SOURCE    tfm_launch_fe.cc 
+#                         ${MIDAS_INSTALL_DIR}/drivers/device/nulldev.cxx
+#                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
+#               LIBRARIES frontends midas mfe 
+#                         artdaq_plugin_support::commanderMaker
+#                         artdaq::Application                       # needed for messagefacility
+#                         artdaq::DAQrate
+#                         artdaq::DAQdata
+#                         artdaq::BuildInfo
+#                         artdaq_core::artdaq-core_Utilities
+#                         artdaq_core::artdaq-core_Plugins
+# )                  
 
-install(PROGRAMS tfm_launch_fe.py DESTINATION bin)
+install(PROGRAMS
+  tfm_launch_fe.py
+    DESTINATION bin)
+
+# install(FILES
+#         m_frontend.py
+#         m_client.py
+#         DESTINATION python/frontends/tfm_frontend )
 
 # install_fhicl(SUBDIRS fcl)
 # install_headers()

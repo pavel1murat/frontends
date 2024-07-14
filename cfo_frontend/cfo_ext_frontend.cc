@@ -69,7 +69,7 @@ namespace {
   std::string           _run_plan_dir;
   std::string           _run_plan;
   std::string           _run_plan_fn;
-  int                   _n_dtcs[8] = { 0,0,0,0,0,0,0,0};
+  int                   _dtc_mask;
 }
 
 //-----------------------------------------------------------------------------
@@ -161,19 +161,15 @@ INT tr_prestart(INT run_number, char *error)  {
   if (_cfo_i) {
     _run_plan               = _odb_i->GetCFORunPlan(hDB,_h_cfo);
 
-    _odb_i->GetNDTCs(hDB,_h_cfo,_n_dtcs);
+    _odb_i->GetNDTCs(hDB,_h_cfo,&_dtc_mask);
   
     _run_plan_fn = _run_plan_dir+"/"+_run_plan;
     
-    TLOG(TLVL_DEBUG+2) << "_run_plan_fn: " << _run_plan_fn << " _n_dtcs: "
-                       << _n_dtcs[0] << " " << _n_dtcs[1] << " "
-                       << _n_dtcs[2] << " " << _n_dtcs[3] << " "
-                       << _n_dtcs[4] << " " << _n_dtcs[4] << " "
-                       << _n_dtcs[6] << " " << _n_dtcs[5];
+    TLOG(TLVL_DEBUG+2) << "_run_plan_fn: " << _run_plan_fn << " _dtc_mask: " << format("{:#04x}\n", _dtc_mask);
     
     TLOG(TLVL_DEBUG+1) << "launching run plan: " << _run_plan_fn;
 
-    _cfo_i->InitReadout(_run_plan_fn.data(),_n_dtcs);
+    _cfo_i->InitReadout(_run_plan_fn.data(),_dtc_mask);
     _cfo_i->LaunchRunPlan();
   }
 
