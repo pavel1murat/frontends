@@ -4,16 +4,16 @@
 # frontend name : python_tfm_launch_fe
 #------------------------------------------------------------------------------
 import  ctypes, os, sys, datetime, random, time, traceback, subprocess
-import  TRACE
 
-TRACE_NAME = "tfm_launch_fe.py"
-
-# sys.path.append(os.environ["MIDASSYS"]+'/python')
 import  midas
-import  midas.frontend
+# import  frontends.tfm_frontend.m_frontend
+import  midas.frontend 
 import  midas.event
 
-sys.path.append(os.environ["TFM_DIR"])
+import  TRACE
+TRACE_NAME = "tfm_launch_fe"
+
+# sys.path.append(os.environ["TFM_DIR"])
 
 import tfm.rc.control.farm_manager as farm_manager
 
@@ -37,6 +37,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
 #       runs; after that the ODB settings are used.
 # You MUST call midas.frontend.EquipmentBase.__init__ in your equipment's __init__ method!
 #------------------------------------------------------------------------------
+#        settings              = frontends.tfm_frontend.m_frontend.InitialEquipmentCommon()
         settings              = midas.frontend.InitialEquipmentCommon()
         settings.equip_type   = midas.EQ_PERIODIC
         settings.buffer_name  = "SYSTEM"
@@ -47,6 +48,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
         settings.log_history  = 1
 
         equip_name            = "tfm_launch_fe"
+#        frontends.tfm_frontend.m_frontend.EquipmentBase.__init__(self, client, equip_name, settings)
         midas.frontend.EquipmentBase.__init__(self, client, equip_name, settings)
 #------------------------------------------------------------------------------
 # set the status of the equipment (appears in the midas status page)
@@ -79,6 +81,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
 #    A frontend contains a collection of equipment.
 #    You can access self.client to access the ODB etc (see `midas.client.MidasClient`).
 #------------------------------------------------------------------------------
+# class TfmLaunchFrontend(frontends.tfm_frontend.m_frontend.FrontendBase):
 class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 # TFM logfiles are stored in $TFM_LOGDIR/tfm.
@@ -97,7 +100,6 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         os.makedirs(tfm_logdir, exist_ok=True)
         if os.path.exists(tfm_logdir):
             tfm_logfile = os.path.join(tfm_logdir, f"python_tfm_launch_fe_{timestamp}.log")
-            sys.stdout  = open(tfm_logfile, 'w')
         else:
             print("Failed to create the log file directory %s." % tfm_logdir)
 
@@ -109,11 +111,13 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
     def __init__(self):
         TRACE.TRACE(7,"0010: START")
+#        frontends.tfm_frontend.m_frontend.FrontendBase.__init__(self, "tfm_launch_fe")
         midas.frontend.FrontendBase.__init__(self, "tfm_launch_fe")
         TRACE.TRACE(7,"0011: FrontendBase initialized")
 #------------------------------------------------------------------------------
 # determine active configuration
 #------------------------------------------------------------------------------
+        self._stop_run               = False;
         self.output_dir              = self.client.odb_get("/Mu2e/OutputDir")
         self.config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration")
         self.artdaq_partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER")
@@ -124,7 +128,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         self.use_runinfo_db          = self.client.odb_get(config_path+'/UseRuninfoDB')
         self.tfm_rpc_host            = self.client.odb_get(config_path+'/TfmRpcHost'  )
 
-        config_dir = os.path.join(os.environ.get('MU2E_DAQ_DIR', ''), 'config', self.config_name)
+        config_dir                   = os.path.join(self.client.odb_get("/Mu2e/ArtdaqConfigDir"), self.config_name)
 
         TRACE.TRACE(7,f":0014:config_dir={config_dir} use_runinfo_db={self.use_runinfo_db} rpc_host={self.tfm_rpc_host}")
 
@@ -132,6 +136,10 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 
         self.tfm_logfile = self.get_logfile(self.output_dir)
         os.environ["TFM_LOGFILE"       ] = self.tfm_logfile
+#------------------------------------------------------------------------------
+# redefine STDOUT
+#------------------------------------------------------------------------------
+###        sys.stdout  = open(tfm_logfile, 'w')
         TRACE.TRACE(7,"0016: after get_logfile")
 
 # 2024-05-11 P.Murat: comment out the TTY stuff - not used so far
@@ -149,7 +157,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         self.add_equipment(TfmEquipment(self.client))
         TRACE.TRACE(7,"003: equipment added , config_dir=%s"%(config_dir))
 
-        self.fm   = farm_manager.FarmManager(config_dir=config_dir,rpc_host=self.tfm_rpc_host)
+        self._fm   = farm_manager.FarmManager(config_dir=config_dir,rpc_host=self.tfm_rpc_host)
         TRACE.TRACE(7,"004: tfm instantiated, self.use_runinfo_db=%i"%(self.use_runinfo_db))
 #------------------------------------------------------------------------------
 # runinfo DB related stuff
@@ -162,15 +170,29 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
         # self.client.register_transition_callback(midas.TR_START, 502, self._tr_start_callback)
 #------------------------------------------------------------------------------
-# strt screen process tailing the logfile
+# start screen process tailing the logfile
 #-------v----------------------------------------------------------------------
         cmd = "/usr/bin/screen -dmS tfm_%i /usr/bin/bash -c \"tail -f %s\"" % (
             self.artdaq_partition_number,self.tfm_logfile) ;
         p   = subprocess.Popen(cmd,shell=True)
 
-        self.fm.do_boot()
+        self._fm.do_boot()
         TRACE.TRACE(7,"005: boot done")
         return;
+
+#------------------------------------------------------------------------------
+# on exit, also kill the tail logfile process
+#------------------------------------------------------------------------------
+    def __del__(self):
+        TRACE.TRACE(7,"001: destructor START",TRACE_NAME)
+        self._fm.__del__();
+
+        cmd = f"x=`ps -efl | grep \"tail -f {self.tfm_logfile}\" | " + "awk '{print $4}' | grep -v grep`;"
+        cmd += " if [ -z \"$x\" ] ; then xargs kill -1 $x ; fi"
+        TRACE.TRACE(7,f"002: executing {cmd}",TRACE_NAME)
+        p   = subprocess.Popen(cmd,shell=True)
+
+        TRACE.TRACE(7,"002: destructor END",TRACE_NAME)
 
 #------------------------------------------------------------------------------
 # This function will be called at the beginning of the run.
@@ -191,8 +213,8 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 
         self.set_all_equipment_status("Run starting", "yellow")
 
-        self.fm.do_config(run_number=run_number)
-        self.fm.do_start_running()
+        self._fm.do_config(run_number=run_number)
+        self._fm.do_start_running()
         TRACE.TRACE(7,"001:BEGIN_OF_RUN")
 
         if (self.use_runinfo_db):
@@ -218,7 +240,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
             except:
                 TRACE.ERROR("failed to register beginning of the END_RUN transition")
 
-        self.fm.do_stop_running()
+        self._fm.do_stop_running()
         TRACE.TRACE(7,"001:END_RUN")
 
         if (self.use_runinfo_db):
@@ -237,12 +259,18 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 #        Most people won't need to define this function, but you can use
 #        it for final cleanup if needed.
+# need to break the loop of TfmLaunchFrontend::run
 #---v--------------------------------------------------------------------------
     def frontend_exit(self):
         # breakpoint()
-        print("Goodbye from user code!")
-        TRACE.TRACE(7,"001:END")
+        TRACE.TRACE(7,"001:START : set self._stop_run = True")
+        self._stop_run = True;
+        self._fm.shutdown();
+        TRACE.TRACE(7,"002: DONE")
 
+        
+    def should_stop_run(self):
+        return self._stop_run;
 
 
 if __name__ == "__main__":
@@ -253,11 +281,12 @@ if __name__ == "__main__":
     TRACE.Instance = "tfm_launch_fe".encode();
 
     TRACE.TRACE(7,"000: TRACE.Instance : %s"%TRACE.Instance)
-    with TfmLaunchFrontend() as tfm_launch:
+    with TfmLaunchFrontend() as fe:
         # breakpoint()
-        TRACE.TRACE(7,"001: in the loop")
-        tfm_launch.run()
-        TRACE.TRACE(7,"002: after frontend::run")
+        TRACE.TRACE(7,"001: in the loop",TRACE_NAME)
+        fe.run()
+        TRACE.TRACE(7,"002: after frontend::run",TRACE_NAME)
+        
 
     TRACE.TRACE(7,"003: DONE, exiting")
 
