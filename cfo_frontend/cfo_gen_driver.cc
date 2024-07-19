@@ -159,21 +159,21 @@ INT cfo_gen_driver_get(CFO_DRIVER_INFO* Info, INT Channel, float *PValue) {
   TLOG(TLVL_DEBUG+10) << "Channel: " << Channel;
 
   if      (Channel == 0) {
-    int newm = Info->driver_settings.n_ewm_per_sec;
+    //    int newm = Info->driver_settings.n_ewm_per_sec;
 //-----------------------------------------------------------------------------
 // once per second, generate N EWMs
 // they are mot necessarily distributed in tme uniformly
 // for now, assume that n_ewm*ew_length <= 1 sec; and implement proper logic later
 //-----------------------------------------------------------------------------
-    if (Info->driver_settings.external == 1) {
-                                        // external CFO
-      trkdaq::CfoInterface* cfo_i = (trkdaq::CfoInterface*) Info->driver_settings.interface;
-      cfo_i->LaunchRunPlan();
-    }
-    else {
-      trkdaq::DtcInterface* dtc_i = (trkdaq::DtcInterface*) Info->driver_settings.interface;
-      dtc_i->LaunchRunPlan(newm);
-    }
+    // if (Info->driver_settings.external == 1) {
+    //                                     // external CFO
+    //   trkdaq::CfoInterface* cfo_i = (trkdaq::CfoInterface*) Info->driver_settings.interface;
+    //   cfo_i->LaunchRunPlan();
+    // }
+    // else {
+    //   trkdaq::DtcInterface* dtc_i = (trkdaq::DtcInterface*) Info->driver_settings.interface;
+    //   dtc_i->LaunchRunPlan(newm);
+    // }
   }
 
   *PValue = 0;

@@ -82,7 +82,6 @@ INT tr_prestart(INT run_number, char *error);
 INT frontend_init() {
   int          argc;
   char**       argv;
-//  int          sz;
   std::string  active_run_conf;
 //-----------------------------------------------------------------------------
 // get command line arguments - perhaps can use that one day
@@ -167,9 +166,14 @@ INT tr_prestart(INT run_number, char *error)  {
     
     TLOG(TLVL_DEBUG+2) << "_run_plan_fn: " << _run_plan_fn << " _dtc_mask: " << format("{:#04x}\n", _dtc_mask);
     
-    TLOG(TLVL_DEBUG+1) << "launching run plan: " << _run_plan_fn;
+    int clock = 1 ; //
+    int reset = 1 ; //
+    int ok    = _cfo_i->ConfigureJA(clock,reset);  // if the return value is not 1, then in trouble
 
     _cfo_i->InitReadout(_run_plan_fn.data(),_dtc_mask);
+
+    TLOG(TLVL_DEBUG+1) << "launching run plan: " << _run_plan_fn;
+
     _cfo_i->LaunchRunPlan();
   }
 
