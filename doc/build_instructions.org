@@ -1,10 +1,25 @@
 * ------------------------------------------------------------------------------
 * installation under spack - hints
-- do mu2e spack thing
+- do the mu2e spack thing
 - cd to the top/spack-repos
 - git clone https://github.com/pavel1murat/spack_packages murat-spack
-  spack add repo murat-spack
+  spack repo add murat-spack
 
+  spack rm  artdaq-core-mu2e@v3_02_00
+  spack add artdaq-core-mu2e@develop%gcc@13.1.0
+
+  spack rm  artdaq-mu2e@v3_02_00
+  spack add artdaq-mu2e@develop%gcc@13.1.0
+
+  spack rm  mu2e-pcie-utils@v3_02_00%gcc@13.1.0
+  spack add mu2e-pcie-utils@develop%gcc@13.1.0
+
+  spack rm  otsdaq-mu2e@v3_02_00%gcc@13.1.0
+  spack add otsdaq-mu2e@develop%gcc@13.1.0
+  
+  spack add emacs@29.3%gcc@13.1.0+X toolkit=athena
+  spack add cairo+X+fc+ft
+  
   spack add frontends@main%gcc@13.1.0
   spack add tfm@main%gcc@13.1.0
   spack add midas@develop%gcc@13.1.0~sqlite

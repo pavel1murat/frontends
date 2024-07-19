@@ -18,6 +18,7 @@
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
 #include "dtc_frontend/dtc_frontend.hh"
+#include "TString.h"       // Form is hiding behind
 
 using namespace trkdaq;
 //-----------------------------------------------------------------------------
@@ -162,24 +163,22 @@ INT frontend_init() {
 INT tr_prestart(INT run_number, char *error)  {
   // code to perform actions prior to frontend starting 
 
-  TLOG(TLVL_DEBUG+2) << "pre-BEGIN RUN : frontend " << _xx.name
+  TLOG(TLVL_DEBUG+2) << "pre- BEGIN RUN : frontend " << _xx.name
                      << " _dtc_i[0]=" << _dtc_i[0] << " _dtc_i[1]=" << _dtc_i[1] ;
   
   for (int i=0; i<_ndtcs; i++) {
     trkdaq::DtcInterface* dtc_i = _dtc_i[i];
-    dtc_i->Dtc()->SoftReset();
-    if (dtc_i->RocReadoutMode() == 0) {
-//-----------------------------------------------------------------------------
-// ROC-generated patterns
-//-----------------------------------------------------------------------------
-      dtc_i->RocConfigurePatternMode(dtc_i->fLinkMask);  // per run, need just a piece...
-    }
-    else if (dtc_i->RocReadoutMode() == 1) {
-//-----------------------------------------------------------------------------
-// need to configure the ROCs to do the right thing
-//-----------------------------------------------------------------------------
-    }
 
+    if (dtc_i->fReadoutMode == 0) {
+      TLOG(TLVL_INFO) << Form("initialize PATTERN readout mode\n");
+      dtc_i->MonicaVarPatternConfig();
+    }
+    else {
+      TLOG(TLVL_INFO) << Form("initialize DIGI readout mode\n");
+      dtc_i->MonicaVarLinkConfig();
+      dtc_i->MonicaDigiClear();
+    }
+    dtc_i->Dtc()->SoftReset();
 //-----------------------------------------------------------------------------
 // in emulated mode, the DTC configuration is done by the cfo_emu_frontend
 //-----------------------------------------------------------------------------
@@ -190,7 +189,7 @@ INT tr_prestart(INT run_number, char *error)  {
     }
   }
 
-  TLOG(TLVL_DEBUG+3) << "--- pre-BEGIN DONE";
+  TLOG(TLVL_DEBUG+3) << "--- pre- BEGIN DONE";
   return CM_SUCCESS;  
 }
 
