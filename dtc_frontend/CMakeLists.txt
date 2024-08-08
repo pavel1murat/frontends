@@ -29,7 +29,9 @@ cet_set_compiler_flags(
         -pthread 
 )
 cet_make_exec(NAME      dtc_frontend
-              SOURCE    dtc_frontend.cc dtc_driver.cc 
+              SOURCE    dtc_frontend.cc
+                        dtc_driver.cc
+                        emucfo_driver.cc
                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
               LIBRARIES frontends otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
                         mu2e_pcie_utils::DTCInterface

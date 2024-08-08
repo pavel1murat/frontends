@@ -27,8 +27,6 @@ using namespace DTCLib;
 #include "utils/utils.hh"
 #include "dtc_frontend/dtc_driver.hh"
 
-DTC* _dtc(nullptr);
-
 /*---- globals -----------------------------------------------------*/
 
 #define DEFAULT_TIMEOUT 10000   /* 10 sec. */
@@ -37,6 +35,11 @@ DTC* _dtc(nullptr);
 PcieAddr = INT   : %i\n\
 Dtc      = INT64 : 0\n\
 "
+
+namespace {
+  DTC* _dtc(nullptr);
+};
+
 
 typedef INT(func_t) (INT cmd, ...);
 

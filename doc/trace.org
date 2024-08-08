@@ -162,10 +162,21 @@ mu2etrk@mu2edaq09:~/test_stand/pasha_018>tlvls | grep DTC_R
 #+begin_src 
 trace_cntl lvlclr 0x100 0x100 0x100 -N*
 #+end_src
+** tonS                                                                      
+#+begin_src
+tonS () 
+{ 
+    trace_cntl lvlset 0 `bitN_to_mask "$@"` 0;
+    trace_cntl modeS 1
+}
+#+end_src
+
+bitN_to_mask 2-4 returns '0x1c'
+
 * loooking at the TRACE memory log:                                          
 
 tshow | tdelta -ct 1 -d 1 | head -n 100
-* Ron's hints from different setup files and examples
+* Ron's hints from different setup files and examples                        
  --  enable kernel trace to memory buffer:
 #+test -f /proc/trace/buffer && { export TRACE_FILE=/proc/trace/buffer; tlvls | grep 'KERNEL 0xffffffff00ffffff' >/dev/null || { tonMg 0-63; toffM 24-31 -nKERNEL; }; }
 
@@ -195,6 +206,10 @@ fi
 
 ** using debug+x semantics int tonM                                          
  tonM -N*:farm_manager.py debug+1-debug+20
+* from ROOT command prompt                                                   
+#+begin_src
+root[0] .! trace_cntl lvlset -NDtcInterface 0 0x4 ; trace_cntl modeS 1; trace_cntl tids
+#+end_src
 * ------------------------------------------------------------------------------
 * back to [[file:frontends.org][frontends]]
 * ------------------------------------------------------------------------------
