@@ -17,7 +17,10 @@
 #include "utils/OdbInterface.hh"
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
+#include "dtc_frontend/dtc_driver.hh"
+#include "dtc_frontend/emucfo_driver.hh"
 #include "dtc_frontend/dtc_frontend.hh"
+
 #include "TString.h"       // Form is hiding behind
 
 using namespace trkdaq;
@@ -117,37 +120,64 @@ INT frontend_init() {
 
     if (enabled) {
       int link_mask     = odb_i->GetDtcLinkMask   (hDB,h_subkey);
-      _dtc_i[pcie_addr] = DtcInterface::Instance(pcie_addr,link_mask);
+      DtcInterface* dtc_i = DtcInterface::Instance(pcie_addr,link_mask);
+      _dtc_i[pcie_addr]   = dtc_i;
       
-      _dtc_i[pcie_addr]->fReadoutMode    = odb_i->GetDtcReadoutMode   (hDB,h_subkey);
-      _dtc_i[pcie_addr]->fSampleEdgeMode = odb_i->GetDtcSampleEdgeMode(hDB,h_subkey);
-      _dtc_i[pcie_addr]->fEmulatesCfo    = odb_i->GetDtcEmulatesCfo   (hDB,h_subkey);
+      dtc_i->fReadoutMode    = odb_i->GetDtcReadoutMode   (hDB,h_subkey);
+      dtc_i->fSampleEdgeMode = odb_i->GetDtcSampleEdgeMode(hDB,h_subkey);
+      dtc_i->fEmulateCfo     = odb_i->GetDtcEmulatesCfo   (hDB,h_subkey);
 
-      TLOG(TLVL_DEBUG+2) << "readout_mode:"      << _dtc_i[pcie_addr]->fReadoutMode
-                         << " sample_edge_mode:" << _dtc_i[pcie_addr]->fSampleEdgeMode
-                         << " emulates_cfo:"     << _dtc_i[pcie_addr]->fEmulatesCfo;
-    }
+      TLOG(TLVL_DEBUG+2) << "readout_mode:"      << dtc_i->fReadoutMode
+                         << " sample_edge_mode:" << dtc_i->fSampleEdgeMode
+                         << " emulate_cfo:"      << dtc_i->fEmulateCfo;
+
+      int ndrv = 2;
+      if (dtc_i->EmulateCfo()) {
+//-----------------------------------------------------------------------------
+// there can be only one CFO, so don't worry about duplication
+// enable emulated CFO, read parameters 
+//-----------------------------------------------------------------------------
+        equipment[2].info.enabled = 1;
+        ndrv = 3;
+      }
 //-----------------------------------------------------------------------------
 // for each DTC, define a driver
 // so far, output of all drivers goes into the same common "Input" array
+// if a DTC runs in an emulated mode: define one more piece of equipment with a driver
 //-----------------------------------------------------------------------------
-    _driver_list        = new DEVICE_DRIVER[2];
-    _driver_list[1]     = {"",};
+      _driver_list        = new DEVICE_DRIVER[ndrv];
 
-    DEVICE_DRIVER* drv = &_driver_list[0];
+      DEVICE_DRIVER* drv = &_driver_list[0];
     
-    snprintf(drv->name,NAME_LENGTH,"dtc%i",i);
-    drv->dd         = dtc_driver;
-    drv->channels   = DTC_NREG_HIST;    // nwords recorded as history (4)
-    drv->bd         = null;
-    drv->flags      = DF_INPUT;
-    drv->enabled    = true;
-    drv->dd_info    = nullptr;
-    drv->mt_buffer  = nullptr;
-    drv->pequipment = nullptr;
+      snprintf(drv->name,NAME_LENGTH,"dtc%i",i);
+      drv->dd         = dtc_driver;
+      drv->channels   = DTC_NREG_HIST;    // nwords recorded as history (4)
+      drv->bd         = null;
+      drv->flags      = DF_INPUT;
+      drv->enabled    = true;
+      drv->dd_info    = nullptr;
+      drv->mt_buffer  = nullptr;
+      drv->pequipment = nullptr;
 
-    equipment[pcie_addr].driver        = _driver_list;
+      if (dtc_i->EmulateCfo()) {
+        drv = &_driver_list[1];
+    
+        snprintf(drv->name,NAME_LENGTH,"emu_cfo");
+        drv->dd         = emucfo_driver;
+        drv->channels   = 1;                // fake, CFO driver is only needed to send event window markers
+        drv->bd         = null;
+        drv->flags      = DF_INPUT;
+        drv->enabled    = true;
+        drv->dd_info    = nullptr;
+        drv->mt_buffer  = nullptr;
+        drv->pequipment = nullptr;
+      }
+      
+      _driver_list[ndrv-1]     = {"",};
+      equipment[pcie_addr].driver        = _driver_list;
+    }
   }
+
 //-----------------------------------------------------------------------------
 // transitions
 //-----------------------------------------------------------------------------
@@ -159,6 +189,9 @@ INT frontend_init() {
 
 //-----------------------------------------------------------------------------
 // callback
+// the DTC frontend is doing all configurations for the DTC-only mode, as well as
+// when running in the emulated CFO mode
+// in this mode th DTC fontend also sends the pulses in a loop function
 //-----------------------------------------------------------------------------
 INT tr_prestart(INT run_number, char *error)  {
   // code to perform actions prior to frontend starting 
@@ -168,26 +201,12 @@ INT tr_prestart(INT run_number, char *error)  {
   
   for (int i=0; i<_ndtcs; i++) {
     trkdaq::DtcInterface* dtc_i = _dtc_i[i];
-
-    if (dtc_i->fReadoutMode == 0) {
-      TLOG(TLVL_INFO) << Form("initialize PATTERN readout mode\n");
-      dtc_i->MonicaVarPatternConfig();
-    }
-    else {
-      TLOG(TLVL_INFO) << Form("initialize DIGI readout mode\n");
-      dtc_i->MonicaVarLinkConfig();
-      dtc_i->MonicaDigiClear();
-    }
-    dtc_i->Dtc()->SoftReset();
-//-----------------------------------------------------------------------------
-// in emulated mode, the DTC configuration is done by the cfo_emu_frontend
-//-----------------------------------------------------------------------------
-    TLOG(TLVL_DEBUG+2) << "emulatesCfo: " << dtc_i->EmulatesCfo();
-
-    if (dtc_i->EmulatesCfo() == 0) {
-      dtc_i->InitExternalCFOReadoutMode(dtc_i->fSampleEdgeMode);
-    }
+    dtc_i->InitReadout(dtc_i->EmulateCfo(),dtc_i->fReadoutMode);
   }
+//-----------------------------------------------------------------------------
+// at this point, the boardreaders are already running and waiting for events to show up
+// if one of the DTCs is emulationa a CFO, enable calls to frontend_loop
+//-----------------------------------------------------------------------------
 
   TLOG(TLVL_DEBUG+3) << "--- pre- BEGIN DONE";
   return CM_SUCCESS;  

@@ -11,7 +11,6 @@ typedef int INT;
 #include "drivers/bus/null.h"
 
 #include "utils/mu2e_sc.hh"
-#include "dtc_frontend/dtc_driver.hh"
 /*-- Equipment list ------------------------------------------------*/
 
 /* device driver list */
@@ -24,9 +23,13 @@ typedef int INT;
 
 BOOL equipment_common_overwrite = TRUE;
 //-----------------------------------------------------------------------------
-// tree is a max : two DTC's ann an empty structure
+// equipment list includes the following:
+// - two DTC's
+// - potentially, an "equipment" corresponding to a simulated CFO - need something to
+//   be sending trains of pulses
+// - an empty structure, marking the end
 //-----------------------------------------------------------------------------
-EQUIPMENT equipment[3] = {
+EQUIPMENT equipment[4] = {
 
   {"${HOSTNAME}#DTC0",         // equipment name, to become mu2edaq09::DTC
    {3, 0,                      /* event ID, trigger mask */
@@ -82,6 +85,34 @@ EQUIPMENT equipment[3] = {
    nullptr,                    // driver (driver list) initialized in frontend_init
    NULL,                       /* init string */
   },
+
+  {"${HOSTNAME}#emuCFO",
+   {3, 0,                      /* event ID, trigger mask */
+    "SYSTEM",                  /* event buffer */
+    EQ_SLOW,                   /* equipment type */
+    0,                         /* event source */
+    "FIXED",                   /* format */
+    FALSE,                     // by default, no emulated CFO
+    RO_ALWAYS,                 // read when running and on transitions - not really sure what this means
+    1000,                      // "read" (call) once a sec - P.M. for EQ_SLOW ?
+    0,                         /* stop run after this event limit */
+    0,                         /* number of sub events */
+    30,                        // log history at most every 30 seconds - P.M. validated
+    "",                        // host name
+    "",                        // frontend name
+    "",                        // frontend source file name
+    "",                        // current status
+    "",                        // color for status
+    FALSE,                     // hidden flag
+    500000                     // write cache size
+   } ,
+   cd_mu2e_sc_read,            /* readout routine */
+   cd_mu2e_sc,                 /* class driver main routine */
+   //   driver_list,           /* device driver list */
+   nullptr,                    // driver (driver list) initialized in frontend_init
+   NULL,                       /* init string */
+  }, 
+
   {"",}
 };
 
