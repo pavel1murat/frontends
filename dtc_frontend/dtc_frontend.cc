@@ -16,14 +16,13 @@
 #include "utils/utils.hh"
 #include "utils/OdbInterface.hh"
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
+using namespace DTCLib;
+using namespace trkdaq;
 
 #include "dtc_frontend/dtc_driver.hh"
 #include "dtc_frontend/emucfo_driver.hh"
 #include "dtc_frontend/dtc_frontend.hh"
 
-#include "TString.h"       // Form is hiding behind
-
-using namespace trkdaq;
 //-----------------------------------------------------------------------------
 // Globals
 // The frontend name (client name) as seen by other MIDAS clients
@@ -48,9 +47,6 @@ namespace {
   int           _ndtcs(0);                       // 0,1, or 2
   DtcInterface* _dtc_i[2] = {nullptr, nullptr};  //
 }
-
-static DEVICE_DRIVER* _driver_list (nullptr);
-
 
 const char *frontend_file_name = __FILE__; // The frontend file name, don't change it
 
@@ -101,6 +97,11 @@ INT frontend_init() {
   HNDLE h_subkey;
   KEY   subkey;
 
+  int      cfo_pcie_addr(-1);
+  uint64_t nevents      (0);
+  int      ew_length    (0);
+  uint64_t first_ew_tag (0);
+
   for (int i=0; db_enum_key(hDB,h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
 //-----------------------------------------------------------------------------
 // skip 'Artdaq' folder
@@ -113,13 +114,16 @@ INT frontend_init() {
 
     int enabled          = odb_i->GetDtcEnabled    (hDB,h_subkey);
     int pcie_addr        = odb_i->GetPcieAddress   (hDB,h_subkey);
+    
+    EQUIPMENT* eqp = &equipment[pcie_addr];
+    eqp->info.enabled  = (enabled == 1);
 
-    TLOG(TLVL_DEBUG+2) << "DTC enabled:" << enabled << " pcie_addr:" << pcie_addr;
+    TLOG(TLVL_DEBUG+2) << "DTC enabled today:" << enabled << " pcie_addr:" << pcie_addr;
 
-    equipment[pcie_addr].info.enabled  = (enabled == 1);
+    int link_mask     = odb_i->GetDtcLinkMask   (hDB,h_subkey);
+    TLOG(TLVL_DEBUG+2) << "link_mask:0x" <<std::hex << link_mask << std::endl; 
 
     if (enabled) {
-      int link_mask     = odb_i->GetDtcLinkMask   (hDB,h_subkey);
       DtcInterface* dtc_i = DtcInterface::Instance(pcie_addr,link_mask);
       _dtc_i[pcie_addr]   = dtc_i;
       
@@ -131,57 +135,86 @@ INT frontend_init() {
                          << " sample_edge_mode:" << dtc_i->fSampleEdgeMode
                          << " emulate_cfo:"      << dtc_i->fEmulateCfo;
 
-      int ndrv = 2;
       if (dtc_i->EmulateCfo()) {
+        if (cfo_pcie_addr >= 0) {
+          TLOG(TLVL_ERROR) << "redefinition of the emulated CFO" << std::endl;
+        }
+        else {
+          cfo_pcie_addr = pcie_addr;
+        }
+      }
 //-----------------------------------------------------------------------------
 // there can be only one CFO, so don't worry about duplication
 // enable emulated CFO, read parameters 
 //-----------------------------------------------------------------------------
-        equipment[2].info.enabled = 1;
-        ndrv = 3;
-      }
+      nevents                  = odb_i->GetNEvents   (hDB,h_subkey);
+      ew_length                = odb_i->GetEWLength  (hDB,h_subkey);
+      first_ew_tag             = odb_i->GetFirstEWTag(hDB,h_subkey);
+    }
 //-----------------------------------------------------------------------------
 // for each DTC, define a driver
 // so far, output of all drivers goes into the same common "Input" array
 // if a DTC runs in an emulated mode: define one more piece of equipment with a driver
 //-----------------------------------------------------------------------------
-      _driver_list        = new DEVICE_DRIVER[ndrv];
-
-      DEVICE_DRIVER* drv = &_driver_list[0];
+    DEVICE_DRIVER* drv_list = new DEVICE_DRIVER[2];
+    DEVICE_DRIVER* drv      = &drv_list[0];
     
-      snprintf(drv->name,NAME_LENGTH,"dtc%i",i);
-      drv->dd         = dtc_driver;
-      drv->channels   = DTC_NREG_HIST;    // nwords recorded as history (4)
-      drv->bd         = null;
-      drv->flags      = DF_INPUT;
-      drv->enabled    = true;
-      drv->dd_info    = nullptr;
-      drv->mt_buffer  = nullptr;
-      drv->pequipment = nullptr;
+    snprintf(drv->name,NAME_LENGTH,"dtc%i",i);
+    drv->dd         = dtc_driver;
+    drv->channels   = DTC_NREG_HIST;    // nwords recorded as history (4)
+    drv->bd         = null;
+    drv->flags      = DF_INPUT;
+    drv->enabled    = enabled;
 
-      if (dtc_i->EmulateCfo()) {
-        drv = &_driver_list[1];
-    
-        snprintf(drv->name,NAME_LENGTH,"emu_cfo");
-        drv->dd         = emucfo_driver;
-        drv->channels   = 1;                // fake, CFO driver is only needed to send event window markers
-        drv->bd         = null;
-        drv->flags      = DF_INPUT;
-        drv->enabled    = true;
-        drv->dd_info    = nullptr;
-        drv->mt_buffer  = nullptr;
-        drv->pequipment = nullptr;
-      }
+    DTC_DRIVER_INFO* ddi          = new DTC_DRIVER_INFO;
+    ddi->driver_settings.pcieAddr = pcie_addr;
+    ddi->driver_settings.enabled  = enabled;
+    drv->dd_info                  = (void*) ddi;
       
-      _driver_list[ndrv-1]     = {"",};
-      equipment[pcie_addr].driver        = _driver_list;
-    }
+    drv->mt_buffer  = nullptr;
+    drv->pequipment = nullptr;
+
+    drv_list[1]     = {"",};
+    eqp->driver     = drv_list;
+  }
+
+  if (cfo_pcie_addr >= 0) {
+//-----------------------------------------------------------------------------
+// after the DTCs are processed, add equipment called CFO with one driver
+//-----------------------------------------------------------------------------
+    EQUIPMENT* eqp = &equipment[2];
+    
+    eqp->info.enabled  = 1;
+      
+    DEVICE_DRIVER* drv_list  = new DEVICE_DRIVER[2];
+    DEVICE_DRIVER* drv       = &drv_list[0];
+    
+    snprintf(drv->name,NAME_LENGTH,"emu_cfo");
+    drv->dd         = emucfo_driver;
+    drv->channels   = 1;                // fake, CFO driver is only needed to send event window markers
+    drv->bd         = null;
+    drv->flags      = DF_INPUT;
+    drv->enabled    = true;
+
+    DTC_DRIVER_INFO* ddi            = new DTC_DRIVER_INFO;
+    ddi->driver_settings.pcieAddr   = cfo_pcie_addr;
+    ddi->driver_settings.enabled    = 1;
+    ddi->driver_settings.ewLength   = ew_length;
+    ddi->driver_settings.nEvents    = nevents;
+    ddi->driver_settings.firstEWTag = first_ew_tag;
+    drv->dd_info                    = (void*) ddi;
+    
+    drv->mt_buffer  = nullptr;
+    drv->pequipment = nullptr;
+
+    drv_list[1]     = {"",};
+    eqp->driver     = drv_list;
   }
 
 //-----------------------------------------------------------------------------
 // transitions
 //-----------------------------------------------------------------------------
-  cm_register_transition(TR_START,tr_prestart,500);
+//  cm_register_transition(TR_START,tr_prestart,500);
 
   TLOG(TLVL_DEBUG+3) << "--- DONE";
   return CM_SUCCESS;

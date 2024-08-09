@@ -139,17 +139,9 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 # redefine STDOUT
 #------------------------------------------------------------------------------
-###        sys.stdout  = open(tfm_logfile, 'w')
+        sys.stdout  = open(self.tfm_logfile, 'w')
         TRACE.TRACE(7,"0016: after get_logfile")
 
-# 2024-05-11 P.Murat: comment out the TTY stuff - not used so far
-#         try:
-#             fd  = open("/dev/stdout");
-#             os.environ["TFM_TTY"           ] = os.ttyname(fd.fileno())[5:];
-#         except:
-#             os.environ["TFM_TTY"           ] = "undefined"
-# 
-# #        TRACE.TRACE(7,"0017: after open /dev/stdout TFM_TTY=%s"%(os.environ["TFM_TTY"]))
 #------------------------------------------------------------------------------
 # You can add equipment at any time before you call `run()`, but doing
 # it in __init__() seems logical.

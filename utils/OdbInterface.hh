@@ -40,18 +40,16 @@ public:
 // NDTCs[i] : number of DTCs in i-th timing chain
 //-----------------------------------------------------------------------------
   int         GetNDTCs            (HNDLE h_DB, HNDLE h_CFO, int* NDTCs);
+  
+  uint64_t    GetNEvents          (HNDLE h_DB, HNDLE h_DTC);
+  int         GetEWLength         (HNDLE h_DB, HNDLE h_DTC);
+  uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
 
                                         // hostname - short, w/o the domain name
   int         GetDaqHostHandle    (HNDLE Hdb, HNDLE h_CFO, const std::string& Hostname);
 
                                         // returns: 1="external" or 0="emulated"
   int         GetCFOExternal      (HNDLE Hdb, HNDLE h_CFO);
-
-                                        // N events to be generated in emulated mode
-  int         GetNEvents          (HNDLE Hdb, HNDLE h_CFO);
-
-                                        // event window size in units of 25 ns (40 MHz)
-  int         GetEventWindowSize  (HNDLE Hdb, HNDLE h_CFO);
 
   int         GetInteger          (HNDLE hDB, HNDLE hCFO, const char* Key, int* Data);
   std::string GetString           (HNDLE hDB, HNDLE hDir, const char* Key);

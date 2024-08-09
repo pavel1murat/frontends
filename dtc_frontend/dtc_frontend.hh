@@ -11,23 +11,18 @@ typedef int INT;
 #include "drivers/bus/null.h"
 
 #include "utils/mu2e_sc.hh"
-/*-- Equipment list ------------------------------------------------*/
-
-/* device driver list */
-
-// DEVICE_DRIVER driver_list[] = {
-//   {"dtc0" , dtc_driver,  4, null, DF_INPUT},
-//   {"dtc1" , dtc_driver,  4, null, DF_INPUT},
-//   {""}
-// };
+//-----------------------------------------------------------------------------
+// Equipment list
+//-----------------------------------------------------------------------------
 
 BOOL equipment_common_overwrite = TRUE;
 //-----------------------------------------------------------------------------
-// equipment list includes the following:
-// - two DTC's
+// DTC frontend equipment list includes the following:
+// - one or two DTC's
 // - potentially, an "equipment" corresponding to a simulated CFO - need something to
 //   be sending trains of pulses
 // - an empty structure, marking the end
+// start from a placeholder
 //-----------------------------------------------------------------------------
 EQUIPMENT equipment[4] = {
 
@@ -111,7 +106,7 @@ EQUIPMENT equipment[4] = {
    //   driver_list,           /* device driver list */
    nullptr,                    // driver (driver list) initialized in frontend_init
    NULL,                       /* init string */
-  }, 
+  },
 
   {"",}
 };
