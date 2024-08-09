@@ -157,7 +157,7 @@ int OdbInterface::GetDtcReadoutMode(HNDLE hDB, HNDLE hDTC) {
   INT   data(-1);       // if not found, want to be meaningless
   int   sz = sizeof(data);
   if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "not found, return: " << data;
+    TLOG(TLVL_ERROR) << key << " not found, return: " << data;
   }
   return data;
 }
@@ -170,7 +170,7 @@ int OdbInterface::GetDtcSampleEdgeMode(HNDLE hDB, HNDLE hDTC) {
   INT   data(-1);       // if not found, want to be meaningless
   int   sz = sizeof(data);
   if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "not found, return: " << data;
+    TLOG(TLVL_ERROR) << key << " not found, return: " << data;
   }
   return data;
 }
@@ -190,25 +190,31 @@ int OdbInterface::GetNDTCs(HNDLE hDB, HNDLE hCFO, int* NDtcs) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetNEvents(HNDLE hDB, HNDLE hCFO) {
-  INT   data;
+uint64_t OdbInterface::GetNEvents(HNDLE hDB, HNDLE hDTC) {
+  UINT64   data;
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "NEvents", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
-    return data;
+  if (db_get_value(hDB, hDTC, "NEvents", &data, &sz, TID_UINT64, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "couldnt find , return 0 (disabled)";
   }
-  else {
-    TLOG(TLVL_ERROR) << "no CFO , return 0 (disabled)";
-    return -1;
-  }
+  return data;
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetEventWindowSize(HNDLE hDB, HNDLE hCFO) {
-  INT   data(-1);
+int OdbInterface::GetEWLength(HNDLE hDB, HNDLE hCFO) {
+  INT  data(0);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "EventWindowSize", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "no CFO , return 0 (disabled)";
-    data = -1;
+  if (db_get_value(hDB, hCFO, "EWLength", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "return 0 (disabled)";
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+uint64_t OdbInterface::GetFirstEWTag(HNDLE hDB, HNDLE hCFO) {
+  UINT64  data(0);
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hCFO, "FirstEWTag", &data, &sz, TID_UINT64, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "return 0 (disabled)";
   }
   return data;
 }

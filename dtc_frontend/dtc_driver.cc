@@ -21,8 +21,9 @@
 #include "midas.h"
 #include "mfe.h"
 
-#include "dtcInterfaceLib/DTC.h"
+#include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 using namespace DTCLib; 
+using namespace trkdaq; 
 
 #include "utils/utils.hh"
 #include "dtc_frontend/dtc_driver.hh"
@@ -31,15 +32,9 @@ using namespace DTCLib;
 
 #define DEFAULT_TIMEOUT 10000   /* 10 sec. */
 
-#define DTC_DRIVER_SETTINGS_STR "\
-PcieAddr = INT   : %i\n\
-Dtc      = INT64 : 0\n\
-"
-
-namespace {
-  DTC* _dtc(nullptr);
-};
-
+// namespace {
+//   DTC* _dtc(nullptr);
+// };
 
 typedef INT(func_t) (INT cmd, ...);
 
@@ -56,9 +51,11 @@ INT dtc_driver_init(HNDLE hkey, DTC_DRIVER_INFO **pinfo, INT channels, func_t *b
 //-----------------------------------------------------------------------------
 // allocate info structure, that includes DTC_DRIVER_SETTINGS
 //-----------------------------------------------------------------------------
-  info = (DTC_DRIVER_INFO*) calloc(1, sizeof(DTC_DRIVER_INFO));
-  *pinfo = info;
+  // info = (DTC_DRIVER_INFO*) calloc(1, sizeof(DTC_DRIVER_INFO));
+  // *pinfo = info;
 
+  info = *pinfo;
+  
   cm_get_experiment_database(&hDB, NULL);
 //-----------------------------------------------------------------------------
 // create DTC_DRIVER settings record - what is that already exists ? - not overwritten?
@@ -66,36 +63,26 @@ INT dtc_driver_init(HNDLE hkey, DTC_DRIVER_INFO **pinfo, INT channels, func_t *b
 //------------------------------------------------------------------------------
   char str[1000];
 
-  int dtc_pcie_address(0);                                   // frontend_index % 2;
-  sprintf(str,DTC_DRIVER_SETTINGS_STR,dtc_pcie_address);
+  DTC_DRIVER_SETTINGS* ds = &info->driver_settings;
+  
+  int pcie_addr = ds->pcieAddr;                                   // frontend_index % 2;
+  int enabled   = ds->pcieAddr;                                   // frontend_index % 2;
+  
+  
+  sprintf(str,DTC_DRIVER_SETTINGS_STR,ds->pcieAddr,ds->enabled);
   status = db_create_record(hDB, hkey, "DD", str);
 
   if (status != DB_SUCCESS)                                 return FE_ERR_ODB;
 
-  db_find_key(hDB, hkey, "DD", &hkeydd);
-  size = sizeof(info->driver_settings);
-  db_get_record(hDB, hkeydd, &info->driver_settings, &size, 0);
+  // db_find_key(hDB, hkey, "DD", &hkeydd);
+  // size = sizeof(info->driver_settings);
+  // db_get_record(hDB, hkeydd, &info->driver_settings, &size, 0);
 
    /* initialize driver */
   info->num_channels = channels;
   info->array        = (float*) calloc(channels, sizeof(float));
   info->bd           = bd;
   info->hkey         = hkey;
-//-----------------------------------------------------------------------------
-// force dtc pcie addr to come from the driver name
-//-----------------------------------------------------------------------------
-  if (info->driver_settings.dtc_i == nullptr) {
-    printf(" PCIE address = %i\n",info->driver_settings.pcieAddr);
-    int pcie_addr(-1);
-    if (strcmp(FrontendsGlobals::_driver->name,"dtc0") == 0) pcie_addr = 0;
-    if (strcmp(FrontendsGlobals::_driver->name,"dtc1") == 0) pcie_addr = 1;
-    info->driver_settings.pcieAddr = pcie_addr;
-    info->driver_settings.dtc_i    = trkdaq::DtcInterface::Instance(pcie_addr);
-//-----------------------------------------------------------------------------
-// at this point need to initialize the DTC for a given running mode - this part 
-// is so far missing
-//-----------------------------------------------------------------------------
-  }
 
   if (!bd)                                                  return FE_ERR_ODB;
 
@@ -172,8 +159,14 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
 //-----------------------------------------------------------------------------
 // FPGA temperature
 //-----------------------------------------------------------------------------
-  DTCLib::DTC* dtc = Info->driver_settings.dtc_i->Dtc();
+  if (Info->driver_settings.enabled == 0) {
+    *PValue = 0;
+    return FE_SUCCESS;
+  }
+  
   int pcie_addr = Info->driver_settings.pcieAddr;
+  DTCLib::DTC* dtc = DtcInterface::Instance(pcie_addr)->Dtc();
+  
   TLOG(TLVL_INFO+10) << "001 PCIE address:" << pcie_addr << " Channel:" << Channel;
 //-----------------------------------------------------------------------------
 // channel=0: temperature, the rest three - voltages ; 
@@ -206,22 +199,22 @@ INT dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
     }
   }
 
-   if (Channel  < DTC_NREG_HIST) *PValue = Info->array[Channel];
-   else {
-     TLOG(TLVL_ERROR) << "002 channel:" << Channel;
-   }
+  if (Channel  < DTC_NREG_HIST) *PValue = Info->array[Channel];
+  else {
+    TLOG(TLVL_ERROR) << "002 channel:" << Channel;
+  }
 //-----------------------------------------------------------------------------
 // assume success for now and implement handling of timeouts/errors etc later
 //-----------------------------------------------------------------------------
-   TLOG(TLVL_INFO+10) << "010 pcie_addr:" << pcie_addr << " Channel:" << Channel << " PValue:" << *PValue;
+  TLOG(TLVL_INFO+10) << "010 pcie_addr:" << pcie_addr << " Channel:" << Channel << " PValue:" << *PValue;
 //-----------------------------------------------------------------------------
 // assume success for now and implement handling of timeouts/errors etc later
 // and at this point implement sleep
 // I don't need to read the DTC too often
 //-----------------------------------------------------------------------------
-   sleep(1);
+  sleep(1);
 
-   return FE_SUCCESS;
+  return FE_SUCCESS;
 }
 
 /*---- device driver entry point -----------------------------------*/

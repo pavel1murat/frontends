@@ -12,6 +12,8 @@
 ** Equipment update thresholds - slow controls                               
 - in the "Equipment/XXX/Settings/Update Threshold" the defaults are set to 0.1
 - for low voltages, the update thresholds may need to be customized
+
+- can't build list of equipment dynamically as register_equipment is called before frontend_init
 ** sequencer                                                                 
 - location of the sequencer scripts: key="/Sequencer/State/Path"
 - proposed for Mu2e: $experiment/online/sequencer
