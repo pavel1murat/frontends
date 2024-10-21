@@ -1,0 +1,33 @@
+#------------------------------------------------------------------------------
+# assume HOSTNAME=`hostname -s`
+#------------------------------------------------------------------------------
+Unix.*.Root.MacroPath:.:$(SPACK_ENV)/otsdaq-mu2e-tracker/scripts
+
+Unix*.Root.DynamicPath:.:$(LD_LIBRARY_PATH):$(SPACK_VIEW)/lib/root
+Root.Html.OutputDir:.
+Root.Html.SourceDir:.:$(ROOTSYS)/src
+#
+#  next line tells ROOT to use rootlogon.C macro from the 
+#  current directory and not any of the default ones
+#
+Rint.Logon          $(PWD)/rootlogon.C
+Rint.Logoff
+
+# Root.MemStat : 1
+Root.ObjectStat: 1
+# Browser.Name: TRootBrowser
+#
+# Gui.IconPath:  $(PWD)/Stntuple/icons
+# Record session commands, set to "-" to turn off command recording
+Rint.History            $(PWD)/.root_hist.$(HOSTNAME)
+# ------------------------------------------------------------------------------
+# WebGui.HttpPort: 8088
+# WebGui.HttpBind: 127.0.0.1
+
+Browser.Name : ROOT::RWebBrowserImp
+
+WebGui.HttpPortMin: 8080
+WebGui.HttpPortMax: 9800
+
+WebGui.HttpLoopback: yes
+WebGui.OnetimeKey: no
