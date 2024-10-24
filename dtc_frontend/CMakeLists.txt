@@ -35,7 +35,18 @@ cet_make_exec(NAME      dtc_frontend
                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
               LIBRARIES frontends otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
                         mu2e_pcie_utils::DTCInterface
-                        mfe midas 
+                        mfe midas
+                        stdc++ m util pthread rt
+)
+
+cet_make_exec(NAME      trk_dtc_frontend
+              SOURCE    trk_dtc_frontend.cc
+                        trk_dtc_driver.cc
+                        emucfo_driver.cc
+                        ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
+              LIBRARIES frontends otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
+                        mu2e_pcie_utils::DTCInterface
+                        mfe midas
                         stdc++ m util pthread rt
 )
 

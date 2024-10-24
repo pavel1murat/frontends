@@ -50,6 +50,8 @@ class TfmEquipment(midas.frontend.EquipmentBase):
         equip_name            = "tfm_launch_fe"
 #        frontends.tfm_frontend.m_frontend.EquipmentBase.__init__(self, client, equip_name, settings)
         midas.frontend.EquipmentBase.__init__(self, client, equip_name, settings)
+
+        self._fm              = None;
 #------------------------------------------------------------------------------
 # set the status of the equipment (appears in the midas status page)
 #------------------------------------------------------------------------------
