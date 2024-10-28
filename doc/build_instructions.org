@@ -5,36 +5,55 @@
 - git clone https://github.com/pavel1murat/spack_packages murat-spack
   spack repo add murat-spack
 
-  spack rm  artdaq-core-mu2e@v3_02_00
-  spack add artdaq-core-mu2e@develop%gcc@13.1.0
+  # keep using gcc 13.1.0 , problems otherwoise
 
-  spack rm  artdaq-mu2e@v3_02_00
+  spack add gcc@13.1.0
+  spack concretize -f
+  spack install gcc@13.1.0
+  spack compiler find
+  
+  spack add     gdb@14.1%gcc@13.1.0
+  spack concretize -f
+  spack install gdb@14.1%gcc@13.1.0
+
+  spack add root@6.30.06%gcc@13.1.0+postgres+root7+webgui cxxstd=20
+  spack concretize -f
+  spack install root@6.30.06%gcc@13.1.0+postgres+root7+webgui cxxstd=20
+
   spack add artdaq-mu2e@develop%gcc@13.1.0
-
-  spack rm  mu2e-pcie-utils@v3_02_00%gcc@13.1.0
+  spack add artdaq-core-mu2e@develop%gcc@13.1.0
+  spack add otsdaq@v2_08_01%gcc@13.1.0
+  spack add otsdaq-mu2e@develop%gcc@13.1.0
+  spack add otsdaq-mu2e-tracker@develop%gcc@13.1.0
   spack add mu2e-pcie-utils@develop%gcc@13.1.0
 
-  spack rm  otsdaq-mu2e@v3_02_00%gcc@13.1.0
-  spack add otsdaq-mu2e@develop%gcc@13.1.0
-  
-  spack add emacs@29.3%gcc@13.1.0+X toolkit=athena
-  spack add cairo+X+fc+ft
-  
-  spack add frontends@main%gcc@13.1.0
-  spack add tfm@main%gcc@13.1.0
-  spack add midas@develop%gcc@13.1.0~sqlite
-  spack add otsdaq-mu2e-tracker@develop%gcc@13.1.0
+  spack concretize -f
+  spack install
 
+  spack add midas@develop%gcc@13.1.0~postgresql~sqlite
+  spack add tfm@main
+  spack add frontends@main%gcc@13.1.0
+  
   spack develop frontends@main%gcc@13.1.0
   spack develop tfm@main%gcc@13.1.0
   spack develop midas@develop%gcc@13.1.0~sqlite
   spack develop otsdaq-mu2e-tracker@develop%gcc@13.1.0
   
-  spack add root@6.30.06%gcc@13.1.0+root7+webgui+postgres
+  spack add emacs@29.3%gcc@13.1.0+X toolkit=athena
+  spack add cairo+X+fc+ft
+  
+  spack add hep-concurrency@1.10.00%gcc@14.1.0 cxxstd=20
+
+  spack add cetlib@3.19.00%gcc@14.1.0 cxxstd=20
+  spack add cetlib-except@1.10.00%gcc@14.1.0 cxxstd=20
+  
+
+  spack add canvas@3.17%gcc@14.1.0 cxxstd=20
+  spack add fhicl-cpp@4.19.00%gcc@14.1.0 cxxstd=20
+  spack add messagefacility@2.11.00%gcc@14.1.0 cxxstd=20
 
   spack concretize -f
   spack install
- ... and as always , cairo...
  
 * installation and build instructions, validated <2024-02-13 Mon>            
 
