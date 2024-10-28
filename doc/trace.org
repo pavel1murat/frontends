@@ -162,6 +162,10 @@ mu2etrk@mu2edaq09:~/test_stand/pasha_018>tlvls | grep DTC_R
 #+begin_src 
 trace_cntl lvlclr 0x100 0x100 0x100 -N*
 #+end_src
+** trace_cntl lvlset  : set mask bits (can run at a ROOT prompt)             
+#+begin_src
+trace_cntl lvlset -NDtcInterface_print 0x00000000000001ff 0x00000000000fffff 0x0000000000000000
+#+end_src
 ** tonS                                                                      
 #+begin_src
 tonS () 

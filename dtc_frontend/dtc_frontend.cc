@@ -88,7 +88,7 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   std::string rpc_host  = get_short_host_name("local");
 
-  TLOG(TLVL_DEBUG+2) << "rpc_host:" << rpc_host;
+  TLOG(TLVL_DEBUG+2) << "rpc_host:" << rpc_host << " active_run_conf:" << active_run_conf;
 
   HNDLE h_daq_host_conf = odb_i->GetDaqHostHandle(hDB,h_active_run_conf,rpc_host);
 //-----------------------------------------------------------------------------
@@ -210,7 +210,6 @@ INT frontend_init() {
     drv_list[1]     = {"",};
     eqp->driver     = drv_list;
   }
-
 //-----------------------------------------------------------------------------
 // transitions
 //-----------------------------------------------------------------------------
