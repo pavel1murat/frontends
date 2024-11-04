@@ -1,0 +1,189 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Fri Jul 21 09:19:07 2023 -0700 - midas-2022-05-c-449-gf254ebd6-dirty on branch HEAD",
+  "/filename" : "train_station_dtc0.json",
+  "/ODB path" : "/Mu2e/RunConfigurations/train_station_dtc0",
+
+  "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+  "RunType" : 1,
+  "TriggerTable/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1730575298 },
+  "TriggerTable" : "trkvst_tt_v01",
+  "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1730575298 },
+  "UseRunInfoDB" : false,
+  "DetectorConfiguration" : {
+    "Calorimeter" : {
+    },
+    "CRV" : {
+    },
+    "DAQ" : {
+      "CFO" : {
+        "comment/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730575298 },
+        "comment" : "# emulated CFO",
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+        "Enabled" : 1,
+        "External/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+        "External" : 0,
+        "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730575298 },
+        "Host" : "mu2edaq09.fnal.gov",
+        "PCIEAddress/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+        "PCIEAddress" : 0,
+        "EnableClockMarkers/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+        "EnableClockMarkers" : 0,
+        "NEvents/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+        "NEvents" : 10,
+        "EventWindowSize/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+        "EventWindowSize" : 68,
+        "SleepTimeMs/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+        "SleepTimeMs" : 1000
+      },
+      "mu2edaq09" : {
+        "DTC0" : {
+          "comment_#_0/key" : { "type" : 12, "item_size" : 39, "access_mode" : 7, "last_written" : 1730575298 },
+          "comment_#_0" : "emulates CFO",
+          "EmulatesCFO/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "EmulatesCFO" : 1,
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "Enabled" : 1,
+          "PCIEAddress/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "PCIEAddress" : 0,
+          "LinkMask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "LinkMask" : 69905,
+          "AutogenDRP/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "AutogenDRP" : 1,
+          "EnableClockMarkers/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "EnableClockMarkers" : 0,
+          "EnableCFOLinkRX/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "EnableCFOLinkRX" : 1,
+          "comment_#_1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730575298 },
+          "comment_#_1" : "# emulated CFO-only parameters",
+          "NEvents/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "NEvents" : 0,
+          "EWLength/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "EWLength" : 68,
+          "FirstEWTag/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "FirstEWTag" : 0
+        },
+        "DTC1" : {
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "Enabled" : 0,
+          "PCIEAddress/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "PCIEAddress" : 1,
+          "EmulatesCFO/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "EmulatesCFO" : 0,
+          "LinkMask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "LinkMask" : 0,
+          "AutogenDRP/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "AutogenDRP" : 1,
+          "EnableClockMarkers/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "EnableClockMarkers" : 0,
+          "comment_#_0/key" : { "type" : 12, "item_size" : 39, "access_mode" : 7, "last_written" : 1730575298 },
+          "comment_#_0" : "# readout mode: 0:ROC patterns 1:digis",
+          "ReadoutMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "ReadoutMode" : 0,
+          "SampleEdgeMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "SampleEdgeMode" : 0,
+          "EnableCFOLinkRX/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+          "EnableCFOLinkRX" : 1
+        },
+        "Artdaq" : {
+          "br01" : {
+            "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730575298 },
+            "Label" : "br01",
+            "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "Active" : 1,
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "Rank" : 0,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "XmlrpcPort" : 21100,
+            "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station_dtc0/DetectorConfiguration/DAQ/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1730650757 },
+            "DTC" : "/Mu2e/RunConfigurations/train_station_dtc0/DetectorConfiguration/DAQ/mu2edaq09/DTC0"
+          },
+          "br02" : {
+            "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730644038 },
+            "Label" : "br02",
+            "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "Active" : 0,
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "Rank" : 1,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "XmlrpcPort" : 21101,
+            "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station_dtc0/DetectorConfiguration/DAQ/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1730652195 },
+            "DTC" : "/Mu2e/RunConfigurations/train_station_dtc0/DetectorConfiguration/DAQ/mu2edaq09/DTC1"
+          },
+          "eb01" : {
+            "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730575298 },
+            "Label" : "eb01",
+            "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "Active" : 1,
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "Rank" : 2,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "XmlrpcPort" : 21102
+          },
+          "dl01" : {
+            "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730575298 },
+            "Label" : "dl01",
+            "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "Active" : 1,
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "Rank" : 3,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "XmlrpcPort" : 21103
+          },
+          "ds01" : {
+            "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730575298 },
+            "Label" : "dp01",
+            "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "Active" : 1,
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "Rank" : 4,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "XmlrpcPort" : 10500
+          }
+        }
+      }
+    },
+    "EXM" : {
+    },
+    "STM" : {
+    },
+    "Tracker" : {
+      "Station_00" : {
+        "Plane_00" : {
+          "Panel_00" : {
+            "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730575298 },
+            "Name" : "MN234",
+            "ID/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730575298 },
+            "ID" : "",
+            "FirstChannel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730575298 },
+            "FirstChannel" : 0,
+            "gain_hv/key" : { "type" : 7, "num_values" : 96, "access_mode" : 7, "last_written" : 1730575298 },
+            "gain_hv" : [ 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370 ],
+            "gain_cal/key" : { "type" : 7, "num_values" : 96, "access_mode" : 7, "last_written" : 1730575298 },
+            "gain_cal" : [ 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370, 370 ],
+            "threshold_hv/key" : { "type" : 7, "num_values" : 96, "access_mode" : 7, "last_written" : 1730575298 },
+            "threshold_hv" : [ 388, 400, 396, 408, 394, 415, 416, 390, 422, 396, 420, 406, 428, 414, 398, 402, 399, 413, 406, 404, 414, 404, 430, 442, 402, 402, 404, 402, 396, 394, 402, 406, 436, 401, 396, 401, 396, 394, 408, 402, 404, 412, 370, 406, 404, 404, 402, 402, 420, 396, 416, 412, 404, 404, 392, 404, 402, 400, 408, 406, 404, 406, 398, 402, 418, 414, 408, 396, 400, 410, 394, 410, 414, 406, 394, 398, 394, 404, 420, 404, 402, 400, 398, 394, 402, 400, 398, 394, 390, 392, 408, 398, 392, 398, 398, 400 ],
+            "threshold_cal/key" : { "type" : 7, "num_values" : 96, "access_mode" : 7, "last_written" : 1730575298 },
+            "threshold_cal" : [ 390, 414, 380, 388, 404, 406, 404, 390, 436, 403, 394, 408, 392, 432, 398, 410, 418, 390, 380, 410, 414, 406, 394, 402, 404, 398, 388, 428, 408, 408, 422, 420, 428, 412, 392, 396, 400, 414, 420, 418, 402, 412, 390, 408, 418, 388, 378, 403, 408, 426, 396, 394, 408, 396, 400, 408, 402, 418, 404, 392, 414, 411, 408, 384, 410, 386, 390, 390, 402, 398, 382, 381, 422, 372, 398, 428, 404, 386, 414, 412, 386, 424, 392, 396, 392, 420, 400, 386, 404, 398, 386, 394, 404, 432, 398, 422 ]
+          },
+          "Panel_01" : {
+          },
+          "Panel_02" : {
+          },
+          "Panel_03" : {
+          },
+          "Panel_04" : {
+          },
+          "Panel_05" : {
+          }
+        },
+        "Plane_01" : {
+        }
+      }
+    },
+    "Trigger" : {
+    }
+  },
+  "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730575298 },
+  "TfmRpcHost" : "mu2edaq09"
+}

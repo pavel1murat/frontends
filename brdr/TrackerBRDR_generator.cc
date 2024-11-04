@@ -168,7 +168,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   , _fragment_ids      (ps.get<std::vector<uint16_t>>   ("fragment_ids"       , std::vector<uint16_t>()))  // 
   , _debugLevel        (ps.get<int>                     ("debugLevel"         ,           0))
   , _nEventsDbg        (ps.get<size_t>                  ("nEventsDbg"         ,         100))
-  , _pcieAddr          (ps.get<int>                     ("pcieAddr"           ,          -1)) 
+    // , _pcieAddr          (ps.get<int>                     ("pcieAddr"           ,          -1)) 
   , _tfmHost           (ps.get<std::string>             ("tfmHost"                         ))  // 
   , _readData          (ps.get<int>                     ("readData"           ,           1))  // 
   , _printFreq         (ps.get<int>                     ("printFreq"          ,         100))  // 
