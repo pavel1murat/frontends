@@ -26,7 +26,7 @@ cet_make_exec(NAME      cfo_frontend
                         cfo_gen_driver.cc 
                         cfo_mon_driver.cc 
                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-              LIBRARIES frontends 
+              LIBRARIES frontends_utils
                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
                         mu2e_pcie_utils::CFOInterface
                         mu2e_pcie_utils::DTCInterface
@@ -38,7 +38,7 @@ cet_make_exec(NAME      cfo_frontend
 #               SOURCE    cfo_emu_frontend.cc 
 #                         cfo_mon_driver.cc 
 #                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-#               LIBRARIES frontends 
+#               LIBRARIES frontends_utils 
 #                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
 #                         mu2e_pcie_utils::CFOInterface
 #                         mu2e_pcie_utils::DTCInterface
@@ -50,7 +50,7 @@ cet_make_exec(NAME      cfo_ext_frontend
               SOURCE    cfo_ext_frontend.cc 
                         cfo_mon_driver.cc 
                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-              LIBRARIES frontends 
+              LIBRARIES frontends_utils
                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
                         mu2e_pcie_utils::CFOInterface
                         mu2e_pcie_utils::DTCInterface

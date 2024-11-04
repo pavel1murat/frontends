@@ -24,11 +24,6 @@ cet_set_compiler_flags(
         EXTRA_FLAGS -pedantic -Wno-unused-parameter -Wdeprecated-declarations -pthread #-g -O0 -v # Equivalent to debug qualifier, for testing
 )
 
-#string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
-#if( ${BTYPE_UC} MATCHES "DEBUG" )
-#  cet_add_compiler_flags(-fsanitize=address)
-#endif()
-
 message("---------- frontends: PRINT CMAKE VARIABLES " )
 
 get_cmake_property(_variableNames VARIABLES)
@@ -37,13 +32,11 @@ foreach (_variableName ${_variableNames})
   message(STATUS "${_variableName}=${${_variableName}}")
 endforeach()
   
-#cet_report_compiler_flags()
+cet_report_compiler_flags()
 find_package(TRACE  3.17.04              REQUIRED EXPORT)
 message(-- frontends: Trace_inc_dir=.${Trace_inc_dir}. )
 
 # these are minimum required versions, not the actual product versions
-# find_package(canvas_root_io  REQUIRED EXPORT QUIET)
-# find_package(canvas          REQUIRED EXPORT QUIET)
 find_package(otsdaq_mu2e_tracker 3.01.00 REQUIRED EXPORT)
 find_package(mu2e_pcie_utils     3.01.00 REQUIRED EXPORT)
 
@@ -90,12 +83,10 @@ add_subdirectory(utils)
 add_subdirectory(cfo_frontend)
 add_subdirectory(dtc_frontend)
 # add_subdirectory(roc_crv_frontend)
-add_subdirectory(roc_trk_frontend)
+# add_subdirectory(roc_trk_frontend)
 add_subdirectory(tfm_frontend)
 add_subdirectory(test)
-
-# Useful scripts
-#add_subdirectory(tools)
+add_subdirectory(brdr)
 
 # Data
 

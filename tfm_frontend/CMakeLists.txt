@@ -28,7 +28,7 @@ cet_set_compiler_flags(
 # Nominally a test exec (no MPI) but we want this to be available to other packages.
 cet_make_exec(NAME      client
               SOURCE    client.cc
-              LIBRARIES frontends xmlrpc_client xmlrpc xmlrpc_util 
+              LIBRARIES frontends_utils xmlrpc_client xmlrpc xmlrpc_util 
                         # xmlrpc_client++ xmlrpc++ xmlrpc_util++ 
                         pthread rt util
 )                  
@@ -39,7 +39,7 @@ cet_make_exec(NAME      tfm_mon_fe
                         tfm_dr_driver.cc
                         tfm_disk_driver.cc
                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-              LIBRARIES frontends midas mfe 
+              LIBRARIES frontends_utils midas mfe 
                         artdaq_plugin_support::commanderMaker
                         artdaq::Application                       # needed for messagefacility
                         artdaq::DAQrate
@@ -47,13 +47,14 @@ cet_make_exec(NAME      tfm_mon_fe
                         artdaq::BuildInfo
                         artdaq_core::artdaq-core_Utilities
                         artdaq_core::artdaq-core_Plugins
+                        util
 )                  
 
 # cet_make_exec(NAME      tfm_launch_fe 
 #               SOURCE    tfm_launch_fe.cc 
 #                         ${MIDAS_INSTALL_DIR}/drivers/device/nulldev.cxx
 #                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-#               LIBRARIES frontends midas mfe 
+#               LIBRARIES frontends_utils midas mfe 
 #                         artdaq_plugin_support::commanderMaker
 #                         artdaq::Application                       # needed for messagefacility
 #                         artdaq::DAQrate

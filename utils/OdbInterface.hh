@@ -18,8 +18,10 @@ public:
   static OdbInterface*  Instance  (HNDLE h_DB);
 
   std::string GetActiveRunConfig  (HNDLE h_DB);
+  int         GetArtdaqPartition  (HNDLE h_DB);
 
-  HNDLE       GetRunConfigHandle  (HNDLE h_DB, std::string& RunConf);
+  HNDLE       GetRunConfigHandle   (HNDLE h_DB, std::string& RunConf);
+  HNDLE       GetArtdaqConfigHandle(HNDLE h_DB, std::string& RunConf, std::string& Host);
 
   HNDLE       GetCFOConfigHandle  (HNDLE h_DB, HNDLE h_RunConf);
   int         GetCFOEnabled       (HNDLE h_DB, HNDLE h_CFO);
@@ -34,6 +36,7 @@ public:
   int         GetDtcLinkMask      (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcReadoutMode   (HNDLE h_DB, HNDLE h_Card); // 0:patterns, 1:data
   int         GetDtcSampleEdgeMode(HNDLE h_DB, HNDLE h_Card); // 0:force rising; 1: force falling; 2:auto
+  int         GetDtcPcieAddress   (HNDLE h_DB, HNDLE h_Node); // h_Node: has a "DTC" link to the DTC record
   int         GetPcieAddress      (HNDLE h_DB, HNDLE h_Card); // card: either CFO or DTC
 //-----------------------------------------------------------------------------
 // CFO supports up to 8 timing chains, so dimension of NDTCs array should be at least 8

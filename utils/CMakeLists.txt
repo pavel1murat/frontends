@@ -27,11 +27,12 @@ cet_set_compiler_flags(
 #------------------------------------------------------------------------------
 # build common library
 #------------------------------------------------------------------------------
-cet_make_library(LIBRARY_NAME frontends
+cet_make_library(LIBRARY_NAME frontends::utils
                  SOURCE       db_runinfo.cc mu2e_sc.cc
                               # mu2e_sc_new.cc
                               get_xmlrpc_url.cc utils.cc
                               get_host_name.cc
+                              MidasInterface.cc
                               OdbInterface.cc
                  LIBRARIES PUBLIC 
                  midas
@@ -43,12 +44,30 @@ cet_make_library(LIBRARY_NAME frontends
                  pq
                  pthread rt util
 )
+include(ArtDictionary)
+
+art_dictionary(
+  DICTIONARY_LIBRARIES
+  frontends::utils
+  midas
+)
+
+get_target_property(DictCompileOptions utils_dict COMPILE_OPTIONS)
+
+if(DictCompileOptions)
+	string(REPLACE "-fsanitize=thread"  "" DictCompileOptions "${DictCompileOptions}")
+	string(REPLACE "-fsanitize=address" "" DictCompileOptions "${DictCompileOptions}")
+	string(REPLACE "-ltsan"             "" DictCompileOptions "${DictCompileOptions}")
+	string(REPLACE "-lasan"             "" DictCompileOptions "${DictCompileOptions}")
+
+	set_target_properties(utils_dict PROPERTIES COMPILE_OPTIONS "${DictCompileOptions}")
+endif()
 #------------------------------------------------------------------------------
 # test executable
 #------------------------------------------------------------------------------
 cet_make_exec(NAME      register_transitions
               SOURCE    register_transitions.cc 
-              LIBRARIES frontends
+              LIBRARIES frontends::utils
               #              ${PostgreSQL_LIBRARIES}
               pq
               util stdc++
@@ -56,20 +75,20 @@ cet_make_exec(NAME      register_transitions
 
 cet_make_exec(NAME        db_runinfo_main
               SOURCE      db_runinfo_main.cc
-              LIBRARIES   frontends
+              LIBRARIES   frontends::utils
               #                         ${PostgreSQL_LIBRARIES} util stdc++
               pq util stdc++
 )                  
 
 cet_make_exec(NAME      get_next_run_number
               SOURCE    get_next_run_number.cc 
-              LIBRARIES frontends
+              LIBRARIES frontends::utils
 #              ${PostgreSQL_LIBRARIES}
               pq
               util stdc++
 )                  
 
-install(FILES runinfodb.py DESTINATION python/frontends/util)
+install(FILES runinfodb.py DESTINATION python/frontends/utils)
   
 # install_fhicl(SUBDIRS fcl)
 # install_headers()
