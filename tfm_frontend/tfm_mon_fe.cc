@@ -202,39 +202,44 @@ INT frontend_init() {
 // for each active component, define a driver
 // use the component label 
 // so far, output of all drivers goes into the same common "Input" array
+// component names:
+//                   brxx - board readers
+//                   ebxx - event builders
+//                   dlxx - data loggers
+//                   dsxx - dispatchers
 //-----------------------------------------------------------------------------
     db_get_key(hDB, h_component, &component);
 
-    char label[NAME_LENGTH];
-    sz = sizeof(label);
-    db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, FALSE);
+    // char label[NAME_LENGTH];
+    // sz = sizeof(label);
+    // db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, FALSE);
 
     DEVICE_DRIVER driver;
-    if (strstr(component.name,"BoardReader") == component.name) {
-      snprintf(driver.name,NAME_LENGTH,"%s",label);
+    if (strstr(component.name,"br") == component.name) {
+      snprintf(driver.name,NAME_LENGTH,"%s",component.name);
       driver.dd       = tfm_br_driver;               //  this is a function ..
       driver.channels = TFM_BR_DRIVER_NWORDS;
       driver.bd       = null;
       driver.flags    = DF_INPUT;
       _driver_list[i] = driver;
     }
-    else if (strstr(component.name,"EventBuilder") == component.name) {
-      snprintf(driver.name,NAME_LENGTH,"%s",label);
+    else if (strstr(component.name,"eb") == component.name) {
+      snprintf(driver.name,NAME_LENGTH,"%s",component.name);
       driver.dd       = tfm_dr_driver;
       driver.channels = TFM_DR_DRIVER_NWORDS;
       driver.bd       = null;
       driver.flags    = DF_INPUT;
       _driver_list[i] = driver;
     }
-    else if (strstr(component.name,"DataLogger"  ) == component.name) {
-      snprintf(driver.name,NAME_LENGTH,"%s",label);
+    else if (strstr(component.name,"dl"  ) == component.name) {
+      snprintf(driver.name,NAME_LENGTH,"%s",component.name);
       driver.dd       = tfm_dr_driver;
       driver.channels = TFM_DR_DRIVER_NWORDS;
       driver.bd       = null;
       driver.flags    = DF_INPUT;
       _driver_list[i] = driver;
     }
-    else if (strstr(component.name,"Dispatcher"  ) == component.name) {
+    else if (strstr(component.name,"ds"  ) == component.name) {
       // so far, do nothing
     }
   }

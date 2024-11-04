@@ -44,11 +44,13 @@ std::string OdbInterface::GetActiveRunConfig(HNDLE hDB) {
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetRunConfigHandle(HNDLE hDB, std::string& RunConf) {
+HNDLE OdbInterface::GetArtdaqConfigHandle(HNDLE hDB, std::string& RunConf, std::string& Host) {
   char     key[200];
   HNDLE    h;
-  sprintf(key,"/Mu2e/RunConfigurations/%s",RunConf.data());
-	if (db_find_key(hDB, 0, key, &h) == DB_SUCCESS) return h;
+  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",
+          RunConf.data(),Host.data());
+  
+  if (db_find_key(hDB, 0, key, &h) == DB_SUCCESS) return h;
   else {
     TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
     return 0;
@@ -109,11 +111,33 @@ int OdbInterface::GetCFOSleepTime(HNDLE hDB, HNDLE hCFO) {
   const char* key {"SleepTimeMs"};
   int   data(-1);
 
-  if (GetInteger(hDB,hCFO,"SleepTimeMs",&data) != DB_SUCCESS) {
+  if (GetInteger(hDB,hCFO,key,&data) != DB_SUCCESS) {
     // data = -1;
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
   }
   return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetArtdaqPartition(HNDLE hDB) {
+  const char* key {"/Mu2e/ARTDAQ_PARTITION_NUMBER"};
+  int   data(-1);
+  if (GetInteger(hDB,0,key,&data) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetRunConfigHandle(HNDLE hDB, std::string& RunConf) {
+  char     key[200];
+  HNDLE    h;
+  sprintf(key,"/Mu2e/RunConfigurations/%s",RunConf.data());
+	if (db_find_key(hDB, 0, key, &h) == DB_SUCCESS) return h;
+  else {
+    TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
+    return 0;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -253,6 +277,17 @@ int OdbInterface::GetPcieAddress(HNDLE hDB, HNDLE hCFO) {
   int   sz = sizeof(data);
   if (db_get_value(hDB, hCFO, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "no CFO PCIE address, return -1";
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcPcieAddress(HNDLE hDB, HNDLE hNode) {
+  const char* key {"DTC/PCIEAddress"};
+  INT   data(-1);
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hNode, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "no DTC PCIE address, return -1";
   }
   return data;
 }

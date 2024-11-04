@@ -33,6 +33,7 @@
 #include <xmlrpc-c/client.h>
 
 #include "utils/utils.hh"
+#include "utils/OdbInterface.hh"
 #include "tfm_frontend/tfm_br_driver.hh"
 
 using std::vector, std::string;
@@ -67,6 +68,11 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   *pinfo = info;
 
   cm_get_experiment_database(&hDB, NULL);
+  
+  OdbInterface* odb_i         = OdbInterface::Instance(hDB);
+  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
+  // HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  _partition                  = odb_i->GetArtdaqPartition(hDB);
 //-----------------------------------------------------------------------------
 // create DRIVER settings record 
 //-----------------------------------------------------------------------------
@@ -87,18 +93,6 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
 //-----------------------------------------------------------------------------
 // now figure out what needs to be initialized
 //-----------------------------------------------------------------------------
-  int sz;
-  sz = sizeof(int);
-  db_get_value(hDB, 0, "/Mu2e/ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
-
-  char    active_conf[100];
-  sz    = sizeof(active_conf);
-  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
-
-  HNDLE  h_active_conf;
-  char   key[200];
-  sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
-	db_find_key(hDB, 0, key, &h_active_conf);
 //-----------------------------------------------------------------------------
 // find out the port numbers for the first boardreader, first event builder, 
 // and first datalogger
@@ -106,15 +100,8 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   std::string hname=host_name;
   if (hname == "") hname = "local";
 
-  std::string host = get_full_host_name(hname.data());
-
-  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",active_conf,host.data());
-  std::string k1 = key;
-
-  HNDLE h_artdaq_conf;
-	if (db_find_key(hDB, 0, k1.data(), &h_artdaq_conf) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "0012 no handle for:" << k1 << ", got:" << h_artdaq_conf;
-  }
+  std::string host    = get_full_host_name(hname.data());
+  HNDLE h_artdaq_conf = odb_i->GetArtdaqConfigHandle(hDB,active_run_conf,host);
 //-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
 // make sure it won't compile before that
@@ -130,27 +117,27 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   TLOG(TLVL_INFO+10) << "013: host.data:" << host.data() << " xmlRpcUrl:" << xmlrpcUrl;
   strcpy(info->driver_settings.XmlrpcUrl,xmlrpcUrl.data());
 //-----------------------------------------------------------------------------
-// for the boardreader, store the number of fragment types - that defined the number of lines in the 
-// boardreader metrics report
+// for the boardreader, store the number of fragment types - that defines
+// the number of lines in the  boardreader metrics report
 // need to loop over components and find the one with a given label
 //-----------------------------------------------------------------------------
-  int found(0);
+  int   found(0);
   HNDLE h_component; 
+  KEY   component;
   for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
-    char label[100];
-    int sz = sizeof(label);
-    db_get_value(hDB, h_component, "Label", &label, &sz, TID_STRING, FALSE);
-    if (strcmp(FrontendsGlobals::_driver->name,label) == 0) {
+    db_get_key(hDB, h_component, &component);
+    if (strcmp(FrontendsGlobals::_driver->name,component.name) == 0) {
       found = 1;
       break;
     }
   }
 
   if (found == 0) {
-    TLOG(TLVL_ERROR) << "00121 no handle for key=" << FrontendsGlobals::_driver->name << "in conf=" << k1;
+    TLOG(TLVL_ERROR) << "00121 no handle for key=" << FrontendsGlobals::_driver->name
+                     << "in conf=" << active_run_conf;
   }
 
-  sz = sizeof(int);
+  int sz = sizeof(int);
   db_get_value(hDB, h_component, "NFragmentTypes", &info->driver_settings.NFragmentTypes, &sz, TID_INT32, FALSE);
 
   // at this point, update the driver record

@@ -65,22 +65,20 @@ INT tr_prestart(INT run_number, char *error);
 // use 'channel' as the DTC ID
 //----------------------------------------------------------------------------- 
 INT frontend_init() {
-  int         argc;
-  char**      argv;
-  std::string active_run_conf;
 //-----------------------------------------------------------------------------
 // get command line arguments - perhaps can use that one day
 //-----------------------------------------------------------------------------
+  int         argc;
+  char**      argv;
   mfe_get_args(&argc,&argv);
 //-----------------------------------------------------------------------------
 // figure out the active configuration from ODB
 //-----------------------------------------------------------------------------
   cm_get_experiment_database(&hDB, NULL);
 
-  OdbInterface* odb_i = OdbInterface::Instance(hDB);
-
-  active_run_conf         = odb_i->GetActiveRunConfig(hDB);
-  HNDLE h_active_run_conf = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  OdbInterface* odb_i         = OdbInterface::Instance(hDB);
+  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
+  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/DetectorConfigurations/$detector_conf/DAQ to get a list of 
 // nodes/DTC's to be monitored 

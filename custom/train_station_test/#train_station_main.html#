@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="midas.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <style>
+      .button-link {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: blue;
+            background-color: lightgrey;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        .button-link:hover {
+            background-color: #45a049;
+        }
+        .button-table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            align: 
+        }
+        .button-table td {
+            padding: 10px;
+        }
+        summary {
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            outline: none;
+        }
+    </style> 
+    <title>Train station main page</title>
+  </head>
+  
+  <body class="mcss" onload="mhttpd_init('Tracker/main');">
+    
+<br>
+<br>
+    <h2 align="center"> Train Station</h2>
+
+    <!-- header and side navigation will be filled in mhttpd_start -->
+
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+    
+    <div id="mmain" align="center">
+      Tracker/TrainStation: ADD YOUR HTML/JS  CODE here...
+    </div>
+    <h3>.................................... Train Station</h3>
+
+    <h1 align="center">Button Table</h1>
+    <details>
+        <summary><b>Show Stations</b></summary>
+        <div>
+
+          <td><a href="/mark/main" class="button-link" > Station_00 </a></td>
+          
+          <details>
+            <summary> <b>Show Planes</b></summary>
+            <div>
+              <td><a href="/mark/main" class="button-link" > Plane_00 </a></td>
+              <td><a href="/mark/main" class="button-link" > Plane_01 </a></td>
+            </div>
+          </details>
+            
+          
+          
+          <td><a href="/mark/main" class="button-link" > Station_01 </a></td>
+
+          
+          <td><a href="/mark/main" class="button-link" > Station_03 </a></td>
+  
+          <summary> <b>Show Planes</b></summary>
+          <div>
+            <td><a href="/mark/main" class="button-link" > Station_00/Plane_00/Panel_00 </a></td>
+            <summary><b>Show Panels</b></summary>
+            <div>
+               <td><a href="/mark/main" class="button-link" > Station_00/Plane_00/Panel_00 </a></td>
+            </div>
+          </div>
+        </div>
+    </details>
+
+    <table class="button-table">
+        <tr>
+
+          <td><a href="/mark/main" class="button-link" > Panel_01 </a></td>
+          <td><a href="/mark/main" class="button-link" > Panel_01 </a></td>
+        </tr>
+    </table>
+   
+
+    
+    
+    
+  </body>
+</html>

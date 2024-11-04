@@ -18,7 +18,7 @@ TRACE_NAME = "tfm_launch_fe"
 import tfm.rc.control.farm_manager as farm_manager
 
 # sys.path.append(os.environ["FRONTENDS_DIR"])
-from frontends.util.runinfodb import RuninfoDB
+from frontends.utils.runinfodb import RuninfoDB
 
 #------------------------------------------------------------------------------
 # TFM 'equipment' is just a placeholder
@@ -127,7 +127,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         TRACE.TRACE(7,f":0014: artdaq_partition_number={self.artdaq_partition_number}")
 
         config_path                  = "/Mu2e/RunConfigurations/"+self.config_name;
-        self.use_runinfo_db          = self.client.odb_get(config_path+'/UseRuninfoDB')
+        self.use_runinfo_db          = self.client.odb_get(config_path+'/UseRunInfoDB')
         self.tfm_rpc_host            = self.client.odb_get(config_path+'/TfmRpcHost'  )
 
         config_dir                   = os.path.join(self.client.odb_get("/Mu2e/ArtdaqConfigDir"), self.config_name)
