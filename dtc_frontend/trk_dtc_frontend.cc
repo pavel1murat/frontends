@@ -121,18 +121,19 @@ INT frontend_init() {
     int link_mask     = odb_i->GetDtcLinkMask   (hDB,h_subkey);
     TLOG(TLVL_DEBUG+2) << "link_mask:0x" <<std::hex << link_mask << std::endl; 
 
-    if (enabled) {
-      DtcInterface* dtc_i = DtcInterface::Instance(pcie_addr,link_mask);
-      _dtc_i[pcie_addr]   = dtc_i;
+    DtcInterface* dtc_i = DtcInterface::Instance(pcie_addr,link_mask);
+    _dtc_i[pcie_addr]   = dtc_i;
       
-      dtc_i->fReadoutMode    = odb_i->GetDtcReadoutMode   (hDB,h_subkey);
-      dtc_i->fSampleEdgeMode = odb_i->GetDtcSampleEdgeMode(hDB,h_subkey);
-      dtc_i->fEmulateCfo     = odb_i->GetDtcEmulatesCfo   (hDB,h_subkey);
+    dtc_i->fEnabled        = enabled;
+    dtc_i->fReadoutMode    = odb_i->GetDtcReadoutMode   (hDB,h_subkey);
+    dtc_i->fSampleEdgeMode = odb_i->GetDtcSampleEdgeMode(hDB,h_subkey);
+    dtc_i->fEmulateCfo     = odb_i->GetDtcEmulatesCfo   (hDB,h_subkey);
 
-      TLOG(TLVL_DEBUG+2) << "readout_mode:"      << dtc_i->fReadoutMode
-                         << " sample_edge_mode:" << dtc_i->fSampleEdgeMode
-                         << " emulate_cfo:"      << dtc_i->fEmulateCfo;
+    TLOG(TLVL_DEBUG+2) << "readout_mode:"      << dtc_i->fReadoutMode
+                       << " sample_edge_mode:" << dtc_i->fSampleEdgeMode
+                       << " emulate_cfo:"      << dtc_i->fEmulateCfo;
 
+    if (enabled) {
       if (dtc_i->EmulateCfo()) {
         if (cfo_pcie_addr >= 0) {
           TLOG(TLVL_ERROR) << "redefinition of the emulated CFO" << std::endl;
@@ -232,7 +233,10 @@ INT tr_prestart(INT run_number, char *error)  {
   
   for (int i=0; i<_ndtcs; i++) {
     trkdaq::DtcInterface* dtc_i = _dtc_i[i];
-    dtc_i->InitReadout(dtc_i->EmulateCfo(),dtc_i->fReadoutMode);
+    if (dtc_i->Enabled()) {
+      // initialize only enabled DTCs
+      dtc_i->InitReadout(dtc_i->EmulateCfo(),dtc_i->fReadoutMode);
+    }
   }
 //-----------------------------------------------------------------------------
 // at this point, the boardreaders are already running and waiting for events to show up
