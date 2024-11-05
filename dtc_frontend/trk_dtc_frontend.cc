@@ -80,7 +80,7 @@ INT frontend_init() {
   std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
   HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
 //-----------------------------------------------------------------------------
-// now go to /Mu2e/DetectorConfigurations/$detector_conf/DAQ to get a list of 
+// now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
 // nodes/DTC's to be monitored 
 // MIDAS 'host_name' could be 'local'..
 //-----------------------------------------------------------------------------

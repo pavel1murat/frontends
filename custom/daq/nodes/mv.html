@@ -23,17 +23,37 @@
 
 
     <script>
-      const PATH = "/Mu2e/RunConfigurations/train_station_dtc0/DetectorConfiguration/Tracker/Station_00/Plane_00/Panel_00";
+     let PATH = "/Mu2e/RunConfigurations/train_station_dtc0/DetectorConfiguration/Tracker/Station_00/Plane_00/Panel_00";
           
       function SetTableName(PATH)
       {
           const name = document.getElementById("TableName");
-          st_index = PATH.indexOf("Station");  
+          let st_index = PATH.indexOf("Station");  
           name.textContent = PATH.slice(st_index);  
-          
-          
       }
 
+      function updatePath() {
+
+          let currentUrl = new URL(window.location.href);
+
+          const newPath = currentUrl.hash ? currentUrl.hash.substring(1) : null;
+
+        // If there's a newPath in the hash, use it; otherwise, set the default PATH in the hash
+
+          if (newPath) {
+
+              PATH = newPath;
+             // window.location.search += `#/${PATH}`;
+              
+          } else
+          {
+              currentUrl.hash = PATH; // Add PATH as a fragment (doesn't get encoded)
+              window.history.replaceState({}, '', currentUrl); // Update the URL in the browser without reloading
+          }
+          
+
+          console.log("Current Path:", PATH);
+      }
           
       function PrepareTable()
       {
@@ -49,8 +69,6 @@
 
           table.appendChild(row);
       }
-
-          
           
       function FillTable(PATH) {
           const table = document.getElementById("MVtable");
@@ -74,9 +92,11 @@
       // Call the function to fill the table when the page loads
       window.onload = function() {
           mhttpd_init('artdaq/nodes/mu2edaq09');
+          updatePath();
           SetTableName(PATH);
           PrepareTable();
           FillTable(PATH);
+          
       }
       </script>
 
