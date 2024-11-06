@@ -47,7 +47,7 @@ std::string OdbInterface::GetActiveRunConfig(HNDLE hDB) {
 HNDLE OdbInterface::GetArtdaqConfigHandle(HNDLE hDB, std::string& RunConf, std::string& Host) {
   char     key[200];
   HNDLE    h;
-  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",
+  sprintf(key,"/Mu2e/RunConfigurations/%s/DAQ/%s/Artdaq",
           RunConf.data(),Host.data());
   
   if (db_find_key(hDB, 0, key, &h) == DB_SUCCESS) return h;
@@ -59,7 +59,7 @@ HNDLE OdbInterface::GetArtdaqConfigHandle(HNDLE hDB, std::string& RunConf, std::
 
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetCFOConfigHandle(HNDLE h_DB, HNDLE h_RunConf) {
-  const char* key {"DetectorConfiguration/DAQ/CFO"};
+  const char* key {"DAQ/CFO"};
   HNDLE    h;
 	if (db_find_key(h_DB, h_RunConf, key, &h) == DB_SUCCESS) return h;
   else {
@@ -250,7 +250,7 @@ int OdbInterface::GetDaqHostHandle(HNDLE hDB, HNDLE hConf, const std::string& Ho
   char key[100];
   int  sz = sizeof(key);
 
-  snprintf(key,sz-1,"DetectorConfiguration/DAQ/%s",Hostname.data());
+  snprintf(key,sz-1,"DAQ/%s",Hostname.data());
 
   HNDLE h(0);
   if (db_find_key(hDB, hConf, key, &h) != DB_SUCCESS) {
