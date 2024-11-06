@@ -24,6 +24,7 @@
 #include <xmlrpc-c/client.h>
 
 #include "utils/utils.hh"
+#include "utils/OdbInterface.hh"
 #include "tfm_frontend/tfm_disk_driver.hh"
 
 using std::vector, std::string;
@@ -69,6 +70,10 @@ INT tfm_disk_driver_init(HNDLE hkey, TFM_DISK_DRIVER_INFO **pinfo, INT channels,
   *pinfo = info;
 
   cm_get_experiment_database(&hDB, NULL);
+
+  OdbInterface* odb_i         = OdbInterface::Instance(hDB);
+  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
+  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
 //-----------------------------------------------------------------------------
 // create DRIVER settings record 
 //-----------------------------------------------------------------------------
@@ -89,28 +94,15 @@ INT tfm_disk_driver_init(HNDLE hkey, TFM_DISK_DRIVER_INFO **pinfo, INT channels,
 //-----------------------------------------------------------------------------
 // now figure out what needs to be initialized
 //-----------------------------------------------------------------------------
-  int sz   = sizeof(_active_conf);
-  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &_active_conf, &sz, TID_STRING, TRUE);
-
-  HNDLE      h_active_conf;
-  char       key[200];
-  sprintf(key,"/Mu2e/RunConfigurations/%s",_active_conf);
-	db_find_key(hDB, 0, key, &h_active_conf);
-
-  sz = sizeof(int);
-  db_get_value(hDB, 0, "/Mu2e/ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
-//-----------------------------------------------------------------------------
-// the frontend monitors only ARTDAQ processes running on the same node with it
-// this is convenient for book-keeping reasons
-//-----------------------------------------------------------------------------
-  std::string host = get_full_host_name(host_name);
-  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",_active_conf,host.data());
+  _partition = odb_i->GetArtdaqPartition(hDB);
 //-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
 // make sure it won't compile before that
 // the driver name is the same as the component name
 //-----------------------------------------------------------------------------
   strcpy(info->driver_settings.CompName,FrontendsGlobals::_driver->name);
+
+  std::string host = get_short_host_name("local");
   strcpy(info->driver_settings.HostName, host.data());
 
   // at this point, update the driver record

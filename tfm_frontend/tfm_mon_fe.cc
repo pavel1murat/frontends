@@ -28,6 +28,7 @@
 #include <xmlrpc-c/client.h>
 
 #include "utils/utils.hh"
+#include "utils/OdbInterface.hh"
 #include "tfm_frontend/tfm_mon_fe.hh"
 //-----------------------------------------------------------------------------
 // Globals
@@ -116,31 +117,24 @@ INT frontend_init() {
   int         argc;
   char**      argv;
   HNDLE       hDB;
-  char        active_conf[100];
 
   mfe_get_args(&argc,&argv);
 //-----------------------------------------------------------------------------
 // figure out the active configuration from ODB
 //-----------------------------------------------------------------------------
   cm_get_experiment_database(&hDB, NULL);
-  int   sz = sizeof(active_conf);
-  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
-//-----------------------------------------------------------------------------
-// h_active_run_conf is the key corresponding the the active run configuration
-//-----------------------------------------------------------------------------
-  HNDLE    h_active_run_conf;
-  char     key[1000];
-  sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
-  if(db_find_key(hDB, 0, key, &h_active_run_conf) != DB_SUCCESS){
-    TLOG(TLVL_ERROR) << "The configuration '" << key << "' was not found in /Mu2e/RunConfigurations. Got=" << h_active_run_conf;
+
+  OdbInterface* odb_i         = OdbInterface::Instance(hDB);
+  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
+  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  if(h_active_run_conf == 0) {
+    TLOG(TLVL_ERROR) << "The configuration " << active_run_conf << " was not found in /Mu2e/RunConfigurations. BAIL OUT";
     return FE_ERR_ODB; 
   }
 //-----------------------------------------------------------------------------
 // ARTDAQ_PARTITION_NUMBER also comes from the active run configuration
 //-----------------------------------------------------------------------------
-  int partition;
-  sz = sizeof(int);
-  db_get_value(hDB, 0, "/Mu2e/ARTDAQ_PARTITION_NUMBER", &partition, &sz, TID_INT32, TRUE);
+  int partition   = odb_i->GetArtdaqPartition(hDB);
   int port_number = 10000+1000*partition;
 //-----------------------------------------------------------------------------
 // get port number used by the TF manager 
@@ -169,12 +163,10 @@ INT frontend_init() {
 // find ARTDAQ configuration , 'host_name' (hostname, i.e. mu2edaq09.fnal.gov) 
 // is a global from midas/src/mfe.cxx and should be defined on the command line! 
 //-----------------------------------------------------------------------------
-  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",active_conf,host.data());
-  std::string k1 = key;
+  HNDLE h_artdaq_conf = odb_i->GetArtdaqConfigHandle(hDB,active_run_conf,host);
 
-  HNDLE h_artdaq_conf;
-	if (db_find_key(hDB, 0, k1.data(), &h_artdaq_conf) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "0012 no handle for:" << k1 << ", got:" << h_artdaq_conf;
+  if (h_artdaq_conf == 0) {
+    TLOG(TLVL_ERROR) << "no ARTDAQ configuration for" << active_run_conf << ":" << host;
     return FE_ERR_ODB; 
   }
 //-----------------------------------------------------------------------------

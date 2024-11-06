@@ -24,6 +24,7 @@
 #include <xmlrpc-c/client.h>
 
 #include "utils/utils.hh"
+#include "utils/OdbInterface.hh"
 #include "tfm_frontend/tfm_dr_driver.hh"
 
 using std::vector, std::string;
@@ -63,6 +64,10 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
   *pinfo = info;
 
   cm_get_experiment_database(&hDB, NULL);
+
+  OdbInterface* odb_i         = OdbInterface::Instance(hDB);
+  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
+  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
 //-----------------------------------------------------------------------------
 // create DRIVER settings record 
 //-----------------------------------------------------------------------------
@@ -83,17 +88,7 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
 //-----------------------------------------------------------------------------
 // now figure out what needs to be initialized
 //-----------------------------------------------------------------------------
-  char       active_conf[100];
-  int sz   = sizeof(active_conf);
-  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration", &active_conf, &sz, TID_STRING, TRUE);
-
-  HNDLE      h_active_conf;
-  char       key[200];
-  sprintf(key,"/Mu2e/RunConfigurations/%s",active_conf);
-	db_find_key(hDB, 0, key, &h_active_conf);
-
-  sz = sizeof(int);
-  db_get_value(hDB, 0, "/Mu2e/ARTDAQ_PARTITION_NUMBER", &_partition, &sz, TID_INT32, TRUE);
+  _partition = odb_i->GetArtdaqPartition(hDB);
 //-----------------------------------------------------------------------------
 // the frontend monitors only ARTDAQ processes running on the same node with it
 // this is convenient for book-keeping reasons
@@ -102,13 +97,8 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
   if (hname == "") hname = "local";
 
   std::string host = get_full_host_name(hname.data());
-  sprintf(key,"/Mu2e/RunConfigurations/%s/DetectorConfiguration/DAQ/%s/Artdaq",active_conf,host.data());
 
-  HNDLE h_artdaq_conf;
-	if (db_find_key(hDB, 0, key, &h_artdaq_conf) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "0012 no handle for:" << key << ", got:" << h_artdaq_conf;
-    return FE_ERR_ODB;
-  }
+  HNDLE h_artdaq_conf = odb_i->GetArtdaqConfigHandle(hDB,active_run_conf,host);
 //-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
 // make sure it won't compile before that
