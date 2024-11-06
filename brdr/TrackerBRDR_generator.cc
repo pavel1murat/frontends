@@ -168,7 +168,6 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   , _fragment_ids      (ps.get<std::vector<uint16_t>>   ("fragment_ids"       , std::vector<uint16_t>()))  // 
   , _debugLevel        (ps.get<int>                     ("debugLevel"         ,           0))
   , _nEventsDbg        (ps.get<size_t>                  ("nEventsDbg"         ,         100))
-    // , _pcieAddr          (ps.get<int>                     ("pcieAddr"           ,          -1)) 
   , _tfmHost           (ps.get<std::string>             ("tfmHost"                         ))  // 
   , _readData          (ps.get<int>                     ("readData"           ,           1))  // 
   , _printFreq         (ps.get<int>                     ("printFreq"          ,         100))  // 
@@ -189,13 +188,16 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 //-----------------------------------------------------------------------------
   char host_name[100], exp_name[100];
   cm_get_environment(host_name, sizeof(host_name), exp_name, sizeof(exp_name));
-  if (host_name[0] == 0) sprintf(host_name, "mu2edaq09");
+  if (host_name[0] == 0)  {
+    std::string host = get_short_host_name("local");
+    sprintf(host_name, host.data());
+  }
 
   TLOG(TLVL_INFO) << "artdaqLabel: " << _artdaqLabel << " host name: " << host_name << " , exp_name: " << exp_name;
 
   int status = cm_connect_experiment(host_name, exp_name, _artdaqLabel.data(),NULL);
   if (status != CM_SUCCESS) {
-    cm_msg(MERROR, "mainFE", "Cannot connect to experiment \'%s\' on host \'%s\', status %d", exp_name, host_name,
+    cm_msg(MERROR, _artdaqLabel.data(), "Cannot connect to experiment \'%s\' on host \'%s\', status %d", exp_name, host_name,
            status);
     TLOG(TLVL_ERROR) << "ERROR: failed to connect to experiment. BAIL OUT";
     /* let user read message before window might close */
