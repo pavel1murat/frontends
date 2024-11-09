@@ -1,0 +1,187 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
+  "/filename" : "ts2.json",
+  "/ODB path" : "/Mu2e/RunConfigurations/ts2",
+
+  "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1729545117 },
+  "RunType" : 1,
+  "TriggerTable/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1729545117 },
+  "TriggerTable" : "trkvst_tt_v01",
+  "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1729545117 },
+  "UseRunInfoDB" : false,
+  "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1729545117 },
+  "TfmRpcHost" : "mu2edaq22-ctrl",
+  "Calorimeter" : {
+  },
+  "CRV" : {
+  },
+  "DAQ" : {
+    "CFO" : {
+      "comment/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869900 },
+      "comment" : "# emulated CFO",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+      "Enabled" : 1,
+      "External/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+      "External" : 0,
+      "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869900 },
+      "Host" : "mu2edaq22-ctrl.fnal.gov",
+      "PCIEAddress/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+      "PCIEAddress" : 0,
+      "EnableClockMarkers/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+      "EnableClockMarkers" : 0,
+      "NEvents/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+      "NEvents" : 10,
+      "EventWindowSize/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+      "EventWindowSize" : 68,
+      "SleepTimeMs/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+      "SleepTimeMs" : 1000
+    },
+    "mu2edaq22" : {
+      "DTC0" : {
+        "comment_#_0/key" : { "type" : 12, "item_size" : 39, "access_mode" : 7, "last_written" : 1730869900 },
+        "comment_#_0" : "emulates CFO",
+        "EmulatesCFO/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "EmulatesCFO" : 1,
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "Enabled" : 0,
+        "PCIEAddress/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "PCIEAddress" : 0,
+        "LinkMask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "LinkMask" : 1118481,
+        "AutogenDRP/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "AutogenDRP" : 1,
+        "EnableClockMarkers/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "EnableClockMarkers" : 0,
+        "EnableCFOLinkRX/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "EnableCFOLinkRX" : 1,
+        "comment_#_1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869900 },
+        "comment_#_1" : "# emulated CFO-only parameters",
+        "NEvents/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "NEvents" : 0,
+        "EWLength/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "EWLength" : 68,
+        "FirstEWTag/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "FirstEWTag" : 0
+      },
+      "DTC1" : {
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "Enabled" : 1,
+        "PCIEAddress/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "PCIEAddress" : 1,
+        "EmulatesCFO/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "EmulatesCFO" : 0,
+        "LinkMask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "LinkMask" : 0,
+        "AutogenDRP/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "AutogenDRP" : 1,
+        "EnableClockMarkers/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "EnableClockMarkers" : 0,
+        "comment_#_0/key" : { "type" : 12, "item_size" : 39, "access_mode" : 7, "last_written" : 1730869900 },
+        "comment_#_0" : "# readout mode: 0:ROC patterns 1:digis",
+        "ReadoutMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "ReadoutMode" : 0,
+        "SampleEdgeMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "SampleEdgeMode" : 0,
+        "EnableCFOLinkRX/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+        "EnableCFOLinkRX" : 1
+      },
+      "Artdaq" : {
+        "br01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869900 },
+          "Label" : "br01",
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "Active" : 1,
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "Rank" : 0,
+          "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "XmlrpcPort" : 21101,
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/daq22_ts2/DetectorConfiguration/DAQ/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1730869900 },
+          "DTC" : "/Mu2e/RunConfigurations/daq22_ts2/DetectorConfiguration/DAQ/mu2edaq22/DTC0"
+        },
+        "br02" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869900 },
+          "Label" : "br02",
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "Active" : 0,
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "Rank" : 1,
+          "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "XmlrpcPort" : 21102,
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/daq22_ts2/DetectorConfiguration/DAQ/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1730869900 },
+          "DTC" : "/Mu2e/RunConfigurations/daq22_ts2/DetectorConfiguration/DAQ/mu2edaq22/DTC1"
+        },
+        "eb01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869900 },
+          "Label" : "eb01",
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "Active" : 1,
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "Rank" : 2,
+          "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "XmlrpcPort" : 21201
+        },
+        "dl01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869900 },
+          "Label" : "dl01",
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "Active" : 1,
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "Rank" : 3,
+          "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "XmlrpcPort" : 21301
+        },
+        "ds01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869900 },
+          "Label" : "dp01",
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "Active" : 1,
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "Rank" : 4,
+          "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869900 },
+          "XmlrpcPort" : 10500
+        }
+      }
+    }
+  },
+  "EXM" : {
+  },
+  "STM" : {
+  },
+  "Tracker" : {
+    "Station_00" : {
+      "Plane_00" : {
+        "Panel_00" : {
+          "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869931 },
+          "Name" : "MN001",
+          "ID/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869931 },
+          "ID" : "",
+          "FirstChannel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730869931 },
+          "FirstChannel" : 0,
+          "Threshold_CAL/key" : { "type" : 7, "num_values" : 96, "access_mode" : 7, "last_written" : 1730869931 },
+          "Threshold_CAL" : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+          "Threshold_HV/key" : { "type" : 7, "num_values" : 96, "access_mode" : 7, "last_written" : 1730869931 },
+          "Threshold_HV" : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+          "Gain_CAL/key" : { "type" : 7, "num_values" : 96, "access_mode" : 7, "last_written" : 1730869931 },
+          "Gain_CAL" : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+          "Gain_HV/key" : { "type" : 7, "num_values" : 96, "access_mode" : 7, "last_written" : 1730869931 },
+          "Gain_HV" : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        },
+        "Panel_01" : {
+        },
+        "Panel_02" : {
+        },
+        "Panel_03" : {
+        },
+        "Panel_04" : {
+        },
+        "Panel_05" : {
+        }
+      },
+      "Plane_01" : {
+      }
+    }
+  },
+  "Trigger" : {
+  }
+}

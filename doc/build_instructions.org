@@ -30,8 +30,8 @@
   spack concretize -f
   spack install
 
-  spack add midas@develop%gcc@13.1.0~postgresql~sqlite
-  spack add tfm@main
+  spack add midas@develop%gcc@13.1.0~postgresql~sqlite~opencv
+  spack add tfm@main%gcc@13.1.0
   spack add frontends@main%gcc@13.1.0
   
   spack develop frontends@main%gcc@13.1.0

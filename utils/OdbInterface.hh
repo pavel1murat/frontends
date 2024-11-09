@@ -31,6 +31,11 @@ public:
 
   int         GetCFOSleepTime     (HNDLE h_DB, HNDLE h_CFO);
   
+  HNDLE       GetDaqConfigHandle  (HNDLE h_DB, HNDLE h_RunConf);
+  
+                                        // hostname - short, w/o the domain name
+  int         GetDaqHostHandle    (HNDLE Hdb, HNDLE h_CFO, const std::string& Hostname);
+
   int         GetDtcEnabled       (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcEmulatesCfo   (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcLinkMask      (HNDLE h_DB, HNDLE h_Card); // card: DTC
@@ -48,14 +53,13 @@ public:
   int         GetEWLength         (HNDLE h_DB, HNDLE h_DTC);
   uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
 
-                                        // hostname - short, w/o the domain name
-  int         GetDaqHostHandle    (HNDLE Hdb, HNDLE h_CFO, const std::string& Hostname);
-
                                         // returns: 1="external" or 0="emulated"
   int         GetCFOExternal      (HNDLE Hdb, HNDLE h_CFO);
 
   int         GetInteger          (HNDLE hDB, HNDLE hCFO, const char* Key, int* Data);
   std::string GetString           (HNDLE hDB, HNDLE hDir, const char* Key);
+
+  std::string GetTfmHostName      (HNDLE h_DB, HNDLE h_RunConf);
 };
 
 #endif

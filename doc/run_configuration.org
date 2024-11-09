@@ -1,7 +1,9 @@
-#+startup:fold
-
-parameters describing run configuration are stored in the [/Experiment/RunConfigurations] folder
-
+#+startup:fold -*- buffer-read-only:t -*- 
+* ------------------------------------------------------------------------------
+- run configuration are saved in json in file:../odb/Mu2e/RunConfigurations
+* ------------------------------------------------------------------------------
+* <OBSOLETE, REVISIT>  parameters describing run configurations              
+are stored in the [/Experiment/RunConfigurations] folder in .json format
 *** */Experiment/RunConfigurations/$conf/ARTDAQ_PARTITION_NUMBER*           
 the partition number used by artdaq, the same as os.getenv("ARTDAQ_PARTITION_NUMBER")
 *** */Experiment/RunConfigurations/$conf/UseRunInfoDB*                      
@@ -23,4 +25,27 @@ the partition number used by artdaq, the same as os.getenv("ARTDAQ_PARTITION_NUM
 |        5 | STM VST         |
 |        6 | EXM VST         |
 |----------+-----------------|
+* to save a run configuration A:                                             
+#+begin_src
+odbedit
+cd Mu2e/RunConfigurations/A
+save A.json
+#+end_src
 
+copy A.json to frontends/odb/Mu2e/RunConfigurations/A/.
+
+* to load a configuration A from A.json, use odbedit                         
+#+begin_src
+odbedit
+cd Mu2e/RunConfigurations
+# make sure subdirectory /Mu2e/RunConfigurations/A exists:
+ls
+# if not, do:
+mkdir A
+cd A
+load A.json
+#+end_src
+
+* ------------------------------------------------------------------------------
+* back to file:frontends.org
+* ------------------------------------------------------------------------------
