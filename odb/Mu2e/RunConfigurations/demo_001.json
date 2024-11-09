@@ -1,0 +1,121 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
+  "/filename" : "demo_001.json",
+  "/ODB path" : "/Mu2e/RunConfigurations/demo_001",
+
+  "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730691061 },
+  "RunType" : 4,
+  "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730691061 },
+  "TriggerTable" : "demo_001_tt_v00",
+  "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1730691061 },
+  "UseRunInfoDB" : false,
+  "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730691061 },
+  "TfmRpcHost" : "mu2edaq09-ctrl",
+  "Calorimeter" : {
+  },
+  "CRV" : {
+  },
+  "DAQ" : {
+    "mu2edaq09" : {
+      "DTC0" : {
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+        "Enabled" : 0,
+        "PCIEAddress/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+        "PCIEAddress" : 0
+      },
+      "DTC1" : {
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+        "Enabled" : 0,
+        "PCIEAddress/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+        "PCIEAddress" : 1
+      },
+      "Artdaq" : {
+        "br01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870126 },
+          "Label" : "br01",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Rank" : 0,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Active" : 1,
+          "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "NFragmentTypes" : 1
+        },
+        "br02" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870126 },
+          "Label" : "eb01",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Rank" : 2,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Active" : 1
+        },
+        "dl01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870126 },
+          "Label" : "dl01",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Rank" : 4,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Active" : 1
+        },
+        "ds01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870126 },
+          "Label" : "ds01",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Rank" : 5,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Active" : 1
+        },
+        "eb01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870126 },
+          "Label" : "eb01",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Rank" : 2,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Active" : 1
+        }
+      }
+    },
+    "mu2edaq22" : {
+      "DTC0" : {
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+        "Enabled" : 0,
+        "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1730870126 },
+        "Link" : [ 0, 0, 0, 0, 0, 0 ]
+      },
+      "DTC1" : {
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+        "Enabled" : 0,
+        "Link/key" : { "type" : 7, "num_values" : 6, "access_mode" : 7, "last_written" : 1730870126 },
+        "Link" : [ 0, 0, 0, 0, 0, 0 ]
+      },
+      "Artdaq" : {
+        "br02" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870126 },
+          "Label" : "br02",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Rank" : 1,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Active" : 1,
+          "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "NFragmentTypes" : 1
+        },
+        "eb02" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870126 },
+          "Label" : "eb02",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Rank" : 3,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870126 },
+          "Active" : 1
+        }
+      }
+    }
+  },
+  "EXM" : {
+  },
+  "STM" : {
+  },
+  "Tracker" : {
+  },
+  "Trigger" : {
+  }
+}

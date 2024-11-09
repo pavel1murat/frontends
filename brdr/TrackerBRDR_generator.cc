@@ -62,30 +62,29 @@ namespace mu2e {
 //-----------------------------------------------------------------------------
     std::string                           _artdaqLabel;
     std::chrono::steady_clock::time_point _lastReportTime;
-    std::chrono::steady_clock::time_point procStartTime_;
-    std::vector<uint16_t>                 _fragment_ids;           // handled by CommandableGenerator, but not a data member there
+    std::chrono::steady_clock::time_point _procStartTime;
+    std::vector<uint16_t>                 _fragment_ids;       // handled by CommandableGenerator,
+                                                               //  but not a data member there
     int                                   _debugLevel;
     size_t                                _nEventsDbg;
     int                                   _pcieAddr;
-    std::string                           _tfmHost;                // used to send xmlrpc messages to
+    std::string                           _tfmHost;            // used to send xmlrpc messages to
 
-    //    int                                   _linkMask;
-                                                                   // 101:simulate data internally, DTC not used; default:0
+                                                               // 101:simulate data internally, DTC not used; default:0
 
-    int                                   _readData;               // 1: read data, 0: save empty fragment
-    int                                   _readDTCRegisters;       // 1: read and save the DTC registers
-    int                                   _printFreq;              // printout frequency
-    int                                   _maxEventsPerSubrun;     // 
-    int                                   _readoutMode;            // 0:digis; 1:ROC pattern (all defined externally); 
+    int                                   _readData;           // 1: read data, 0: save empty fragment
+    int                                   _readDTCRegisters;   // 1: read and save the DTC registers
+    int                                   _printFreq;          // printout frequency
+    int                                   _maxEventsPerSubrun; // 
+    int                                   _readoutMode;        // 0:digis; 1:ROC pattern (all defined externally); 
 
     trkdaq::DtcInterface*                 _dtc_i;
     DTCLib::DTC*                          _dtc;
-    //    mu2edev*                              _device;
 
-    uint16_t                              _reg[200];               // DTC registers to be saved
-    int                                   _nreg;                   // their number
-    xmlrpc_env                            _env;                    // XML-RPC environment
-    ulong                                 _tstamp;
+    uint16_t                              _reg[200];           // DTC registers to be saved
+    int                                   _nreg;               // their number
+    xmlrpc_env                            _env;                // XML-RPC environment
+    ulong                                 _tstamp;             // 
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -125,7 +124,7 @@ namespace mu2e {
       return deltaw;
     }
     
-    void   _startProcTimer() { procStartTime_ = std::chrono::steady_clock::now(); }
+    void   _startProcTimer() { _procStartTime = std::chrono::steady_clock::now(); }
 
 //-----------------------------------------------------------------------------
 // - the first one came from the generator template, 
@@ -140,7 +139,7 @@ namespace mu2e {
     double _getProcTimerCount() {
       auto now = std::chrono::steady_clock::now();
       auto deltaw =
-        std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>(now - procStartTime_).count();
+        std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>(now - _procStartTime).count();
       return deltaw;
     }
   };
@@ -168,7 +167,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   , _fragment_ids      (ps.get<std::vector<uint16_t>>   ("fragment_ids"       , std::vector<uint16_t>()))  // 
   , _debugLevel        (ps.get<int>                     ("debugLevel"         ,           0))
   , _nEventsDbg        (ps.get<size_t>                  ("nEventsDbg"         ,         100))
-  , _tfmHost           (ps.get<std::string>             ("tfmHost"                         ))  // 
+    // , _tfmHost           (ps.get<std::string>             ("tfmHost"                         ))  // 
   , _readData          (ps.get<int>                     ("readData"           ,           1))  // 
   , _printFreq         (ps.get<int>                     ("printFreq"          ,         100))  // 
   , _maxEventsPerSubrun(ps.get<int>                     ("maxEventsPerSubrun" ,       10000))  // 
@@ -197,9 +196,11 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 
   int status = cm_connect_experiment(host_name, exp_name, _artdaqLabel.data(),NULL);
   if (status != CM_SUCCESS) {
-    cm_msg(MERROR, _artdaqLabel.data(), "Cannot connect to experiment \'%s\' on host \'%s\', status %d", exp_name, host_name,
-           status);
+    cm_msg(MERROR, _artdaqLabel.data(),
+           "Cannot connect to experiment \'%s\' on host \'%s\', status %d",
+           exp_name,host_name,status);
     TLOG(TLVL_ERROR) << "ERROR: failed to connect to experiment. BAIL OUT";
+
     /* let user read message before window might close */
     ss_sleep(5000);
     return;
@@ -225,8 +226,8 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 //-----------------------------------------------------------------------------
   HNDLE h_component;
   KEY   component;
-  // int   ncomp(0);
   int   pcie_addr(-1);
+
   for (int i=0; db_enum_key(hDB, h_host_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
     db_get_key(hDB, h_component, &component);
     TLOG(TLVL_INFO) << "index: " << " Subkey:" <<  component.name << " Type: " << component.type;
@@ -240,13 +241,16 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
     }
   }
   if (pcie_addr != -1) _pcieAddr = pcie_addr;
+
+  _tfmHost = odb_i->GetTfmHostName(hDB,h_active_run_conf);
+  TLOG(TLVL_INFO) << "active run conf: " << active_run_conf << " TFM host from ODB: " << _tfmHost;
   
   cm_disconnect_experiment();
 #endif
   
   bool skip_init(true);
-  _dtc_i = trkdaq::DtcInterface::Instance(_pcieAddr,0x0,skip_init);
-  _dtc      = _dtc_i->Dtc();
+  _dtc_i = trkdaq::DtcInterface::Instance(_pcieAddr,0x111111,skip_init);
+  _dtc   = _dtc_i->Dtc();
 //-----------------------------------------------------------------------------
 // finally, initialize the environment for the XML-RPC messaging client
 //-----------------------------------------------------------------------------

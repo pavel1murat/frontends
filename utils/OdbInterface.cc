@@ -245,6 +245,16 @@ uint64_t OdbInterface::GetFirstEWTag(HNDLE hDB, HNDLE hCFO) {
 
 
 //-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetDaqConfigHandle(HNDLE hDB, HNDLE hRunConf) {
+  const char* key {"DAQ"};
+
+  HNDLE h(0);
+  if (db_find_key(hDB, hRunConf, key, &h) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << " not found";
+  }
+  return h;
+}
+//-----------------------------------------------------------------------------
 int OdbInterface::GetDaqHostHandle(HNDLE hDB, HNDLE hConf, const std::string& Hostname) {
 
   char key[100];
@@ -291,3 +301,10 @@ int OdbInterface::GetDtcPcieAddress(HNDLE hDB, HNDLE hNode) {
   }
   return data;
 }
+
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetTfmHostName(HNDLE hDB, HNDLE hRunConf) {
+  return GetString(hDB,hRunConf,"DAQ/TfmRpcHost");
+}
+

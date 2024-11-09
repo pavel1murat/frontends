@@ -1,0 +1,85 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
+  "/filename" : "demo_002.json",
+  "/ODB path" : "/Mu2e/RunConfigurations/demo_002",
+
+  "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730691130 },
+  "RunType" : 4,
+  "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730691130 },
+  "TriggerTable" : "demo_002_tt_v00",
+  "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1730691130 },
+  "UseRunInfoDB" : true,
+  "Calorimeter" : {
+  },
+  "CRV" : {
+  },
+  "DAQ" : {
+    "localhost" : {
+      "DTC0" : {
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+        "Enabled" : 0,
+        "PCIEAddress/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+        "PCIEAddress" : 0
+      },
+      "DTC1" : {
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+        "Enabled" : 0,
+        "PCIEAddress/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+        "PCIEAddress" : 0
+      },
+      "Artdaq" : {
+        "br01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870223 },
+          "Label" : "br01",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "Rank" : 0,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "Active" : 1,
+          "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "NFragmentTypes" : 1
+        },
+        "br02" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870223 },
+          "Label" : "eb01",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "Rank" : 1,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "Active" : 1
+        },
+        "dl01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870223 },
+          "Label" : "dl01",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "Rank" : 2,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "Active" : 1
+        },
+        "ds01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870223 },
+          "Label" : "ds01",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "Rank" : 3,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "Active" : 1
+        },
+        "eb01" : {
+          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870223 },
+          "Label" : "eb01",
+          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "Rank" : 1,
+          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870223 },
+          "Active" : 1
+        }
+      }
+    }
+  },
+  "EXM" : {
+  },
+  "STM" : {
+  },
+  "Tracker" : {
+  },
+  "Trigger" : {
+  }
+}
