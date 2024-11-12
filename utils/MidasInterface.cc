@@ -49,3 +49,13 @@ int MidasInterface::disconnect_experiment() {
   cm_disconnect_experiment();
 }
 
+//-----------------------------------------------------------------------------
+int MidasInterface::db_enum_key(HNDLE hDB, HNDLE hDir, int Index, HNDLE* hComp) {
+  return db_enum_key(hDB,hDir,Index,hComp);
+}
+
+//-----------------------------------------------------------------------------
+int MidasInterface::db_get_key(HNDLE hDB, HNDLE hDir, KEY* Key) {
+  return db_get_key(hDB,hDir,Key);
+}
+

@@ -25,6 +25,9 @@ public:
   int disconnect_experiment();
   
   int get_experiment_database(HNDLE * hDB, HNDLE * hKeyClient);
+
+  int db_enum_key(HNDLE hDB, HNDLE hDir, int Index, HNDLE* hComp); 
+  int db_get_key (HNDLE hDB, HNDLE hComp, KEY* Key); 
 };
 
 #endif
