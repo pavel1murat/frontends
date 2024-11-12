@@ -2,18 +2,16 @@
 #------------------------------------------------------------------------------
 # Namitha: TFM launch frontend - python implementation
 # frontend name : python_tfm_launch_fe
+# with transition to spack, no longer need to update the PYTHONPATH
 #------------------------------------------------------------------------------
 import  ctypes, os, sys, datetime, random, time, traceback, subprocess
 
 import  midas
-# import  frontends.tfm_frontend.m_frontend
 import  midas.frontend 
 import  midas.event
 
 import  TRACE
-TRACE_NAME = "tfm_launch_fe"
-
-# sys.path.append(os.environ["TFM_DIR"])
+TRACE_NAME = "tfm_launch"
 
 import tfm.rc.control.farm_manager as farm_manager
 
@@ -26,8 +24,6 @@ from frontends.utils.runinfodb import RuninfoDB
 #------------------------------------------------------------------------------
 class TfmEquipment(midas.frontend.EquipmentBase):
     def __init__(self, client):
-        # The name of our equipment. This name will be used on the midas status
-        # page, and our info will appear in /Equipment/MyPeriodicEquipment the ODB.
         TRACE.TRACE(7,":001:START",TRACE_NAME)
 #------------------------------------------------------------------------------
 # Define the "common" settings of a frontend. These will appear in
@@ -37,7 +33,6 @@ class TfmEquipment(midas.frontend.EquipmentBase):
 #       runs; after that the ODB settings are used.
 # You MUST call midas.frontend.EquipmentBase.__init__ in your equipment's __init__ method!
 #------------------------------------------------------------------------------
-#        settings              = frontends.tfm_frontend.m_frontend.InitialEquipmentCommon()
         settings              = midas.frontend.InitialEquipmentCommon()
         settings.equip_type   = midas.EQ_PERIODIC
         settings.buffer_name  = "SYSTEM"
@@ -47,8 +42,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
         settings.read_when    = midas.RO_RUNNING
         settings.log_history  = 1
 
-        equip_name            = "tfm_launch_fe"
-#        frontends.tfm_frontend.m_frontend.EquipmentBase.__init__(self, client, equip_name, settings)
+        equip_name            = "tfm_launch_eq"
         midas.frontend.EquipmentBase.__init__(self, client, equip_name, settings)
 
         self._fm              = None;
@@ -114,7 +108,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
     def __init__(self):
         TRACE.TRACE(7,"0010: START")
 #        frontends.tfm_frontend.m_frontend.FrontendBase.__init__(self, "tfm_launch_fe")
-        midas.frontend.FrontendBase.__init__(self, "tfm_launch_fe")
+        midas.frontend.FrontendBase.__init__(self, "tfm_launch")
         TRACE.TRACE(7,"0011: FrontendBase initialized")
 #------------------------------------------------------------------------------
 # determine active configuration
@@ -212,11 +206,15 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         TRACE.TRACE(7,"001:BEGIN_OF_RUN")
 
         if (self.use_runinfo_db):
+#------------------------------------------------------------------------------
+# for each transition need to know the transition time
+# register end of the START transition
+#------------------------------------------------------------------------------
             try:
                 db = runinfo_db("aaa");
-                rc = db.register_transition(run_number,runinfo.END,1);
+                rc = db.register_transition(run_number,runinfo.START,1);
             except:
-                TRACE.ERROR("failed to register endof the START transition")
+                TRACE.ERROR("failed to register the end of the START transition")
 
         self.set_all_equipment_status("Running", "greenLight")
 
@@ -228,6 +226,9 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
     def end_of_run(self, run_number):
 
         if (self.use_runinfo_db):
+#------------------------------------------------------------------------------
+# register beginning of the STOP transition
+#------------------------------------------------------------------------------
             try:
                 db = runinfo_db("aaa");
                 rc = db.register_transition(run_number,runinfo.STOP,0);
@@ -238,6 +239,9 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         TRACE.TRACE(7,"001:END_RUN")
 
         if (self.use_runinfo_db):
+#------------------------------------------------------------------------------
+# register end of the STOP transition
+#------------------------------------------------------------------------------
             try:
                 db = runinfo_db("aaa");
                 rc = db.register_transition(run_number,runinfo.STOP,1);
@@ -272,7 +276,7 @@ if __name__ == "__main__":
 # The main executable is very simple:
 # just create the frontend object, and call run() on it.
 #---v--------------------------------------------------------------------------
-    TRACE.Instance = "tfm_launch_fe".encode();
+    TRACE.Instance = "tfm_launch".encode();
 
     TRACE.TRACE(7,"000: TRACE.Instance : %s"%TRACE.Instance)
     with TfmLaunchFrontend() as fe:
