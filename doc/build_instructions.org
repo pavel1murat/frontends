@@ -1,98 +1,36 @@
 * ------------------------------------------------------------------------------
 * installation under spack - hints
-- do the mu2e spack thing
+- do the mu2e spack thing - see https://github.com/Mu2e/daq-operations/wiki/Getting-Started-With-Spack
 - cd to the top/spack-repos
 - git clone https://github.com/pavel1murat/spack_packages murat-spack
   spack repo add murat-spack
 
   # keep using gcc 13.1.0 , problems otherwoise
 
-  spack add gcc@13.1.0
-  spack concretize -f
-  spack install gcc@13.1.0
-  spack compiler find
-  
-  spack add     gdb@14.1%gcc@13.1.0
-  spack concretize -f
-  spack install gdb@14.1%gcc@13.1.0
+  spack env create midas
+  spack env activate midas
 
   spack add root@6.30.06%gcc@13.1.0+postgres+root7+webgui cxxstd=20
+  spack add art-root-io@1.13.06%gcc@13.1.0 cxxstd=20
+  
   spack concretize -f
-  spack install root@6.30.06%gcc@13.1.0+postgres+root7+webgui cxxstd=20
+  spack install 
 
-  spack add artdaq-mu2e@develop%gcc@13.1.0
-  spack add artdaq-core-mu2e@develop%gcc@13.1.0
-  spack add otsdaq@v2_08_01%gcc@13.1.0
-  spack add otsdaq-mu2e@develop%gcc@13.1.0
   spack add otsdaq-mu2e-tracker@develop%gcc@13.1.0
-  spack add mu2e-pcie-utils@develop%gcc@13.1.0
-
-  spack concretize -f
-  spack install
-
   spack add midas@develop%gcc@13.1.0~postgresql~sqlite~opencv
   spack add tfm@main%gcc@13.1.0
   spack add frontends@main%gcc@13.1.0
   
   spack develop frontends@main%gcc@13.1.0
   spack develop tfm@main%gcc@13.1.0
-  spack develop midas@develop%gcc@13.1.0~sqlite
+  spack develop midas@develop%gcc@13.1.0~postgresql~sqlite~opencv
   spack develop otsdaq-mu2e-tracker@develop%gcc@13.1.0
   
-  spack add emacs@29.3%gcc@13.1.0+X toolkit=athena
-  spack add cairo+X+fc+ft
+  spack add     emacs@29.3%gcc@13.1.0+X toolkit=athena
+  spack add     cairo+X+fc+ft
   
-  spack add hep-concurrency@1.10.00%gcc@14.1.0 cxxstd=20
-
-  spack add cetlib@3.19.00%gcc@14.1.0 cxxstd=20
-  spack add cetlib-except@1.10.00%gcc@14.1.0 cxxstd=20
-  
-
-  spack add canvas@3.17%gcc@14.1.0 cxxstd=20
-  spack add fhicl-cpp@4.19.00%gcc@14.1.0 cxxstd=20
-  spack add messagefacility@2.11.00%gcc@14.1.0 cxxstd=20
-
   spack concretize -f
   spack install
- 
-* installation and build instructions, validated <2024-02-13 Mon>            
-
-  OTSDAQ bundle to use 
-  - version   : v2_08_00   
-  - qualifiers: e28_s128_debug
-
-  - all available OTSDAQ bundles: https://scisoft.fnal.gov/scisoft/packages/otsdaq/
-
-  - the build procedure itself:
-    1) go to https://github.com/pavel1murat/frontends/tree/main/scripts/mu2e_install_daq.sh
-    2) convert the page to raw format (click on the "raw" button), wget the resulting raw URL (the URL will have an odd ending)
-
-#+begin_src 
-  wget -O mu2e_install_daq.sh  <raw-URL>      # see example below
-  source mu2e_install_daq.sh work_area partition [otsdaq_bundle] [qualifiers]
-#+end_src 
-
-  - work_area    : name of the work area, to be created in the current directory 
-  - partition    : not used anywhere else, use 10 to begin with
-  - otsdaq_bundle: version of the OTSDAQ bundle, see above 
-  - qualifiers   : build qualifiers, see above
-
-An example follows.
-#+begin_src 
-  wget -O mu2e_install_daq.sh https://raw.githubusercontent.com/pavel1murat/frontends/main/mu2e_install_daq.sh?token=GHSAT0AAAAAAB5R6WEFJZB7JMSKCUB3OHKMZKAOHMA
-  source mu2e_install_daq.sh pasha_001 8 v2_07_00 e28_s126_prof
-#+end_src
-
-here 'pasha_001' is the name of the created work area
-
-- if there is a need to pull locally more repos, 
-  - cd to $MRB_SOURCE,  pull needed repos, cd back to 'pasha_001'
-  - recompile:
-#+begin_src
-mrb uc
-mrbsetenv
-mrb b
-#+end_src
 * ROOT interface to mu2e_pcie_utils    validated <2023-07-19 Wed>            
 - If you got here, you already have built the OTS libraries
 - ROOT interface library is not available by default, you have to build it
@@ -130,7 +68,6 @@ root [4]   rc = dev->read_register(0x9100,100,&res); printf("0x9100: DTC status 
 #define __CLING__ 1
 #+end_src
 - because of the complexity of the C++ code, ROOT needs to be restarted every time you reload your script
-
 * ------------------------------------------------------------------------------
 * back to [[file:frontends.org][frontends]]
 * ------------------------------------------------------------------------------

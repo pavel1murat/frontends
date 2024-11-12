@@ -3,8 +3,16 @@
 # this is a set of short notes complementing the MIDAS documentation at 
 
             https://daq00.triumf.ca/MidasWiki/index.php
-
 # ------------------------------------------------------------------------------
+** setup :                                                                   
+- install midas, define environment variables:
+  MIDAS_EXPT_NAME, MIDAS_EXPTAB, define MIDASSYS
+#+begin_quote example                                                        
+mu2etrk@mu2edaq22:~/test_stand/pasha_031>env | grep MIDAS
+MIDAS_EXPTAB=/home/mu2etrk/test_stand/pasha_031/config/midas/test_025.exptab
+MIDASSYS=/home/mu2etrk/test_stand/pasha_031/spack/var/spack/environments/murat/.spack-env/view
+MIDAS_EXPT_NAME=test_025
+#+end_quote 
 ** elog                                                                      
 *** built-in elog                                                            
 - The built-in elog data are stored in the directory defined by the "/Logger/Elog dir" ODB key. 
@@ -16,6 +24,8 @@
 - can't build list of equipment dynamically as register_equipment is called before frontend_init
 ** sequencer                                                                 
 - location of the sequencer scripts: key="/Sequencer/State/Path"
+- this path is added to $experiment/userfiles , where $experiment is the location
+::  of the experiment specified in the $MIDAS_EXPTAB file (see file:config/midas/test_025.exptab)
 - proposed for Mu2e: $experiment/online/sequencer
 - scripts should be copied there from [[file:../sequencer][frontends/sequencer]] directory, which is 
   a revision-controled area
@@ -31,7 +41,7 @@
 Again with JavaScript:
 
   var v = ODBGet('/some/path&format=%X');
-** remote frontends
+** remote frontends                                                          
 - start mserver: (by default listens to port 1175) ODB:"/Experiment/Midas server port"
 #+begin_src
 mserver -D

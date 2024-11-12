@@ -181,7 +181,7 @@ INT trk_dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
   trkdaq::DtcInterface* dtc_i = DtcInterface::Instance(pcie_addr);
   DTCLib::DTC*          dtc   = dtc_i->Dtc();
   
-  TLOG(TLVL_DEBUG+1) << "001 PCIE address:" << pcie_addr << " Channel:" << Channel;
+  TLOG(TLVL_DEBUG) << "001 PCIE address:" << pcie_addr << " Channel:" << Channel;
 //-----------------------------------------------------------------------------
 // channel=0: temperature, the rest three - voltages ; 
 //            read all four registers, convert into the right units, and store in the internal buffer
@@ -236,7 +236,7 @@ INT trk_dtc_driver_get(DTC_DRIVER_INFO * Info, INT Channel, float *PValue) {
 //-----------------------------------------------------------------------------
 // assume success for now and implement handling of timeouts/errors etc later
 //-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG+1) << "010 pcie_addr:" << pcie_addr << " Channel:" << Channel << " PValue:" << *PValue;
+  TLOG(TLVL_DEBUG) << "010 pcie_addr:" << pcie_addr << " Channel:" << Channel << " PValue:" << *PValue;
 //-----------------------------------------------------------------------------
 // assume success for now and implement handling of timeouts/errors etc later
 // and at this point implement sleep
@@ -260,7 +260,7 @@ INT trk_dtc_driver(INT cmd, ...) {
    va_start(argptr, cmd);
    status = FE_SUCCESS;
 
-   TLOG(TLVL_DEBUG+1) << "001 cmd:" << cmd;
+   TLOG(TLVL_DEBUG) << "001 cmd:" << cmd;
 
    switch (cmd) {
    case CMD_INIT: {
@@ -307,6 +307,6 @@ INT trk_dtc_driver(INT cmd, ...) {
 
    va_end(argptr);
 
-   TLOG(TLVL_DEBUG+1) << "010 EXIT status:" << status;
+   TLOG(TLVL_DEBUG) << "010 EXIT status:" << status;
    return status;
 }
