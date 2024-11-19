@@ -2,10 +2,11 @@
 * installation under spack - hints
 - do the mu2e spack thing - see https://github.com/Mu2e/daq-operations/wiki/Getting-Started-With-Spack
 - cd to the top/spack-repos
+#+begin_src
 - git clone https://github.com/pavel1murat/spack_packages murat-spack
   spack repo add murat-spack
 
-  # keep using gcc 13.1.0 , problems otherwoise
+  # keep using gcc 13.1.0 , problems otherwise
 
   spack env create midas
   spack env activate midas
@@ -31,6 +32,7 @@
   
   spack concretize -f
   spack install
+#+end_src
 * ROOT interface to mu2e_pcie_utils    validated <2023-07-19 Wed>            
 - If you got here, you already have built the OTS libraries
 - ROOT interface library is not available by default, you have to build it
