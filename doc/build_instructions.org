@@ -40,18 +40,19 @@
 - If you got here, you already have built the OTS libraries
 - ROOT interface library is not available by default, you have to build it
 #+begin_src
-cd srcs
-git clone https://github.com/mu2e/mu2e_pcie_utils
-cd mu2e_pcie_utils
-git checkout pasha
-cd ../..
 export BUILD_ROOT_INTERFACE=1
-mrb b
+spack     add canvas-root-io@1.13.06%gcc@13.1.0 cxxstd=20
+spack     add mu2e-pcie-utils@develop%gcc@13.1.0
+
+# spack develop mu2e_pcie_utils@develop%gcc@13.1.0
+spack concretize -f
+spack install mu2e-pcie-utils@develop%gcc@13.1.0
 #+end_src
 after that, you can do the following:
 #+begin_src
 root.exe
-root [0] DTCLib::DTC dtc(DTCLib::DTC_SimMode_NoCFO,-1,0x1,"");
+root [0] #include "dtcInterface/DTC.hh"
+root [1] DTCLib::DTC dtc(DTCLib::DTC_SimMode_NoCFO,-1,0x1,"");
 06-18 17:41:07.271940                      DTC_Registers     INFO DTC_Registers(...): Sim Mode is NoCFO
 06-18 17:41:07.271997                      DTC_Registers     INFO DTC_Registers(...): DTC ID is 1
 06-18 17:41:07.272011                      DTC_Registers     INFO SetSimMode(...): Initializing device, sim mode is NoCFO
@@ -64,9 +65,21 @@ root [4]   rc = dev->read_register(0x9100,100,&res); printf("0x9100: DTC status 
 0x9100: DTC status       : 0x40808404
 #+end_src
 
+- rootlogon.C needs to ahve this:
+#+begin_src
+{
+                                // the line below tells rootcling where to look 
+				// for include files
+
+  gInterpreter->AddIncludePath(Form("%s/otsdaq-mu2e-tracker",gSystem->Getenv("SPACK_ENV" )));
+  gInterpreter->AddIncludePath(Form("%s/include"            ,gSystem->Getenv("SPACK_VIEW" )));
+  gInterpreter->AddIncludePath(Form("%s/include/root"       ,gSystem->Getenv("SPACK_VIEW")));
+}
+#+end_src
+
 *Comments*
 
-- for examples, see https://github.com/Mu2e/otsdaq_mu2e_tracker/blob/pasha/scripts/test_buffer_async.C , 
+- for examples, see https://github.com/Mu2e/otsdaq_mu2e_tracker/blob/develop/scripts/daq_scripts.C , 
   or any other .C script in that area
 - every script should have the following line on top"
 #+begin_src
