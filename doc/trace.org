@@ -154,8 +154,8 @@ is at source file level ?
 ** trace_cntl lvlclr  : clear mask bits                                      
 *** clear 20 lowest bits in all masks for DTC_Registers                      
 #+begin_src trace_cntl lvlclr                                               
-mu2etrk@mu2edaq09:~/test_stand/pasha_018>trace_cntl lvlclr 0xfffff 0xfffff 0xfffff -NDTC_Registers
-mu2etrk@mu2edaq09:~/test_stand/pasha_018>tlvls | grep DTC_R
+trace_cntl lvlclr 0xfffff 0xfffff 0xfffff -NDTC_Registers
+tlvls | grep DTC_R
  259                        DTC_Registers 0x0000000000000000 0x0000000000000000 0x0000000000000000
 #+end_src 
 *** clear bit 8 everywhere                                                   

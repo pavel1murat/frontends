@@ -8,8 +8,8 @@
 
   # keep using gcc 13.1.0 , problems otherwise
 
-  spack env create midas
-  spack env activate midas
+  spack env create   midas_env       # choose your own name
+  spack env activate midas_env
 
   spack add root@6.30.06%gcc@13.1.0+postgres+root7+webgui cxxstd=20
   spack add art-root-io@1.13.06%gcc@13.1.0 cxxstd=20
@@ -26,12 +26,12 @@
   spack add kinkal@3.1.3
 
   spack develop mu2e-pcie-utils@develop%gcc@13.1.0
-  spack develop frontends@main%gcc@13.1.0
   spack develop tfm@main%gcc@13.1.0
-  spack develop midas@develop%gcc@13.1.0~postgresql~sqlite~opencv
+  # spack develop midas@develop%gcc@13.1.0~postgresql~sqlite~opencv
   spack develop otsdaq-mu2e-tracker@develop%gcc@13.1.0
   
   spack add     emacs@29.3%gcc@13.1.0+X
+  spack develop frontends@main%gcc@13.1.0
   
   spack concretize -f
   spack install
