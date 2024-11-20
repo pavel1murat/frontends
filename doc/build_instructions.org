@@ -16,10 +16,10 @@
 
   # with the latest version of artdaq, cant read the produced files in the offline
   spack add artdaq@v3_13_01%gcc@13.1.0 
-
   spack add otsdaq@develop%gcc@13.1.0
+
   spack add otsdaq-mu2e-tracker@develop%gcc@13.1.0
-  spack add midas@develop%gcc@13.1.0~postgresql~sqlite~opencv
+  spack add midas@3.01.00%gcc@13.1.0~postgresql~sqlite~opencv
   spack add tfm@main%gcc@13.1.0
   spack add frontends@main%gcc@13.1.0
   spack add mu2e-pcie-utils@develop%gcc@13.1.0
@@ -27,11 +27,11 @@
 
   spack develop mu2e-pcie-utils@develop%gcc@13.1.0
   spack develop tfm@main%gcc@13.1.0
-  # spack develop midas@develop%gcc@13.1.0~postgresql~sqlite~opencv
+  spack develop midas@3.01.00%gcc@13.1.0~postgresql~sqlite~opencv
   spack develop otsdaq-mu2e-tracker@develop%gcc@13.1.0
+  spack develop frontends@main%gcc@13.1.0
   
   spack add     emacs@29.3%gcc@13.1.0+X
-  spack develop frontends@main%gcc@13.1.0
   
   spack concretize -f
   spack install
