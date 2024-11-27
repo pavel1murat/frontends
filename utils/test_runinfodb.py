@@ -13,7 +13,7 @@ class MidasClient:
         odb_data = {
             "/Mu2e/PostgresqlDB/Database": "run_info_dev",
             "/Mu2e/PostgresqlDB/Host": "mu2edaq14-ctrl",
-            "/Mu2e/PostgresqlDB/Post": "5434",
+            "/Mu2e/PostgresqlDB/Port": "5434",
             "/Mu2e/PostgresqlDB/User": "run_user",
             "/Mu2e/PostgresqlDB/Pwd": "daq14_run_user",
             "/Mu2e/PostgresqlDB/Schema": "test",
