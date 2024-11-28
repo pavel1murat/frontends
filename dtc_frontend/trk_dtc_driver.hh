@@ -19,15 +19,15 @@
 #include "dtc_frontend/dtc_driver_types.hh"
 
 INT trk_dtc_driver(INT cmd, ...);
-//-----------------------------------------------------------------------------
-// DTC temperature and voltages for slow monitoring
-//-----------------------------------------------------------------------------
-struct DtcData_t {
-  float Temp;        // 0x9010: FPGA temperature    : T(C) = val(0x9010)*503.975/4096 - 273.15
-  float VCCINT;      // 0x9014: FPGA VCCINT voltage : V(V) = (ADC code)/4095*3.
-  float VCCAUX;      // 0x9018: FPGA VCCAUX voltage : V(V) = (ADC code)/4095*3.
-  float VCBRAM;      // 0x901c: FPGA VCBRAM voltage : V(V) = (ADC code)/4095*3.
-};
+// //-----------------------------------------------------------------------------
+// // DTC temperature and voltages for slow monitoring
+// //-----------------------------------------------------------------------------
+// struct DtcData_t {
+//   float Temp;        // 0x9010: FPGA temperature    : T(C) = val(0x9010)*503.975/4096 - 273.15
+//   float VCCINT;      // 0x9014: FPGA VCCINT voltage : V(V) = (ADC code)/4095*3.
+//   float VCCAUX;      // 0x9018: FPGA VCCAUX voltage : V(V) = (ADC code)/4095*3.
+//   float VCBRAM;      // 0x901c: FPGA VCBRAM voltage : V(V) = (ADC code)/4095*3.
+// };
 
 //-----------------------------------------------------------------------------
 // internally, a MIDAS driver stored only floats

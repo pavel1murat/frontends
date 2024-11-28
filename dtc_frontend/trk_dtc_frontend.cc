@@ -48,7 +48,10 @@ namespace {
   HNDLE         _h_active_run_conf(0);
   HNDLE         _h_host_conf(0);
   int           _ndtcs(0);                       // 0,1, or 2
-
+  std::string   _rpc_host;
+//-----------------------------------------------------------------------------  
+// to be passed to the callback
+//-----------------------------------------------------------------------------  
   struct DtcData_t {
     DtcInterface* dtc_i;
     HNDLE         h_dtc;
@@ -77,38 +80,53 @@ void process_command(INT hDB, INT hkey, int A, void* Info) {
   KEY   key;
   db_get_key(hDB,hkey,&key);
 
-  db_find_key(hDB, 0, "/Mu2e/Commands/Tracker/Configure", &h_cmd);
+  DtcData_t* dd = (DtcData_t*) Info;
+  trkdaq::DtcInterface* dtc_i = dd->dtc_i;
+  int pcie_addr = dtc_i->fPcieAddr;
+
+  TLOG(TLVL_DEBUG) << key.name << "DTC PCIE ADDR:" << pcie_addr;
+
+  char cmd_path[100];
+  sprintf(cmd_path,"/Mu2e/Commands/Configure/DAQ/%s/DTC%i",_rpc_host.data(),pcie_addr);
+
+  db_find_key(hDB, 0, cmd_path, &h_cmd);
 
   char params[1000];
-  int  run, status, done(0);
+  int  run, status;
+  int  done(0);
   int  sz_int = sizeof(int);
   int  sz     = sizeof(params);
   db_get_value(hDB, h_cmd, "Run"       , &run   , &sz_int, TID_INT32 , false);
   db_get_value(hDB, h_cmd, "Parameters", params , &sz    , TID_STRING, false);
   db_get_value(hDB, h_cmd, "Status"    , &status, &sz_int, TID_INT32 , false);
   
-  TLOG(TLVL_INFO) << "Process Command:" << key.name << "Value:" << run
-                  << " Parameters: "    << params   << " Status:" << status;
-
+  TLOG(TLVL_DEBUG) << "Process Command:" << key.name << "Value:" << run
+                   << " Parameters: "    << params   << " Status:" << status;
+  if (run == 0) return;
+//-----------------------------------------------------------------------------
+// mark command as being executed
+//-----------------------------------------------------------------------------
+  int EXECUTION_IN_PROGRESS(1);
+  db_set_value(hDB,h_cmd,"Status",&EXECUTION_IN_PROGRESS,sizeof(int),1,TID_INT32);
+  
   if (run == 1) {
                                         // run = 1 : configure the DTCs
     char key[200];
-    status = 0;
-    for (int i=0; i<_ndtcs; i++) {
-      int rc = _dtc_data[i].dtc_i->InitReadout(); // use EnableCfo and RocReadoutMode stored in ODB
-//-----------------------------------------------------------------------------
-// set DTC status in ODB
-//-----------------------------------------------------------------------------
-      sprintf(key,"DTC%i/Status",_dtc_data[i].dtc_i->fPcieAddr);
-      db_set_value(hDB,_h_host_conf,key,&rc,sizeof(int),1,TID_INT32);
-      status += rc;
+    if (dtc_i->Enabled()) {
+      status = dtc_i->InitReadout();
+      TLOG(TLVL_DEBUG) << " init DTC readout" ;
+    }
+    else {
+      TLOG(TLVL_WARNING) << " DTC " << pcie_addr << " is not enabled";
     }
 //-----------------------------------------------------------------------------
-// set host status in ODB and mark the command as executed
+// set DTCstatus in ODB and mark the command as executed
 //-----------------------------------------------------------------------------
     db_set_value(hDB,h_cmd,"Status",&status,sizeof(int),1,TID_INT32);
     db_set_value(hDB,h_cmd,"Run"   ,&done  ,sizeof(int),1,TID_INT32);
   };
+
+  TLOG(TLVL_DEBUG) << " finished" ;
 }
 
 //-----------------------------------------------------------------------------
@@ -135,11 +153,11 @@ INT frontend_init() {
 // nodes/DTC's to be monitored 
 // MIDAS 'host_name' could be 'local'..
 //-----------------------------------------------------------------------------
-  std::string rpc_host  = get_short_host_name("local");
+  _rpc_host  = get_short_host_name("local");
 
-  TLOG(TLVL_DEBUG+2) << "rpc_host:" << rpc_host;
+  TLOG(TLVL_DEBUG+2) << "rpc_host:" << _rpc_host;
 
-  _h_host_conf = odb_i->GetDaqHostHandle(hDB,_h_active_run_conf,rpc_host);
+  _h_host_conf = odb_i->GetDaqHostHandle(hDB,_h_active_run_conf,_rpc_host);
 //-----------------------------------------------------------------------------
 // DTC is the equipment, two are listed in the header, both should be listed in ODB
 //-----------------------------------------------------------------------------
@@ -166,7 +184,7 @@ INT frontend_init() {
     
     memcpy(&equipment[_ndtcs],&eqq[pcie_addr],sizeof(EQUIPMENT));
     EQUIPMENT* eqp     = &equipment[_ndtcs];
-    sprintf(eqp->name,"%s#DTC%i",rpc_host.data(),pcie_addr);
+    sprintf(eqp->name,"%s#DTC%i",_rpc_host.data(),pcie_addr);
     eqp->info.enabled  = (enabled == 1);
 
     TLOG(TLVL_DEBUG+2) << "DTC enabled today:" << enabled << " pcie_addr:" << pcie_addr;
@@ -234,7 +252,26 @@ INT frontend_init() {
 
     drv_list[1]     = {"",};
     eqp->driver     = drv_list;
-    
+//-----------------------------------------------------------------------------
+// finally, register the configuration callback
+//-----------------------------------------------------------------------------
+    char cmd_path[100];
+    sprintf(cmd_path,"/Mu2e/Commands/Configure/DAQ/%s/DTC%i/Run",_rpc_host.data(),pcie_addr);
+
+    HNDLE hkey;
+    db_find_key(hDB, 0,cmd_path, &hkey);
+    TLOG(TLVL_DEBUG) << "cmd_path: " << cmd_path << " hkey:  " << hkey ;
+
+    DtcData_t* info = &_dtc_data[pcie_addr];
+    if (db_watch(hDB, hkey, process_command, info) != DB_SUCCESS) {
+      char msg[100];
+      sprintf(msg,"Cannot connect to %s in ODB",cmd_path);
+      cm_msg(MERROR, "frontend_init",msg);
+      return -1;
+    }
+
+    TLOG(TLVL_DEBUG) << "watching " << cmd_path << " . --- DONE";
+
     _ndtcs         += 1;
   }
   // last name - empty
@@ -277,18 +314,6 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 //  cm_register_transition(TR_START,tr_prestart,500);
 
-  const char* cmd_path = "/Mu2e/Commands/Tracker/Configure/Run";
-
-  HNDLE hkey;
-  db_find_key(hDB, 0,cmd_path, &hkey);
-  TLOG(TLVL_DEBUG) << "cmd_path: " << cmd_path << " hkey:  " << hkey ;
-    
-  if (db_watch(hDB, hkey, process_command, NULL) != DB_SUCCESS) {
-    cm_msg(MERROR, "frontend_init","Cannot connect to /Mu2e/Commands/Tracker/Configure/Run in ODB");
-    return -1;
-  }
-
-  TLOG(TLVL_DEBUG) << "watching " << cmd_path << " . --- DONE";
   return CM_SUCCESS;
 }
 
