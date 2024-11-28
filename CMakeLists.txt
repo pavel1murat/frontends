@@ -87,6 +87,7 @@ add_subdirectory(dtc_frontend)
 add_subdirectory(tfm_frontend)
 add_subdirectory(test)
 add_subdirectory(brdr)
+add_subdirectory(conf)
 
 # Data
 

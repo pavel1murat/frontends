@@ -122,7 +122,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 
         config_path                  = "/Mu2e/RunConfigurations/"+self.config_name;
         self.use_runinfo_db          = self.client.odb_get(config_path+'/UseRunInfoDB')
-        self.tfm_rpc_host            = self.client.odb_get(config_path+'/TfmRpcHost'  )
+        self.tfm_rpc_host            = self.client.odb_get(config_path+'/DAQ/TfmRpcHost'  )
 
         config_dir                   = os.path.join(self.client.odb_get("/Mu2e/ArtdaqConfigDir"), self.config_name)
 
