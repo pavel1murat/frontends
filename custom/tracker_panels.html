@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>Tracker Panels</title>
+   <link rel="stylesheet" href="midas.css">
+   <script src="controls.js"></script>
+   <script src="midas.js"></script>
+   <script src="mhttpd.js"></script>
+   <script src="filesrw.js"></script>
+
+   <script>
+      function createPanelsTable() {
+         const urlParams = new URLSearchParams(window.location.search);
+         const stationIndex = urlParams.get('station') || '0'; // Default to Station_00
+         const planeIndex = urlParams.get('plane') || '0';   // Default to Plane_00
+         const panels = 10; // Number of panels
+         const table = document.querySelector(".mtable");
+
+         // Set the table title dynamically
+         const title = document.querySelector("#table-title");
+         title.textContent = `Panels for Station_${stationIndex.padStart(2, '0')}, Plane_${planeIndex.padStart(2, '0')}`;
+
+         // Clear existing table rows
+         table.innerHTML = `
+            <thead>
+               <tr>
+                  <th>Panel</th>
+                  <th>Status</th>
+                  <th>Action</th>
+               </tr>
+            </thead>
+            <tbody></tbody>
+         `;
+
+         const tbody = table.querySelector("tbody");
+
+         for (let i = 0; i <= panels; i++) {
+            const row = document.createElement("tr");
+
+            // Panel Cell
+            const panelCell = document.createElement("td");
+            panelCell.innerHTML = `<b>Panel_${i.toString().padStart(2, '0')}</b>`;
+            row.appendChild(panelCell);
+
+            // Status Cell
+            const statusCell = document.createElement("td");
+            statusCell.innerHTML = `
+               <div class="modbvalue status-cell"
+                  data-odb-path="/Mu2e/ActiveConfig/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Enabled"
+                  onchange="updateCellStyle(this)">
+               </div>`;
+            row.appendChild(statusCell);
+
+            // Action Cell
+            const actionCell = document.createElement("td");
+            actionCell.innerHTML = `
+               <button onclick="redirectToDetails('${stationIndex}', '${planeIndex}', '${i}')">View Details</button>`;
+            row.appendChild(actionCell);
+
+            tbody.appendChild(row);
+         }
+      }
+
+      function updateCellStyle(cell) {
+         const value = parseInt(cell.textContent.trim(), 10);
+         if (value === 1) {
+            cell.textContent = "Enabled";
+            cell.style.backgroundColor = "green";
+            cell.style.color = "white";
+         } else if (value === 0) {
+            cell.textContent = "Disabled";
+            cell.style.backgroundColor = "gray";
+            cell.style.color = "white";
+         } else if (value === -1) {
+            cell.textContent = "Error";
+            cell.style.backgroundColor = "red";
+            cell.style.color = "white";
+         } else {
+            cell.textContent = "Unknown";
+            cell.style.backgroundColor = "white";
+            cell.style.color = "black";
+         }
+      }
+
+      function redirectToDetails(stationIndex, planeIndex, panelIndex) {
+         window.location.href = `tracker_details.html?station=${stationIndex}&plane=${planeIndex}&panel=${panelIndex}`;
+      }
+
+      function initializePage() {
+         if (typeof mhttpd_init === 'function') {
+            mhttpd_init("Tracker Panels");
+         }
+
+         createPanelsTable();
+      }
+
+      document.addEventListener("DOMContentLoaded", initializePage);
+   </script>
+
+   <style>
+      body {
+         font-family: Arial, sans-serif;
+         margin: 0;
+         padding: 0;
+         background-color: #f5f5f5;
+      }
+
+      #mmain {
+         margin: 20px;
+         padding: 20px;
+         background-color: white;
+         border-radius: 8px;
+         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+         font-size: 24px;
+         margin-bottom: 20px;
+         text-align: center;
+      }
+
+      .mtable {
+         width: 100%;
+         border-collapse: collapse;
+         font-size: 18px;
+         margin: 0 auto;
+      }
+
+      .mtable th, .mtable td {
+         border: 1px solid #ddd;
+         padding: 12px;
+         text-align: center;
+      }
+
+      .mtable th {
+         background-color: #007bff;
+         color: white;
+      }
+
+      .mtable tr:nth-child(even) {
+         background-color: #f9f9f9;
+      }
+
+      .mtable tr:hover {
+         background-color: #f1f1f1;
+      }
+
+      .mtable td button {
+         padding: 8px 12px;
+         background-color: #007bff;
+         color: white;
+         border: none;
+         border-radius: 4px;
+         cursor: pointer;
+      }
+
+      .mtable td button:hover {
+         background-color: #0056b3;
+      }
+
+      .status-cell {
+         width: 100%;
+         height: 20px;
+         border-radius: 4px;
+         font-weight: bold;
+         padding: 4px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+      }
+   </style>
+</head>
+
+<body class="mcss">
+   <div id="mheader"></div> <!-- MIDAS Header -->
+   <div id="msidenav"></div> <!-- MIDAS Sidebar -->
+   <div id="mmain">
+      <h1 id="table-title">Panels</h1>
+      <table class="mtable">
+         <!-- Table content is generated dynamically -->
+      </table>
+   </div>
+</body>
+</html>
