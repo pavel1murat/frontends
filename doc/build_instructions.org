@@ -10,6 +10,7 @@
 
   spack env create   midas_env       # choose your own name
   spack env activate midas_env
+  spack add py-psycopg2              # python interface to postgresql
 
   spack add root@6.30.06%gcc@13.1.0+postgres+root7+webgui cxxstd=20
   spack add art-root-io@1.13.06%gcc@13.1.0 cxxstd=20

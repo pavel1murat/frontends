@@ -31,9 +31,21 @@ ssh -f -KX -N -L 9085:localhost:9085 mu2edaq13.fnal.gov
 ** how to add a new logbook named 'NewLogbook':                              
 - look at the configuration file, add one more section starting from 
   [NewLogbook]
-* sending a meddage:
+* sending a message:                                                         
 #+begin_src
 ~/products/elog/elog -v -x -s -h mu2e-elog.physics.northwestern.edu  -p 443 -d elog -l Tracker  -u murat password -a author="murat" -a type="routine"  "test message"
+#+end_src
+* configuration 
+- elog configuration is stored in $MU2E_DAQ_DIR/config/elog.json and used by the
+  file:../conf/mu2e_config_fe.py frontend
+#+begin_src
+{
+    "host"     : "mu2e-elog.physics.northwestern.edu",
+    "port"     : "443",
+    "user"     : "....",
+    "passwd"   : "....",
+    "logbook"  : "Tracker"
+}
 #+end_src
 * ------------------------------------------------------------------------------
 * back to [[file:frontends.org][frontends.org]]
