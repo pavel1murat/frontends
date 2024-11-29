@@ -85,6 +85,19 @@
 *** ConfigureForTimingChain
 * [[file:dtc.org][DTC]]
 * [[file:elog.org][elog]]
+* run configuration database (PostgreSQL)                                    
+- configuration is described in $MU2E_DAQ_DIR/config/runinfodb.json, example: 
+#+begin_src
+{
+    "database" : ".....",
+    "host"     : "mu2edaq14-ctrl.fnal.gov",
+    "port"     : "5434",
+    "user"     : ".....",
+    "passwd"   : ".....",
+    "schema"   : "test"
+}
+#+end_src
+- copy file:../scripts/get_next_run_number.py to $MU2E_DAQ_DIR/config/scripts
 * [[file:firmware.org][firmware]]
 * [[file:rocs.org][ROCs]]
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=19095][mu2e-19095]] : Mu2e beam timing
