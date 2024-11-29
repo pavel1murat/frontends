@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html class="mcss" lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>Mu2e Main Page</title>
+   <link rel="stylesheet" href="midas.css">
+   <script src="controls.js"></script>
+   <script src="midas.js"></script>
+   <script src="mhttpd.js"></script>
+   <script src="filesrw.js"></script>
+
+   <script>
+      function updateCellStyle(cell) {
+         const value = parseInt(cell.textContent.trim(), 10);
+         if (value === 1) {
+            cell.style.backgroundColor = "green";
+            cell.style.color = "white";
+         } else if (value === 0) {
+            cell.style.backgroundColor = "gray";
+            cell.style.color = "white";
+         } else if (value === -1) {
+            cell.style.backgroundColor = "red";
+            cell.style.color = "white";
+         } else {
+            cell.style.backgroundColor = "white";
+            cell.style.color = "black";
+         }
+      }
+
+      function createSubsystemRows() {
+         const subsystems = [
+            { name: "Tracker", path: "/Mu2e/ActiveConfig/Tracker/Enabled", link: "tracker_stations.html" },
+            { name: "Calorimeter", path: "/Mu2e/ActiveConfig/Calorimeter/Enabled", link: "calorimeter_status.html" },
+            { name: "CRV", path: "/Mu2e/ActiveConfig/CRV/Enabled", link: "CRV_status.html" },
+            { name: "EXM", path: "/Mu2e/ActiveConfig/EXM/Enabled", link: "exm_status.html" },
+            { name: "STM", path: "/Mu2e/ActiveConfig/STM/Enabled", link: "stm_status.html" },
+            { name: "DAQ", path: "/Mu2e/ActiveConfig/DAQ/Enabled", link: "daq_status.html" }
+         ];
+
+         const table = document.querySelector(".mtable tbody");
+
+         subsystems.forEach((subsystem) => {
+            const row = document.createElement("tr");
+
+            // Subsystem Name
+            const nameCell = document.createElement("td");
+            nameCell.innerHTML = `<b>${subsystem.name}</b>`;
+            row.appendChild(nameCell);
+
+            // Status Cell
+            const statusCell = document.createElement("td");
+            statusCell.innerHTML = `
+               <div class="modbvalue status-cell"
+                  data-odb-path="${subsystem.path}"
+                  onchange="updateCellStyle(this)">
+               </div>`;
+            row.appendChild(statusCell);
+
+            // Description Cell
+            const descriptionCell = document.createElement("td");
+            descriptionCell.innerHTML = `<a href="${subsystem.link}">${subsystem.name} Status</a>`;
+            row.appendChild(descriptionCell);
+
+            table.appendChild(row);
+         });
+      }
+
+      document.addEventListener("DOMContentLoaded", createSubsystemRows);
+   </script>
+
+   <style>
+      #mmain .mtable td {
+         padding: 8px;
+         text-align: center;
+      }
+      .status-cell {
+         display: inline-block;
+         width: 100px;
+         height: 30px;
+         text-align: center;
+         line-height: 30px;
+         border-radius: 5px;
+      }
+   </style>
+</head>
+
+<body class="mcss" onload="mhttpd_init('Custom Page Example');">
+
+<!-- Header and side navigation filled by mhttpd_init -->
+<div id="mheader"></div>
+<div id="msidenav"></div>
+
+<div id="mmain">
+   <table class="mtable">
+      <thead>
+         <tr>
+            <th colspan="3" class="mtableheader">Mu2e Main Page</th>
+         </tr>
+         <tr>
+            <th style="padding:20px;">Subsystem</th>
+            <th style="width: 250px;">Enabled Status</th>
+            <th>Description</th>
+         </tr>
+      </thead>
+      <tbody>
+      </tbody>
+   </table>
+</div>
+
+</body>
+</html>
