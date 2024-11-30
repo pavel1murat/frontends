@@ -72,8 +72,8 @@ INT tfm_disk_driver_init(HNDLE hkey, TFM_DISK_DRIVER_INFO **pinfo, INT channels,
   cm_get_experiment_database(&hDB, NULL);
 
   OdbInterface* odb_i         = OdbInterface::Instance(hDB);
-  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
-  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  //  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
+  //  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
 //-----------------------------------------------------------------------------
 // create DRIVER settings record 
 //-----------------------------------------------------------------------------

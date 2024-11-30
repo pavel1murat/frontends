@@ -2,6 +2,14 @@
 # ------------------------------------------------------------------------------
 # development news
 # ------------------------------------------------------------------------------
+* <2024-11-30 Sat>                                                           
+** python-based access to postgresql DB re-established (Namitha)              
+- if for the active configuration, UseRuninfoDB=1, the run numbers come from runinfo DB
+- to request a run number, use Sequencer script get_next_run_number
+- details: file:runinfodb.org
+** first version of the configuration frontend implemented (python)
+- at this point, it sends begin run and end run messages to elog
+- source: file:../conf/mu2e_config_fe.py
 * <2024-05-10 Fri>                                                           
 - python version of the tfm_launch is the default
 - first successful test of running with the remote frontend

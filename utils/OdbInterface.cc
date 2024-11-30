@@ -31,6 +31,17 @@ std::string OdbInterface::GetString(HNDLE hDB, HNDLE hDir, const char* Key) {
 }
 
 //-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetHandle(HNDLE hDB, HNDLE hConf, const char* Key) {
+  HNDLE h;
+  
+  if (db_find_key(hDB, hConf, Key, &h) == DB_SUCCESS) return h;
+  else {
+    TLOG(TLVL_ERROR) << "no handle for key:" << Key;
+    return 0;
+  }
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetInteger(HNDLE hDB, HNDLE hCFO, const char* Key, int* Data) {
   int   sz = sizeof(*Data);
   int rc = db_get_value(hDB, hCFO, Key, Data, &sz, TID_INT, FALSE);
@@ -47,8 +58,7 @@ std::string OdbInterface::GetActiveRunConfig(HNDLE hDB) {
 HNDLE OdbInterface::GetArtdaqConfigHandle(HNDLE hDB, std::string& RunConf, std::string& Host) {
   char     key[200];
   HNDLE    h;
-  sprintf(key,"/Mu2e/RunConfigurations/%s/DAQ/%s/Artdaq",
-          RunConf.data(),Host.data());
+  sprintf(key,"/Mu2e/RunConfigurations/%s/DAQ/%s/Artdaq",RunConf.data(),Host.data());
   
   if (db_find_key(hDB, 0, key, &h) == DB_SUCCESS) return h;
   else {
@@ -61,7 +71,8 @@ HNDLE OdbInterface::GetArtdaqConfigHandle(HNDLE hDB, std::string& RunConf, std::
 HNDLE OdbInterface::GetCFOConfigHandle(HNDLE h_DB, HNDLE h_RunConf) {
   const char* key {"DAQ/CFO"};
   HNDLE    h;
-	if (db_find_key(h_DB, h_RunConf, key, &h) == DB_SUCCESS) return h;
+  
+  if (db_find_key(h_DB, h_RunConf, key, &h) == DB_SUCCESS) return h;
   else {
     TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
     return 0;
@@ -82,10 +93,12 @@ int OdbInterface::GetCFOEnabled(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetCFONEwmPerSecond(HNDLE hDB, HNDLE hCFO) {
+// for the emulated CFO
+//-----------------------------------------------------------------------------
+int OdbInterface::GetCFONEventsPerTrain(HNDLE hDB, HNDLE hCFO) {
   INT   data;
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "NEwmsPerSecond", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+  if (db_get_value(hDB, hCFO, "NEventsPerTrain", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
     return data;
   }
   else {
@@ -227,7 +240,7 @@ uint64_t OdbInterface::GetNEvents(HNDLE hDB, HNDLE hDTC) {
 int OdbInterface::GetEWLength(HNDLE hDB, HNDLE hCFO) {
   INT  data(0);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "EWLength", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(hDB, hCFO, "EventWindowSize", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "return 0 (disabled)";
   }
   return data;

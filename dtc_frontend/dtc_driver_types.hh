@@ -2,8 +2,6 @@
 #ifndef __dtc_driver_types__
 #define __dtc_driver_types__
 
-// #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
-
 typedef struct {
   int                   pcieAddr;
   int                   enabled;

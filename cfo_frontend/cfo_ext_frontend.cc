@@ -110,12 +110,6 @@ INT frontend_init() {
                      << " run_plan_dir:" << _run_plan_dir
                      << " cfo_enabled: " << _cfo_enabled;
 
-//-----------------------------------------------------------------------------
-// now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of
-// nodes and DTC's to be monitored
-// MIDAS 'host_name' could be 'local'..
-// initialize the CFO
-//-----------------------------------------------------------------------------
 //  DEVICE_DRIVER*  drv;
   if (_cfo_enabled == 1) {
 //-----------------------------------------------------------------------------
@@ -151,6 +145,7 @@ INT frontend_init() {
 
 //-----------------------------------------------------------------------------
 // callback
+// external CFO needs to start executing the run plan just once
 //-----------------------------------------------------------------------------
 INT tr_prestart(INT run_number, char *error)  {
   // code to perform actions prior to frontend starting 
@@ -168,7 +163,7 @@ INT tr_prestart(INT run_number, char *error)  {
     
     int clock = 1 ; //
     int reset = 1 ; //
-    int ok    = _cfo_i->ConfigureJA(clock,reset);  // if the return value is not 1, then in trouble
+    _cfo_i->ConfigureJA(clock,reset);  // if the return value is not 1, then in trouble
 
     _cfo_i->InitReadout(_run_plan_fn.data(),_dtc_mask);
 

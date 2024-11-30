@@ -20,7 +20,6 @@ using namespace DTCLib;
 using namespace trkdaq;
 
 #include "dtc_frontend/trk_dtc_driver.hh"
-#include "dtc_frontend/emucfo_driver.hh"
 #include "dtc_frontend/trk_dtc_frontend.hh"
 //-----------------------------------------------------------------------------
 // Globals
@@ -264,7 +263,7 @@ INT frontend_init() {
 
     DtcData_t* info = &_dtc_data[pcie_addr];
     if (db_watch(hDB, hkey, process_command, info) != DB_SUCCESS) {
-      char msg[100];
+      char msg[200];
       sprintf(msg,"Cannot connect to %s in ODB",cmd_path);
       cm_msg(MERROR, "frontend_init",msg);
       return -1;
