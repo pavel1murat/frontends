@@ -64,9 +64,9 @@ INT cfo_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *b
   std::string host          = get_full_host_name("local");
   HNDLE       h_cfo_conf    = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
 
-  int         external      = odb_i->GetCFOExternal     (hDB,h_cfo_conf);
-  int         n_ewm_per_sec = odb_i->GetCFONEwmPerSecond(hDB,h_cfo_conf);
-  int         pcie_addr     = odb_i->GetPcieAddress     (hDB,h_cfo_conf);
+  int         external      = odb_i->GetCFOExternal       (hDB,h_cfo_conf);
+  int         n_ewm_per_sec = odb_i->GetCFONEventsPerTrain(hDB,h_cfo_conf);
+  int         pcie_addr     = odb_i->GetPcieAddress       (hDB,h_cfo_conf);
 //-----------------------------------------------------------------------------
 // create DTC_DRIVER settings record - what is that already exists ? - not overwritten?
 // assume index = 0 corresponds to the PCIE card address=0

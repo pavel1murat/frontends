@@ -23,11 +23,11 @@ public:
   HNDLE       GetRunConfigHandle   (HNDLE h_DB, std::string& RunConf);
   HNDLE       GetArtdaqConfigHandle(HNDLE h_DB, std::string& RunConf, std::string& Host);
 
-  HNDLE       GetCFOConfigHandle  (HNDLE h_DB, HNDLE h_RunConf);
-  int         GetCFOEnabled       (HNDLE h_DB, HNDLE h_CFO);
-  int         GetCFONEwmPerSecond (HNDLE h_DB, HNDLE h_CFO);
-  std::string GetCFORunPlanDir    (HNDLE h_DB);
-  std::string GetCFORunPlan       (HNDLE h_DB, HNDLE h_CFO);
+  HNDLE       GetCFOConfigHandle   (HNDLE h_DB, HNDLE h_RunConf);
+  int         GetCFOEnabled        (HNDLE h_DB, HNDLE h_CFO);
+  int         GetCFONEventsPerTrain(HNDLE h_DB, HNDLE h_CFO);
+  std::string GetCFORunPlanDir     (HNDLE h_DB);
+  std::string GetCFORunPlan        (HNDLE h_DB, HNDLE h_CFO);
 
   int         GetCFOSleepTime     (HNDLE h_DB, HNDLE h_CFO);
   
@@ -56,8 +56,9 @@ public:
                                         // returns: 1="external" or 0="emulated"
   int         GetCFOExternal      (HNDLE Hdb, HNDLE h_CFO);
 
-  int         GetInteger          (HNDLE hDB, HNDLE hCFO, const char* Key, int* Data);
-  std::string GetString           (HNDLE hDB, HNDLE hDir, const char* Key);
+  HNDLE       GetHandle           (HNDLE hDB, HNDLE hConf, const char* Key);
+  int         GetInteger          (HNDLE hDB, HNDLE hConf, const char* Key, int* Data);
+  std::string GetString           (HNDLE hDB, HNDLE hConf, const char* Key);
 
   std::string GetTfmHostName      (HNDLE h_DB, HNDLE h_RunConf);
 };

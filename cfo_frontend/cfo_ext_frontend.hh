@@ -47,7 +47,7 @@ EQUIPMENT equipment[] = {
    NULL,                       /* init string */
   },
 
-  {""}
+  {"",}
 };
 
 #endif

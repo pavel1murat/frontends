@@ -47,13 +47,12 @@
 -  "RTIDDS"
 -  "Null"
 * CFO                                                                        
-** interface                                                                 
+** mu2e-pcie-utils interface                                                 
    file:../../mu2e_pcie_utils/cfoInterfaceLib/CFO.h
-
    file:../../mu2e_pcie_utils/cfoInterfaceLib/CFO_Registers.h
    file:../../mu2e_pcie_utils/cfoInterfaceLib/CFO_Registers.cpp
 
-** CFO macros                                                                
+** otsdaq CFO macros                                                         
 - defined in file:../../otsdaq_mu2e/otsdaq-mu2e/FEInterfaces/CFOFrontEndInterface_interface.cc
 *** CFOReset                                                                 
     file:../../otsdaq_mu2e/otsdaq-mu2e/FEInterfaces/CFOFrontEndInterface_interface.cc::/CFOReset/
@@ -85,19 +84,7 @@
 *** ConfigureForTimingChain
 * [[file:dtc.org][DTC]]
 * [[file:elog.org][elog]]
-* run configuration database (PostgreSQL)                                    
-- configuration is described in $MU2E_DAQ_DIR/config/runinfodb.json, example: 
-#+begin_src
-{
-    "database" : ".....",
-    "host"     : "mu2edaq14-ctrl.fnal.gov",
-    "port"     : "5434",
-    "user"     : ".....",
-    "passwd"   : ".....",
-    "schema"   : "test"
-}
-#+end_src
-- copy file:../scripts/get_next_run_number.py to $MU2E_DAQ_DIR/config/scripts
+* runinfo database (PostgreSQL)                                              
 * [[file:firmware.org][firmware]]
 * [[file:rocs.org][ROCs]]
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=19095][mu2e-19095]] : Mu2e beam timing
@@ -106,6 +93,33 @@
 * [[file:trace.org][TRACE]]
 * [[file:code_repositories.org][code repositories]]                                                        
 * frontends                                                                  
+** emulated CFO frontend                                                     
+#+begin_src   normal startup printout                                        
+mu2etrk@mu2edaq22:~/test_stand/pasha_031>cfo_emu_frontend 
+11-30 10:27:29.959873                           MetricManager:31     INFO MetricManager(): MetricManager CONSTRUCTOR
+Frontend name          :     cfo_emu_fe
+Event buffer size      :     100000
+User max event size    :     10000
+User max frag. size    :     50000
+# of events per buffer :     10
+
+Connect to experiment test_025...
+OK
+Init hardware...
+11-30 10:27:29.975023                       cfo_emu_frontend:112    DEBUG frontend_init(): h_dtc:264936
+11-30 10:27:29.975048                       cfo_emu_frontend:116    DEBUG frontend_init(): active_run_conf:roctower hDB : 1 _h_cfo: 264112 cfo_enabled: 1_pcie_addr: 0
+11-30 10:27:29.975055                       cfo_emu_frontend:151    DEBUG frontend_init(): END
+Connecting EmulatedCFO:cfo...11-30 10:27:29.975177                          cfo_emu_driver:60    DEBUG cfo_emu_driver_init(...): START channels:1
+11-30 10:27:29.977807                           DTC_Registers:38     INFO DTC_Registers(...): CONSTRUCTOR
+11-30 10:27:29.977842                           DTC_Registers:87     INFO SetSimMode(...): Initializing DTC device, sim mode is NoCFO for uid = DTC0, deviceIndex = 0
+11-30 10:27:31.015776                          DTC_Registers:100     INFO SetSimMode(...): DTC DTC0: SKIPPING Initializing device
+11-30 10:27:31.015837                                 DTC.cpp:38     INFO DTC(...): DTC DTC0: CONSTRUCTOR
+11-30 10:27:31.015936                          cfo_emu_driver:90    DEBUG cfo_emu_driver_init(...): START ew_length:1000 nevents:66 first_tx:0
+OK
+[cfo_emu_fe,INFO] Slow control equipment initialized
+#+end_src
+** TODO external CFO frontend                                                
+- to be completed
 ** [[file:tfm_launch_fe.org][tfm_launch_fe]] : trigger farm manager (TFM) launching frontend
 ** [[file:tfm_mon_fe.org][tfm_mon_fe]]    : ARTDAQ monitoring frontend, one per node
 ** [[file:dtc_frontend][dtc_frontend]]  : DTC slow monitoring frontend, also monitors the DTC's ROCs, one per node

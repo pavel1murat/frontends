@@ -125,7 +125,7 @@ INT frontend_init() {
     drv->enabled    = true;             // default true
     CFO_DRIVER_INFO* cdi  = new CFO_DRIVER_INFO;
     if (external == 1) {  // external
-      cdi->driver_settings.n_ewm_per_sec = odb_i->GetCFONEwmPerSecond(hDB,h_cfo);
+      cdi->driver_settings.n_ewm_train = odb_i->GetCFONEventsPerTrain(hDB,h_cfo);
     }
     else {
 //-----------------------------------------------------------------------------

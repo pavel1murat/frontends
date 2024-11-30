@@ -67,7 +67,7 @@ INT cfo_gen_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_
   HNDLE       h_cfo_conf    = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
 
   int         external      = odb_i->GetCFOExternal     (hDB,h_cfo_conf);
-  int         n_ewm_per_sec = odb_i->GetCFONEwmPerSecond(hDB,h_cfo_conf);
+  int         n_ewm_per_sec = odb_i->GetCFONEventsPerTrain(hDB,h_cfo_conf);
   int         pcie_addr     = odb_i->GetPcieAddress     (hDB,h_cfo_conf);
 //-----------------------------------------------------------------------------
 // create CFO_DRIVER settings record - what if it already exists ? - not overwritten?
@@ -94,8 +94,8 @@ INT cfo_gen_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_
 // 0: emulated
 // 1: external CFO
 //-----------------------------------------------------------------------------
-  info->driver_settings.external  = external;
-  info->driver_settings.interface = CfoInterface::Instance(pcie_addr);
+  // info->driver_settings.external  = external;
+  // info->driver_settings.interface = CfoInterface::Instance(pcie_addr);
 
   /* initialize bus driver */
   status = info->bd(CMD_INIT, info->hkey, &info->bd_info);

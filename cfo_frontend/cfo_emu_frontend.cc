@@ -1,11 +1,14 @@
 ///////////////////////////////////////////////////////////////////////////////
-// a DTC frontend is always started on a node local to the DTC
-// -h host:port parameter points back to the MIDAS mserver
+// emulated CFO frontend just defines its driver
+// as the equipment is defined as SLOW_CONTROL equipment, the driver is called
+// periodically, bypassing the user part of the frontend
+// at run-time, the driver generates trains of pulses
+// the frontend is not doing anything except defining the run-time
 ///////////////////////////////////////////////////////////////////////////////
 #undef NDEBUG // midas required assert() to be always enabled
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "cfo_ext_frontend"
+#define  TRACE_NAME "cfo_emu_frontend"
 
 #include <stdio.h>
 #include <string.h>
@@ -22,8 +25,8 @@
 #include "utils/OdbInterface.hh"
 
 #include "cfo_frontend/cfo_interface.hh"
-#include "cfo_frontend/cfo_ext_frontend.hh"
-#include "cfo_frontend/cfo_mon_driver.hh"
+#include "cfo_frontend/cfo_emu_frontend.hh"
+#include "cfo_frontend/cfo_emu_driver.hh"
 
 using namespace DTCLib; 
 using namespace CFOLib; 
@@ -33,15 +36,20 @@ using namespace trkdaq;
 // Globals: used by the "base class" - $MYDASSYS/src/mfe.cxx
 // The frontend name (client name) as seen by other MIDAS clients
 //-----------------------------------------------------------------------------
+
+int cfo_emu_frontend::running = 0;
+
 const char* frontend_name;
 
 const char* frontend_file_name  = __FILE__; // The frontend file name, don't change it
-BOOL        frontend_call_loop  =    FALSE; // frontend_loop is called periodically if this variable is TRUE
+BOOL        frontend_call_loop  =    TRUE ; // frontend_loop is called periodically if this variable is TRUE
 INT         display_period      =        0; // 1000; // if !=0, a frontend status page is displayed 
                                             //          with this frequency in ms
 INT         max_event_size      =    10000; // maximum event size produced by this frontend
 INT         max_event_size_frag =  5*10000; // maximum event size for fragmented events (EQ_FRAGMENTED)
 INT         event_buffer_size   = 10*10000; // buffer size to hold events */
+
+int        _cfo_running;
 //-----------------------------------------------------------------------------
 // local scope variables
 //-----------------------------------------------------------------------------
@@ -50,7 +58,7 @@ namespace {
     std::string name;
   public:
     FeName() { 
-      name         += "cfo_ext_frontend";
+      name         += "cfo_emu_fe";
       frontend_name = name.data();  // frontend_name is a global variable
     }
   }; 
@@ -58,24 +66,19 @@ namespace {
 // need to figure how to get name, but that doesn't seem overwhelmingly difficult
 //-----------------------------------------------------------------------------
   FeName         xx;
-  // DEVICE_DRIVER  gen_driver[2];
-  DEVICE_DRIVER  mon_driver[2];
+  //  DEVICE_DRIVER  mon_driver[2];
 
   OdbInterface*         _odb_i          (nullptr);
   HNDLE                 _h_cfo ;
-
   int                   _cfo_enabled;
-  trkdaq::CfoInterface* _cfo_i          (nullptr);
-  std::string           _run_plan_dir;
-  std::string           _run_plan;
-  std::string           _run_plan_fn;
-  int                   _dtc_mask;
+  int                   _n_ewm_train;         // N(EWM's per emulated CFO pulse train)
+  int                   _ew_length;           // EW length in 25ns ticks
+  ulong                 _first_ts;
+  int                   _pcie_addr;
+  int                   _sleep_time_ms;
+  trkdaq::DtcInterface* _dtc_i(nullptr);
 }
 
-//-----------------------------------------------------------------------------
-// callbacks
-//-----------------------------------------------------------------------------
-INT tr_prestart(INT run_number, char *error);
 //-----------------------------------------------------------------------------
 // CFO frontend init
 //----------------------------------------------------------------------------- 
@@ -97,7 +100,6 @@ INT frontend_init() {
   _odb_i = OdbInterface::Instance(hDB);
 
   active_run_conf = _odb_i->GetActiveRunConfig(hDB);
-  _run_plan_dir   = _odb_i->GetCFORunPlanDir  (hDB);
 
   HNDLE h_active_run_conf = _odb_i->GetRunConfigHandle(hDB,active_run_conf);
 
@@ -105,75 +107,105 @@ INT frontend_init() {
   _h_cfo                  = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
   _cfo_enabled            = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
 
-  TLOG(TLVL_DEBUG+3) << "active_run_conf:" << active_run_conf
-                     << " hDB : " << hDB << " _h_cfo: " << _h_cfo
-                     << " run_plan_dir:" << _run_plan_dir
-                     << " cfo_enabled: " << _cfo_enabled;
+  _n_ewm_train   = _odb_i->GetCFONEventsPerTrain(hDB,_h_cfo);
+  _ew_length     = _odb_i->GetEWLength    (hDB,_h_cfo);
+  _first_ts      = _odb_i->GetFirstEWTag  (hDB,_h_cfo);            // normally, start from zero
+  _sleep_time_ms = _odb_i->GetCFOSleepTime(hDB,_h_cfo);
+//-----------------------------------------------------------------------------
+// we know that this is an emulated CFO - get pointer to the corresponding DTC
+// an emulated CFO configuration includs a link to the DTC
+//-----------------------------------------------------------------------------
+  HNDLE h_dtc = _odb_i->GetHandle     (hDB,_h_cfo,"DTC");
+  _pcie_addr  = _odb_i->GetPcieAddress(hDB, h_dtc);
+//-----------------------------------------------------------------------------
+// don't initialize the DTC, just get a pointer to
+//-----------------------------------------------------------------------------
+  _dtc_i           = trkdaq::DtcInterface::Instance(_pcie_addr,0,true);
 
-//  DEVICE_DRIVER*  drv;
+  TLOG(TLVL_DEBUG) << "active_run_conf:" << active_run_conf
+                   << " hDB : " << hDB   << " _h_cfo: " << _h_cfo
+                   << " cfo_enabled: "   << _cfo_enabled
+                   << "h_dtc:"           << h_dtc
+                   << "_pcie_addr: "     << _pcie_addr;
+
   if (_cfo_enabled == 1) {
 //-----------------------------------------------------------------------------
-// get the PCIE address and create the DTC interface
-// DTCs will need to initialize the ROC readout pattern    
+// CFO frontend is running on the same node with its CFO/DTC
 //-----------------------------------------------------------------------------
-    int pcie_addr = _odb_i->GetPcieAddress(hDB,_h_cfo);
-    _run_plan     = _odb_i->GetCFORunPlan (hDB,_h_cfo);
-
-    TLOG(TLVL_DEBUG+3) << "pcie_addr: " << pcie_addr << " _run_plan: " << _run_plan;
+    DEVICE_DRIVER* drv_list = new DEVICE_DRIVER[2];
+    DEVICE_DRIVER* drv      = drv_list;
     
-    _cfo_i        = CfoInterface::Instance(pcie_addr);
-//-----------------------------------------------------------------------------
-// emulated CFO - todo
-//-----------------------------------------------------------------------------
-    // drv->dd_info    = cdi;
-    // drv->mt_buffer  = nullptr;
-    // drv->pequipment = nullptr;
-  }
-//-----------------------------------------------------------------------------
-// this is just to be able to use multidriver equipment type everywhere...
-// could do a bit cleaner here with a single-driver equipment type
-//-----------------------------------------------------------------------------
-  mon_driver[0].name[0] = 0;
-  equipment [0].driver  = mon_driver;
+    snprintf(drv->name,NAME_LENGTH,"cfo");
+  
+    drv->dd         = cfo_emu_driver;  // 
+    drv->channels   = 1;               // nwords recorded as history (4+6*36 = 220)
+    drv->bd         = null;
+    drv->flags      = DF_INPUT;
+    drv->enabled    = 1;                // enabled;
 
+    CFO_DRIVER_INFO* dd_info          = new CFO_DRIVER_INFO;
+    dd_info->driver_settings.pcieAddr = _pcie_addr;
+    dd_info->driver_settings.enabled  = 1; //enabled;
+
+    drv->dd_info                      = (void*) dd_info;
+      
+    drv->mt_buffer  = nullptr;
+    drv->pequipment = &equipment[0].info;
+                                        // just one driver, FORTRAN termination...
+    drv_list[1].name[0] = 0;            // ,"")         = {"",};
+    drv_list[1].dd      = nullptr;      // marks the end of the driver list, sorry, inherited...
+
+    equipment[0].driver = drv;
 //-----------------------------------------------------------------------------
-// transitions
+// initialize equipment - mfe.cxx doesn't do that for EQ_PERIODIC type
 //-----------------------------------------------------------------------------
-  cm_register_transition(TR_START,tr_prestart,510);
+    char str[256];
+    EQUIPMENT* eq = &equipment[0];
+    
+    eq->status = eq->cd(CMD_INIT, eq);
+
+    if (eq->status == FE_SUCCESS)
+      strcpy(str, "Ok");
+    else if (eq->status == FE_ERR_HW)
+      strcpy(str, "Hardware error");
+    else if (eq->status == FE_ERR_ODB)
+      strcpy(str, "ODB error");
+    else if (eq->status == FE_ERR_DRIVER)
+      strcpy(str, "Driver error");
+    else if (eq->status == FE_PARTIALLY_DISABLED)
+      strcpy(str, "Partially disabled");
+    else
+      strcpy(str, "Error");
+    
+    if (eq->status == FE_SUCCESS)
+      set_equipment_status(eq->name, str, "greenLight");
+    else if (eq->status == FE_PARTIALLY_DISABLED) {
+      set_equipment_status(eq->name, str, "yellowGreenLight");
+      cm_msg(MINFO, "initialize_equipment", "Equipment %s partially disabled", eq->name);
+    } else {
+      set_equipment_status(eq->name, str, "redLight");
+      cm_msg(MERROR, "initialize_equipment", "Equipment %s disabled because of %s", eq->name, str);
+    }
+  } 
+//-----------------------------------------------------------------------------
+// the CFO frontend starts after the DTC frontends (500) and stops before them
+//-----------------------------------------------------------------------------
+  cm_set_transition_sequence(TR_START,520);
+  cm_set_transition_sequence(TR_STOP ,480);
+  
+  TLOG(TLVL_DEBUG) << "END";
   return CM_SUCCESS;
 }
 
+
 //-----------------------------------------------------------------------------
-// callback
-// external CFO needs to start executing the run plan just once
-//-----------------------------------------------------------------------------
-INT tr_prestart(INT run_number, char *error)  {
-  // code to perform actions prior to frontend starting 
-
-  TLOG(TLVL_DEBUG+2) << "pre-BEGIN RUN ";
-  
-  if (_cfo_i) {
-    _run_plan               = _odb_i->GetCFORunPlan(hDB,_h_cfo);
-
-    _odb_i->GetNDTCs(hDB,_h_cfo,&_dtc_mask);
-  
-    _run_plan_fn = _run_plan_dir+"/"+_run_plan;
-    
-    TLOG(TLVL_DEBUG+2) << "_run_plan_fn: " << _run_plan_fn << " _dtc_mask: " << format("{:#04x}\n", _dtc_mask);
-    
-    int clock = 1 ; //
-    int reset = 1 ; //
-    _cfo_i->ConfigureJA(clock,reset);  // if the return value is not 1, then in trouble
-
-    _cfo_i->InitReadout(_run_plan_fn.data(),_dtc_mask);
-
-    TLOG(TLVL_DEBUG+1) << "launching run plan: " << _run_plan_fn;
-
-    _cfo_i->LaunchRunPlan();
-  }
-
-  TLOG(TLVL_DEBUG+3) << "--- pre-BEGIN DONE";
-  return CM_SUCCESS;  
+int cfo_emu_launch_run_plan(char *pevent, int) {
+  TLOG(TLVL_DEBUG+1) << "START" ;
+  //  _dtc_i->LaunchRunPlanEmulatedCfo(_ew_length,_n_ewm_train+1,_first_ts);
+  _dtc_i->LaunchRunPlanEmulatedCfo(_ew_length,_n_ewm_train,_first_ts);
+  _first_ts += _n_ewm_train;
+  TLOG(TLVL_DEBUG+1) << "END" ;
+  return 0;
 }
 
 /*-- Dummy routines ------------------------------------------------*/
@@ -194,10 +226,13 @@ INT frontend_exit() {
 }
 
 //-----------------------------------------------------------------------------
-// Frontend Loop : for CFO, can't sleep here
+// sleep for a while , this frontend doesn't have much to do
 //-----------------------------------------------------------------------------
 INT frontend_loop() {
   TLOG(TLVL_DEBUG+2) << "frontend_loop ENTERED";
+  if (_sleep_time_ms > 1) {
+    ss_sleep(_sleep_time_ms-1);
+  }
   return CM_SUCCESS;
 }
 
@@ -205,27 +240,30 @@ INT frontend_loop() {
 // can afford to re-initialize the run plan at each begin run
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT run_number, char *error) {
-  TLOG(TLVL_DEBUG+2) << "BEGIN RUN _cfo_i=" << _cfo_i;
+  TLOG(TLVL_DEBUG+2) << "BEGIN RUN " << run_number;
 
+  cfo_emu_frontend::running = 1;
   return CM_SUCCESS;
 }
 
 /*-- End of Run ----------------------------------------------------*/
 INT end_of_run(INT run_number, char *error) {
-  TLOG(TLVL_DEBUG+2) << "END RUN";
-  _cfo_i->Halt();
+  TLOG(TLVL_DEBUG+2) << "END RUN " << run_number;
+  cfo_emu_frontend::running = 0;
   return CM_SUCCESS;
 }
 
 /*-- Pause Run -----------------------------------------------------*/
 INT pause_run(INT run_number, char *error) {
   TLOG(TLVL_DEBUG+2) << "PAUSE RUN";
+  cfo_emu_frontend::running = 0;
    return CM_SUCCESS;
 }
 
 /*-- Resume Run ----------------------------------------------------*/
 INT resume_run(INT run_number, char *error) {
   TLOG(TLVL_DEBUG+2) << "RESUME RUN";
+  cfo_emu_frontend::running = 0;
    return CM_SUCCESS;
 }
 
