@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
    <meta charset="UTF-8">
-   <title>Tracker Stations</title>
+   <title>STM</title>
    <link rel="stylesheet" href="midas.css">
    <script src="controls.js"></script>
    <script src="midas.js"></script>
@@ -12,17 +12,17 @@
    <script>
       let midasInitialized = false;
 
-      function createStationsTable() {
-         const stations = 10; // Number of stations
-         const table = document.querySelector(".mtable");
+      function createDiskTable() {
+         const ndisks = 1; // Number of stations
+         const table  = document.querySelector(".mtable");
 
          // Clear existing table rows
          table.innerHTML = `
             <thead>
                <tr>
-                  <th>Station</th>
+                  <th>Element</th>
                   <th>Status</th>
-                  <th>Action</th>
+                  <th>Details</th>
                </tr>
             </thead>
             <tbody></tbody>
@@ -30,19 +30,19 @@
 
          const tbody = table.querySelector("tbody");
 
-         for (let i = 0; i <= stations; i++) {
+         for (let i = 0; i < ndisks; i++) {
             const row = document.createElement("tr");
 
-            // Station Cell
-            const stationCell = document.createElement("td");
-            stationCell.innerHTML = `<b>Station_${i.toString().padStart(2, '0')}</b>`;
-            row.appendChild(stationCell);
+            // Disk Cell
+            const diskCell = document.createElement("td");
+            diskCell.innerHTML = `<b>Element ${i.toString().padStart(1, '0')}</b>`;
+            row.appendChild(diskCell);
 
             // Status Cell
             const statusCell = document.createElement("td");
             statusCell.innerHTML = `
                <div class="modbvalue status-cell"
-                  data-odb-path="/Mu2e/ActiveConfig/Tracker/Station_${i.toString().padStart(2, '0')}/Enabled"
+                  data-odb-path="/Mu2e/ActiveConfig/STM/Element${i.toString().padStart(1,'0')}/Enabled"
                   onchange="updateCellStyle(this)">
                </div>`;
             row.appendChild(statusCell);
@@ -50,7 +50,7 @@
             // Action Cell
             const actionCell = document.createElement("td");
             actionCell.innerHTML = `
-               <button onclick="redirectToPlanes('${i}')">View Planes</button>`;
+               <button onclick="redirectToDisks('${i}')">View Details</button>`;
             row.appendChild(actionCell);
 
             tbody.appendChild(row);
@@ -74,17 +74,17 @@
          }
       }
 
-      function redirectToPlanes(stationIndex) {
-         window.location.href = `tracker_planes.html?station=${stationIndex}`;
+      function redirectToDisks(diskIndex) {
+         window.location.href = `calorimeter_disks.html?disk=${diskIndex}`;
       }
 
       function initializePage() {
          if (!midasInitialized) {
-            mhttpd_init("Tracker Stations");
+            mhttpd_init("Calorimeter");
             midasInitialized = true;
          }
 
-         createStationsTable();
+         createDiskTable();
       }
 
       document.addEventListener("DOMContentLoaded", initializePage);
@@ -107,7 +107,7 @@
       }
 
       h1 {
-         font-size: 24px;
+         font-size: 20px;
          margin-bottom: 20px;
          text-align: center;
       }
@@ -115,13 +115,13 @@
       .mtable {
          width: 100%;
          border-collapse: collapse;
-         font-size: 18px;
+         font-size: 16px;
          margin: 0 auto;
       }
 
       .mtable th, .mtable td {
          border: 1px solid #ddd;
-         padding: 12px;
+         padding: 8px;
          text-align: center;
       }
 
@@ -139,7 +139,7 @@
       }
 
       .mtable td button {
-         padding: 8px 12px;
+         padding: 4px 12px;
          background-color: #007bff;
          color: white;
          border: none;
@@ -153,10 +153,10 @@
 
       .status-cell {
          width: 100%;
-         height: 20px;
+         height: 18px;
          border-radius: 4px;
-         font-weight: bold;
-         padding: 4px;
+         font-weight: normal; ### bold;
+         padding: 2px;
       }
    </style>
 </head>
@@ -165,7 +165,7 @@
    <div id="mheader"></div> <!-- MIDAS Header -->
    <div id="msidenav"></div> <!-- MIDAS Sidebar -->
    <div id="mmain">
-      <h1>Tracker Stations</h1>
+      <h1>STM</h1>
       <table class="mtable">
          <!-- Table content is generated dynamically -->
       </table>

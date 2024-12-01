@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
    <meta charset="UTF-8">
-   <title>Tracker Planes</title>
+   <title>Calorimeter</title>
    <link rel="stylesheet" href="midas.css">
    <script src="controls.js"></script>
    <script src="midas.js"></script>
@@ -10,21 +10,17 @@
    <script src="filesrw.js"></script>
 
    <script>
-      function createPlanesTable() {
-         const urlParams = new URLSearchParams(window.location.search);
-         const stationIndex = urlParams.get('station') || '0'; // Default to Station_00
-         const planes = 10; // Number of planes
-         const table = document.querySelector(".mtable");
+      let midasInitialized = false;
 
-         // Set the table title dynamically
-         const title = document.querySelector("#table-title");
-         title.textContent = `Planes for Station_${stationIndex.padStart(2, '0')}`;
+      function createDiskTable() {
+         const ndisks = 2; // Number of stations
+         const table  = document.querySelector(".mtable");
 
          // Clear existing table rows
          table.innerHTML = `
             <thead>
                <tr>
-                  <th>Plane</th>
+                  <th>Disk</th>
                   <th>Status</th>
                   <th>Action</th>
                </tr>
@@ -34,19 +30,19 @@
 
          const tbody = table.querySelector("tbody");
 
-         for (let i = 0; i <= planes; i++) {
+         for (let i = 0; i < ndisks; i++) {
             const row = document.createElement("tr");
 
-            // Plane Cell
-            const planeCell = document.createElement("td");
-            planeCell.innerHTML = `<b>Plane_${i.toString().padStart(2, '0')}</b>`;
-            row.appendChild(planeCell);
+            // Disk Cell
+            const diskCell = document.createElement("td");
+            diskCell.innerHTML = `<b>Disk ${i.toString().padStart(1, '0')}</b>`;
+            row.appendChild(diskCell);
 
             // Status Cell
             const statusCell = document.createElement("td");
             statusCell.innerHTML = `
                <div class="modbvalue status-cell"
-                  data-odb-path="/Mu2e/ActiveConfig/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${i.toString().padStart(2, '0')}/Enabled"
+                  data-odb-path="/Mu2e/ActiveConfig/Calorimeter/Disk${i.toString().padStart(1,'0')}/Enabled"
                   onchange="updateCellStyle(this)">
                </div>`;
             row.appendChild(statusCell);
@@ -54,7 +50,7 @@
             // Action Cell
             const actionCell = document.createElement("td");
             actionCell.innerHTML = `
-               <button onclick="redirectToPanels('${stationIndex}', '${i}')">View Panels</button>`;
+               <button onclick="redirectToDisks('${i}')">View Disk</button>`;
             row.appendChild(actionCell);
 
             tbody.appendChild(row);
@@ -78,11 +74,20 @@
          }
       }
 
-      function redirectToPanels(stationIndex, planeIndex) {
-         window.location.href = `tracker_panels.html?station=${stationIndex}&plane=${planeIndex}`;
+      function redirectToDisks(diskIndex) {
+         window.location.href = `calorimeter_disks.html?disk=${diskIndex}`;
       }
 
-      document.addEventListener("DOMContentLoaded", createPlanesTable);
+      function initializePage() {
+         if (!midasInitialized) {
+            mhttpd_init("Calorimeter");
+            midasInitialized = true;
+         }
+
+         createDiskTable();
+      }
+
+      document.addEventListener("DOMContentLoaded", initializePage);
    </script>
 
    <style>
@@ -102,7 +107,7 @@
       }
 
       h1 {
-         font-size: 24px;
+         font-size: 20px;
          margin-bottom: 20px;
          text-align: center;
       }
@@ -110,13 +115,13 @@
       .mtable {
          width: 100%;
          border-collapse: collapse;
-         font-size: 18px;
+         font-size: 16px;
          margin: 0 auto;
       }
 
       .mtable th, .mtable td {
          border: 1px solid #ddd;
-         padding: 12px;
+         padding: 8px;
          text-align: center;
       }
 
@@ -134,7 +139,7 @@
       }
 
       .mtable td button {
-         padding: 8px 12px;
+         padding: 4px 12px;
          background-color: #007bff;
          color: white;
          border: none;
@@ -148,19 +153,19 @@
 
       .status-cell {
          width: 100%;
-         height: 20px;
+         height: 18px;
          border-radius: 4px;
-         font-weight: bold;
-         padding: 4px;
+         font-weight: normal; ### bold;
+         padding: 2px;
       }
    </style>
 </head>
 
-<body class="mcss" onload="mhttpd_init('Custom Page Example');">
+<body class="mcss">
    <div id="mheader"></div> <!-- MIDAS Header -->
    <div id="msidenav"></div> <!-- MIDAS Sidebar -->
    <div id="mmain">
-      <h1 id="table-title">Planes</h1>
+      <h1>Calorimeter</h1>
       <table class="mtable">
          <!-- Table content is generated dynamically -->
       </table>

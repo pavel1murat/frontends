@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
    <meta charset="UTF-8">
-   <title>Tracker Panels</title>
+   <title>DAQ</title>
    <link rel="stylesheet" href="midas.css">
    <script src="controls.js"></script>
    <script src="midas.js"></script>
@@ -10,24 +10,21 @@
    <script src="filesrw.js"></script>
 
    <script>
-      function createPanelsTable() {
-         const urlParams = new URLSearchParams(window.location.search);
-         const stationIndex = urlParams.get('station') || '0'; // Default to Station_00
-         const planeIndex = urlParams.get('plane') || '0';   // Default to Plane_00
-         const panels = 10; // Number of panels
-         const table = document.querySelector(".mtable");
+      let midasInitialized = false;
 
-         // Set the table title dynamically
-         const title = document.querySelector("#table-title");
-         title.textContent = `Panels for Station_${stationIndex.padStart(2, '0')}, Plane_${planeIndex.padStart(2, '0')}`;
+     function createDiskTable() {
+         const nodes = [];
+         nodes.push("mu2edaq04", "mu2edaq09", "mu2edaq10", "mu2edaq11", "mu2edaq14", "mu2edaq22" );
+         const n_nodes = nodes.length;                       // Number of DAQ nodes
+         const table  = document.querySelector(".mtable");
 
          // Clear existing table rows
          table.innerHTML = `
             <thead>
                <tr>
-                  <th>Panel</th>
+                  <th>Node</th>
                   <th>Status</th>
-                  <th>Action</th>
+                  <th>Details</th>
                </tr>
             </thead>
             <tbody></tbody>
@@ -35,19 +32,19 @@
 
          const tbody = table.querySelector("tbody");
 
-         for (let i = 0; i <= panels; i++) {
+         for (let i = 0; i < n_nodes; i++) {
             const row = document.createElement("tr");
 
-            // Panel Cell
-            const panelCell = document.createElement("td");
-            panelCell.innerHTML = `<b>Panel_${i.toString().padStart(2, '0')}</b>`;
-            row.appendChild(panelCell);
+            // Disk Cell
+            const diskCell = document.createElement("td");
+             diskCell.innerHTML = `<b>${nodes[i]}</b>`;
+            row.appendChild(diskCell);
 
             // Status Cell
             const statusCell = document.createElement("td");
             statusCell.innerHTML = `
                <div class="modbvalue status-cell"
-                  data-odb-path="/Mu2e/ActiveConfig/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Enabled"
+                  data-odb-path="/Mu2e/ActiveConfig/DAQ/${nodes[i]}/Enabled"
                   onchange="updateCellStyle(this)">
                </div>`;
             row.appendChild(statusCell);
@@ -55,7 +52,7 @@
             // Action Cell
             const actionCell = document.createElement("td");
             actionCell.innerHTML = `
-               <button onclick="redirectToDetails('${stationIndex}', '${planeIndex}', '${i}')">View Details</button>`;
+               <button onclick="redirectToDisks('${i}')">View Details</button>`;
             row.appendChild(actionCell);
 
             tbody.appendChild(row);
@@ -65,34 +62,31 @@
       function updateCellStyle(cell) {
          const value = parseInt(cell.textContent.trim(), 10);
          if (value === 1) {
-            cell.textContent = "Enabled";
             cell.style.backgroundColor = "green";
             cell.style.color = "white";
          } else if (value === 0) {
-            cell.textContent = "Disabled";
             cell.style.backgroundColor = "gray";
             cell.style.color = "white";
          } else if (value === -1) {
-            cell.textContent = "Error";
             cell.style.backgroundColor = "red";
             cell.style.color = "white";
          } else {
-            cell.textContent = "Unknown";
             cell.style.backgroundColor = "white";
             cell.style.color = "black";
          }
       }
 
-      function redirectToDetails(stationIndex, planeIndex, panelIndex) {
-         window.location.href = `tracker_details.html?station=${stationIndex}&plane=${planeIndex}&panel=${panelIndex}`;
+      function redirectToDisks(diskIndex) {
+         window.location.href = `calorimeter_disks.html?disk=${diskIndex}`;
       }
 
       function initializePage() {
-         if (typeof mhttpd_init === 'function') {
-            mhttpd_init("Tracker Panels");
+         if (!midasInitialized) {
+            mhttpd_init("Calorimeter");
+            midasInitialized = true;
          }
 
-         createPanelsTable();
+         createDiskTable();
       }
 
       document.addEventListener("DOMContentLoaded", initializePage);
@@ -115,7 +109,7 @@
       }
 
       h1 {
-         font-size: 24px;
+         font-size: 20px;
          margin-bottom: 20px;
          text-align: center;
       }
@@ -123,13 +117,13 @@
       .mtable {
          width: 100%;
          border-collapse: collapse;
-         font-size: 18px;
+         font-size: 16px;
          margin: 0 auto;
       }
 
       .mtable th, .mtable td {
          border: 1px solid #ddd;
-         padding: 12px;
+         padding: 8px;
          text-align: center;
       }
 
@@ -147,7 +141,7 @@
       }
 
       .mtable td button {
-         padding: 8px 12px;
+         padding: 4px 12px;
          background-color: #007bff;
          color: white;
          border: none;
@@ -161,13 +155,10 @@
 
       .status-cell {
          width: 100%;
-         height: 20px;
+         height: 18px;
          border-radius: 4px;
-         font-weight: bold;
-         padding: 4px;
-         display: flex;
-         align-items: center;
-         justify-content: center;
+         font-weight: normal; ### bold;
+         padding: 2px;
       }
    </style>
 </head>
@@ -176,7 +167,7 @@
    <div id="mheader"></div> <!-- MIDAS Header -->
    <div id="msidenav"></div> <!-- MIDAS Sidebar -->
    <div id="mmain">
-      <h1 id="table-title">Panels</h1>
+      <h1>DAQ</h1>
       <table class="mtable">
          <!-- Table content is generated dynamically -->
       </table>
