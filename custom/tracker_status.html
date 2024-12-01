@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>Tracker Stations</title>
+   <link rel="stylesheet" href="midas.css">
+   <script src="controls.js"></script>
+   <script src="midas.js"></script>
+   <script src="mhttpd.js"></script>
+   <script src="filesrw.js"></script>
+
+   <script>
+      let midasInitialized = false;
+
+      function createStationsTable() {
+         const stations = 18; // Number of stations
+         const table = document.querySelector(".mtable");
+
+         // Clear existing table rows
+         table.innerHTML = `
+            <thead>
+               <tr>
+                  <th>Station</th>
+                  <th>Status</th>
+                  <th>Action</th>
+               </tr>
+            </thead>
+            <tbody></tbody>
+         `;
+
+         const tbody = table.querySelector("tbody");
+
+         for (let i = 0; i < stations; i++) {
+            const row = document.createElement("tr");
+
+            // Station Cell
+            const stationCell = document.createElement("td");
+            stationCell.innerHTML = `<b>Station_${i.toString().padStart(2, '0')}</b>`;
+            row.appendChild(stationCell);
+
+            // Status Cell
+            const statusCell = document.createElement("td");
+            statusCell.innerHTML = `
+               <div class="modbvalue status-cell"
+                  data-odb-path="/Mu2e/ActiveConfig/Tracker/Station_${i.toString().padStart(2, '0')}/Enabled"
+                  onchange="updateCellStyle(this)">
+               </div>`;
+            row.appendChild(statusCell);
+
+            // Action Cell
+            const actionCell = document.createElement("td");
+            actionCell.innerHTML = `
+               <button onclick="redirectToPlanes('${i}')">View Planes</button>`;
+            row.appendChild(actionCell);
+
+            tbody.appendChild(row);
+         }
+      }
+
+      function updateCellStyle(cell) {
+         const value = parseInt(cell.textContent.trim(), 10);
+         if (value === 1) {
+            cell.style.backgroundColor = "green";
+            cell.style.color = "white";
+         } else if (value === 0) {
+            cell.style.backgroundColor = "gray";
+            cell.style.color = "white";
+         } else if (value === -1) {
+            cell.style.backgroundColor = "red";
+            cell.style.color = "white";
+         } else {
+            cell.style.backgroundColor = "white";
+            cell.style.color = "black";
+         }
+      }
+
+      function redirectToPlanes(stationIndex) {
+         window.location.href = `tracker_station_status.html?station=${stationIndex}`;
+      }
+
+      function initializePage() {
+         if (!midasInitialized) {
+            mhttpd_init("Tracker Stations");
+            midasInitialized = true;
+         }
+
+         createStationsTable();
+      }
+
+      document.addEventListener("DOMContentLoaded", initializePage);
+   </script>
+
+   <style>
+      body {
+         font-family: Arial, sans-serif;
+         margin: 0;
+         padding: 0;
+         background-color: #f5f5f5;
+      }
+
+      #mmain {
+         margin: 20px;
+         padding: 20px;
+         background-color: white;
+         border-radius: 8px;
+         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+         font-size: 20px;
+         margin-bottom: 20px;
+         text-align: center;
+      }
+
+      .mtable {
+         width: 100%;
+         border-collapse: collapse;
+         font-size: 16px;
+         margin: 0 auto;
+      }
+
+      .mtable th, .mtable td {
+         border: 1px solid #ddd;
+         padding: 8px;
+         text-align: center;
+      }
+
+      .mtable th {
+         background-color: #007bff;
+         color: white;
+      }
+
+      .mtable tr:nth-child(even) {
+         background-color: #f9f9f9;
+      }
+
+      .mtable tr:hover {
+         background-color: #f1f1f1;
+      }
+
+      .mtable td button {
+         padding: 4px 12px;
+         background-color: #007bff;
+         color: white;
+         border: none;
+         border-radius: 4px;
+         cursor: pointer;
+      }
+
+      .mtable td button:hover {
+         background-color: #0056b3;
+      }
+
+      .status-cell {
+         width: 100%;
+         height: 18px;
+         border-radius: 4px;
+         font-weight: normal; ### bold;
+         padding: 2px;
+      }
+   </style>
+</head>
+
+<body class="mcss">
+   <div id="mheader"></div> <!-- MIDAS Header -->
+   <div id="msidenav"></div> <!-- MIDAS Sidebar -->
+   <div id="mmain">
+      <h1>Tracker Stations</h1>
+      <table class="mtable">
+         <!-- Table content is generated dynamically -->
+      </table>
+   </div>
+</body>
+</html>
