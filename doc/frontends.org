@@ -1,4 +1,4 @@
-#+startup:fold
+#+startup:fold -*- buffer-read-only:t  -*- 
 # note: everything below is work in progress.
 # if you notice smth missing, don't ask permissions, go ahead, and fix it
 * ------------------------------------------------------------------------------
@@ -7,19 +7,39 @@
 * configuration instructions                                                 
 
 - step 1: the folowing assumes that you read instructions on MIDAS website: 
- 
   https://daq00.triumf.ca/MidasWiki/index.php/Quickstart_Linux#Installation                                            
 
-- first time , one-time configuration step:               
+** declare working directory as $MU2E_DAQ_DIR and installconfig files
+  
+#+begin_src
+export   MU2E_DAQ_DIR=$PWD
+cp  $SPACK_ENV/frontends/scripts/get_next_run_number.py        config/scripts/.
+cp  $SPACK_ENV/frontends/scripts/start_trk_dtc_ctl_frontend.sh config/scripts/.
+cp  $SPACK_ENV/frontends/scripts/test_seq.sh                   config/scripts/.
+#+end_src
 
-  - edit $MU2E_DAQ_DIR/setup_midas.sh to setup MIDAS, the MIDAS experiment, and ODB area
-  - edit $MU2E_DAQ_DIR/source_me 
+- copy elog.json and runinfodb.json from ~mu2etrk/backup/ to ./config
+- decide on the location of ODB. THe tracker group keeps ODB instances
+  in ~test_stand/experiments
 
-- any time after that 
+-  name your experiment, and create the .exptab file:
+#+begin_src
+export   MIDAS_EXPT_NAME=test_025
+export   MIDAS_EXPTAB=$MU2E_DAQ_DIR/config/midas/$MIDAS_EXPT_NAME.exptab
+#+end_src
 
-    source source_me
+- the .exptab file looks like this (details - on MIDAS website):
+#+begin_src
+test_025 /home/mu2etrk/test_stand/experiments/test_025  mu2etrk
+#+end_src
 
-- step 2: configuring MIDAS
+- copy setup file to the work area:
+
+#+begin_src
+cp $SPACK_ENV/frontends/scripts/setup_daq.sh $MU2E_DAQ_DIR/.
+#+end_src
+
+** configure MIDAS  
 
 - 2.1: run odbedit to setup the initial ODB 
 - 2.2: start mhttpd 

@@ -30,7 +30,7 @@ export    ARTDAQ_PARTITION_NUMBER=11
 export ARTDAQ_PORTS_PER_PARTITION=1000
 export           ARTDAQ_BASE_PORT=10000
 #------------------------------------------------------------------------------
-# trace
+# TRACE - some defaults
 #------------------------------------------------------------------------------
 export                TRACE_FILE=/tmp/trace_file.$$
 export            TRACE_LIMIT_MS=0,50,50
@@ -43,4 +43,8 @@ toffSg 8-63  # apparently not turned off by default?
 # TFM
 #------------------------------------------------------------------------------
 export TFM_CONFIG_DIR=$MU2E_DAQ_DIR/config/artdaq
+#------------------------------------------------------------------------------
+# daq scripts
+#------------------------------------------------------------------------------
+export PATH=$PATH:$MU2E_DAQ_DIR/config/scripts
 return 0
