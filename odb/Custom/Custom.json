@@ -1,61 +1,23 @@
 {
   "/MIDAS version" : "2.1",
-  "/MIDAS git revision" : "Fri Jul 21 09:19:07 2023 -0700 - midas-2022-05-c-449-gf254ebd6-dirty on branch HEAD",
+  "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
   "/filename" : "Custom.json",
   "/ODB path" : "/Custom",
 
-  "Path/key" : { "type" : 12, "item_size" : 57, "access_mode" : 7, "last_written" : 1730081705 },
-  "Path" : "/home/mu2etrk/test_stand/pasha_029/dev/frontends/custom",
-  "Calorimeter" : {
-  },
-  "CRV" : {
-    "DTC/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1714005836 },
-    "DTC" : "dtc.html",
-    "wideband/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530249 },
-    "wideband" : "crv/crv_wideband.html"
-  },
-  "DAQ" : {
-    "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730320074 },
-    "main" : "daq/daq_main.html",
-    "nodes" : {
-      "mu2edaq07/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530903 },
-      "mu2edaq07" : "daq/nodes/mu2edaq07.html",
-      "mu2edaq08/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530756 },
-      "mu2edaq08" : "daq/nodes/mu2edaq08.html",
-      "mu2edaq09/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530771 },
-      "mu2edaq09" : "daq/nodes/mu2edaq09.html",
-      "mu2edaq10/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530781 },
-      "mu2edaq10" : "daq/nodes/mu2edaq10.html",
-      "mu2edaq13/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717530966 },
-      "mu2edaq13" : "daq/nodes/mu2edaq13.html",
-      "mu2edaq22/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730313012 },
-      "mu2edaq22" : "daq/nodes/mu2edaq22.html"
-    }
-  },
-  "EXM" : {
-  },
-  "STM" : {
-  },
-  "Tracker" : {
-    "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1714005836 },
-    "main" : "tracker_main.html",
-    "TS1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717706305 },
-    "TS1" : "tracker_ts1.html",
-    "TS2" : {
-      "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1717528809 },
-      "main" : "ts2/ts2_main.html"
-    },
-    "Train Station" : {
-      "main/key" : { "type" : 12, "item_size" : 38, "access_mode" : 7, "last_written" : 1730081550 },
-      "main" : "train_station/train_station_main.html"
-    },
-    "Train Station test" : {
-      "main/key" : { "type" : 12, "item_size" : 43, "access_mode" : 7, "last_written" : 1730493369 },
-      "main" : "train_station_test/train_station_main.html"
-    }
-  },
-  "mark" : {
-    "main/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730405419 },
-    "main" : "daq/nodes/mv.html"
-  }
+  "mu2e/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731437893 },
+  "mu2e" : "mu2e_status.html",
+  "Path/key" : { "type" : 12, "item_size" : 58, "access_mode" : 7, "last_written" : 1731203448 },
+  "Path" : "/home/mu2etrk/test_stand/pasha_031/murat/frontends/custom",
+  "Tracker/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733011599 },
+  "Tracker" : "tracker_status.html",
+  "Calorimeter/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731459581 },
+  "Calorimeter" : "calorimeter_status.html",
+  "CRV/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733018221 },
+  "CRV" : "crv_status.html",
+  "EXM/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731466847 },
+  "EXM" : "exm_status.html",
+  "STM/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731466874 },
+  "STM" : "stm_status.html",
+  "DAQ/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731466918 },
+  "DAQ" : "daq_status.html"
 }
