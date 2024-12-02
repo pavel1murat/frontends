@@ -1,0 +1,23 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
+  "/filename" : "Custom.json",
+  "/ODB path" : "/Custom",
+
+  "mu2e/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731437893 },
+  "mu2e" : "mu2e_status.html",
+  "Path/key" : { "type" : 12, "item_size" : 58, "access_mode" : 7, "last_written" : 1731203448 },
+  "Path" : "/home/mu2etrk/test_stand/pasha_031/murat/frontends/custom",
+  "Tracker/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733011599 },
+  "Tracker" : "tracker_status.html",
+  "Calorimeter/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731459581 },
+  "Calorimeter" : "calorimeter_status.html",
+  "CRV/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733018221 },
+  "CRV" : "crv_status.html",
+  "EXM/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731466847 },
+  "EXM" : "exm_status.html",
+  "STM/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731466874 },
+  "STM" : "stm_status.html",
+  "DAQ/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731466918 },
+  "DAQ" : "daq_status.html"
+}
