@@ -1,17 +1,13 @@
 {
   "/MIDAS version" : "2.1",
   "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
-  "/filename" : "demo.json",
+  "/filename" : "murat/frontends/odb/Mu2e/RunConfigurations/demo.json",
   "/ODB path" : "/Mu2e/RunConfigurations/demo",
 
   "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730690996 },
   "RunType" : 4,
-  "TriggerTable/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730690996 },
-  "TriggerTable" : "demo_tt_v00",
   "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1730690996 },
   "UseRunInfoDB" : false,
-  "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730690996 },
-  "TfmRpcHost" : "mu2edaq09-ctrl",
   "Calorimeter" : {
   },
   "CRV" : {
@@ -37,7 +33,7 @@
       "RunPlan/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870021 },
       "RunPlan" : "run_044.bin"
     },
-    "mu2edaq09" : {
+    "mu2edaq22" : {
       "DTC0" : {
         "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
         "Enabled" : 0,
@@ -52,8 +48,6 @@
       },
       "Artdaq" : {
         "br01" : {
-          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870021 },
-          "Label" : "br01",
           "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
           "Rank" : 0,
           "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
@@ -62,8 +56,6 @@
           "NFragmentTypes" : 1
         },
         "br02" : {
-          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870021 },
-          "Label" : "br02",
           "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
           "Rank" : 1,
           "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
@@ -72,39 +64,33 @@
           "NFragmentTypes" : 1
         },
         "eb01" : {
-          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870021 },
-          "Label" : "eb01",
           "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
           "Rank" : 2,
           "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
           "Active" : 1
         },
         "eb02" : {
-          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870021 },
-          "Label" : "eb02",
           "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
           "Rank" : 3,
           "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
           "Active" : 1
         },
         "dl01" : {
-          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870021 },
-          "Label" : "dl01",
           "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
           "Rank" : 4,
           "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
           "Active" : 1
         },
         "ds01" : {
-          "Label/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730870021 },
-          "Label" : "ds01",
           "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
           "Rank" : 5,
           "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
           "Active" : 1
         }
       }
-    }
+    },
+    "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731547141 },
+    "TfmRpcHost" : "mu2edaq22-ctrl"
   },
   "EXM" : {
   },
@@ -113,5 +99,9 @@
   "Tracker" : {
   },
   "Trigger" : {
-  }
+    "Table/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731259979 },
+    "Table" : "demo_tt_v00"
+  },
+  "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1732890878 },
+  "Name" : "demo"
 }
