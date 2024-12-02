@@ -93,6 +93,19 @@ int OdbInterface::GetCFOEnabled(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
+int OdbInterface::GetCFOEventMode(HNDLE hDB, HNDLE hCFO) {
+  INT   data(0);
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hCFO, "EventMode", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+    return data;
+  }
+  else {
+    TLOG(TLVL_ERROR) << "no CFO EventMode, return 0";
+    return 0;
+  }
+}
+
+//-----------------------------------------------------------------------------
 // for the emulated CFO
 //-----------------------------------------------------------------------------
 int OdbInterface::GetCFONEventsPerTrain(HNDLE hDB, HNDLE hCFO) {
@@ -176,6 +189,39 @@ int OdbInterface::GetDtcEnabled(HNDLE hDB, HNDLE hDTC) {
 }
 
 //-----------------------------------------------------------------------------
+int OdbInterface::GetDtcEventMode(HNDLE hDB, HNDLE hDTC) {
+  const char* key {"EventMode"};
+  INT   data(0);       // if not found, want all links to be disabled
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "EventMode not found, return " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcID(HNDLE hDB, HNDLE hNode) {
+  const char* key {"DtcID"};
+  INT   data(-1);
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hNode, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "no DTC ID, return -1";
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcJAMode(HNDLE hDB, HNDLE hDTC) {
+  const char* key {"JAMode"};
+  INT   data(0);       // if not found, want all links to be disabled
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "JAMode not found, return " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetDtcLinkMask(HNDLE hDB, HNDLE hDTC) {
   const char* key {"LinkMask"};
   INT   data(0);       // if not found, want all links to be disabled
@@ -185,6 +231,40 @@ int OdbInterface::GetDtcLinkMask(HNDLE hDB, HNDLE hDTC) {
   }
   return data;
 }
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcMacAddrByte(HNDLE hDB, HNDLE hDTC) {
+  const char* key {"MacAddrByte"};
+  INT   data(0);       // if not found, want all links to be disabled
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcOnSpill(HNDLE hDB, HNDLE hDTC) {
+  const char* key {"OnSpill"};
+  INT   data(0);       // if not found, want all links to be disabled
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcPartitionID(HNDLE hDB, HNDLE hNode) {
+  const char* key {"PartitionID"};
+  INT   data(-1);
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hNode, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return -1";
+  }
+  return data;
+}
+
 
 //-----------------------------------------------------------------------------
 //
@@ -315,6 +395,10 @@ int OdbInterface::GetDtcPcieAddress(HNDLE hDB, HNDLE hNode) {
   return data;
 }
 
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetOutputDir(HNDLE hDB) {
+  return GetString(hDB,0,"Mu2e/OutputDir");
+}
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetTfmHostName(HNDLE hDB, HNDLE hRunConf) {
