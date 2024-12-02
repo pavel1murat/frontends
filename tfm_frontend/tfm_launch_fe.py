@@ -154,6 +154,10 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         if (self.use_runinfo_db):
             self.runinfo_db   = RuninfoDB(self.client);
 #------------------------------------------------------------------------------
+# TFM frontend starts after the DTC-ctl frontends but before the cfo_emu_frontend(520)
+#-----------------------------------------------------------------------------
+        self.client.set_transition_sequence(midas.TR_START,510)
+#------------------------------------------------------------------------------
 # try to change priority by re-registering the same callback
 #------------------------------------------------------------------------------
         # self.client.register_transition_callback(midas.TR_START, 502, self._tr_start_callback)

@@ -33,21 +33,20 @@
          const tbody = table.querySelector("tbody");
 
          for (let i = 0; i < n_nodes; i++) {
-            const row = document.createElement("tr");
+             const row = document.createElement("tr");
 
             // Disk Cell
-            const diskCell = document.createElement("td");
+             const diskCell = document.createElement("td");
              diskCell.innerHTML = `<b>${nodes[i]}</b>`;
-            row.appendChild(diskCell);
-
-            // Status Cell
-            const statusCell = document.createElement("td");
-            statusCell.innerHTML = `
-               <div class="modbvalue status-cell"
-                  data-odb-path="/Mu2e/ActiveConfig/DAQ/${nodes[i]}/Enabled"
+             row.appendChild(diskCell);
+             
+             // Status Cell
+             const statusCell = document.createElement("td");
+             statusCell.innerHTML = `<div class="modbvalue status-cell"
+                  data-odb-path="/Mu2e/ActiveConfig/DAQ/${nodes[i]}/Status"
                   onchange="updateCellStyle(this)">
                </div>`;
-            row.appendChild(statusCell);
+             row.appendChild(statusCell);
 
             // Action Cell
             const actionCell = document.createElement("td");
@@ -128,7 +127,8 @@
       }
 
       .mtable th {
-         background-color: #007bff;
+          /* background-color: #007bff;  */
+         background-color: #0066aa;
          color: white;
       }
 

@@ -25,6 +25,7 @@ public:
 
   HNDLE       GetCFOConfigHandle   (HNDLE h_DB, HNDLE h_RunConf);
   int         GetCFOEnabled        (HNDLE h_DB, HNDLE h_CFO);
+  int         GetCFOEventMode      (HNDLE h_DB, HNDLE h_CFO);
   int         GetCFONEventsPerTrain(HNDLE h_DB, HNDLE h_CFO);
   std::string GetCFORunPlanDir     (HNDLE h_DB);
   std::string GetCFORunPlan        (HNDLE h_DB, HNDLE h_CFO);
@@ -38,10 +39,17 @@ public:
 
   int         GetDtcEnabled       (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcEmulatesCfo   (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcID            (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcJAMode        (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcLinkMask      (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcEventMode     (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcMacAddrByte   (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcOnSpill       (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcPartitionID   (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcPcieAddress   (HNDLE h_DB, HNDLE h_Node); // h_Node: has a "DTC" link to the DTC record
   int         GetDtcReadoutMode   (HNDLE h_DB, HNDLE h_Card); // 0:patterns, 1:data
   int         GetDtcSampleEdgeMode(HNDLE h_DB, HNDLE h_Card); // 0:force rising; 1: force falling; 2:auto
-  int         GetDtcPcieAddress   (HNDLE h_DB, HNDLE h_Node); // h_Node: has a "DTC" link to the DTC record
+
   int         GetPcieAddress      (HNDLE h_DB, HNDLE h_Card); // card: either CFO or DTC
 //-----------------------------------------------------------------------------
 // CFO supports up to 8 timing chains, so dimension of NDTCs array should be at least 8
@@ -52,6 +60,8 @@ public:
   uint64_t    GetNEvents          (HNDLE h_DB, HNDLE h_DTC);
   int         GetEWLength         (HNDLE h_DB, HNDLE h_DTC);
   uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
+
+  std::string GetOutputDir        (HNDLE h_DB);
 
                                         // returns: 1="external" or 0="emulated"
   int         GetCFOExternal      (HNDLE Hdb, HNDLE h_CFO);

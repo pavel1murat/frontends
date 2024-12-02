@@ -30,6 +30,12 @@
 -      mkdir Mu2e
 -      cd Mu2e
 -      load srcs/frontends/odb/Mu2e/Mu2e.json
+
+- when starting mhttpd, record the shell process ID - the TRACE file will have the name /tmp/trace_file.10003
+#+begin_src
+mthhrd -D
+echo $$
+#+end_src
 * ARTDAQ                                                                     
 ** artdaq repo: https://github.com/art-daq/artdaq
 ** mu2e-45544: artdaq intro by Eric:                                         
@@ -123,6 +129,11 @@ OK
 ** [[file:tfm_launch_fe.org][tfm_launch_fe]] : trigger farm manager (TFM) launching frontend
 ** [[file:tfm_mon_fe.org][tfm_mon_fe]]    : ARTDAQ monitoring frontend, one per node
 ** [[file:dtc_frontend][dtc_frontend]]  : DTC slow monitoring frontend, also monitors the DTC's ROCs, one per node
+* debugging frontends                                                        
+- build it (today in EC - on daq13)
+- open a new shell , initialize the environment (run setup_daq.sh)
+- enable TRACE "slow" printouts, start frontend , see what it does
+- if that is not enough, run it under debuggger as 'frontend -d'
 * SCREEN cheat sheet                                                         
 #+begin_src 
 screen -ls                 # see all screen sessions

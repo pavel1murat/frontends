@@ -127,7 +127,7 @@ INT frontend_init() {
       DtcInterface* dtc_i = DtcInterface::Instance(pcie_addr,link_mask);
       _dtc_i[pcie_addr]   = dtc_i;
       
-      dtc_i->fReadoutMode    = odb_i->GetDtcReadoutMode   (hDB,h_subkey);
+      dtc_i->fRocReadoutMode = odb_i->GetDtcReadoutMode   (hDB,h_subkey);
       dtc_i->fSampleEdgeMode = odb_i->GetDtcSampleEdgeMode(hDB,h_subkey);
       dtc_i->fEmulateCfo     = odb_i->GetDtcEmulatesCfo   (hDB,h_subkey);
 

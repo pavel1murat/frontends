@@ -26,7 +26,7 @@
 
 #include "cfo_frontend/cfo_interface.hh"
 #include "cfo_frontend/cfo_emu_frontend.hh"
-#include "cfo_frontend/cfo_emu_driver.hh"
+// #include "cfo_frontend/cfo_emu_driver.hh"
 
 using namespace DTCLib; 
 using namespace CFOLib; 
@@ -111,16 +111,18 @@ INT frontend_init() {
   _ew_length     = _odb_i->GetEWLength    (hDB,_h_cfo);
   _first_ts      = _odb_i->GetFirstEWTag  (hDB,_h_cfo);            // normally, start from zero
   _sleep_time_ms = _odb_i->GetCFOSleepTime(hDB,_h_cfo);
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------- 
 // we know that this is an emulated CFO - get pointer to the corresponding DTC
 // an emulated CFO configuration includs a link to the DTC
 //-----------------------------------------------------------------------------
-  HNDLE h_dtc = _odb_i->GetHandle     (hDB,_h_cfo,"DTC");
-  _pcie_addr  = _odb_i->GetPcieAddress(hDB, h_dtc);
+  HNDLE h_dtc    = _odb_i->GetHandle     (hDB,_h_cfo,"DTC");
+  _pcie_addr     = _odb_i->GetPcieAddress(hDB, h_dtc);
 //-----------------------------------------------------------------------------
 // don't initialize the DTC, just get a pointer to
 //-----------------------------------------------------------------------------
-  _dtc_i           = trkdaq::DtcInterface::Instance(_pcie_addr,0,true);
+  _dtc_i         = trkdaq::DtcInterface::Instance(_pcie_addr,0,true);
+  int event_mode = _odb_i->GetCFOEventMode(hDB,_h_cfo);
+  _dtc_i->SetEventMode(event_mode);
 
   TLOG(TLVL_DEBUG) << "active_run_conf:" << active_run_conf
                    << " hDB : " << hDB   << " _h_cfo: " << _h_cfo
@@ -128,65 +130,10 @@ INT frontend_init() {
                    << "h_dtc:"           << h_dtc
                    << "_pcie_addr: "     << _pcie_addr;
 
-  if (_cfo_enabled == 1) {
-//-----------------------------------------------------------------------------
-// CFO frontend is running on the same node with its CFO/DTC
-//-----------------------------------------------------------------------------
-    DEVICE_DRIVER* drv_list = new DEVICE_DRIVER[2];
-    DEVICE_DRIVER* drv      = drv_list;
-    
-    snprintf(drv->name,NAME_LENGTH,"cfo");
-  
-    drv->dd         = cfo_emu_driver;  // 
-    drv->channels   = 1;               // nwords recorded as history (4+6*36 = 220)
-    drv->bd         = null;
-    drv->flags      = DF_INPUT;
-    drv->enabled    = 1;                // enabled;
-
-    CFO_DRIVER_INFO* dd_info          = new CFO_DRIVER_INFO;
-    dd_info->driver_settings.pcieAddr = _pcie_addr;
-    dd_info->driver_settings.enabled  = 1; //enabled;
-
-    drv->dd_info                      = (void*) dd_info;
-      
-    drv->mt_buffer  = nullptr;
-    drv->pequipment = &equipment[0].info;
-                                        // just one driver, FORTRAN termination...
-    drv_list[1].name[0] = 0;            // ,"")         = {"",};
-    drv_list[1].dd      = nullptr;      // marks the end of the driver list, sorry, inherited...
-
-    equipment[0].driver = drv;
-//-----------------------------------------------------------------------------
-// initialize equipment - mfe.cxx doesn't do that for EQ_PERIODIC type
-//-----------------------------------------------------------------------------
-    char str[256];
-    EQUIPMENT* eq = &equipment[0];
-    
-    eq->status = eq->cd(CMD_INIT, eq);
-
-    if (eq->status == FE_SUCCESS)
-      strcpy(str, "Ok");
-    else if (eq->status == FE_ERR_HW)
-      strcpy(str, "Hardware error");
-    else if (eq->status == FE_ERR_ODB)
-      strcpy(str, "ODB error");
-    else if (eq->status == FE_ERR_DRIVER)
-      strcpy(str, "Driver error");
-    else if (eq->status == FE_PARTIALLY_DISABLED)
-      strcpy(str, "Partially disabled");
-    else
-      strcpy(str, "Error");
-    
-    if (eq->status == FE_SUCCESS)
-      set_equipment_status(eq->name, str, "greenLight");
-    else if (eq->status == FE_PARTIALLY_DISABLED) {
-      set_equipment_status(eq->name, str, "yellowGreenLight");
-      cm_msg(MINFO, "initialize_equipment", "Equipment %s partially disabled", eq->name);
-    } else {
-      set_equipment_status(eq->name, str, "redLight");
-      cm_msg(MERROR, "initialize_equipment", "Equipment %s disabled because of %s", eq->name, str);
-    }
-  } 
+  TLOG(TLVL_DEBUG) << "_n_ewm_train:"    << _n_ewm_train
+                   << " _ew_length:"     << _ew_length
+                   << " _first_ts:"      << _first_ts
+                   << " _sleep_time_ms:" << _sleep_time_ms;
 //-----------------------------------------------------------------------------
 // the CFO frontend starts after the DTC frontends (500) and stops before them
 //-----------------------------------------------------------------------------
@@ -202,8 +149,14 @@ INT frontend_init() {
 int cfo_emu_launch_run_plan(char *pevent, int) {
   TLOG(TLVL_DEBUG+1) << "START" ;
   //  _dtc_i->LaunchRunPlanEmulatedCfo(_ew_length,_n_ewm_train+1,_first_ts);
-  _dtc_i->LaunchRunPlanEmulatedCfo(_ew_length,_n_ewm_train,_first_ts);
+
+  TLOG(TLVL_DEBUG) << " _ew_length:"     << _ew_length
+                   << "_n_ewm_train:"    << _n_ewm_train
+                   << " _first_ts:"      << _first_ts;
+  
+  _dtc_i->LaunchRunPlanEmulatedCfo(_ew_length,_n_ewm_train+1,_first_ts);
   _first_ts += _n_ewm_train;
+  
   TLOG(TLVL_DEBUG+1) << "END" ;
   return 0;
 }
