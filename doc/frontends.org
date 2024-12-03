@@ -39,7 +39,7 @@ test_025 /home/mu2etrk/test_stand/experiments/test_025  mu2etrk
 cp $SPACK_ENV/frontends/scripts/setup_daq.sh $MU2E_DAQ_DIR/.
 #+end_src
 
-** configure MIDAS  
+** configure MIDAS                                                           
 
 - 2.1: run odbedit to setup the initial ODB 
 - 2.2: start mhttpd 
@@ -56,6 +56,12 @@ cp $SPACK_ENV/frontends/scripts/setup_daq.sh $MU2E_DAQ_DIR/.
 mthhrd -D
 echo $$
 #+end_src
+** configure postgres
+- outside the EC cluster 
+#+begin_src
+- ssh -f -KX -N -L 5434:daq14:5434 -J mu2etrk@daq-gateway mu2etrk@daq14
+#+end_src
+- after that, direct the local client (via config/runinfodb.json) to daq14:5434
 * ARTDAQ                                                                     
 ** artdaq repo: https://github.com/art-daq/artdaq
 ** mu2e-45544: artdaq intro by Eric:                                         
