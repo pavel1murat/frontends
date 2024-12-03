@@ -1,10 +1,11 @@
+#!/usr/bin/env python
 ###############################################################################
 # 2024-05-11 P.M. 
 # - the ODB connection should be established by the caller
 # - the same is true for disconnecting from ODB
 # - thus cache midas_client and use it...
 ###############################################################################
-import  os, midas
+import  os, socket, midas
 import  midas.client
 import  psycopg2, json
 from    psycopg2 import extensions
@@ -238,7 +239,9 @@ def test1():
     TRACE.Instance = "runinfodb".encode();
 
     logger.info("Initializing %s" % "get_next_run")
-    client = midas.client.MidasClient("get_next_run", "mu2edaq22-ctrl", "test_025", None)
+    expt   = os.getenv("MIDAS_EXPT_NAME");
+    host   = socket.gethostname();
+    client = midas.client.MidasClient("get_next_run",host,expt, None)
    
     # Initialize the RuninfoDB
     runinfo_db = RuninfoDB(client)
