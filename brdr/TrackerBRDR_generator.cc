@@ -65,10 +65,11 @@ namespace mu2e {
     std::chrono::steady_clock::time_point _procStartTime;
     std::vector<uint16_t>                 _fragment_ids;       // handled by CommandableGenerator,
                                                                //  but not a data member there
+    std::string                           _sFragmentType;
     int                                   _debugLevel;
     size_t                                _nEventsDbg;
-    int                                   _pcieAddr;
     std::string                           _tfmHost;            // used to send xmlrpc messages to
+    int                                   _pcieAddr;
 
                                                                // 101:simulate data internally, DTC not used; default:0
 
@@ -80,6 +81,7 @@ namespace mu2e {
 
     trkdaq::DtcInterface*                 _dtc_i;
     DTCLib::DTC*                          _dtc;
+    FragmentType                          _fragmentType;
 
     uint16_t                              _reg[200];           // DTC registers to be saved
     int                                   _nreg;               // their number
@@ -165,16 +167,19 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   , _artdaqLabel       (ps.get<std::string>             ("artdaqLabel"                     ))
   , _lastReportTime    (std::chrono::steady_clock::now())
   , _fragment_ids      (ps.get<std::vector<uint16_t>>   ("fragment_ids"       , std::vector<uint16_t>()))  // 
+  , _sFragmentType     (ps.get<std::string>             ("fragmentType"       ,       "TRK"))  // 
   , _debugLevel        (ps.get<int>                     ("debugLevel"         ,           0))
   , _nEventsDbg        (ps.get<size_t>                  ("nEventsDbg"         ,         100))
-    // , _tfmHost           (ps.get<std::string>             ("tfmHost"                         ))  // 
+  , _tfmHost           (ps.get<std::string>             ("tfmHost"                         ))  // 
   , _readData          (ps.get<int>                     ("readData"           ,           1))  // 
   , _printFreq         (ps.get<int>                     ("printFreq"          ,         100))  // 
   , _maxEventsPerSubrun(ps.get<int>                     ("maxEventsPerSubrun" ,       10000))  // 
   , _readoutMode       (ps.get<int>                     ("readoutMode"        ,           1))  // 
   
 {
-  TLOG(TLVL_INFO) << "CONSTRUCTOR (1) readData:" << _readData;
+  _fragmentType = mu2e::toFragmentType(_sFragmentType);
+  TLOG(TLVL_INFO) << "CONSTRUCTOR (1) readData:" << _readData
+                  << " fragmentType:" << _sFragmentType << ":" << int(_fragmentType);
 //-----------------------------------------------------------------------------
 // the BR interface should not be changing any settings, just read events
 // DTC is already initialized by the frontend, don't change anything !
@@ -194,7 +199,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 
   TLOG(TLVL_INFO) << "artdaqLabel: " << _artdaqLabel << " host name: " << host_name << " , exp_name: " << exp_name;
 
-  int status = cm_connect_experiment(host_name, exp_name, _artdaqLabel.data(),NULL);
+  int status = cm_connect_experiment(_tfmHost.data(), exp_name, _artdaqLabel.data(),NULL);
   if (status != CM_SUCCESS) {
     cm_msg(MERROR, _artdaqLabel.data(),
            "Cannot connect to experiment \'%s\' on host \'%s\', status %d",
@@ -329,7 +334,8 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
         TLOG(TLVL_DBG) << "DTC block i: " << i<< " nbytes:" << nb << std::endl;
         nbytes += nb;
         if (nb > 0) {
-          artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::TRK, TStamp);
+          //          artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::TRK, TStamp);
+          artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], _fragmentType, TStamp);
 
           frag->resizeBytes(nb);
       
@@ -398,7 +404,7 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
 // fake reading
 //-----------------------------------------------------------------------------
-    artdaq::Fragment* f1 = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::TRK, tstamp);
+    artdaq::Fragment* f1 = new artdaq::Fragment(ev_counter(), _fragment_ids[0], _fragmentType, tstamp);
     f1->resizeBytes(4);
     uint* afd  = (uint*) f1->dataBegin();
     *afd = 0x00ffffff;
@@ -413,7 +419,7 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
 bool mu2e::TrackerBRDR::simulateEvent(artdaq::FragmentPtrs& Frags) {
 
   double tstamp          = ev_counter();
-  artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::TRK, tstamp);
+  artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], _fragmentType, tstamp);
 
   const uint16_t fake_event [] = {
     0x01d0 , 0x0000 , 0x0000 , 0x0000 , 0x01c8 , 0x0000 , 0x0169 , 0x0000,   // 0x000000: 
