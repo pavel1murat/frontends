@@ -155,6 +155,17 @@ OK
 ** [[file:tfm_launch_fe.org][tfm_launch_fe]] : trigger farm manager (TFM) launching frontend
 ** [[file:tfm_mon_fe.org][tfm_mon_fe]]    : ARTDAQ monitoring frontend, one per node
 ** [[file:dtc_frontend][dtc_frontend]]  : DTC slow monitoring frontend, also monitors the DTC's ROCs, one per node
+* run configurations                                                         
+- run configurations are stored in github in .json format
+- configurations are allowed to have links, but the links can NOT point
+  outside the configuration
+- to update a run configuration 'conf', do :
+#+begin_src
+odbedit
+cd Mu2e/RunConfigurations/conf
+load your_env/frontends/odb/Mu2e/RunConfigurations/conf.json
+exit
+#+end_src
 * debugging frontends                                                        
 - build it (today in EC - on daq13)
 - open a new shell , initialize the environment (run setup_daq.sh)
