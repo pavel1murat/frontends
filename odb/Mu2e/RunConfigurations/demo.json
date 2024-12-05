@@ -1,17 +1,13 @@
 {
   "/MIDAS version" : "2.1",
   "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
-  "/filename" : "murat/frontends/odb/Mu2e/RunConfigurations/demo.json",
+  "/filename" : "demo.json",
   "/ODB path" : "/Mu2e/RunConfigurations/demo",
 
   "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730690996 },
   "RunType" : 4,
   "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1730690996 },
   "UseRunInfoDB" : false,
-  "Calorimeter" : {
-  },
-  "CRV" : {
-  },
   "DAQ" : {
     "CFO" : {
       "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1730870021 },
@@ -90,17 +86,19 @@
       }
     },
     "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731547141 },
-    "TfmRpcHost" : "mu2edaq22-ctrl"
-  },
-  "EXM" : {
-  },
-  "STM" : {
-  },
-  "Tracker" : {
-  },
-  "Trigger" : {
-    "Table/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731259979 },
-    "Table" : "demo_tt_v00"
+    "TfmRpcHost" : "mu2edaq22-ctrl",
+    "MonitoringFrontend" : {
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423222 },
+      "Name" : "daqmon",
+      "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423214 },
+      "Host" : "mu2edaq22-ctrl",
+      "# --------------------- 1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423214 },
+      "# --------------------- 1" : "---------- configurable element",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733423214 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733423214 },
+      "Status" : 0
+    }
   },
   "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1732890878 },
   "Name" : "demo"
