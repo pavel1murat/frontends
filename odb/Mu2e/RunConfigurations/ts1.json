@@ -1,17 +1,13 @@
 {
   "/MIDAS version" : "2.1",
   "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
-  "/filename" : "murat/frontends/odb/Mu2e/RunConfigurations/ts1.json",
+  "/filename" : "ts1.json",
   "/ODB path" : "/Mu2e/RunConfigurations/ts1",
 
-  "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1728965231 },
-  "RunType" : 1,
+  "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733422907 },
+  "RunType" : 4,
   "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1728965231 },
   "UseRunInfoDB" : false,
-  "Calorimeter" : {
-  },
-  "CRV" : {
-  },
   "DAQ" : {
     "CFO" : {
       "comment/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869821 },
@@ -156,11 +152,19 @@
     "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
     "Status" : 0,
     "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1731595203 },
-    "Enabled" : 1
-  },
-  "EXM" : {
-  },
-  "STM" : {
+    "Enabled" : 1,
+    "MonitoringFrontend" : {
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733422959 },
+      "Name" : "daqmon",
+      "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733422952 },
+      "Host" : "mu2edaq22-ctrl",
+      "# --------------------- 1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733422952 },
+      "# --------------------- 1" : "---------- configurable element",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733422952 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733422952 },
+      "Status" : 0
+    }
   },
   "Tracker" : {
     "Station_00" : {
@@ -198,7 +202,19 @@
   },
   "Trigger" : {
     "Table/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1732845110 },
-    "Table" : "tracker_ts1_v01"
+    "Table" : "tracker_ts1_v01",
+    "MonitoringFrontend" : {
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733422982 },
+      "Name" : "trigmon",
+      "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733422974 },
+      "Host" : "mu2edaq22-ctrl",
+      "# --------------------- 1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733422974 },
+      "# --------------------- 1" : "---------- configurable element",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733422974 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733422974 },
+      "Status" : 0
+    }
   },
   "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
   "Status" : 0

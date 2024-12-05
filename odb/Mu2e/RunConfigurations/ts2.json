@@ -1,17 +1,13 @@
 {
   "/MIDAS version" : "2.1",
   "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
-  "/filename" : "murat/frontends/odb/Mu2e/RunConfigurations/ts2.json",
+  "/filename" : "ts2.json",
   "/ODB path" : "/Mu2e/RunConfigurations/ts2",
 
   "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1732845144 },
   "RunType" : 4,
   "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1729545117 },
   "UseRunInfoDB" : false,
-  "Calorimeter" : {
-  },
-  "CRV" : {
-  },
   "DAQ" : {
     "CFO" : {
       "comment/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1730869900 },
@@ -138,11 +134,19 @@
       }
     },
     "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1731088190 },
-    "TfmRpcHost" : "mu2edaq22-ctrl"
-  },
-  "EXM" : {
-  },
-  "STM" : {
+    "TfmRpcHost" : "mu2edaq22-ctrl",
+    "MonitoringFrontend" : {
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423038 },
+      "Name" : "daqmon",
+      "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423026 },
+      "Host" : "mu2edaq22-ctrl",
+      "# --------------------- 1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423026 },
+      "# --------------------- 1" : "---------- configurable element",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733423026 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733423026 },
+      "Status" : 0
+    }
   },
   "Tracker" : {
     "Station_00" : {
@@ -176,10 +180,34 @@
       },
       "Plane_01" : {
       }
+    },
+    "MonitoringFrontend" : {
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423059 },
+      "Name" : "trkmon",
+      "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423051 },
+      "Host" : "mu2edaq22-ctrl",
+      "# --------------------- 1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423051 },
+      "# --------------------- 1" : "---------- configurable element",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733423051 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733423051 },
+      "Status" : 0
     }
   },
   "Trigger" : {
     "Table/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1732845139 },
-    "Table" : "tracker_ts2_v01"
+    "Table" : "tracker_ts2_v01",
+    "MonitoringFrontend" : {
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423076 },
+      "Name" : "trigmon",
+      "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423068 },
+      "Host" : "mu2edaq22-ctrl",
+      "# --------------------- 1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733423068 },
+      "# --------------------- 1" : "---------- configurable element",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733423068 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733423068 },
+      "Status" : 0
+    }
   }
 }
