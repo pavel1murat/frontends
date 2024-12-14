@@ -23,6 +23,9 @@ public:
   HNDLE       GetRunConfigHandle   (HNDLE h_DB, std::string& RunConf);
   HNDLE       GetArtdaqConfigHandle(HNDLE h_DB, std::string& RunConf, std::string& Host);
 
+                                        // returns: 1="external" or 0="emulated"
+  int         GetCFOExternal      (HNDLE Hdb, HNDLE h_CFO);
+
   HNDLE       GetCFOConfigHandle   (HNDLE h_DB, HNDLE h_RunConf);
   int         GetCFOEnabled        (HNDLE h_DB, HNDLE h_CFO);
   int         GetCFOEventMode      (HNDLE h_DB, HNDLE h_CFO);
@@ -61,10 +64,9 @@ public:
   int         GetEWLength         (HNDLE h_DB, HNDLE h_DTC);
   uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
 
-  std::string GetOutputDir        (HNDLE h_DB);
+  int         GetRocReadoutMode   (HNDLE h_DB, HNDLE h_Conf);
 
-                                        // returns: 1="external" or 0="emulated"
-  int         GetCFOExternal      (HNDLE Hdb, HNDLE h_CFO);
+  std::string GetOutputDir        (HNDLE h_DB);
 
   HNDLE       GetHandle           (HNDLE hDB, HNDLE hConf, const char* Key);
   int         GetInteger          (HNDLE hDB, HNDLE hConf, const char* Key, int* Data);

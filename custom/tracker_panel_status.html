@@ -4,33 +4,35 @@
     <meta charset="UTF-8">
     <title>Details</title>
     <link rel="stylesheet" href="midas.css">
+    <link type="text/css" rel="stylesheet" href="tracker.css">
+
     <script src="controls.js"></script>
     <script src="midas.js"></script>
     <script src="mhttpd.js"></script>
     <script src="filesrw.js"></script>
 
     <script>
-        let PATH = "/Mu2e/ActiveConfig/Tracker/Station_00/Plane_00/Panel_00";
+      var updatePeriod = 0; // 10000; // in msec
+      let PATH = "/Mu2e/ActiveConfig/Tracker/Station_00/Plane_00/Panel_00";
 
-        function setPathFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const station = urlParams.get("station") || "0";
-            const plane = urlParams.get("plane") || "0";
-            const panel = urlParams.get("panel") || "0";
+      function setPathFromUrl() {
+          const urlParams = new URLSearchParams(window.location.search);
+          const station = urlParams.get("station") || "0";
+          const plane = urlParams.get("plane") || "0";
+          const panel = urlParams.get("panel") || "0";
 
-            PATH = `/Mu2e/ActiveConfig/Tracker/Station_${station.padStart(2, '0')}/Plane_${plane.padStart(2, '0')}/Panel_${panel.padStart(2, '0')}`;
-        }
+          PATH = `/Mu2e/ActiveConfig/Tracker/Station_${station.padStart(2, '0')}/Plane_${plane.padStart(2, '0')}/Panel_${panel.padStart(2, '0')}`;
+      }
 
-        function setTableTitle() {
-            const title = document.getElementById("TableName");
-            const stIndex = PATH.indexOf("Station");
-            title.textContent = `Details for ${PATH.slice(stIndex)}`;
-        }
+      function setTableTitle() {
+          const title = document.getElementById("TableName");
+          const stIndex = PATH.indexOf("Station");
+          title.textContent = `Details for ${PATH.slice(stIndex)}`;
+      }
 
-        function prepareTable() {
-            const table = document.getElementById("MVtable");
-            table.innerHTML = `
-                <thead>
+      function prepareTable() {
+          const table = document.getElementById("MVtable");
+          table.innerHTML = `<thead>
                     <tr>
                         <th>Channel</th>
                         <th>Gain_HV</th>
@@ -41,26 +43,26 @@
                 </thead>
                 <tbody></tbody>
             `;
-        }
+      }
 
-        function fillTable() {
-            const tbody = document.getElementById("MVtable").querySelector("tbody");
-
-            for (let i = 0; i < 96; i++) {
-                const row = document.createElement("tr");
-
-                row.innerHTML = `
+      function fillTable() {
+          const tbody = document.getElementById("MVtable").querySelector("tbody");
+          
+          for (let i = 0; i < 96; i++) {
+              const row = document.createElement("tr");
+              
+              row.innerHTML = `
                     <td style="background-color: #d6eaff; font-weight: bold; text-align: center;">${i}</td>
                     <td class="modbvalue" align="center" data-odb-path="${PATH}/gain_hv[${i}]"></td>
                     <td class="modbvalue" align="center" data-odb-path="${PATH}/gain_cal[${i}]"></td>
                     <td class="modbvalue" align="center" data-odb-path="${PATH}/threshold_hv[${i}]"></td>
                     <td class="modbvalue" align="center" data-odb-path="${PATH}/threshold_cal[${i}]"></td>
                 `;
-                tbody.appendChild(row);
-            }
-        }
+              tbody.appendChild(row);
+          }
+      }
 
-        function initializePage() {
+      function initializePage() {
             try {
                 if (typeof mhttpd_init === 'function' && !window.midasInitialized) {
                     mhttpd_init('Details Page');
@@ -75,9 +77,9 @@
             }
         }
 
-        document.addEventListener("DOMContentLoaded", initializePage);
+      document.addEventListener("DOMContentLoaded", initializePage);
     </script>
-
+<!-- 
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -126,6 +128,7 @@
             background-color: #f1f1f1;
         }
     </style>
+    --> 
 </head>
 
 <body class="mcss" onload="initializePage();">

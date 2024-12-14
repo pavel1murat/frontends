@@ -1,25 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
+  
 <head>
-   <meta charset="UTF-8">
-   <title>DAQ</title>
-   <link rel="stylesheet" href="midas.css">
-   <script src="controls.js"></script>
-   <script src="midas.js"></script>
-   <script src="mhttpd.js"></script>
-   <script src="filesrw.js"></script>
+  <meta charset="UTF-8">
+  <title>DAQ</title>
+  <link rel="stylesheet" href="midas.css">
+  <link type="text/css" rel="stylesheet" href="tracker.css">
 
-   <script>
-      let midasInitialized = false;
+  <script src="controls.js"></script>
+  <script src="midas.js"></script>
+  <script src="mhttpd.js"></script>
+  <script src="filesrw.js"></script>
 
-     function createDiskTable() {
-         const nodes = [];
+  <script>
+    let midasInitialized = false;
+
+    function updateCellStyle(cell) {
+        if (cell.enabled == "0") {
+            cell.textContent           = "disabled";
+            cell.style.backgroundColor = "gray";
+            cell.style.color = "white";
+        } else if (cell.enabled == "1") {
+            if (cell.status == "0") {
+                cell.textContent = "OK";
+                cell.style.backgroundColor = "green";
+                cell.style.color = "white";
+            }
+            else if (cell.status == "-1") {
+                cell.textContent = "Error";
+                cell.style.backgroundColor = "red";
+                cell.style.color = "white";
+            }
+        }
+    }
+      
+    function createDAQTable() {
+        const nodes = [];
          nodes.push("mu2edaq04", "mu2edaq09", "mu2edaq10", "mu2edaq11", "mu2edaq14", "mu2edaq22" );
-         const n_nodes = nodes.length;                       // Number of DAQ nodes
-         const table  = document.querySelector(".mtable");
-
-         // Clear existing table rows
-         table.innerHTML = `
+        const n_nodes = nodes.length;                       // Number of DAQ nodes
+        const table  = document.querySelector(".mtable");
+        
+        // Clear existing table rows
+        table.innerHTML = `
             <thead>
                <tr>
                   <th>Node</th>
@@ -29,142 +51,80 @@
             </thead>
             <tbody></tbody>
          `;
-
-         const tbody = table.querySelector("tbody");
-
-         for (let i = 0; i < n_nodes; i++) {
-             const row = document.createElement("tr");
-
-            // Disk Cell
-             const diskCell = document.createElement("td");
-             diskCell.innerHTML = `<b>${nodes[i]}</b>`;
-             row.appendChild(diskCell);
+        
+        const tbody = table.querySelector("tbody");
+        
+        for (let i = 0; i < n_nodes; i++) {
+            const row = document.createElement("tr");
+            
+            // DAQ node Cell
+            const diskCell = document.createElement("td");
+            diskCell.innerHTML = `<b>${nodes[i]}</b>`;
+            row.appendChild(diskCell);
+            
+            // Status Cell
              
-             // Status Cell
-             const statusCell = document.createElement("td");
-             statusCell.innerHTML = `<div class="modbvalue status-cell"
-                  data-odb-path="/Mu2e/ActiveConfig/DAQ/${nodes[i]}/Status"
-                  onchange="updateCellStyle(this)">
-               </div>`;
-             row.appendChild(statusCell);
+            const statusCell = document.createElement("td");
+            var xx = "/Mu2e/ActiveConfig/DAQ/"+nodes[i];
+            var odb_list = [xx];
+            
+            mjsonrpc_db_get_value(odb_list[0]).then(rpc => {
+                let statusCell = document.createElement("td");
 
-            // Action Cell
-            const actionCell = document.createElement("td");
-            actionCell.innerHTML = `
-               <button onclick="redirectToDisks('${i}')">View Details</button>`;
-            row.appendChild(actionCell);
+                let node = rpc.result.data[0];
+                  
+                statusCell.enabled = node.enabled;
+                statusCell.status  = node.status;
+                
+                statusCell.innerHTML = `<div> "${statusCell.enabled}" </div>` ;
+                statusCell.onchange  = updateCellStyle(statusCell);
 
-            tbody.appendChild(row);
-         }
-      }
+                //             statusCell.innerHTML = `<div class="modbvalue status-cell"
+                //                  data-odb-path="/Mu2e/ActiveConfig/DAQ/${nodes[i]}/Status"
+                //                  onchange="updateCellStyle(this)">
+                //               </div>`;
+                
+                row.appendChild(statusCell);
+                
 
-      function updateCellStyle(cell) {
-         const value = parseInt(cell.textContent.trim(), 10);
-         if (value === 1) {
-            cell.style.backgroundColor = "green";
-            cell.style.color = "white";
-         } else if (value === 0) {
-            cell.style.backgroundColor = "gray";
-            cell.style.color = "white";
-         } else if (value === -1) {
-            cell.style.backgroundColor = "red";
-            cell.style.color = "white";
-         } else {
-            cell.style.backgroundColor = "white";
-            cell.style.color = "black";
-         }
-      }
+                // Action Cell
+                const actionCell = document.createElement("td");
+                actionCell.innerHTML = `
+             <button onclick="redirectToNodes('${i}')">View Details</button>`;
+                row.appendChild(actionCell);
+                
+                tbody.appendChild(row);
+            });
 
-      function redirectToDisks(diskIndex) {
-         window.location.href = `calorimeter_disks.html?disk=${diskIndex}`;
-      }
+            //               statusCell.innerHTML = `
+            //               <div class="modbvalue status-cell" data-odb-path="${odb_list[0]}/Enabled"
+            //                  onchange="updateCellStyle(${statusCell})">
+            //               </div>`;
+            
+        }
+    }
 
-      function initializePage() {
-         if (!midasInitialized) {
-            mhttpd_init("Calorimeter");
+    
+    function redirectToNodes(nodeIndex) {
+        window.location.href = `daq_nodes.html?disk=${nodeIndex}`;
+    }
+    
+  
+    function initializePage() {
+        if (!midasInitialized) {
+            mhttpd_init("DAQ");
             midasInitialized = true;
-         }
+        }
 
-         createDiskTable();
-      }
-
-      document.addEventListener("DOMContentLoaded", initializePage);
-   </script>
-
-   <style>
-      body {
-         font-family: Arial, sans-serif;
-         margin: 0;
-         padding: 0;
-         background-color: #f5f5f5;
-      }
-
-      #mmain {
-         margin: 20px;
-         padding: 20px;
-         background-color: white;
-         border-radius: 8px;
-         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      h1 {
-         font-size: 20px;
-         margin-bottom: 20px;
-         text-align: center;
-      }
-
-      .mtable {
-         width: 100%;
-         border-collapse: collapse;
-         font-size: 16px;
-         margin: 0 auto;
-      }
-
-      .mtable th, .mtable td {
-         border: 1px solid #ddd;
-         padding: 8px;
-         text-align: center;
-      }
-
-      .mtable th {
-          /* background-color: #007bff;  */
-         background-color: #0066aa;
-         color: white;
-      }
-
-      .mtable tr:nth-child(even) {
-         background-color: #f9f9f9;
-      }
-
-      .mtable tr:hover {
-         background-color: #f1f1f1;
-      }
-
-      .mtable td button {
-         padding: 4px 12px;
-         background-color: #007bff;
-         color: white;
-         border: none;
-         border-radius: 4px;
-         cursor: pointer;
-      }
-
-      .mtable td button:hover {
-         background-color: #0056b3;
-      }
-
-      .status-cell {
-         width: 100%;
-         height: 18px;
-         border-radius: 4px;
-         font-weight: normal; ### bold;
-         padding: 2px;
-      }
-   </style>
+        createDAQTable();
+    }
+    
+    document.addEventListener("DOMContentLoaded", initializePage);
+  </script>
 </head>
 
 <body class="mcss">
-   <div id="mheader"></div> <!-- MIDAS Header -->
+   <div id="mheader" ></div> <!-- MIDAS Header -->
    <div id="msidenav"></div> <!-- MIDAS Sidebar -->
    <div id="mmain">
       <h1>DAQ</h1>

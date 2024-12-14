@@ -396,6 +396,19 @@ int OdbInterface::GetDtcPcieAddress(HNDLE hDB, HNDLE hNode) {
 }
 
 //-----------------------------------------------------------------------------
+// the ROC readout should be the same for all ROCs in the configuration 
+//-----------------------------------------------------------------------------
+int OdbInterface::GetRocReadoutMode(HNDLE hDB, HNDLE hConf) {
+  const char* key {"RocReadoutMode"};
+  INT   data(-1);       // if not found, want to be meaningless
+  int   sz = sizeof(data);
+  if (db_get_value(hDB, hConf, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << " not found, return: " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
 std::string OdbInterface::GetOutputDir(HNDLE hDB) {
   return GetString(hDB,0,"Mu2e/OutputDir");
 }
