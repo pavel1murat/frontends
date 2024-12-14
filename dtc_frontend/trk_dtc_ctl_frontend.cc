@@ -228,9 +228,11 @@ INT frontend_init() {
       
     dtc_i->fEnabled        = enabled;
 // -----------------------------------------------------------------------------
-// DTC readout mode: 0=ROC patterns , 1=DIGIs
+// DTC readout mode: 0=ROC patterns , 1=DIGIs 2: new ROC patterns
+// the readout mode is the same for all ROCs in the configuration
 //-----------------------------------------------------------------------------
-    dtc_i->fRocReadoutMode = odb_i->GetDtcReadoutMode   (hDB,h_subkey);
+    dtc_i->fRocReadoutMode = odb_i->GetRocReadoutMode   (hDB,_h_active_run_conf);
+
     dtc_i->fEmulateCfo     = odb_i->GetDtcEmulatesCfo   (hDB,h_subkey);
     dtc_i->fJAMode         = odb_i->GetDtcJAMode        (hDB,h_subkey);
 

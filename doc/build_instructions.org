@@ -1,6 +1,7 @@
 #+startup:fold -*- buffer-read-only:t -*- 
 * ------------------------------------------------------------------------------
 * installation under spack - hints                                           
+- last update: <2024-12-12 Thu> - versions are time-dependent
 - do the mu2e spack thing - see https://github.com/Mu2e/daq-operations/wiki/Getting-Started-With-Spack
 - assuming top="your working area"
 - cd to the top/spack-repos
@@ -22,8 +23,8 @@
   # as of Thanksgiving'24, offline couldn't read files produced by the latest version of artdaq
   # <2024-12-10 Tue> - now it is not the case, need to switch at some point
 
-  spack add artdaq@v3_13_01%gcc@13.1.0 
-  spack add otsdaq@develop%gcc@13.1.0
+  spack add artdaq@v3_13_01%gcc@13.1.0
+  spack add otsdaq@v2_09_00%gcc@13.1.0
 
   spack add otsdaq-mu2e-tracker@develop%gcc@13.1.0
   spack add elog@2024-09-25
