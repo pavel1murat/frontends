@@ -135,7 +135,6 @@ void process_command(INT hDB, INT hkey, int A, void* Info) {
   TLOG(TLVL_DEBUG) << " finished" ;
 }
 
-
 //-----------------------------------------------------------------------------
 std::string  get_logfile_name(std::string& output_dir) {
 

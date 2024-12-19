@@ -79,7 +79,7 @@
                   statusCell.status  = eq.status;
 
                   statusCell.innerHTML = `<div> "${statusCell.enabled}" </div>` ;
-                  statusCell.onchange  = updateCellStyle(statusCell);
+                  statusCell.addEventListener("onchange",updateCellStyle);
 
                   row.appendChild(statusCell);
                                                                    // Action Cell

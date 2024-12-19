@@ -63,6 +63,14 @@ cet_make_exec(NAME      trk_dtc_ctl_frontend
                         midas
                         stdc++ m util pthread rt
 )
+cet_make_exec(NAME      dtc_mt_frontend
+              SOURCE    dtc_mt_frontend.cc
+              LIBRARIES frontends_utils
+                        otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
+                        mu2e_pcie_utils::DTCInterface
+                        midas
+                        stdc++ m util pthread rt
+)
 
 # install_fhicl(SUBDIRS fcl)
 # install_headers()
