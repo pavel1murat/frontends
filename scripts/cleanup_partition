@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+
+partition=$1
+ps -efl | grep partition | grep $partition | awk '{print $4}' | xargs kill -9

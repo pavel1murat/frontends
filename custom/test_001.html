@@ -1,0 +1,67 @@
+<html class="mcss" lang="en">
+  <head>
+    <title>My Title</title>
+    <link rel="stylesheet" href="midas.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
+
+    <script>
+      var updatePeriod = 1000000; // in msec
+      var updateTimerId = 0;
+      var counter = 0;
+      
+
+      function update()  {
+          clearTimeout(updateTimerId);
+          load();
+          if (updatePeriod > 0)
+              updateTimerId = setTimeout('update()', updatePeriod);
+      }
+
+      function load()   {
+          counter++;
+          document.getElementById('LastUpdated').innerHTML = "Updating..." + new Date;
+          document.getElementById('counter').innerHTML = 'Counter: '+ counter
+          
+          var y1 = 0;
+          var y2 = 0;
+
+          mjsonrpc_db_get_values(["/Runinfo","/Mu2e/RunPlanDir"]).then(function(rpc) {
+              var runinfo= rpc.result.data[0]
+              var name   =  rpc.result.data[1]
+              document.getElementById("name").innerHTML ='Experiment name ='+ name
+              document.getElementById("state").innerHTML ='Run State='+ runinfo.state
+              document.getElementById("rn").innerHTML ='Run number='+ runinfo["run number"]
+              document.getElementById("status").innerHTML = 'Status: '+ rpc.result.status
+              y = JSON.stringify(rpc);
+          }).catch(function(error) {
+              mjsonrpc_error_alert(error);
+          });
+
+     
+          mjsonrpc_db_get_values(["/Mu2e/ActiveConfig"]).then(function(rpc) {
+              var panel= rpc.result.data[0];
+              document.getElementById("enabled").innerHTML = "Enabled : "+panel.status;
+          }).catch(function(error) {
+              mjsonrpc_error_alert(error);
+          });
+      }
+    </script>
+  </head>
+  
+  <body>
+    <h2> Javascript code example using mjson_db_get_values with too many Promises </h2>
+    <p id="LastUpdated">Last updated: never</p>
+    <p id="rn">Run Number : unknown</p>
+    <p id="state">Run State : unknown</p>
+    <p id="name">Experiment name : unknown</p>
+    <p id="status">Status : unknown</p>
+    <p id="counter">Counter: zero</p>
+    <p id="enabled">Enabled: ????? </p>
+    <script>
+      update()
+    </script>
+  </body>
+  

@@ -55,11 +55,10 @@ cet_make_exec(NAME      trk_dtc_frontend
 )
 
 cet_make_exec(NAME      trk_dtc_ctl_frontend
-              SOURCE    trk_dtc_ctl_frontend.cc
+              SOURCE    trk_dtc_ctl_frontend.cc TEquipmentDTC.cc
               LIBRARIES frontends_utils
                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
                         mu2e_pcie_utils::DTCInterface
-                        mfe
                         midas
                         stdc++ m util pthread rt
 )

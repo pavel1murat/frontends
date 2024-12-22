@@ -3,7 +3,7 @@
 
   <head>
     <meta charset="UTF-8">
-    <title>Tracker Panels</title>
+    <title>Tracker Panels 002</title>
     <link rel="stylesheet" href="midas.css">
     <link type="text/css" rel="stylesheet" href="tracker.css">
 
@@ -13,7 +13,7 @@
     <script src="filesrw.js"></script>
     
     <script>
-      function updateCellStyle_001(cell,_enabled,_status) {
+      function updateCellStyle(cell,_enabled,_status) {
           if (_enabled == "0") {
               cell.textContent               = "disabled";
               cell.style.backgroundColor     = "gray";
@@ -29,25 +29,6 @@
                   cell.style.backgroundColor = "red";
                   cell.style.color           = "white";
               }
-          }
-      }
-      
-      function updateCellStyle(cell,_enabled,_status) {
-          status = cell.innerHTML;
-          if (status == 0) {
-              cell.textContent           = "disabled";
-              cell.style.backgroundColor = "gray";
-              cell.style.color           = "white";
-          }
-          else if (status >= 100) {
-              cell.textContent           = "OK";
-              cell.style.backgroundColor = "green";
-              cell.style.color           = "white";
-          }
-          else if (status <= -100) {
-              cell.textContent           = "Error";
-              cell.style.backgroundColor = "red";
-              cell.style.color           = "white";
           }
       }
 
@@ -116,10 +97,10 @@
               var odb_panel_path = "/Mu2e/ActiveConfig/Tracker/Station_"+stationIndex.padStart(2, '0')+"/Plane_"+planeIndex.padStart(2, '0')+"/Panel_"+i.toString().padStart(2, '0');
 
               let p = await get_panel(odb_panel_path);
-              statusCell.innerHTML =`<div class="modbvalue status-cell" data-odb-path="${odb_panel_path}/Status"
+              statusCell.innerHTML =`<div class="modbvalue status-cell" data-odb-path="${odb_panel_path}/Enabled"
                                      onchange="updateCellStyle(this,${p.enabled.data[0]},${p.status.data[0]})">
+                                      ${10*p.enabled.data[0]+p.status.data[0]}
                                      </div>`
-//                                      ${10*p.enabled.data[0]+p.status.data[0]}
               for (const child of statusCell.children) {
                   console.log("child:"+child.tagName);
                   console.log(child);
@@ -153,7 +134,6 @@
           if (typeof mhttpd_init === 'function') {
               mhttpd_init("Tracker Panels");
           }
-          
           createPanelsTable();
       }
       
@@ -168,7 +148,8 @@
       <h1 id="table-title">Panels</h1>
       <table class="mtable">
         <!-- Table content is generated dynamically -->
-      </table>
+        </table>
+        createPanelsTable();
     </div>
   </body>
   

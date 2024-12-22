@@ -46,7 +46,7 @@
             // Status Cell
             const statusCell = document.createElement("td");
             statusCell.innerHTML = `
-               <div class="modbvalue status-cell"
+               <div class="modbvalue status-cell" user_status="blah" user_enabled="blin"  
                   data-odb-path="/Mu2e/ActiveConfig/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${i.toString().padStart(2, '0')}/Enabled"
                   onchange="updateCellStyle(this)">
                </div>`;
