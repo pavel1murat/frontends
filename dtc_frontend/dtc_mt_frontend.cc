@@ -17,7 +17,7 @@
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "trk_dtc_ctl_frontend"
 
-#include "frontends/dtc_frontned/TEquipmentDTC.hh"
+#include "dtc_frontend/TEquipmentDTC.hh"
 
 //-----------------------------------------------------------------------------
 static void usage() {

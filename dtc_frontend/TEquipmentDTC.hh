@@ -4,14 +4,15 @@
 #ifndef __TEquipmentDTC_hh__
 #define __TEquipmentDTC_hh__
 
-#include "midas/include/tmfe.hh"
+#include "tmfe.h"
+#include "midas.h"
 
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
 class TEquipmentDTC : public TMFeEquipment {
   enum {
-    kNRegHist = 4,
-    kRegNonHist = 15+2*6,     
+    kNRegHist    = 4,
+    kNRegNonHist = 15+2*6,     
   } ;
   
   const int RegHist[kNRegHist] = {
@@ -32,6 +33,8 @@ class TEquipmentDTC : public TMFeEquipment {
  };
  
 public:
+
+  HNDLE  hDB;
 
   trkdaq::DtcInterface* fDtc_i[2];       // one or two DTCs, nullprt:disabled
   
