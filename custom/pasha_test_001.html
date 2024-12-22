@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html class="mcss" lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Mu2e Detector Status Page</title>
+    <link rel="stylesheet" href="midas.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
+
+    <script>function mycall(command,fe_name) {mjsonrpc_call(command, "{ \"name\": \"${fe_name}\"}").then(function(rpc){mjsonrpc_debug_alert(rpc); }).catch( function(error){mjsonrpc_error_alert(error)})}</script> 
+  </head>
+
+<body class="mcss" onload="mhttpd_init('Test')">
+
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+    
+    <h2>Programs control functions</h2>
+    
+    <p>
+      Observe the effect of these functions on the MIDAS Programs page.
+      <br>
+      <input type=button value='start fetest(start_program)'           onClick='mycall("start_program","\"fetest\")'>
+      <input type=button value='stop fetest (cm_shutdown)'             onClick='mycall("cm_shutdown"  ,"\"fetest\")'>
+      <input type=button value='check if fetest is running (cm_exist)' onClick='mycall("cm_exist"     ,"\"fetest\")'>
+    </p>
+    <hr>
+    <p>
+  
+  <input type=button value='start dtc_mt_frontend (start_program)'
+         onClick='mjsonrpc_call("start_program", "{ \"name\": \"dtc_mt_frontend\" }") .then(function(rpc){mjsonrpc_debug_alert(rpc);}).catch(function(error){mjsonrpc_error_alert(error);});'>
+  <input type=button value='stop fetest (cm_shutdown)'
+         onClick='mjsonrpc_call("cm_shutdown", "{ \"name\": \"fetest\" }") .then(function(rpc){mjsonrpc_debug_alert(rpc);}).catch(function(error){mjsonrpc_error_alert(error);});'>
+  <input type=button value='check if dtc_mt_frontend is running (cm_exist)'
+         onClick='mjsonrpc_call("cm_exist", "{ \"name\": \"dtc_mt_frontend\" }") .then(function(rpc){mjsonrpc_debug_alert(rpc);}).catch(function(error){mjsonrpc_error_alert(error);});'>
+</p>
+
+
+<h2>mjsonrpc_jrpc() direct RPC from web page to frontend program</h2>
+
+<p>
+  (note: frontend "fetest" should be running!) Also see the result of this function in the output of fetest and
+  in MIDAS Messages.
+  <br>
+  <input type=button value='Push me' onClick='mjsonrpc_call("jrpc", { "client_name":"fetest", "cmd":"xxx", "args":"xxx" }).then(function(rpc){document.getElementById("jrpc_data").innerHTML = JSON.stringify(rpc.result, null, "	");}).catch(function(error){mjsonrpc_error_alert(error);});'>
+  <br>
+  JRPC reply: <span id='jrpc_data'></span>
+</p>
+
+<hr>
+
+<h2>mjsonrpc_brpc() direct RPC from web page to frontend program</h2>
+
+<p>
+  (note: frontend "fetest" should be running!) Also see the result of this function in the output of fetest and
+  in MIDAS Messages.
+  <br>
+  <input type=button value='Push me'
+         onClick='mjsonrpc_call("brpc", { "client_name":"fetest", "cmd":"xxx", "args":"xxx" }, "arraybuffer").then(function(rpc){document.getElementById("brpc_data").innerHTML = new DataView(rpc).byteLength + " bytes";}).catch(function(error){mjsonrpc_error_alert(error);});'
+         >
+  <br>
+  BRPC reply: <span id='brpc_data'></span>
+</p>
+
+<script>
+  
+  var updatePeriod  = 0; // 10000; // in msec
+  var updateTimerId = 0;
+
+  function callback(arg) {
+      document.getElementById('mget_example_int').innerHTML = arg[0];
+      document.getElementById('mget_slow_2').innerHTML = arg[1];
+  }
+  
+  function load() {
+      document.getElementById('LastUpdated').innerHTML = "Updating..." + new Date;
+      
+      mjsonrpc_db_get_values(["/equipment/slow/variables/slow"]).then(function (rpc) {
+          document.getElementById("db_get_values_json_data").innerHTML = JSON.stringify(rpc);
+          var now = new Date().getTime() / 1000;
+          var status = rpc.result.status;
+          var slow = rpc.result.data[0];
+          document.getElementById("LastStatus").innerHTML = "Status: " + status;
+          document.getElementById("LastValue").innerHTML = "Value of /equipment/slow/variables/slow: " + slow;
+          document.getElementById('LastUpdated').innerHTML = "Last updated: " + new Date;
+      }).catch(function (error) {
+          document.getElementById('LastUpdated').innerHTML = "Error: " + error;
+          mjsonrpc_error_alert(error);
+      });
+      
+  }
+  
+  function update() {
+      clearTimeout(updateTimerId);
+      load();
+      if (updatePeriod > 0)
+          updateTimerId = setTimeout('update()', updatePeriod);
+  }
+  
+  function main() {
+      clearTimeout(updateTimerId);
+  }
+  
+  main();
+  if (updatePeriod > 0)
+      update();
+</script>
+</div>
+
+</body>
+</html>

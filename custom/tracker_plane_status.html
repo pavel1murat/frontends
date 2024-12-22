@@ -13,35 +13,83 @@
     <script src="filesrw.js"></script>
     
     <script>
-      function updateCellStyle(cell) {
-          if (cell.enabled == "0") {
-              cell.textContent           = "disabled";
-              cell.style.backgroundColor = "gray";
-              cell.style.color = "white";
-          } else if (cell.enabled == "1") {
-              if (cell.status == "0") {
-                  cell.textContent = "OK";
+      function updateCellStyle_001(cell,_enabled,_status) {
+          if (_enabled == "0") {
+              cell.textContent               = "disabled";
+              cell.style.backgroundColor     = "gray";
+              cell.style.color               = "white";
+          } else if (_enabled == "1") {
+              if (_status == "0") {
+                  cell.textContent           = "OK";
                   cell.style.backgroundColor = "green";
-                  cell.style.color = "white";
+                  cell.style.color           = "white";
               }
-              else if (cell.status == "-1") {
-                  cell.textContent = "Error";
+              else if (_status == "-1") {
+                  cell.textContent           = "Error";
                   cell.style.backgroundColor = "red";
-                  cell.style.color = "white";
+                  cell.style.color           = "white";
               }
           }
       }
       
-      function createPanelsTable() {
-          const urlParams = new URLSearchParams(window.location.search);
+      function updateCellStyle(cell,_enabled,_status) {
+          status = cell.innerHTML;
+          if (status == 0) {
+              cell.textContent           = "disabled";
+              cell.style.backgroundColor = "gray";
+              cell.style.color           = "white";
+          }
+          else if (status >= 100) {
+              cell.textContent           = "OK";
+              cell.style.backgroundColor = "green";
+              cell.style.color           = "white";
+          }
+          else if (status <= -100) {
+              cell.textContent           = "Error";
+              cell.style.backgroundColor = "red";
+              cell.style.color           = "white";
+          }
+      }
+
+      
+      async function get_panels(station,plane,npanels) {
+          var eq = new Array(npanels);
+          for (let i = 0; i < npanels; i++) {
+              
+              var panel_path   = "/Mu2e/ActiveConfig/Tracker"
+                  +"/Station_"+station.padStart(2, '0')
+                  +"/Plane_"  +plane.padStart(2, '0')
+                  +"/Panel_"  +i.toString().padStart(2, '0');
+              eq[i]   = [];
+              status  = await mjsonrpc_db_get_value(panel_path+"/Status");
+              enabled = await mjsonrpc_db_get_value(panel_path+"/Enabled");
+              
+              eq[i]["status" ] = status.result;
+              eq[i]["enabled"] = enabled.result;
+          };
+          
+          return eq;
+      }
+
+      async function get_panel(odb_path) {
+          var eq        = [];
+          const x1 = await mjsonrpc_db_get_value(odb_path+"/Enabled" );
+          const x2 = await mjsonrpc_db_get_value(odb_path+"/Status" );
+          eq["enabled"] = x1.result;
+          eq["status" ] = x2.result;
+          return eq;
+      }
+              
+      async function createPanelsTable() {
+          const urlParams    = new URLSearchParams(window.location.search);
           const stationIndex = urlParams.get('station') || '0'; // Default to Station_00
-          const planeIndex = urlParams.get('plane') || '0';   // Default to Plane_00
-          const panels = 6; // Number of panels
-          const table = document.querySelector(".mtable");
+          const planeIndex   = urlParams.get('plane') || '0';   // Default to Plane_00
+          const npanels      = 6; // Number of panels
+          const table        = document.querySelector(".mtable");
           
           // Set the table title dynamically
-          const title = document.querySelector("#table-title");
-          title.textContent = `Panels for Station_${stationIndex.padStart(2, '0')} Plane_${planeIndex.padStart(1, '0')}`;
+          const title        = document.querySelector("#table-title");
+          title.textContent  = `Panels for Station_${stationIndex.padStart(2, '0')} Plane_${planeIndex.padStart(1, '0')}`;
           
           // Clear existing table rows
           table.innerHTML = `
@@ -57,45 +105,38 @@
 
           const tbody = table.querySelector("tbody");
 
-          for (let i = 0; i < panels; i++) {
-              const row = document.createElement("tr");
-              
+          for (let i = 0; i < npanels; i++) {
+              let row = document.createElement("tr");
               // Panel  Cell
-              const panelCell = document.createElement("td");
+              const panelCell     = document.createElement("td");
               panelCell.innerHTML = `<b>Panel_${i.toString().padStart(2, '0')}</b>`;
               row.appendChild(panelCell);
-              
-              var xx = "/Mu2e/ActiveConfig/Tracker/Station_"+stationIndex.padStart(2, '0')+"/Plane_"+planeIndex.padStart(2, '0')+"/Panel_"+i.toString().padStart(2, '0');
-              var odb_list = [
-                  xx,
-              ];
-              
-              mjsonrpc_db_get_value(odb_list[0]).then(rpc => {
-                  let statusCell = document.createElement("td");
-
-                  let eq = rpc.result.data[0];
                   
-                  statusCell.enabled = eq.enabled;
-                  statusCell.status  = eq.status;
+              let statusCell = document.createElement("td");
+              var odb_panel_path = "/Mu2e/ActiveConfig/Tracker/Station_"+stationIndex.padStart(2, '0')+"/Plane_"+planeIndex.padStart(2, '0')+"/Panel_"+i.toString().padStart(2, '0');
 
-                  statusCell.innerHTML = `<div> "${statusCell.enabled}" </div>` ;
-                  statusCell.addEventListener("onchange",updateCellStyle);
-
-                  row.appendChild(statusCell);
-                                                                   // Action Cell
-                  const actionCell = document.createElement("td");
-                  actionCell.innerHTML = `
-               <button onclick="redirectToDetails('${stationIndex}', '${planeIndex}', '${i}')">View Details</button>`;
-                  row.appendChild(actionCell);
-               
-                  tbody.appendChild(row);
-              });
-
-//               statusCell.innerHTML = `
-//               <div class="modbvalue status-cell" data-odb-path="${odb_list[0]}/Enabled"
-//                  onchange="updateCellStyle(${statusCell})">
-//               </div>`;
+              let p = await get_panel(odb_panel_path);
+              statusCell.innerHTML =`<div class="modbvalue status-cell" data-odb-path="${odb_panel_path}/Status"
+                                     onchange="updateCellStyle(this,${p.enabled.data[0]},${p.status.data[0]})">
+                                     </div>`
+//                                      ${10*p.enabled.data[0]+p.status.data[0]}
+              for (const child of statusCell.children) {
+                  console.log("child:"+child.tagName);
+                  console.log(child);
+              }
               
+              var div = statusCell.children[0]; // .setValue(x);
+              // div.innerHTML = 10*p.enabled.data[0]+p.status.data[0];
+              console.log(statusCell);
+              //
+              row.appendChild(statusCell);
+              // Action Cell
+              const actionCell = document.createElement("td");
+              actionCell.innerHTML = `
+              <button onclick="redirectToDetails('${stationIndex}', '${planeIndex}', '${i}')">View Details</button>`;
+              row.appendChild(actionCell);
+              
+              tbody.appendChild(row);
           }
       }
       

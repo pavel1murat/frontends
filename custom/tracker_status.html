@@ -15,6 +15,23 @@
    <script>
       let midasInitialized = false;
 
+      function updateCellStyle(cell) {
+         const value = parseInt(cell.textContent.trim(), 10);
+         if (value === 1) {
+            cell.style.backgroundColor = "green";
+            cell.style.color = "white";
+         } else if (value === 0) {
+            cell.style.backgroundColor = "gray";
+            cell.style.color = "white";
+         } else if (value === -1) {
+            cell.style.backgroundColor = "red";
+            cell.style.color = "white";
+         } else {
+            cell.style.backgroundColor = "white";
+            cell.style.color = "black";
+         }
+      }
+
       function createStationsTable() {
          const stations = 18; // Number of stations
          const table = document.querySelector(".mtable");
@@ -57,23 +74,6 @@
             row.appendChild(actionCell);
 
             tbody.appendChild(row);
-         }
-      }
-
-      function updateCellStyle(cell) {
-         const value = parseInt(cell.textContent.trim(), 10);
-         if (value === 1) {
-            cell.style.backgroundColor = "green";
-            cell.style.color = "white";
-         } else if (value === 0) {
-            cell.style.backgroundColor = "gray";
-            cell.style.color = "white";
-         } else if (value === -1) {
-            cell.style.backgroundColor = "red";
-            cell.style.color = "white";
-         } else {
-            cell.style.backgroundColor = "white";
-            cell.style.color = "black";
          }
       }
 
