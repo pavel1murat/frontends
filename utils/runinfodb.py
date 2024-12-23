@@ -18,11 +18,10 @@ TRACE_NAME = "runinfodb";
 
 class RuninfoDB:
 #------------------------------------------------------------------------------
-    def __init__(self, midas_client):
+    def __init__(self, config_file ="config/runinfodb.json", midas_client = None):
 
         self.client = midas_client;
-        
-        self.info   = json.loads(open("config/runinfodb.json").read());
+        self.info   = json.loads(open(config_file).read());
 
         TRACE.TRACE(8, "db:%s host:%s port:%s user:%s passwd:%s schema:%s"%
                     (self.database(),self.host(),self.port(),self.user(),self.passwd(),self.schema()),TRACE_NAME)
@@ -239,12 +238,13 @@ def test1():
     TRACE.Instance = "runinfodb".encode();
 
     logger.info("Initializing %s" % "get_next_run")
-    expt   = os.getenv("MIDAS_EXPT_NAME");
-    host   = socket.gethostname();
-    client = midas.client.MidasClient("get_next_run",host,expt, None)
+    expt     = os.getenv("MIDAS_EXPT_NAME");
+    host     = socket.gethostname();
+    client   = midas.client.MidasClient("get_next_run",host,expt, None)
+    cfg_file = os.getenv("MU2E_DAQ_DIR")+'/config/runinfodb.json';
    
     # Initialize the RuninfoDB
-    runinfo_db = RuninfoDB(client)
+    runinfo_db = RuninfoDB(midas_client=client,config_file=cfg_file);
 
     print("back after creating RuninfoDB")
     
