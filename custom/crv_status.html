@@ -85,8 +85,8 @@
 
             tbody.appendChild(row);
 
-            const path_enabled = `/Mu2e/ActiveConfig/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Enabled`;
-            const path_status = `/Mu2e/ActiveConfig/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Status`;
+            const path_enabled = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Enabled`;
+            const path_status  = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Status`;
 
             load_values(path_enabled, path_status, statusCell);
 

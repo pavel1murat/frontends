@@ -13,7 +13,7 @@
 
     <script>
       var updatePeriod = 0; // 10000; // in msec
-      let PATH = "/Mu2e/ActiveConfig/Tracker/Station_00/Plane_00/Panel_00";
+      let PATH = "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_00";
 
       function setPathFromUrl() {
           const urlParams = new URLSearchParams(window.location.search);
@@ -21,7 +21,7 @@
           const plane = urlParams.get("plane") || "0";
           const panel = urlParams.get("panel") || "0";
 
-          PATH = `/Mu2e/ActiveConfig/Tracker/Station_${station.padStart(2, '0')}/Plane_${plane.padStart(2, '0')}/Panel_${panel.padStart(2, '0')}`;
+          PATH = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${station.padStart(2, '0')}/Plane_${plane.padStart(2, '0')}/Panel_${panel.padStart(2, '0')}`;
       }
 
       function setTableTitle() {

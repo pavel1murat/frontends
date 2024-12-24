@@ -124,11 +124,11 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
   cm_get_experiment_database(&hDB, NULL);
 
-  OdbInterface* odb_i         = OdbInterface::Instance(hDB);
-  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
-  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  OdbInterface* odb_i             = OdbInterface::Instance(hDB);
+  HNDLE         h_active_run_conf = odb_i->GetActiveRunConfigHandle();
+  std::string   active_run_conf   = odb_i->GetRunConfigName(h_active_run_conf);
   if(h_active_run_conf == 0) {
-    TLOG(TLVL_ERROR) << "The configuration " << active_run_conf << " was not found in /Mu2e/RunConfigurations. BAIL OUT";
+    TLOG(TLVL_ERROR) << "Configuration " << active_run_conf << " was not found in /Mu2e/RunConfigurations. BAIL OUT";
     return FE_ERR_ODB; 
   }
 //-----------------------------------------------------------------------------

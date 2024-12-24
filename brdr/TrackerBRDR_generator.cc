@@ -222,8 +222,8 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 
   OdbInterface* odb_i         = OdbInterface::Instance(hDB);
   
-  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
-  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
+  std::string active_run_conf = odb_i->GetRunConfigName(h_active_run_conf);
   std::string rpc_host        = get_short_host_name("local");
   HNDLE h_host_artdaq_conf    = odb_i->GetDaqHostHandle(hDB,h_active_run_conf,rpc_host+"/Artdaq");
 //-----------------------------------------------------------------------------
