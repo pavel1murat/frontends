@@ -65,7 +65,7 @@
             // Status Cell
              
             const statusCell = document.createElement("td");
-            var xx = "/Mu2e/ActiveConfig/DAQ/"+nodes[i];
+            var xx = "/Mu2e/ActiveRunConfiguration/DAQ/"+nodes[i];
             var odb_list = [xx];
             
             mjsonrpc_db_get_value(odb_list[0]).then(rpc => {
@@ -80,7 +80,7 @@
                 statusCell.onchange  = updateCellStyle(statusCell);
 
                 //             statusCell.innerHTML = `<div class="modbvalue status-cell"
-                //                  data-odb-path="/Mu2e/ActiveConfig/DAQ/${nodes[i]}/Status"
+                //                  data-odb-path="/Mu2e/ActiveRunConfiguration/DAQ/${nodes[i]}/Status"
                 //                  onchange="updateCellStyle(this)">
                 //               </div>`;
                 

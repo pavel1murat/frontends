@@ -58,8 +58,8 @@ INT cfo_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *b
   cm_get_experiment_database(&hDB, NULL);
   OdbInterface* odb_i = OdbInterface::Instance(hDB);
 
-  active_run_conf           = odb_i->GetActiveRunConfig(hDB);
-  HNDLE h_active_run_conf   = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  HNDLE h_active_run_conf   = odb_i->GetActiveRunConfigHandle();
+  active_run_conf           = odb_i->GetRunConfigName(h_active_run_conf);
 
   std::string host          = get_full_host_name("local");
   HNDLE       h_cfo_conf    = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);

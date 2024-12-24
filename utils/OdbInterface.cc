@@ -3,7 +3,13 @@
 #include "TRACE/trace.h"
 #include "OdbInterface.hh"
 
+
 OdbInterface* OdbInterface::_instance(nullptr);
+
+//-----------------------------------------------------------------------------
+OdbInterface::OdbInterface(HNDLE h_DB) {
+  _hDB = h_DB;
+}
 
 
 //-----------------------------------------------------------------------------
@@ -32,13 +38,12 @@ std::string OdbInterface::GetString(HNDLE hDB, HNDLE hDir, const char* Key) {
 
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetHandle(HNDLE hDB, HNDLE hConf, const char* Key) {
-  HNDLE h;
+  HNDLE h(0);
   
-  if (db_find_key(hDB, hConf, Key, &h) == DB_SUCCESS) return h;
-  else {
-    TLOG(TLVL_ERROR) << "no handle for key:" << Key;
-    return 0;
+  if (db_find_key(hDB, hConf, Key, &h) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "no handle for hConf:Key:" << hConf << ":" << Key;
   }
+  return h;
 }
 
 //-----------------------------------------------------------------------------
@@ -50,8 +55,10 @@ int OdbInterface::GetInteger(HNDLE hDB, HNDLE hCFO, const char* Key, int* Data) 
 }
 
 //-----------------------------------------------------------------------------
-std::string OdbInterface::GetActiveRunConfig(HNDLE hDB) {
-  return GetString(hDB,0,"/Mu2e/ActiveRunConfiguration");
+// /Mu2e/ActiveRunConfiguration is a link to the active run configuration
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetActiveRunConfigHandle() {
+  return GetHandle(_hDB,0,"/Mu2e/ActiveRunConfiguration");
 }
 
 //-----------------------------------------------------------------------------
@@ -164,6 +171,12 @@ HNDLE OdbInterface::GetRunConfigHandle(HNDLE hDB, std::string& RunConf) {
     TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
     return 0;
   }
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetRunConfigName(HNDLE hConf) {
+  const char* key {"Name"};
+  return GetString(_hDB, hConf, key);
 }
 
 //-----------------------------------------------------------------------------
@@ -415,6 +428,6 @@ std::string OdbInterface::GetOutputDir(HNDLE hDB) {
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetTfmHostName(HNDLE hDB, HNDLE hRunConf) {
-  return GetString(hDB,hRunConf,"DAQ/TfmRpcHost");
+  return GetString(hDB,hRunConf,"DAQ/Tfm/RpcHost");
 }
 

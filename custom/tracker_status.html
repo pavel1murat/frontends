@@ -62,7 +62,7 @@
             const statusCell = document.createElement("td");
             statusCell.innerHTML = `
                <div class="modbvalue status-cell"
-                  data-odb-path="/Mu2e/ActiveConfig/Tracker/Station_${i.toString().padStart(2, '0')}/Enabled"
+                  data-odb-path="/Mu2e/ActiveRunConfiguration/Tracker/Station_${i.toString().padStart(2, '0')}/Enabled"
                   onchange="updateCellStyle(this)">
                </div>`;
             row.appendChild(statusCell);

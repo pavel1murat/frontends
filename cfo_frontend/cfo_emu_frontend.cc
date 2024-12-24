@@ -160,9 +160,9 @@ INT begin_of_run(INT run_number, char *error) {
 
   TLOG(TLVL_DEBUG) << "BEGIN RUN " << run_number;
 
-  std::string  active_run_conf = _odb_i->GetActiveRunConfig(hDB);
 
-  HNDLE h_active_run_conf = _odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  HNDLE       h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
+  std::string active_run_conf   = _odb_i->GetRunConfigName(h_active_run_conf);
 
   std::string host        = get_full_host_name("local");
   _h_cfo                  = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);

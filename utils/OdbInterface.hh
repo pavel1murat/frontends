@@ -6,36 +6,38 @@
 //-----------------------------------------------------------------------------
 class OdbInterface {
 public:
-  HNDLE         _hDB;   // cached
-  static OdbInterface* _instance;              // 
+  HNDLE                _hDB;            // cached
+  static OdbInterface* _instance;       // 
 
 private:
 
-  OdbInterface(HNDLE h_DB = 0) { _hDB = h_DB; }
+  OdbInterface(HNDLE h_DB = 0);
 
 public:
 
-  static OdbInterface*  Instance  (HNDLE h_DB);
+  static OdbInterface*  Instance      (HNDLE h_DB);
 
-  std::string GetActiveRunConfig  (HNDLE h_DB);
-  int         GetArtdaqPartition  (HNDLE h_DB);
+  HNDLE       GetActiveRunConfigHandle();
+  int         GetArtdaqPartition      (HNDLE h_DB);
 
-  HNDLE       GetRunConfigHandle   (HNDLE h_DB, std::string& RunConf);
-  HNDLE       GetArtdaqConfigHandle(HNDLE h_DB, std::string& RunConf, std::string& Host);
+  HNDLE       GetRunConfigHandle      (HNDLE h_DB, std::string& RunConf);
+  std::string GetRunConfigName        (HNDLE h_Conf);
+
+  HNDLE       GetArtdaqConfigHandle   (HNDLE h_DB, std::string& RunConf, std::string& Host);
 
                                         // returns: 1="external" or 0="emulated"
-  int         GetCFOExternal      (HNDLE Hdb, HNDLE h_CFO);
+  int         GetCFOExternal          (HNDLE Hdb, HNDLE h_CFO);
 
-  HNDLE       GetCFOConfigHandle   (HNDLE h_DB, HNDLE h_RunConf);
-  int         GetCFOEnabled        (HNDLE h_DB, HNDLE h_CFO);
-  int         GetCFOEventMode      (HNDLE h_DB, HNDLE h_CFO);
-  int         GetCFONEventsPerTrain(HNDLE h_DB, HNDLE h_CFO);
-  std::string GetCFORunPlanDir     (HNDLE h_DB);
-  std::string GetCFORunPlan        (HNDLE h_DB, HNDLE h_CFO);
+  HNDLE       GetCFOConfigHandle      (HNDLE h_DB, HNDLE h_RunConf);
+  int         GetCFOEnabled           (HNDLE h_DB, HNDLE h_CFO);
+  int         GetCFOEventMode         (HNDLE h_DB, HNDLE h_CFO);
+  int         GetCFONEventsPerTrain   (HNDLE h_DB, HNDLE h_CFO);
+  std::string GetCFORunPlanDir        (HNDLE h_DB);
+  std::string GetCFORunPlan           (HNDLE h_DB, HNDLE h_CFO);
 
-  int         GetCFOSleepTime     (HNDLE h_DB, HNDLE h_CFO);
+  int         GetCFOSleepTime         (HNDLE h_DB, HNDLE h_CFO);
   
-  HNDLE       GetDaqConfigHandle  (HNDLE h_DB, HNDLE h_RunConf);
+  HNDLE       GetDaqConfigHandle      (HNDLE h_DB, HNDLE h_RunConf);
   
                                         // hostname - short, w/o the domain name
   int         GetDaqHostHandle    (HNDLE Hdb, HNDLE h_CFO, const std::string& Hostname);

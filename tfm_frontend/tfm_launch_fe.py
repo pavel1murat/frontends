@@ -115,7 +115,7 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
         self._stop_run               = False;
         self.output_dir              = self.client.odb_get("/Mu2e/OutputDir")
-        self.config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration")
+        self.config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
         self.artdaq_partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER")
 
         TRACE.TRACE(7,f":0014: artdaq_partition_number={self.artdaq_partition_number}")

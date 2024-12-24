@@ -21,8 +21,8 @@ TEquipmentDTC::TEquipmentDTC(const char* eqname, const char* eqfilename): TMFeEq
   cm_get_experiment_database(&hDB, NULL);
 
   OdbInterface* odb_i         = OdbInterface::Instance(hDB);
-  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
-  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
+  std::string active_run_conf = odb_i->GetRunConfigName(h_active_run_conf);
   //-----------------------------------------------------------------------------
 // now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
 // nodes/DTC's to be monitored 

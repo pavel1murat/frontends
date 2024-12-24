@@ -96,10 +96,11 @@ INT frontend_init() {
 
   _odb_i = OdbInterface::Instance(hDB);
 
-  active_run_conf = _odb_i->GetActiveRunConfig(hDB);
-  _run_plan_dir   = _odb_i->GetCFORunPlanDir  (hDB);
+  HNDLE h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
+  active_run_conf         = _odb_i->GetRunConfigName(h_active_run_conf);
 
-  HNDLE h_active_run_conf = _odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  _run_plan_dir           = _odb_i->GetCFORunPlanDir  (hDB);
+
 
   std::string host        = get_full_host_name("local");
   _h_cfo                  = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);

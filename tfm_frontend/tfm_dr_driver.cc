@@ -66,8 +66,8 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
   cm_get_experiment_database(&hDB, NULL);
 
   OdbInterface* odb_i         = OdbInterface::Instance(hDB);
-  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
-  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
+  std::string active_run_conf = odb_i->GetRunConfigName(h_active_run_conf);
 //-----------------------------------------------------------------------------
 // create DRIVER settings record 
 //-----------------------------------------------------------------------------
