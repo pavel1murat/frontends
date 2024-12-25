@@ -1,0 +1,35 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Fri Jul 21 09:19:07 2023 -0700 - midas-2022-05-c-449-gf254ebd6-dirty on branch HEAD",
+  "/filename" : "stm.json",
+  "/ODB path" : "/Mu2e/ActiveRunConfiguration/STM",
+
+  "STM" : {
+    "La2Br3" : {
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734462566 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734462566 },
+      "Status" : 0
+    },
+    "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734453099 },
+    "Enabled" : 1,
+    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734453017 },
+    "Status" : 0,
+    "HPGe" : {
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734453017 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734453017 },
+      "Status" : 0
+    },
+    "ROC0" : {
+      "# comment_#_3 -------------/key" : { "type" : 12, "item_size" : 55, "access_mode" : 7, "last_written" : 1734453599 },
+      "# comment_#_3 -------------" : "--------- configurable element ",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734453599 },
+      "Enabled" : 1,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734453599 },
+      "Status" : 0
+    }
+  },
+  "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734453017 },
+  "Status" : 0
+}
