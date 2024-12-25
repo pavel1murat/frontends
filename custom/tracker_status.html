@@ -2,42 +2,72 @@
 <html lang="en">
 <head>
    <meta charset="UTF-8">
+
    <link rel="stylesheet" href="midas.css">
-   <link type="text/css" rel="stylesheet" href="tracker.css">
+   <link type="text/css" rel="stylesheet" href="tracker_style.css">
 
    <script src="controls.js"></script>
    <script src="midas.js"></script>
    <script src="mhttpd.js"></script>
    <script src="filesrw.js"></script>
+   <script src="tracker_utils.js"></script>
  
-   <title>Tracker Stations</title>
+   <title>Tracker</title>
 
    <script>
-      let midasInitialized = false;
+     let midasInitialized = false;
+//-----------------------------------------------------------------------------
+// 'i' - station number
+//-----------------------------------------------------------------------------
+     function redirectToStation(i) {
+       window.location.href = `tracker_station_status.html?station=${i}`;
+     }
 
-      function updateCellStyle(cell) {
-         const value = parseInt(cell.textContent.trim(), 10);
-         if (value === 1) {
-            cell.style.backgroundColor = "green";
-            cell.style.color = "white";
-         } else if (value === 0) {
-            cell.style.backgroundColor = "gray";
-            cell.style.color = "white";
-         } else if (value === -1) {
-            cell.style.backgroundColor = "red";
-            cell.style.color = "white";
-         } else {
-            cell.style.backgroundColor = "white";
-            cell.style.color = "black";
+     function load_values(path, cell) {
+       // Fetch values for Enabled and Status
+       const path_enabled = path+`/Enabled`;
+       const path_status  = path+`/Status`;
+       mjsonrpc_db_get_values([path_enabled, path_status]).then(function (rpc) {
+         let enabled = rpc.result.data[0];
+         let status = rpc.result.data[1];
+         
+         // Apply color styles
+         if (enabled === 0) {
+           cell.style.backgroundColor = "gray";
+           cell.style.color = "white";
+         } else if (enabled === 1) {
+           if (status === 0) {
+             cell.style.backgroundColor = "green";
+             cell.style.color = "white";
+           } else if (status < 0) {
+             cell.style.backgroundColor = "red";
+             cell.style.color = "white";
+           } else if (status > 0) {
+             cell.style.backgroundColor = "yellow";
+             cell.style.color = "black";
+           }
          }
-      }
+       }).catch(function (error) {
+         console.error("Error fetching values:", error);
+       });
+     }
 
-      function createStationsTable() {
-         const stations = 18; // Number of stations
-         const table = document.querySelector(".mtable");
+     function n_stations() {
+       let n = 0;
+       let path = '/Mu2e/ActiveRunConfiguration/Tracker/NStations';
+       mjsonrpc_db_get_value(path).then(function (rpc) {
+         n = rpc.result.data[0];
+       }).catch(function (error) {
+         console.error("Error fetching values:", error);
+       });
+       return n;
+     }
 
-         // Clear existing table rows
-         table.innerHTML = `
+     function createStationsTable() {
+       const table     = document.querySelector(".mtable");
+       
+       // Clear existing table rows
+       table.innerHTML = `
             <thead>
                <tr>
                   <th>Station</th>
@@ -48,49 +78,61 @@
             <tbody></tbody>
          `;
 
-         const tbody = table.querySelector("tbody");
+       const tbody = table.querySelector("tbody");
 
-         for (let i = 0; i < stations; i++) {
-            const row = document.createElement("tr");
+       const tracker_path = '/Mu2e/ActiveRunConfiguration/Tracker';
+       mjsonrpc_db_get_value(tracker_path+'/NStations').then(function (rpc) {
+         nstations = rpc.result.data[0];
 
-            // Station Cell
-            const stationCell = document.createElement("td");
-            stationCell.innerHTML = `<b>Station_${i.toString().padStart(2, '0')}</b>`;
-            row.appendChild(stationCell);
+         for (let i = 0; i < nstations; i++) {
+           const row = document.createElement("tr");
 
-            // Status Cell
-            const statusCell = document.createElement("td");
-            statusCell.innerHTML = `
-               <div class="modbvalue status-cell"
-                  data-odb-path="/Mu2e/ActiveRunConfiguration/Tracker/Station_${i.toString().padStart(2, '0')}/Enabled"
-                  onchange="updateCellStyle(this)">
-               </div>`;
-            row.appendChild(statusCell);
+           // Station Cell
+           const stationCell = document.createElement("td");
+           stationCell.innerHTML = `<b>Station_${i.toString().padStart(2, '0')}</b>`;
+           row.appendChild(stationCell);
+           
+           // Status Cell
+           const statusCell = document.createElement("td");
+           const path       = tracker_path+`/Station_${i.toString().padStart(2, "0")}`;
+           
+           //         statusCell.innerHTML = `
+           //               <div class="modbvalue status-cell"
+           //                  data-odb-path="${tracker_path}/Station_${i.toString().padStart(2, '0')}/Enabled"
+           //                  onchange="loadAndStyleValues(this)">
+           //               </div>`;
+           
+           row.appendChild(statusCell);
+           
+           // Action Cell
+           const actionCell = document.createElement("td");
+           actionCell.innerHTML = `
+               <button onclick="redirectToStation('${i}')">View station</button>`;
+           row.appendChild(actionCell);
+           
+           tbody.appendChild(row);
 
-            // Action Cell
-            const actionCell = document.createElement("td");
-            actionCell.innerHTML = `
-               <button onclick="redirectToPlanes('${i}')">View Planes</button>`;
-            row.appendChild(actionCell);
-
-            tbody.appendChild(row);
+           // Initial load
+           load_values(path,statusCell);
+           
+           // Poll for updates
+           setInterval(() => {load_values(path,statusCell);},2000);
          }
-      }
+       }).catch(function (error) {
+         console.error("Error fetching values:", error);
+       });
+     }
 
-      function redirectToPlanes(stationIndex) {
-         window.location.href = `tracker_station_status.html?station=${stationIndex}`;
-      }
-
-      function initializePage() {
-         if (!midasInitialized) {
-            mhttpd_init("Tracker Stations");
-            midasInitialized = true;
-         }
-
-         createStationsTable();
-      }
-
-      document.addEventListener("DOMContentLoaded", initializePage);
+     function initializePage() {
+       if (!midasInitialized) {
+         mhttpd_init("Tracker Stations");
+         midasInitialized = true;
+       }
+       
+       createStationsTable();
+     }
+     
+     document.addEventListener("DOMContentLoaded", initializePage);
    </script>
 
 
@@ -107,3 +149,13 @@
    </div>
 </body>
 </html>
+
+<!--
+    emacs
+    Local Variables:
+    tab-width: 8
+    c-basic-offset: 2
+    js-indent-level: 0
+    indent-tabs-mode: nil
+    End:
+-->
