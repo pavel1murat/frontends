@@ -215,6 +215,8 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   HNDLE  hClient(0);
   cm_get_experiment_database(&hDB, &hClient);
 
+  TLOG(TLVL_INFO) << "hDB:" << hDB << " hClient:" <<  hClient;
+
   if (hDB == 0) {
     TLOG(TLVL_ERROR) << "ERROR: failed to connect to ODB. BAIL OUT";
     return;
@@ -226,6 +228,10 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   std::string active_run_conf = odb_i->GetRunConfigName(h_active_run_conf);
   std::string rpc_host        = get_short_host_name("local");
   HNDLE h_host_artdaq_conf    = odb_i->GetDaqHostHandle(hDB,h_active_run_conf,rpc_host+"/Artdaq");
+
+  TLOG(TLVL_INFO) << "h_active_run_conf:" << h_active_run_conf
+                  << " active_run_conf_name:" << active_run_conf
+                  << " rpc_host:" << rpc_host << " h_host_artdaq_conf:" << h_host_artdaq_conf;
 //-----------------------------------------------------------------------------
 // a DAQ host has keys: "DTC0", DTC1", and "Artdaq"
 //-----------------------------------------------------------------------------

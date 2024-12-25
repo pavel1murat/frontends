@@ -43,7 +43,7 @@ cp $SPACK_ENV/frontends/scripts/setup_daq.sh $MU2E_DAQ_DIR/.
 
 - 2.1: run odbedit to setup the initial ODB 
 - 2.2: start mhttpd 
-- 2.3: run odbedit again to redefine the local port 
+- 2.3: run odbedit again to redefine the '/Webserver/localhost port' 
 - 2.4: restart mhttpd to listen to the right port   (these steps are defined 
 - 2.5: load the Mu2e configuration tree - it should show up as a top-level directory called Mu2e:
 -      run odbedit, create a top-level "Mu2e" subdirectory":
@@ -52,11 +52,17 @@ cp $SPACK_ENV/frontends/scripts/setup_daq.sh $MU2E_DAQ_DIR/.
 -      load srcs/frontends/odb/Mu2e/Mu2e.json
 
 - when starting mhttpd, record the shell process ID - the TRACE file will have the name /tmp/trace_file.10003
+- sequencer: configure '/Sequencer/State/Path'
+  by default, sequencer scripts show up in $MIDAQ_EXPT_DIR/userfiles/sequencer
+  copy frontends/sequencer/get_next_run_number.msl to $MIDAQ_EXPT_DIR/userfiles/sequencer
+  if path is defined, check experimentally where to copy
+- mlogger " configure '/Logger/Data dir'
+- elog: configure '/Elog/URL', '/Elog/External Elog'
 #+begin_src
 mthhrd -D
 echo $$
 #+end_src
-** configure postgres
+** configure postgres                                                        
 - outside the EC cluster 
 #+begin_src
 - ssh -f -KX -N -L 5434:daq14:5434 -J mu2etrk@daq-gateway mu2etrk@daq14
