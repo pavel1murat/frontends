@@ -15,7 +15,7 @@ OdbInterface::OdbInterface(HNDLE h_DB) {
 //-----------------------------------------------------------------------------
 OdbInterface* OdbInterface::Instance(HNDLE Hdb) {
   if (_instance == nullptr) {
-    _instance = new OdbInterface();
+    _instance = new OdbInterface(Hdb);
   }
   return _instance;
 }

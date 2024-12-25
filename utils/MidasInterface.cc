@@ -55,6 +55,11 @@ int MidasInterface::db_enum_key(HNDLE hDB, HNDLE hDir, int Index, HNDLE* hComp) 
 }
 
 //-----------------------------------------------------------------------------
+int MidasInterface::db_find_key(HNDLE hDB, HNDLE hConf, const char* Key, HNDLE& H) {
+  return ::db_find_key(hDB,hConf,Key,&H);
+}
+
+//-----------------------------------------------------------------------------
 int MidasInterface::db_get_key(HNDLE hDB, HNDLE hDir, KEY* Key) {
   return db_get_key(hDB,hDir,Key);
 }

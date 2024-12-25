@@ -88,8 +88,11 @@ cet_make_exec(NAME      get_next_run_number
               util stdc++
 )                  
 
-install(FILES runinfodb.py DESTINATION python/frontends/utils)
+install(FILES runinfodb.py      DESTINATION python/frontends/utils)
+install(FILES       MidasInterface.hh
+                    OdbInterface.hh 
+        DESTINATION include/frontends/utils)
   
 # install_fhicl(SUBDIRS fcl)
-# install_headers()
+install_headers()
 install_source()
