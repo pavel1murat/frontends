@@ -95,8 +95,6 @@
             }
           }
         },
-        "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
-        "TfmRpcHost" : "mu2edaq22-ctrl",
         "MonitoringFrontend" : {
           "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
           "Name" : "daqmon",
@@ -183,8 +181,6 @@
       "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1733525827 },
       "UseRunInfoDB" : false,
       "DAQ" : {
-        "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
-        "TfmRpcHost" : "mu2edaq09-ctrl",
         "Artdaq" : {
           "mu2edaq09" : {
             "br01" : {
@@ -232,8 +228,8 @@
           }
         },
         "Tfm" : {
-          "RpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735062123 },
-          "RpcHost" : "mu2edaq22-ctrl",
+          "RpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735072398 },
+          "RpcHost" : "mu2edaq09-ctrl",
           "#00 ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735062123 },
           "#00 ---------------------" : "------------------------------",
           "debug_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735062123 },
@@ -297,7 +293,9 @@
         }
       },
       "Status/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
-      "Status" : ""
+      "Status" : "",
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735100963 },
+      "Name" : "demo_001"
     },
     "demo_002" : {
       "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
@@ -363,8 +361,6 @@
             }
           }
         },
-        "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
-        "TfmRpcHost" : "mu2edaq09-ctrl",
         "MonitoringFrontend" : {
           "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
           "Name" : "daqmon",
@@ -378,8 +374,8 @@
           "Status" : 0
         },
         "Tfm" : {
-          "RpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735062151 },
-          "RpcHost" : "mu2edaq22-ctrl",
+          "RpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735072424 },
+          "RpcHost" : "mu2edaq09-ctrl",
           "#00 ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735062151 },
           "#00 ---------------------" : "------------------------------",
           "debug_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735062151 },
@@ -441,7 +437,9 @@
           "validate_setup_script/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1735062151 },
           "validate_setup_script" : true
         }
-      }
+      },
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735100975 },
+      "Name" : "demo_002"
     },
     "--------------- tracker_VST" : {
     },
@@ -589,8 +587,6 @@
           "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
           "Status" : 0
         },
-        "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
-        "TfmRpcHost" : "mu2edaq22-ctrl",
         "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
         "Status" : 0,
         "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
@@ -723,7 +719,9 @@
         }
       },
       "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-      "Status" : 0
+      "Status" : 0,
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735101008 },
+      "Name" : "ts1"
     },
     "ts2" : {
       "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
@@ -855,8 +853,6 @@
             }
           }
         },
-        "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
-        "TfmRpcHost" : "mu2edaq22-ctrl",
         "MonitoringFrontend" : {
           "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
           "Name" : "daqmon",
@@ -995,7 +991,9 @@
           "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
           "Status" : 0
         }
-      }
+      },
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735101023 },
+      "Name" : "ts2"
     },
     "roctower" : {
       "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
@@ -1005,23 +1003,177 @@
       "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1733525827 },
       "UseRunInfoDB" : true,
       "Calorimeter" : {
-        "Initialized/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-        "Initialized" : 0,
-        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-        "Enabled" : 0,
-        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-        "Status" : 0,
         "Disk0" : {
           "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734011397 },
           "Enabled" : 0,
           "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Status" : 0
+          "Status" : 0,
+          "Crate00" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151111 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151988 },
+            "Enabled" : 1,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151090 },
+            "Status" : 0
+          },
+          "Crate01" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151122 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735152002 },
+            "Enabled" : 1,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151122 },
+            "Status" : 0
+          },
+          "Crate02" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151123 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735152004 },
+            "Enabled" : 1,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151123 },
+            "Status" : 0
+          },
+          "Crate03" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151124 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+            "Status" : 0
+          },
+          "Crate04" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151124 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+            "Status" : 0
+          },
+          "Crate05" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151124 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+            "Status" : 0
+          },
+          "Crate06" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151125 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151125 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151125 },
+            "Status" : 0
+          },
+          "Crate07" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151125 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151125 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151125 },
+            "Status" : 0
+          },
+          "Crate08" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151126 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151126 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151126 },
+            "Status" : 0
+          },
+          "Crate09" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151126 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151126 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151126 },
+            "Status" : 0
+          }
         },
         "Disk1" : {
-          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
           "Enabled" : 0,
-          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Status" : 0
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+          "Status" : 0,
+          "Crate00" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Status" : 0
+          },
+          "Crate01" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Status" : 0
+          },
+          "Crate02" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Status" : 0
+          },
+          "Crate03" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Status" : 0
+          },
+          "Crate04" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Status" : 0
+          },
+          "Crate05" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Status" : 0
+          },
+          "Crate06" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Status" : 0
+          },
+          "Crate07" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Status" : 0
+          },
+          "Crate08" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Status" : 0
+          },
+          "Crate09" : {
+            "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+            "# ---------------------" : "--------------------------",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+            "Status" : 0
+          }
         },
         "MonitoringFrontend" : {
           "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
@@ -1034,11 +1186,13 @@
           "Enabled" : 0,
           "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
           "Status" : 0
-        }
+        },
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+        "Enabled" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+        "Status" : 0
       },
       "CRV" : {
-        "Initialized/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-        "Initialized" : 0,
         "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
         "Enabled" : 0,
         "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
@@ -1100,12 +1254,12 @@
           "Host" : "mu2edaq22-ctrl.fnal.gov--is-it -used?",
           "EventMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
           "EventMode" : 1,
-          "NEventsPerTrain/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734980608 },
-          "NEventsPerTrain" : 500,
+          "NEventsPerTrain/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735097942 },
+          "NEventsPerTrain" : 200,
           "EventWindowSize/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
           "EventWindowSize" : 1000,
-          "SleepTimeMs/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734980355 },
-          "SleepTimeMs" : 250,
+          "SleepTimeMs/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735097948 },
+          "SleepTimeMs" : 200,
           "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1733525827 },
           "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/mu2edaq22/DTC0",
           "FirstEWTag/key" : { "type" : 18, "access_mode" : 7, "last_written" : 1733525827 },
@@ -1177,8 +1331,6 @@
         },
         "RocReadoutMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
         "RocReadoutMode" : 0,
-        "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
-        "TfmRpcHost" : "mu2edaq22-ctrl",
         "# ------------------ 0/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
         "# ------------------ 0" : "configurable element",
         "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
@@ -1437,8 +1589,6 @@
         }
       },
       "EXM" : {
-        "Initialized/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-        "Initialized" : 0,
         "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
         "Enabled" : 0,
         "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
@@ -1463,16 +1613,28 @@
         }
       },
       "STM" : {
-        "Initialized/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-        "Initialized" : 0,
-        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-        "Enabled" : 0,
-        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735150370 },
+        "Enabled" : 1,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735150370 },
         "Status" : 0,
-        "Element0" : {
-          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Enabled" : 0,
-          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+        "HPGe" : {
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735150389 },
+          "Enabled" : 1,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735150370 },
+          "Status" : 0
+        },
+        "LaBr" : {
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735150535 },
+          "Enabled" : 1,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735150370 },
+          "Status" : 0
+        },
+        "ROC0" : {
+          "# comment_#_3 -------------/key" : { "type" : 12, "item_size" : 55, "access_mode" : 7, "last_written" : 1735150370 },
+          "# comment_#_3 -------------" : "--------- configurable element ",
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735150370 },
+          "Enabled" : 1,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735150370 },
           "Status" : 0
         },
         "MonitoringFrontend" : {
@@ -1627,8 +1789,8 @@
           "Plane_01" : {
             "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735009744 },
             "# ---------------------" : "-------------------------",
-            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734982354 },
-            "Enabled" : 1,
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735152858 },
+            "Enabled" : 0,
             "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
             "Status" : 0,
             "Panel_00" : {
@@ -1650,8 +1812,8 @@
               "ChannelMask" : [ "0xffffffff", "0xffffffff", "0xffffffff" ],
               "# comment : Status:/key" : { "type" : 12, "item_size" : 59, "access_mode" : 7, "last_written" : 1735009438 },
               "# comment : Status:" : "0: undefined 1:being configured 2: configured -1: in error",
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735009438 },
-              "Enabled" : 1,
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735152902 },
+              "Enabled" : 0,
               "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735009582 },
               "Status" : 0
             },
@@ -1670,8 +1832,8 @@
               "ChannelMask" : [ "0xffffffff", "0xffffffff", "0xffffffff" ],
               "# comment : Status:/key" : { "type" : 12, "item_size" : 59, "access_mode" : 7, "last_written" : 1735009504 },
               "# comment : Status:" : "0: undefined 1:being configured 2: configured -1: in error",
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735009504 },
-              "Enabled" : 1,
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735152913 },
+              "Enabled" : 0,
               "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735009568 },
               "Status" : 0
             },
@@ -1690,8 +1852,8 @@
               "ChannelMask" : [ "0xffffffff", "0xffffffff", "0xffffffff" ],
               "# comment : Status:/key" : { "type" : 12, "item_size" : 59, "access_mode" : 7, "last_written" : 1735009545 },
               "# comment : Status:" : "0: undefined 1:being configured 2: configured -1: in error",
-              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735009545 },
-              "Enabled" : 1,
+              "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735152920 },
+              "Enabled" : 0,
               "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735059010 },
               "Status" : 0
             },
@@ -2049,10 +2211,6 @@
           "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
           "Status" : -1
         },
-        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-        "Enabled" : 1,
-        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-        "Status" : 1,
         "Station_04" : {
           "Plane_00" : {
             "Panel_00" : {
@@ -3430,7 +3588,15 @@
           "MaxTotalDelay" : 1,
           "MarkerClock/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
           "MarkerClock" : 0
-        }
+        },
+        "NStations/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735152800 },
+        "NStations" : 18,
+        "# ---------------------/key" : { "type" : 12, "item_size" : 35, "access_mode" : 7, "last_written" : 1735149742 },
+        "# ---------------------" : "----------------------------------",
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+        "Enabled" : 1,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+        "Status" : 1
       },
       "Trigger" : {
         "Table/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1733525827 },
@@ -3452,7 +3618,7 @@
           "Status" : 0
         }
       },
-      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735150370 },
       "Status" : 0
     },
     "train_station" : {
@@ -9351,7 +9517,9 @@
           "validate_setup_script/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1735062267 },
           "validate_setup_script" : true
         }
-      }
+      },
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735101049 },
+      "Name" : "extracted"
     },
     "ierc" : {
       "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
