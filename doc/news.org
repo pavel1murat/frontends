@@ -2,8 +2,14 @@
 # ------------------------------------------------------------------------------
 # development news
 # ------------------------------------------------------------------------------
+* <2024-12-25 Wed>                                                           
+** subdetector configuration framework implemented
+** version 1 of the monitoring pages deployed (Mark Vakulenko)               
+  - see custom pages on the bottom of the control bar
+** integration configurations 'ierc' and 'extracted' added
+** 'stm_test' configuration added
 * <2024-11-30 Sat>                                                           
-** python-based access to postgresql DB re-established (Namitha)              
+** python-based access to postgresql DB re-established (Namitha)             
 - if for the active configuration, UseRuninfoDB=1, the run numbers come from runinfo DB
 - to request a run number, use Sequencer script get_next_run_number
 - details: file:runinfodb.org
