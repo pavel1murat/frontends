@@ -3,13 +3,13 @@
 # if you notice smth missing, don't ask permissions, go ahead, and fix it
 * ------------------------------------------------------------------------------
 * [[file:news.org][News]]                                                                       
-* [[file:build_instructions.org][installation and build instructions]]
-* configuration instructions                                                 
+* [[file:build_instructions.org][installation and build]]
+* configuration                                                              
+the folowing assumes that you read instructions on MIDAS website: 
 
-- step 1: the folowing assumes that you read instructions on MIDAS website: 
-  https://daq00.triumf.ca/MidasWiki/index.php/Quickstart_Linux#Installation                                            
+https://daq00.triumf.ca/MidasWiki/index.php/Quickstart_Linux#Installation                                            
 
-** declare working directory as $MU2E_DAQ_DIR and installconfig files
+** declare working directory as $MU2E_DAQ_DIR and install config files       
   
 #+begin_src
 export   MU2E_DAQ_DIR=$PWD
@@ -63,11 +63,16 @@ mthhrd -D
 echo $$
 #+end_src
 ** configure postgres                                                        
+- make sure you have $MU2E_DAQ_DIR/config/runinfodb.json with the PG configuration 
 - outside the EC cluster 
 #+begin_src
 - ssh -f -KX -N -L 5434:daq14:5434 -J mu2etrk@daq-gateway mu2etrk@daq14
 #+end_src
 - after that, direct the local client (via config/runinfodb.json) to daq14:5434
+** configure ROOT interface                                                  
+- copy frontends/scripts/.rootrc and frontends/scripts/rootlogon.C to $MU2E_DAQ_DIR
+** configure ELOG
+   file:elog.org::/configuration/
 * ARTDAQ                                                                     
 ** artdaq repo: https://github.com/art-daq/artdaq
 ** mu2e-45544: artdaq intro by Eric:                                         
