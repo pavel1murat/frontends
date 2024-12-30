@@ -49,10 +49,8 @@ std::initializer_list<const char*>  DsVarName = {
 //-----------------------------------------------------------------------------
 void TEquipmentNode::InitArtdaqVarNames() {
   char dirname[256], name[128];
-  
-  const std::string settings("/Equipment/mu2edaq22/Settings");
-  midas::odb        node_settings(settings);
-//-----------------------------------------------------------------------------
+
+  const char* settings = "/Equipment/mu2edaq22/Settings";
 //-----------------------------------------------------------------------------
   int nac = _list_of_ac.size();
   
@@ -88,8 +86,13 @@ void TEquipmentNode::InitArtdaqVarNames() {
 // save in ODB
 //-----------------------------------------------------------------------------
     sprintf(dirname,"Names %s",ac->name.data());
-    if ((var_names.size() > 0) and (not midas::odb::exists(settings+"/"+dirname))) {
-      node_settings[dirname] = var_names;
+    char path[256];
+    sprintf(path,"%s/%s",settings,dirname);
+    if ((var_names.size() > 0) and (not midas::odb::exists(path))) {
+      midas::odb odb_settings = {dirname, {"a"}};
+      odb_settings.connect(settings);
+      odb_settings[dirname].resize(var_names.size());
+      odb_settings[dirname] = var_names;
     }
   }
 }
@@ -99,7 +102,7 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
   
   // two words per process - N(segments/sec) and the data rate, MB/sec
   int           rc(0);
-  xmlrpc_env    env;
+  //  xmlrpc_env    env;
   xmlrpc_value* resultP;
 
   BrMetrics_t   brm;
@@ -111,12 +114,12 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
   int         nf(-1);
 
   try {
-    xmlrpc_env_init(&env);
+    //    xmlrpc_env_init(&env);  // P.M. : use _env - it should eb initialized
                                // "({s:i,s:i})",
-    resultP = xmlrpc_client_call(&env,url,"daq.report","(s)","stats");
-    if (env.fault_occurred) {
-      rc = env.fault_code;
-      TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " output:" << env.fault_string;
+    resultP = xmlrpc_client_call(&_env,url,"daq.report","(s)","stats");
+    if (_env.fault_occurred) {
+      rc = _env.fault_code;
+      TLOG(TLVL_ERROR) << "XML-RPC rc=" << _env.fault_code << " output:" << _env.fault_string;
       // throw;
       goto DONE_PARSING;
     }
@@ -125,7 +128,7 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
 //-----------------------------------------------------------------------------
     const char* value;
     size_t      length;
-    xmlrpc_read_string_lp(&env, resultP, &length, &value);
+    xmlrpc_read_string_lp(&_env, resultP, &length, &value);
     
     res = value;
     xmlrpc_DECREF   (resultP);
@@ -341,28 +344,28 @@ int TEquipmentNode::ReadDataReceiverMetrics(const ArtdaqComponent_t* Ac) {
   
   // two words per process - N(segments/sec) and the data rate, MB/sec
   int           rc(0);
-  xmlrpc_env    env;
+  // xmlrpc_env    env;
   xmlrpc_value* resultP;
 
   EbMetrics_t   drm;
   
-  xmlrpc_env_init(&env);
+  // xmlrpc_env_init(&env);
   const char* url = Ac->xmlrpc_url.data();
   TLOG(TLVL_DEBUG+1) << "000: Url:" << url;
 
   std::string res;
 
   try {
-    resultP = xmlrpc_client_call(&env,url,"daq.report","(s)","stats");
-    if (env.fault_occurred) {
-      TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string;
-      rc = env.fault_code;
+    resultP = xmlrpc_client_call(&_env,url,"daq.report","(s)","stats");
+    if (_env.fault_occurred) {
+      TLOG(TLVL_ERROR) << "XML-RPC rc=" << _env.fault_code << " " << _env.fault_string;
+      rc = _env.fault_code;
       goto DONE_PARSING_1;
     }
 
     const char* value;
     size_t      length;
-    xmlrpc_read_string_lp(&env, resultP, &length, &value);
+    xmlrpc_read_string_lp(&_env, resultP, &length, &value);
     
     res = value;
     xmlrpc_DECREF   (resultP);

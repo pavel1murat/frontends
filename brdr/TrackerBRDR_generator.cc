@@ -229,7 +229,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
   std::string active_run_conf = odb_i->GetRunConfigName(h_active_run_conf);
   std::string rpc_host        = get_short_host_name("local");
-  HNDLE h_host_artdaq_conf    = odb_i->GetDaqHostHandle(hDB,h_active_run_conf,rpc_host+"/Artdaq");
+  HNDLE h_host_artdaq_conf    = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,rpc_host);
 
   TLOG(TLVL_INFO) << "label: " << _artdaqLabel
                   << " h_active_run_conf:" << h_active_run_conf

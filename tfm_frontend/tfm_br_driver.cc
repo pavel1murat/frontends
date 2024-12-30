@@ -101,7 +101,7 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   if (hname == "") hname = "local";
 
   std::string host    = get_full_host_name(hname.data());
-  HNDLE h_artdaq_conf = odb_i->GetArtdaqConfigHandle(hDB,active_run_conf,host);
+  HNDLE h_artdaq_conf = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,host);
 //-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
 // make sure it won't compile before that
