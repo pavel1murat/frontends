@@ -15,9 +15,9 @@
 #include "tmfe.h"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "trk_dtc_ctl_frontend"
+#define  TRACE_NAME "dtc_mt_frontend"
 
-#include "dtc_frontend/TEquipmentDTC.hh"
+#include "dtc_frontend/TEquipmentNode.hh"
 
 //-----------------------------------------------------------------------------
 static void usage() {
@@ -61,7 +61,7 @@ public:
 DtcFrontend::DtcFrontend(const char* Name) : TMFrontend() {
   FeSetName(Name);
   
-  TEquipmentDTC* eq_dtc = new TEquipmentDTC("mu2edaq22",__FILE__);
+  TEquipmentNode* eq_dtc = new TEquipmentNode("mu2edaq22",__FILE__);
   FeAddEquipment(eq_dtc);
 }
 
@@ -81,17 +81,21 @@ int main(int argc, char* argv[]) {
   //} else {
   //   usage(); // DOES NOT RETURN
   //}
-  
+
+  // this frontend connects twice, **TO BE FIXED**
+  cm_connect_experiment(NULL, NULL, "Name", NULL);
+
   DtcFrontend fe("dtc_mt_frontend");
 
   return fe.FeMain(argc, argv);
 
-  // while (! fe->ShutdownRequested()) {
+  // while (! fe.ShutdownRequested()) {
   //   ::sleep(1);
   // }
 
-  // fe->Disconnect();
+  // fe.Disconnect();
   
+  cm_disconnect_experiment();
   return 0;
 }
 

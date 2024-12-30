@@ -202,7 +202,7 @@ INT frontend_init() {
     _dtc_data[_ndtcs].h_dtc = h_subkey;
       
     dtc_i->fEnabled        = enabled;
-    dtc_i->fRocReadoutMode = odb_i->GetDtcReadoutMode   (hDB,h_subkey);
+    dtc_i->fRocReadoutMode = odb_i->GetRocReadoutMode   (_h_active_run_conf);
     dtc_i->fSampleEdgeMode = odb_i->GetDtcSampleEdgeMode(hDB,h_subkey);
     dtc_i->fEmulateCfo     = odb_i->GetDtcEmulatesCfo   (hDB,h_subkey);
 

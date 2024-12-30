@@ -55,7 +55,7 @@ cet_make_exec(NAME      trk_dtc_frontend
 )
 
 cet_make_exec(NAME      trk_dtc_ctl_frontend
-              SOURCE    trk_dtc_ctl_frontend.cc TEquipmentDTC.cc
+              SOURCE    trk_dtc_ctl_frontend.cc
               LIBRARIES frontends_utils
                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
                         mu2e_pcie_utils::DTCInterface
@@ -64,7 +64,9 @@ cet_make_exec(NAME      trk_dtc_ctl_frontend
                         stdc++ m util pthread rt
 )
 cet_make_exec(NAME      dtc_mt_frontend
-              SOURCE    dtc_mt_frontend.cc TEquipmentDTC.cc
+              SOURCE    dtc_mt_frontend.cc
+                        TEquipmentNode.cc
+                        TEquipmentNode_Artdaq.cc
               LIBRARIES frontends_utils
                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
                         mu2e_pcie_utils::DTCInterface
