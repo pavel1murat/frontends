@@ -163,10 +163,10 @@ INT frontend_init() {
 // find ARTDAQ configuration , 'host_name' (hostname, i.e. mu2edaq09.fnal.gov) 
 // is a global from midas/src/mfe.cxx and should be defined on the command line! 
 //-----------------------------------------------------------------------------
-  HNDLE h_artdaq_conf = odb_i->GetArtdaqConfigHandle(hDB,active_run_conf,host);
+  HNDLE h_artdaq_conf = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,host);
 
   if (h_artdaq_conf == 0) {
-    TLOG(TLVL_ERROR) << "no ARTDAQ configuration for" << active_run_conf << ":" << host;
+    TLOG(TLVL_ERROR) << "no ARTDAQ configuration for host:" << active_run_conf << ":" << host;
     return FE_ERR_ODB; 
   }
 //-----------------------------------------------------------------------------

@@ -48,10 +48,13 @@ class TEquipmentNode : public TMFeEquipment {
 public:
 
   HNDLE                          hDB;
+  HNDLE                          _h_active_run_conf;
   HNDLE                          _h_daq_host_conf;
   trkdaq::DtcInterface*          fDtc_i[2];       // one or two DTCs, nullprt:disabled
   std::vector<ArtdaqComponent_t> _list_of_ac;
-  std::string                    _xmlrpcUrl;
+  // std::string                    _xmlrpcUrl;
+  std::string                    _rpc_host;
+  std::string                    _tfm_host;
   xmlrpc_env                     _env;
   int                            _monitorDtc;
   int                            _monitorArtdaq;
@@ -63,11 +66,14 @@ public:
 
   virtual TMFeResult HandleInit        (const std::vector<std::string>& args);
   virtual void       HandlePeriodic    ();
+  virtual TMFeResult HandleRpc         (const char* cmd, const char* args, std::string& response);
   virtual TMFeResult HandleBeginRun    (int RunNumber);
-  
+
+  TMFeResult         InitDtc           ();
   void               InitDtcVarNames   ();
   void               ReadDtcMetrics    ();
 
+  TMFeResult         InitArtdaq             ();
   void               InitArtdaqVarNames     ();
   void               ReadArtdaqMetrics      ();
   int                ReadBrMetrics          (const ArtdaqComponent_t* Ac);

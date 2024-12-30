@@ -184,7 +184,7 @@ INT frontend_init() {
 
   TLOG(TLVL_DEBUG) << "config_name:" << _active_run_conf << " rpc_host:" << _rpc_host;
 
-  _h_host_conf = odb_i->GetDaqHostHandle(hDB,_h_active_run_conf,_rpc_host);
+  _h_host_conf = odb_i->GetHostConfHandle(_h_active_run_conf,_rpc_host);
 //-----------------------------------------------------------------------------
 // DTC is the equipment, two are listed in the header, both should be listed in ODB
 //-----------------------------------------------------------------------------

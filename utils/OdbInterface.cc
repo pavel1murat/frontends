@@ -62,16 +62,12 @@ HNDLE OdbInterface::GetActiveRunConfigHandle() {
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetArtdaqConfigHandle(HNDLE hDB, std::string& RunConf, std::string& Host) {
-  char     key[200];
-  HNDLE    h;
-  sprintf(key,"/Mu2e/RunConfigurations/%s/DAQ/%s/Artdaq",RunConf.data(),Host.data());
-  
-  if (db_find_key(hDB, 0, key, &h) == DB_SUCCESS) return h;
-  else {
-    TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
-    return 0;
-  }
+// this could become DAQ/Nodes/mu2edaqXXX
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetHostArtdaqConfHandle(HNDLE h_RunConf, const std::string& Host) {
+  char key[128];
+  sprintf(key,"DAQ/%s/Artdaq",Host.data());
+  return GetHandle(_hDB,h_RunConf,key);
 }
 
 //-----------------------------------------------------------------------------
@@ -346,21 +342,15 @@ HNDLE OdbInterface::GetDaqConfigHandle(HNDLE hDB, HNDLE hRunConf) {
   }
   return h;
 }
+
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDaqHostHandle(HNDLE hDB, HNDLE hConf, const std::string& Hostname) {
-
-  char key[100];
-  int  sz = sizeof(key);
-
-  snprintf(key,sz-1,"DAQ/%s",Hostname.data());
-
-  HNDLE h(0);
-  if (db_find_key(hDB, hConf, key, &h) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << " not found";
-  }
-  return h;
+// this could become DAQ/Nodes/mu2edaqXXX
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetHostConfHandle(HNDLE h_RunConf, const std::string& Host) {
+  char key[128];
+  sprintf(key,"DAQ/%s",Host.data());
+  return GetHandle(_hDB,h_RunConf,key);
 }
-
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetCFORunPlanDir(HNDLE hDB) {

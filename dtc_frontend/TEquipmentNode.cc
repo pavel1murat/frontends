@@ -17,52 +17,16 @@ TEquipmentNode::TEquipmentNode(const char* eqname, const char* eqfilename): TMFe
   fEqConfWriteEventsToOdb = true;
 
   fDtc_i[0]               = nullptr;
-  fDtc_i[1]               = nullptr;
-  
-  cm_get_experiment_database(&hDB, NULL);
+  fDtc_i[1]               = nullptr;  
+}
 
-  _odb_i                          = OdbInterface::Instance(hDB);
-  HNDLE         h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
-  std::string   active_run_conf   = _odb_i->GetRunConfigName(h_active_run_conf);
-//-----------------------------------------------------------------------------
-// now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
-// nodes/DTC's to be monitored 
-// MIDAS 'host_name' could be 'local'..
-//-----------------------------------------------------------------------------
-  std::string rpc_host  = get_short_host_name("local");
-  std::string tfm_host  = get_full_host_name ("local");
-
-  TLOG(TLVL_DEBUG) << "rpc_host:" << rpc_host << " active_run_conf:" << active_run_conf;
-
-  _h_daq_host_conf = _odb_i->GetDaqHostHandle     (hDB,h_active_run_conf,rpc_host);
-  _odb_i->GetInteger(hDB,_h_daq_host_conf,"Monitor/Dtc"   ,&_monitorDtc   );
-  _odb_i->GetInteger(hDB,_h_daq_host_conf,"Monitor/Artdaq",&_monitorArtdaq);
-
-  TLOG(TLVL_DEBUG) << "_monitorDtc:" << _monitorDtc << " _monitorArtdaq:" << _monitorArtdaq;
-//-----------------------------------------------------------------------------
-// ARTDAQ_PARTITION_NUMBER also comes from the active run configuration
-// get port number used by the TFM, don't assume the farm_manager is running locally
-// the frontend has to have its own xmlrpc URL,
-// TFM uses port           10000+1000*partition
-// boardreaders start from 10000+1000*partition+100+1;
-// init XML RPC            10000+1000*partition+11
-//-----------------------------------------------------------------------------
-  int         partition   = _odb_i->GetArtdaqPartition(hDB);
-  int         port_number = 10000+1000*partition+11;
-  
-  char cbuf[100];
-  sprintf(cbuf,"http://%s:%i/RPC2",tfm_host.data(),port_number);
-  _xmlrpcUrl = cbuf;
-
-  sprintf(cbuf,"%s_mon",rpc_host.data());
-  xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS,cbuf,"v1_0");
-  xmlrpc_env_init(&_env);
 
 //-----------------------------------------------------------------------------
 // back to DTC: two are listed in the header, both should be listed in ODB
 //-----------------------------------------------------------------------------
-  int event_mode       = _odb_i->GetEventMode     (h_active_run_conf);
-  int roc_readout_mode = _odb_i->GetRocReadoutMode(h_active_run_conf);
+TMFeResult TEquipmentNode::InitDtc() {
+  int event_mode       = _odb_i->GetEventMode     (_h_active_run_conf);
+  int roc_readout_mode = _odb_i->GetRocReadoutMode(_h_active_run_conf);
 
   HNDLE h_subkey;
   KEY   subkey;
@@ -108,13 +72,36 @@ TEquipmentNode::TEquipmentNode(const char* eqname, const char* eqfilename): TMFe
   }
 
   InitDtcVarNames();
-  //  }
 
-  // if (_monitorArtdaq) {
+  return TMFeOk();
+}
+
+
+//-----------------------------------------------------------------------------
+// init ODB structure no matter what
+TMFeResult TEquipmentNode::InitArtdaq() {
+//-----------------------------------------------------------------------------
+// ARTDAQ_PARTITION_NUMBER also comes from the active run configuration
+// get port number used by the TFM, don't assume the farm_manager is running locally
+// the frontend has to have its own xmlrpc URL,
+// TFM uses port           10000+1000*partition
+// boardreaders start from 10000+1000*partition+100+1;
+// init XML RPC            10000+1000*partition+11
+//-----------------------------------------------------------------------------
+  // int         partition   = _odb_i->GetArtdaqPartition(hDB);
+  // int         port_number = 10000+1000*partition+11;
+  
+  char cbuf[100];
+  // sprintf(cbuf,"http://%s:%i/RPC2",tfm_host.data(),port_number);
+  // _xmlrpcUrl = cbuf;
+
+  sprintf(cbuf,"%s_mon",_rpc_host.data());
+  xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS,cbuf,"v1_0");
+  xmlrpc_env_init(&_env);
 //-----------------------------------------------------------------------------
 // read ARTDAQ configuration from ODB
 //-----------------------------------------------------------------------------
-  HNDLE h_artdaq_conf = _odb_i->GetArtdaqConfigHandle(hDB,active_run_conf,rpc_host);
+  HNDLE h_artdaq_conf = _odb_i->GetHostArtdaqConfHandle(_h_active_run_conf,_rpc_host);
   HNDLE h_component;
   KEY   component;
   for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
@@ -144,53 +131,103 @@ TEquipmentNode::TEquipmentNode(const char* eqname, const char* eqfilename): TMFe
     _odb_i->GetInteger(hDB,h_component,"NFragmentTypes" ,&ac.n_fragment_types);
 
     char url[100];
-    sprintf(url,"http://%s:%i/RPC2",tfm_host.data(),ac.xmlprc_port);
+    sprintf(url,"http://%s:%i/RPC2",_tfm_host.data(),ac.xmlprc_port);
     ac.xmlrpc_url  = url;
     
     _list_of_ac.push_back(ac);
   }
   
   InitArtdaqVarNames();
-  //  }
+  
+  return TMFeOk();
+}
+
+//-----------------------------------------------------------------------------
+// overloaded function of TMFeEquipment : 2 DTCs
+//-----------------------------------------------------------------------------
+TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
+
+  fEqConfReadOnlyWhenRunning = false;
+  fEqConfWriteEventsToOdb    = true;
+  //fEqConfLogHistory = 1;
+
+  cm_get_experiment_database(&hDB, NULL);
+
+  _odb_i                      = OdbInterface::Instance(hDB);
+  _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
+  std::string active_run_conf = _odb_i->GetRunConfigName(_h_active_run_conf);
+//-----------------------------------------------------------------------------
+// now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
+// nodes/DTC's to be monitored 
+// MIDAS 'host_name' could be 'local'..
+//-----------------------------------------------------------------------------
+  _rpc_host = get_short_host_name("local");
+  _tfm_host = get_full_host_name ("local");
+
+  TLOG(TLVL_DEBUG) << "rpc_host:" << _rpc_host
+                   << " active_run_conf:" << active_run_conf;
+
+  _h_daq_host_conf = _odb_i->GetHostConfHandle(_h_active_run_conf,_rpc_host);
+  _odb_i->GetInteger(hDB,_h_daq_host_conf,"Monitor/Dtc"   ,&_monitorDtc   );
+  _odb_i->GetInteger(hDB,_h_daq_host_conf,"Monitor/Artdaq",&_monitorArtdaq);
+
+  TLOG(TLVL_DEBUG) << "_monitorDtc:" << _monitorDtc
+                   << " _monitorArtdaq:" << _monitorArtdaq;
+
+  InitDtc();
+  InitArtdaq();
+  
+  return TMFeOk();
 }
 
 //-----------------------------------------------------------------------------
 // 2 DTCs and their ROCs
 //-----------------------------------------------------------------------------
 void TEquipmentNode::InitDtcVarNames() {
-  char dirname[256], name[128];
+  char dirname[256], dtc_dirname[256], var_name[128];
   
-  const char*  dtc_name[] = {"Temp", "VCCINT", "VCCAUX", "VCBRAM", 0};
+  std::initializer_list<const char*> dtc_names = {"Temp", "VCCINT", "VCCAUX", "VCBRAM"};
 
-  const std::string node_path("/Equipment/mu2edaq22");
-
-  midas::odb        node_dir    (node_path);
-  midas::odb        settings_dir(node_path+"/Settings");
+  const std::string node_path    ("/Equipment/mu2edaq22");
+  const std::string settings_path("/Equipment/mu2edaq22/Settings");
 //-----------------------------------------------------------------------------
 // DTCs and ROCs
 //-----------------------------------------------------------------------------
   for (int idtc=0; idtc<2; idtc++) {
     std::vector<std::string> dtc_var_names;
-    for (int k=0; dtc_name[k] != 0; k++) {
-      sprintf(name,"dtc%i#%s",idtc,dtc_name[k]);
+    for (const char* name : dtc_names) {
+      sprintf(var_name,"dtc%i#%s",idtc,name);
       dtc_var_names.push_back(name);
     }
        
     sprintf(dirname,"Names dtc%i",idtc);
     if (not midas::odb::exists(node_path+"/Settings/"+dirname)) {
-      settings_dir[dirname] = dtc_var_names;
+      midas::odb odb_settings = {dirname,{"a"}};
+      odb_settings.connect(settings_path);
+      odb_settings[dirname] = dtc_var_names;
     }
 //-----------------------------------------------------------------------------
 // non-history DTC registers
 //-----------------------------------------------------------------------------
     dtc_var_names.clear();
     for (const int& reg : DtcRegisters) {
-      sprintf(name,"dtc%i#0x%04x",idtc,reg);
-      dtc_var_names.push_back(name);
+      sprintf(var_name,"dtc%i#0x%04x",idtc,reg);
+      dtc_var_names.push_back(var_name);
     }
       
     sprintf(dirname,"DTC%i",idtc);
-    midas::odb   dtc_dir(node_path+"/"+dirname);
+
+    midas::odb   dtc_dir = {
+      {"RegNames",{"a"}},
+      {"RegData" ,{"a"}},
+      {"ROC0",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } },
+      {"ROC1",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } },
+      {"ROC2",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } },
+      {"ROC3",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } },
+      {"ROC4",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } },
+      {"ROC5",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } }
+    };
+    dtc_dir.connect(node_path+"/"+dirname);
     dtc_dir["RegNames"] = dtc_var_names;
 
     std::vector<uint32_t> dtc_reg_data(dtc_var_names.size());
@@ -202,42 +239,33 @@ void TEquipmentNode::InitDtcVarNames() {
      
       std::vector<std::string> roc_var_names;
       for (int k=0; k<trkdaq::TrkSpiDataNWords; k++) {
-        sprintf(name,"rc%i%i#%s",idtc,ilink,trkdaq::DtcInterface::SpiVarName(k));
-        roc_var_names.push_back(name);
+        sprintf(var_name,"rc%i%i#%s",idtc,ilink,trkdaq::DtcInterface::SpiVarName(k));
+        roc_var_names.push_back(var_name);
       }
       
-      sprintf(dirname,"Settings/Names rc%i%i",idtc,ilink);
-      if (not midas::odb::exists(node_path+"/"+dirname)) {
-        node_dir[dirname] = roc_var_names;
+      sprintf(dirname,"Names rc%i%i",idtc,ilink);
+      if (not midas::odb::exists(settings_path+"/"+dirname)) {
+        midas::odb o = {dirname,{"a"}};
+        o.connect(settings_path);
+        o[dirname] = roc_var_names;
       }
 //-----------------------------------------------------------------------------
 // non-history ROC registers - counters and such - just to be looked at
 //-----------------------------------------------------------------------------
       roc_var_names.clear();
       for(const int& reg : RocRegisters) {
-        sprintf(name,"rr%i%i#reg_%03i",idtc,ilink,reg);
-        roc_var_names.push_back(name);
+        sprintf(var_name,"rr%i%i#reg_%03i",idtc,ilink,reg);
+        roc_var_names.push_back(var_name);
       }
-      
-      sprintf(dirname,"DTC%i/ROC%i",idtc,ilink);
-      midas::odb   roc_dir(node_path+"/"+dirname);
-      roc_dir["RegNames"] = roc_var_names;
 
+      char roc_subdir[16];
+      sprintf(roc_subdir,"ROC%i",ilink);
+      dtc_dir[roc_subdir]["RegNames"] = roc_var_names;
+      
       std::vector<uint16_t> roc_reg_data(roc_var_names.size());
-      roc_dir["RegData"] = roc_reg_data;
+      dtc_dir[roc_subdir]["RegData"] = roc_reg_data;
     }
   }
-}
-
-
-//-----------------------------------------------------------------------------
-// overloaded function of TMFeEquipment : 2 DTCs
-//-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
-  fEqConfReadOnlyWhenRunning = false;
-  fEqConfWriteEventsToOdb    = true;
-  //fEqConfLogHistory = 1;
-  return TMFeOk();
 }
 
 //-----------------------------------------------------------------------------
@@ -261,6 +289,21 @@ TMFeResult TEquipmentNode:: HandleBeginRun(int RunNumber)  {
   return TMFeOk();
 };
 
+
+//-----------------------------------------------------------------------------
+TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::string& response) {
+  fMfe->Msg(MINFO, "HandleRpc", "RPC cmd [%s], args [%s]", cmd, args);
+
+  // RPC handler
+      
+  time_t now = time(NULL);
+  //  char tmp[256];
+  //  sprintf(tmp, "{ \"current_time\" : [ %d, \"%s\"] }", (int)now, ctime(&now));
+  
+  response = std::format("{:c} \"current_time\" : [{:d}, {:s}] {:c}",'{',(int) now, "emoe",'}');
+  
+  return TMFeOk();
+}
 
 //-----------------------------------------------------------------------------
 void TEquipmentNode::ReadDtcMetrics() {

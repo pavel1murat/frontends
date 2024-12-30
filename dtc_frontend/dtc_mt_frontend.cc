@@ -28,7 +28,10 @@ static void usage() {
 //-----------------------------------------------------------------------------
 class DtcFrontend: public TMFrontend {
 public:
-
+  
+//-----------------------------------------------------------------------------
+// functions
+//-----------------------------------------------------------------------------
   DtcFrontend(const char* Name);
   
   void HandleUsage() {}   //printf("FeEverything::HandleUsage!\n");  }
@@ -56,12 +59,18 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-//  add future DTC frontend
+// add future node fronten, 
+// the base class constructor does nothing except instantiating TFME thing
+// all parameters need to be initalized here
 //-----------------------------------------------------------------------------
 DtcFrontend::DtcFrontend(const char* Name) : TMFrontend() {
+  
   FeSetName(Name);
   
   TEquipmentNode* eq_dtc = new TEquipmentNode("mu2edaq22",__FILE__);
+
+// add eq to the list of equipment pieces
+// equipment stores the 'backward' pointer to the frontend
   FeAddEquipment(eq_dtc);
 }
 
@@ -83,20 +92,17 @@ int main(int argc, char* argv[]) {
   //}
 
   // this frontend connects twice, **TO BE FIXED**
-  cm_connect_experiment(NULL, NULL, "Name", NULL);
+  //  cm_connect_experiment(NULL, NULL, "Name", NULL);
 
   DtcFrontend fe("dtc_mt_frontend");
 
+  // FeMain calls FeInit - at this point connection to the experiment happens
+  // this is too late for equipment to be initialized in the constructor
+  //   - however, after connecting, FeInit calls FeInitEquipments which loops
+  //     over equipment pieces and calls EqInit function for each of them
+  // and after that goes into the FeMainLoop
+  // in the end, it calls TMFE::Disconnect which calls cm_disconnect_experiment 
   return fe.FeMain(argc, argv);
-
-  // while (! fe.ShutdownRequested()) {
-  //   ::sleep(1);
-  // }
-
-  // fe.Disconnect();
-  
-  cm_disconnect_experiment();
-  return 0;
 }
 
 /* emacs

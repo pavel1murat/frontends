@@ -20,7 +20,10 @@ public:
   HNDLE       GetActiveRunConfigHandle();
 
   int         GetArtdaqPartition      (HNDLE h_DB);
-  HNDLE       GetArtdaqConfigHandle   (HNDLE h_DB, std::string& RunConf, std::string& Host);
+                                        // 'Host' - short, w/o the domain name
+  int         GetHostConfHandle       (HNDLE h_RunConf, const std::string& Host);
+  //  HNDLE       GetArtdaqConfigHandle   (HNDLE h_DB, std::string& RunConf, std::string& Host);
+  HNDLE       GetHostArtdaqConfHandle (HNDLE RunConf, const std::string& Host);
 
                                         // returns: 1="external" or 0="emulated"
   int         GetCFOExternal          (HNDLE Hdb, HNDLE h_CFO);
@@ -36,9 +39,6 @@ public:
   
   HNDLE       GetDaqConfigHandle      (HNDLE h_DB, HNDLE h_RunConf);
   
-                                        // hostname - short, w/o the domain name
-  int         GetDaqHostHandle    (HNDLE Hdb, HNDLE h_CFO, const std::string& Hostname);
-
   int         GetDtcEnabled       (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcEmulatesCfo   (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcID            (HNDLE h_DB, HNDLE h_Card); // card: DTC
