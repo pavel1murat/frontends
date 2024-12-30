@@ -24,7 +24,7 @@
 #include "fhiclcpp/fwd.h"
 
 #include "dtcInterfaceLib/DTC.h"
-#include "dtcInterfaceLib/DTCSoftwareCFO.h"
+// #include "dtcInterfaceLib/DTCSoftwareCFO.h"
 
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
@@ -42,7 +42,9 @@
 
 using namespace std;
 using namespace DTCLib;
-
+//-----------------------------------------------------------------------------
+// ARTDAQ messaging - XML-RPC
+//-----------------------------------------------------------------------------
 #include "xmlrpc-c/config.h"  /* information about this build environment */
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
@@ -178,7 +180,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   
 {
   _fragmentType = mu2e::toFragmentType(_sFragmentType);
-  TLOG(TLVL_INFO) << "CONSTRUCTOR (1) readData:" << _readData
+  TLOG(TLVL_INFO) << "label:" << _artdaqLabel << " CONSTRUCTOR (1) readData:" << _readData
                   << " fragmentType:" << _sFragmentType << ":" << int(_fragmentType);
 //-----------------------------------------------------------------------------
 // the BR interface should not be changing any settings, just read events
@@ -197,14 +199,14 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
     sprintf(host_name, host.data());
   }
 
-  TLOG(TLVL_INFO) << "artdaqLabel: " << _artdaqLabel << " host name: " << host_name << " , exp_name: " << exp_name;
+  TLOG(TLVL_INFO) << "label: " << _artdaqLabel << " host name: " << host_name << " , exp_name: " << exp_name;
 
   int status = cm_connect_experiment(_tfmHost.data(), exp_name, _artdaqLabel.data(),NULL);
   if (status != CM_SUCCESS) {
     cm_msg(MERROR, _artdaqLabel.data(),
            "Cannot connect to experiment \'%s\' on host \'%s\', status %d",
            exp_name,host_name,status);
-    TLOG(TLVL_ERROR) << "ERROR: failed to connect to experiment. BAIL OUT";
+    TLOG(TLVL_ERROR) << "label: " << _artdaqLabel << " ERROR: failed to connect to experiment. BAIL OUT";
 
     /* let user read message before window might close */
     ss_sleep(5000);
@@ -215,10 +217,10 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   HNDLE  hClient(0);
   cm_get_experiment_database(&hDB, &hClient);
 
-  TLOG(TLVL_INFO) << "hDB:" << hDB << " hClient:" <<  hClient;
+  TLOG(TLVL_INFO) << "label: " << _artdaqLabel << " hDB:" << hDB << " hClient:" <<  hClient;
 
   if (hDB == 0) {
-    TLOG(TLVL_ERROR) << "ERROR: failed to connect to ODB. BAIL OUT";
+    TLOG(TLVL_ERROR) << "label: " << _artdaqLabel << " ERROR: failed to connect to ODB. BAIL OUT";
     return;
   }
 
@@ -229,7 +231,8 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   std::string rpc_host        = get_short_host_name("local");
   HNDLE h_host_artdaq_conf    = odb_i->GetDaqHostHandle(hDB,h_active_run_conf,rpc_host+"/Artdaq");
 
-  TLOG(TLVL_INFO) << "h_active_run_conf:" << h_active_run_conf
+  TLOG(TLVL_INFO) << "label: " << _artdaqLabel
+                  << " h_active_run_conf:" << h_active_run_conf
                   << " active_run_conf_name:" << active_run_conf
                   << " rpc_host:" << rpc_host << " h_host_artdaq_conf:" << h_host_artdaq_conf;
 //-----------------------------------------------------------------------------
@@ -241,20 +244,24 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 
   for (int i=0; db_enum_key(hDB, h_host_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
     db_get_key(hDB, h_component, &component);
-    TLOG(TLVL_INFO) << "index: " << " Subkey:" <<  component.name << " Type: " << component.type;
+    TLOG(TLVL_INFO) << "label:"  << _artdaqLabel
+                    << " Subkey:" <<  component.name
+                    << " Type:"  << component.type;
     if (component.name == _artdaqLabel) {
 //-----------------------------------------------------------------------------
 // the board reader configuration found, take the PCIE address from there
 //-----------------------------------------------------------------------------
       pcie_addr = odb_i->GetDtcPcieAddress(hDB,h_component);
-      TLOG(TLVL_INFO) << "pcie_addr from ODB: " << pcie_addr;
+      TLOG(TLVL_INFO) << "label: " << _artdaqLabel << " pcie_addr from ODB: " << pcie_addr;
       break;
     }
   }
   if (pcie_addr != -1) _pcieAddr = pcie_addr;
 
   _tfmHost = odb_i->GetTfmHostName(hDB,h_active_run_conf);
-  TLOG(TLVL_INFO) << "active run conf: " << active_run_conf << " TFM host from ODB: " << _tfmHost;
+  TLOG(TLVL_INFO) << "label:"               << _artdaqLabel
+                  << " active_run_conf:"    << active_run_conf
+                  << " _tfmHost_from_ODB:"  << _tfmHost;
   
   cm_disconnect_experiment();
 #endif
@@ -284,18 +291,18 @@ int mu2e::TrackerBRDR::message(const std::string& msg_type, const std::string& m
   xmlrpc_client_call(&_env, _xmlrpcUrl.data(), "message","(ss)", msg_type.data(), 
                      (artdaq::Globals::app_name_+":"+message).data());
   if (_env.fault_occurred) {
-    TLOG(TLVL_ERROR) << "XML-RPC rc=" << _env.fault_code << " " << _env.fault_string;
+    TLOG(TLVL_ERROR) << "label: " << _artdaqLabel << " XML-RPC rc=" << _env.fault_code << " " << _env.fault_string;
     return -1;
   }
   else {
-    TLOG(TLVL_DBG+1) << "message successfully sent. type:" << msg_type << " message" << message;
+    TLOG(TLVL_DEBUG) << "label: " << _artdaqLabel << "message successfully sent. type:" << msg_type << " message" << message;
   }
   return 0;
 }
 
 //-----------------------------------------------------------------------------
 mu2e::TrackerBRDR::~TrackerBRDR() {
-}
+} 
 
 //-----------------------------------------------------------------------------
 void mu2e::TrackerBRDR::stop() {
@@ -313,7 +320,8 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
   int    nbytes     (0);
   std::vector<std::unique_ptr<DTCLib::DTC_SubEvent>> subevents;  // auto   tmo_ms(1500);
 
-  TLOG(TLVL_DBG) << "------------- START TStamp=" << TStamp << std::endl;
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                   << " START TStamp:" << TStamp << std::endl;
 
   DTC_EventWindowTag event_tag = DTC_EventWindowTag(_tstamp);
 
@@ -323,7 +331,9 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
 //-----------------------------------------------------------------------------
       subevents = _dtc->GetSubEventData(event_tag,match_ts);
       int sz    = subevents.size();
-      TLOG(TLVL_DBG) << "read =" << sz << " DTC blocks" << std::endl;
+      TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                       << " read:" << sz
+                       << " DTC blocks" << std::endl;
       if (sz > 0) {
         _tstamp  += 1;
       }
@@ -337,10 +347,11 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
 
         TStamp = ew_tag;  // hack
         
-        TLOG(TLVL_DBG) << "DTC block i: " << i<< " nbytes:" << nb << std::endl;
+        TLOG(TLVL_DEBUG) << "label:"      << _artdaqLabel
+                         << " dtc_block:" << i
+                         << " nbytes:" << nb << std::endl;
         nbytes += nb;
         if (nb > 0) {
-          //          artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::TRK, TStamp);
           artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], _fragmentType, TStamp);
 
           frag->resizeBytes(nb);
@@ -355,7 +366,10 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
           uint64_t ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
 
           if ((_debugLevel > 0) and (ev_counter() < _nEventsDbg)) { 
-            TLOG(TLVL_INFO) << " subevent:" << i << " EW tag:" << ew_tag << " nbytes: " << nb << std::endl;
+            TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                             << " subevent:" << i
+                             << " EW tag:" << ew_tag
+                             << " nbytes: " << nb;
             _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2);
           }
           rc = 0;
@@ -364,21 +378,26 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
 //-----------------------------------------------------------------------------
 // ERROR: read zero bytes
 //-----------------------------------------------------------------------------
-          TLOG(TLVL_ERROR) << "zero length read, event:" << ev_counter() << std::endl;
-          message("alarm", "TrackerBRDR::ReadData::ERROR event="+std::to_string(ev_counter())+" nbytes=0") ;
+          TLOG(TLVL_ERROR) << "label:" << _artdaqLabel
+                           << " zero length read, event:" << ev_counter();
+          message("alarm", _artdaqLabel+"::ReadData::ERROR event="+std::to_string(ev_counter())+" nbytes=0") ;
         }
       }
       
-      TLOG(TLVL_DBG+1) << "read data , NDTCs=" << sz << " nbytes=" << nbytes << std::endl;
+      TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                       << " NDTCs:" << sz
+                       << " nbytes:" << nbytes;
     }
     catch (...) {
-      TLOG(TLVL_ERROR) << "ERROR reading data";
+      TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << "ERROR reading data";
     }
   
   int print_event = (ev_counter() % _printFreq) == 0;
   if (print_event) {
-    TLOG(TLVL_DBG+1) << "event readSuccess timeout: nbytes\n" << ev_counter() << " " << readSuccess
-                     << " " << timeout << " " << nbytes << std::endl;
+    TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                     << " event:" << ev_counter()
+                     << " readSuccess:"  << readSuccess
+                     << " timeout:" << timeout << " nbytes:" << nbytes;
   }
 
   return rc;
@@ -390,7 +409,7 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
 // read data
 //-----------------------------------------------------------------------------
-  TLOG(TLVL_DBG) << "start" << std::endl;
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel << " start";
   _dtc->GetDevice()->ResetDeviceTime();
 //-----------------------------------------------------------------------------
 // a hack : reduce the PMT logfile size 
@@ -417,7 +436,7 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
     Frags.emplace_back(f1);
   }
 
-  TLOG(TLVL_DBG) << "bufferes released, end" << std::endl;
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel << "buffers released, end";
   return true;
 }
 
@@ -478,7 +497,8 @@ bool mu2e::TrackerBRDR::simulateEvent(artdaq::FragmentPtrs& Frags) {
 bool mu2e::TrackerBRDR::getNext_(artdaq::FragmentPtrs& Frags) {
   bool rc(true);
 
-  TLOG(TLVL_DBG) << "event: " << ev_counter() << "STARTING";
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                   << " event:" << ev_counter() << " STARTING";
 //-----------------------------------------------------------------------------
 // in the beginning, send message to the Farm manager
 //-----------------------------------------------------------------------------
@@ -491,7 +511,9 @@ bool mu2e::TrackerBRDR::getNext_(artdaq::FragmentPtrs& Frags) {
 
   _startProcTimer();
 
-  TLOG(TLVL_DEBUG) << "event: " << ev_counter() << "after startProcTimer";
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                   << " event:" << ev_counter()
+                   << " after startProcTimer";
 
   if (_readoutMode < 100) {
 //-----------------------------------------------------------------------------

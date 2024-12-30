@@ -136,10 +136,10 @@ void process_command(INT hDB, INT hkey, int A, void* Info) {
 }
 
 //-----------------------------------------------------------------------------
-std::string  get_logfile_name(std::string& output_dir) {
+std::string  get_logfile_name(const char* OutputDir) {
 
   char fn[200];
-  sprintf(fn,"%s/logs/tfm_dtc_ctl/tfm_dtc_ctl.log");
+  sprintf(fn,"%s/logs/tfm_dtc_ctl/tfm_dtc_ctl.log",OutputDir);
 
   std::string s = fn;
   return s;
@@ -169,7 +169,7 @@ INT frontend_init() {
 // get logfile name
 //-----------------------------------------------------------------------------
   std::string output_dir = odb_i->GetOutputDir(hDB);
-  _log_fn = get_logfile_name(output_dir);
+  _log_fn = get_logfile_name(output_dir.data());
 
   _out = new  std::ofstream(_log_fn);
   
@@ -230,7 +230,7 @@ INT frontend_init() {
 // DTC readout mode: 0=ROC patterns , 1=DIGIs 2: new ROC patterns
 // the readout mode is the same for all ROCs in the configuration
 //-----------------------------------------------------------------------------
-    dtc_i->fRocReadoutMode = odb_i->GetRocReadoutMode   (hDB,_h_active_run_conf);
+    dtc_i->fRocReadoutMode = odb_i->GetRocReadoutMode   (_h_active_run_conf);
 
     dtc_i->fEmulateCfo     = odb_i->GetDtcEmulatesCfo   (hDB,h_subkey);
     dtc_i->fJAMode         = odb_i->GetDtcJAMode        (hDB,h_subkey);

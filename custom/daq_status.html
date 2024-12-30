@@ -34,6 +34,11 @@
         }
     }
       
+    function redirectToNodes(nodeIndex) {
+        window.location.href = 'mu2edaq22.html?disk=${nodeIndex}';
+    }
+    
+  
     function createDAQTable() {
         const nodes = [];
          nodes.push("mu2edaq04", "mu2edaq09", "mu2edaq10", "mu2edaq11", "mu2edaq14", "mu2edaq22" );
@@ -105,11 +110,6 @@
     }
 
     
-    function redirectToNodes(nodeIndex) {
-        window.location.href = `daq_nodes.html?disk=${nodeIndex}`;
-    }
-    
-  
     function initializePage() {
         if (!midasInitialized) {
             mhttpd_init("DAQ");

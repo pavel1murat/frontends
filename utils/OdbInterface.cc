@@ -278,20 +278,6 @@ int OdbInterface::GetDtcPartitionID(HNDLE hDB, HNDLE hNode) {
   return data;
 }
 
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-int OdbInterface::GetDtcReadoutMode(HNDLE hDB, HNDLE hDTC) {
-  const char* key {"ReadoutMode"};
-  INT   data(-1);       // if not found, want to be meaningless
-  int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << " not found, return: " << data;
-  }
-  return data;
-}
-
 //-----------------------------------------------------------------------------
 // assum hDTC is a DTC handle
 //-----------------------------------------------------------------------------
@@ -409,15 +395,18 @@ int OdbInterface::GetDtcPcieAddress(HNDLE hDB, HNDLE hNode) {
 }
 
 //-----------------------------------------------------------------------------
-// the ROC readout should be the same for all ROCs in the configuration 
+// the ROC readout should be the same for all ROCs in the configuration
+// hDetConf - handle of the detector configuration
 //-----------------------------------------------------------------------------
-int OdbInterface::GetRocReadoutMode(HNDLE hDB, HNDLE hConf) {
-  const char* key {"RocReadoutMode"};
-  INT   data(-1);       // if not found, want to be meaningless
-  int   sz = sizeof(data);
-  if (db_get_value(hDB, hConf, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << " not found, return: " << data;
-  }
+int OdbInterface::GetRocReadoutMode(HNDLE hDetConf) {
+  int data(-1);
+  GetInteger(_hDB,hDetConf,"DAQ/RocReadoutMode",&data);
+  return data;
+}
+
+int OdbInterface::GetEventMode(HNDLE hDetConf) {
+  int data(-1);
+  GetInteger(_hDB,hDetConf,"DAQ/EventMode",&data);
   return data;
 }
 
