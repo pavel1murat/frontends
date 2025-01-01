@@ -9,7 +9,7 @@
 #include <assert.h> // assert()
 #include <stdlib.h> // malloc()
 #include <unistd.h> // sleep()
-#include <math.h> // M_PI
+#include <math.h>   // M_PI
 
 #include "midas.h"
 #include "tmfe.h"
@@ -70,7 +70,7 @@ DtcFrontend::DtcFrontend(const char* Name) : TMFrontend() {
   TEquipmentNode* eq_dtc = new TEquipmentNode("mu2edaq22",__FILE__);
 
 // add eq to the list of equipment pieces
-// equipment stores the 'backward' pointer to the frontend
+// equipment stores backward pointer to the frontend
   FeAddEquipment(eq_dtc);
 }
 
@@ -91,9 +91,6 @@ int main(int argc, char* argv[]) {
   //   usage(); // DOES NOT RETURN
   //}
 
-  // this frontend connects twice, **TO BE FIXED**
-  //  cm_connect_experiment(NULL, NULL, "Name", NULL);
-
   DtcFrontend fe("dtc_mt_frontend");
 
   // FeMain calls FeInit - at this point connection to the experiment happens
@@ -102,7 +99,7 @@ int main(int argc, char* argv[]) {
   //     over equipment pieces and calls EqInit function for each of them
   // and after that goes into the FeMainLoop
   // in the end, it calls TMFE::Disconnect which calls cm_disconnect_experiment 
-  return fe.FeMain(argc, argv);
+  return fe.FeMain(argc,argv);
 }
 
 /* emacs

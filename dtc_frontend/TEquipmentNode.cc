@@ -151,6 +151,10 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   fEqConfWriteEventsToOdb    = true;
   //fEqConfLogHistory = 1;
 
+  fEqConfBuffer = "SYSTEM";
+  EqSetStatus("Started...", "white");
+  fMfe->Msg(MINFO, "HandleInit", std::string("Init") + " Ok!");
+
   cm_get_experiment_database(&hDB, NULL);
 
   _odb_i                      = OdbInterface::Instance(hDB);
@@ -184,7 +188,7 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 // 2 DTCs and their ROCs
 //-----------------------------------------------------------------------------
 void TEquipmentNode::InitDtcVarNames() {
-  char dirname[256], dtc_dirname[256], var_name[128];
+  char dirname[256], var_name[128];
   
   std::initializer_list<const char*> dtc_names = {"Temp", "VCCINT", "VCCAUX", "VCBRAM"};
 
@@ -211,7 +215,8 @@ void TEquipmentNode::InitDtcVarNames() {
 //-----------------------------------------------------------------------------
     dtc_var_names.clear();
     for (const int& reg : DtcRegisters) {
-      sprintf(var_name,"dtc%i#0x%04x",idtc,reg);
+      // sprintf(var_name,"dtc%i#0x%04x",idtc,reg);
+      sprintf(var_name,"0x%04x",reg);
       dtc_var_names.push_back(var_name);
     }
       
@@ -254,7 +259,7 @@ void TEquipmentNode::InitDtcVarNames() {
 //-----------------------------------------------------------------------------
       roc_var_names.clear();
       for(const int& reg : RocRegisters) {
-        sprintf(var_name,"rr%i%i#reg_%03i",idtc,ilink,reg);
+        sprintf(var_name,"reg_%03i",reg);
         roc_var_names.push_back(var_name);
       }
 
@@ -271,7 +276,7 @@ void TEquipmentNode::InitDtcVarNames() {
 //-----------------------------------------------------------------------------
 // init DTC reaout for a given mode at begin run
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode:: HandleBeginRun(int RunNumber)  {
+TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
 
   HNDLE h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
   int   event_mode        = _odb_i->GetEventMode     (h_active_run_conf);
@@ -289,19 +294,120 @@ TMFeResult TEquipmentNode:: HandleBeginRun(int RunNumber)  {
   return TMFeOk();
 };
 
+//-----------------------------------------------------------------------------
+TMFeResult TEquipmentNode::HandleEndRun   (int RunNumber) {
+  fMfe->Msg(MINFO, "HandleEndRun", "End run %d!", RunNumber);
+  EqSetStatus("Stopped", "#00FF00");
+
+  printf("end_of_run %d\n", RunNumber);
+    
+  return TMFeOk();
+}
+
+//-----------------------------------------------------------------------------
+TMFeResult TEquipmentNode::HandlePauseRun(int run_number) {
+  fMfe->Msg(MINFO, "HandlePauseRun", "Pause run %d!", run_number);
+  EqSetStatus("Stopped", "#00FF00");
+    
+  printf("pause_run %d\n", run_number);
+    
+  return TMFeOk();
+}
+
+//-----------------------------------------------------------------------------
+TMFeResult TEquipmentNode::HandleResumeRun(int RunNumber) {
+  fMfe->Msg(MINFO, "HandleResumeRun", "Resume run %d!", RunNumber);
+  EqSetStatus("Stopped", "#00FF00");
+
+  printf("resume_run %d\n", RunNumber);
+
+  return TMFeOk();
+}
+
+
+//-----------------------------------------------------------------------------
+TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
+  fMfe->Msg(MINFO, "HandleStartAbortRun", "Begin run %d aborted!", run_number);
+  EqSetStatus("Stopped", "#00FF00");
+
+  printf("start abort run %d\n", run_number);
+    
+  return TMFeOk();
+}
 
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::string& response) {
   fMfe->Msg(MINFO, "HandleRpc", "RPC cmd [%s], args [%s]", cmd, args);
 
   // RPC handler
-      
+
+  TLOG(TLVL_DEBUG) << "RPC cmd:" << cmd << " args:" << args;
+  
   time_t now = time(NULL);
-  //  char tmp[256];
-  //  sprintf(tmp, "{ \"current_time\" : [ %d, \"%s\"] }", (int)now, ctime(&now));
+  char tmp[256];
+  sprintf(tmp, "{ \"emoe, current_time\":[ %d, \"%s\"] }", (int)now, ctime(&now));
   
-  response = std::format("{:c} \"current_time\" : [{:d}, {:s}] {:c}",'{',(int) now, "emoe",'}');
+  // response = std::format("{:c} "current_time" : [{:d}, {:s}] {:c}",'{',(int) now, "emoe",'}');
+
+  if (strcmp(cmd,"dtc_control_roc_read") == 0) {
+    sprintf(tmp," -- about to learn how to do that");
+
+    midas::odb o = {};
+    o.connect("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
+    for (int i=0; i<2; i++) {
+      trkdaq::DtcInterface* dtc_i = fDtc_i[i];
+      if (dtc_i) {
+        trkdaq::ControlRoc_Read_Input_t par;
+        // parameters should be taken from ODB - where from? 
   
+        par.adc_mode        = o["adc_mode"     ];   // -a
+        par.tdc_mode        = o["tdc_mode"     ];   // -t 
+        par.num_lookback    = o["num_lookback" ];   // -l 
+        par.num_samples     = o["num_samples"  ];   // -s
+        par.num_triggers[0] = o["num_triggers"][0]; // -T 10
+        par.num_triggers[1] = o["num_triggers"][1]; //
+        
+        par.ch_mask[0]      = o["ch_mask"][0];
+        par.ch_mask[1]      = o["ch_mask"][1];
+        par.ch_mask[2]      = o["ch_mask"][2];
+        par.ch_mask[3]      = o["ch_mask"][3];
+        par.ch_mask[4]      = o["ch_mask"][4];
+        par.ch_mask[5]      = o["ch_mask"][5];
+        
+        par.enable_pulser   = o["enable_pulser"];   // -p 1
+        par.marker_clock    = o["marker_clock" ];   // -m 3
+        par.mode            = o["mode"         ];   // 
+        par.clock           = o["clock"        ];   // 
+
+        printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
+        bool update_mask(false);
+        int  print_level(0);
+        dtc_i->ControlRoc_Read(&par,-1,update_mask,print_level);
+      }
+    }
+  }
+
+  response = tmp;
+  
+  TLOG(TLVL_DEBUG) << "response:" << response;
+
+  return TMFeOk();
+}
+
+//-----------------------------------------------------------------------------
+TMFeResult TEquipmentNode::HandleBinaryRpc(const char* cmd, const char* args, std::vector<char>& response) {
+  fMfe->Msg(MINFO, "HandleBinaryRpc", "RPC cmd [%s], args [%s]", cmd, args);
+
+  // RPC handler
+      
+  response.resize(8*64);
+
+  uint64_t* p64 = (uint64_t*)response.data();
+
+  for (size_t i=0; i<response.size()/sizeof(p64[0]); i++) {
+    *p64++ = (1<<i);
+  }
+      
   return TMFeOk();
 }
 
@@ -310,7 +416,7 @@ void TEquipmentNode::ReadDtcMetrics() {
   char   text[200];
   
   //  double t  = TMFE::GetTime();
-  midas::odb::set_debug(true);
+  // midas::odb::set_debug(true);
   
   for (int i=0; i<2; i++) {
     trkdaq::DtcInterface* dtc_i = fDtc_i[i];

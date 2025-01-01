@@ -64,14 +64,19 @@ public:
 
   TEquipmentNode(const char* eqname, const char* eqfilename);
 
-  virtual TMFeResult HandleInit        (const std::vector<std::string>& args);
-  virtual void       HandlePeriodic    ();
-  virtual TMFeResult HandleRpc         (const char* cmd, const char* args, std::string& response);
-  virtual TMFeResult HandleBeginRun    (int RunNumber);
-
-  TMFeResult         InitDtc           ();
-  void               InitDtcVarNames   ();
-  void               ReadDtcMetrics    ();
+  virtual TMFeResult HandleInit         (const std::vector<std::string>& args);
+  virtual void       HandlePeriodic     ();
+  virtual TMFeResult HandleRpc          (const char* cmd, const char* args, std::string& response);
+  virtual TMFeResult HandleBinaryRpc    (const char* cmd, const char* args, std::vector<char>& response);
+  virtual TMFeResult HandleBeginRun     (int RunNumber);
+  virtual TMFeResult HandleEndRun       (int RunNumber);
+  virtual TMFeResult HandlePauseRun     (int RunNumber);
+  virtual TMFeResult HandleResumeRun    (int RunNumber);
+  virtual TMFeResult HandleStartAbortRun(int RunNumber);
+  
+  TMFeResult         InitDtc            ();
+  void               InitDtcVarNames    ();
+  void               ReadDtcMetrics     ();
 
   TMFeResult         InitArtdaq             ();
   void               InitArtdaqVarNames     ();
