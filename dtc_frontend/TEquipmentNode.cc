@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
-//
+// equipment name is the short node name, i.e. 'mu2edaq22'
 //////////////////////////////////////////////////////////////////////////////
 #include "dtc_frontend/TEquipmentNode.hh"
 #include "utils/utils.hh"
@@ -190,10 +190,12 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 void TEquipmentNode::InitDtcVarNames() {
   char dirname[256], var_name[128];
   
+  midas::odb::set_debug(true);
+
   std::initializer_list<const char*> dtc_names = {"Temp", "VCCINT", "VCCAUX", "VCBRAM"};
 
-  const std::string node_path    ("/Equipment/mu2edaq22");
-  const std::string settings_path("/Equipment/mu2edaq22/Settings");
+  const std::string node_path     = "/Equipment/"+TMFeEquipment::fEqName;
+  const std::string settings_path = node_path+"/Settings";
 //-----------------------------------------------------------------------------
 // DTCs and ROCs
 //-----------------------------------------------------------------------------
@@ -205,11 +207,10 @@ void TEquipmentNode::InitDtcVarNames() {
     }
        
     sprintf(dirname,"Names dtc%i",idtc);
-    if (not midas::odb::exists(node_path+"/Settings/"+dirname)) {
-      midas::odb odb_settings = {dirname,{"a"}};
-      odb_settings.connect(settings_path);
-      odb_settings[dirname] = dtc_var_names;
-    }
+    // if (not midas::odb::exists(node_path+"/Settings/"+dirname)) {
+    midas::odb odb_settings(node_path+"/Settings");
+    odb_settings[dirname] = dtc_var_names;
+    // }
 //-----------------------------------------------------------------------------
 // non-history DTC registers
 //-----------------------------------------------------------------------------
@@ -250,9 +251,9 @@ void TEquipmentNode::InitDtcVarNames() {
       
       sprintf(dirname,"Names rc%i%i",idtc,ilink);
       if (not midas::odb::exists(settings_path+"/"+dirname)) {
-        midas::odb o = {dirname,{"a"}};
-        o.connect(settings_path);
-        o[dirname] = roc_var_names;
+        // midas::odb o = {dirname,{"a"}};
+        // o.connect(settings_path);
+        odb_settings[dirname] = roc_var_names;
       }
 //-----------------------------------------------------------------------------
 // non-history ROC registers - counters and such - just to be looked at
@@ -271,6 +272,8 @@ void TEquipmentNode::InitDtcVarNames() {
       dtc_dir[roc_subdir]["RegData"] = roc_reg_data;
     }
   }
+
+  midas::odb::set_debug(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -417,6 +420,8 @@ void TEquipmentNode::ReadDtcMetrics() {
   
   //  double t  = TMFE::GetTime();
   // midas::odb::set_debug(true);
+
+  std::string node_path = "/Equipment/"+TMFeEquipment::fEqName;
   
   for (int i=0; i<2; i++) {
     trkdaq::DtcInterface* dtc_i = fDtc_i[i];
@@ -440,7 +445,7 @@ void TEquipmentNode::ReadDtcMetrics() {
       sprintf(buf,"dtc%i",i);
       
       midas::odb odb_dtc_tv = {{buf,{1.0f, 1.0f, 1.0f, 1.0f}}};
-      odb_dtc_tv.connect("/Equipment/mu2edaq22/Variables");
+      odb_dtc_tv.connect(node_path+"/Variables");
             
       odb_dtc_tv[buf] = dtc_tv;
 //-----------------------------------------------------------------------------
@@ -455,7 +460,7 @@ void TEquipmentNode::ReadDtcMetrics() {
         dtc_reg.emplace_back(dat);
       }
 
-      sprintf(buf,"/Equipment/mu2edaq22/DTC%i",i);
+      sprintf(buf,"%s/DTC%i",node_path.data(),i);
       
       TLOG(TLVL_DEBUG+1) << "N(DTC registers):" << DtcRegisters.size()
                          << " buf:" << buf;
@@ -486,7 +491,7 @@ void TEquipmentNode::ReadDtcMetrics() {
             }
 
             char buf[100];
-            sprintf(buf,"/Equipment/mu2edaq22/DTC%i/ROC%i",i,ilink);
+            sprintf(buf,"%s/DTC%i/ROC%i",node_path.data(),i,ilink);
 
             midas::odb roc = {{"RegData",{1u}}};
             roc.connect(buf);
@@ -511,7 +516,7 @@ void TEquipmentNode::ReadDtcMetrics() {
             sprintf(buf,"rc%i%i",i,ilink);
       
             midas::odb xx = {{buf,{1.0f}}};
-            xx.connect("/Equipment/mu2edaq22/Variables");
+            xx.connect(node_path+"/Variables");
             
             xx[buf].resize(trkdaq::TrkSpiDataNWords);
             xx[buf] = roc_spi;
