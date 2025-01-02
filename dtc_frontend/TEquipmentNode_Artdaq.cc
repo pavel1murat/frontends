@@ -50,7 +50,9 @@ std::initializer_list<const char*>  DsVarName = {
 void TEquipmentNode::InitArtdaqVarNames() {
   char dirname[256], name[128];
 
-  const char* settings = "/Equipment/mu2edaq22/Settings";
+  const std::string node_path     = "/Equipment/"+TMFeEquipment::fEqName;
+  const std::string settings_path = node_path+"/Settings";
+  midas::odb        odb_settings(settings_path);
 //-----------------------------------------------------------------------------
   int nac = _list_of_ac.size();
   
@@ -87,11 +89,8 @@ void TEquipmentNode::InitArtdaqVarNames() {
 //-----------------------------------------------------------------------------
     sprintf(dirname,"Names %s",ac->name.data());
     char path[256];
-    sprintf(path,"%s/%s",settings,dirname);
+    sprintf(path,"%s/%s",settings_path.data(),dirname);
     if ((var_names.size() > 0) and (not midas::odb::exists(path))) {
-      midas::odb odb_settings = {dirname, {"a"}};
-      odb_settings.connect(settings);
-      odb_settings[dirname].resize(var_names.size());
       odb_settings[dirname] = var_names;
     }
   }

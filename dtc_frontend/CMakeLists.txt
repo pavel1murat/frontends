@@ -40,31 +40,31 @@ cet_set_compiler_flags(
 #                         stdc++ m util pthread rt
 # )
 
-cet_make_exec(NAME      trk_dtc_frontend
-              SOURCE    trk_dtc_frontend.cc
-                        trk_dtc_driver.cc
-#                        emucfo_driver.cc
-                        #                        ../utils/my_mfe.cxx
-                        ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-              LIBRARIES frontends_utils
-                        otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
-                        mu2e_pcie_utils::DTCInterface
-                        mfe
-                        midas
-                        stdc++ m util pthread rt
-)
+# cet_make_exec(NAME      trk_dtc_frontend
+#               SOURCE    trk_dtc_frontend.cc
+#                         trk_dtc_driver.cc
+# #                        emucfo_driver.cc
+#                         #                        ../utils/my_mfe.cxx
+#                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
+#               LIBRARIES frontends_utils
+#                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
+#                         mu2e_pcie_utils::DTCInterface
+#                         mfe
+#                         midas
+#                         stdc++ m util pthread rt
+# )
 
-cet_make_exec(NAME      trk_dtc_ctl_frontend
-              SOURCE    trk_dtc_ctl_frontend.cc
-              LIBRARIES frontends_utils
-                        otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
-                        mu2e_pcie_utils::DTCInterface
-                        mfe
-                        midas
-                        stdc++ m util pthread rt
-)
-cet_make_exec(NAME      dtc_mt_frontend
-              SOURCE    dtc_mt_frontend.cc
+# cet_make_exec(NAME      trk_dtc_ctl_frontend
+#               SOURCE    trk_dtc_ctl_frontend.cc
+#               LIBRARIES frontends_utils
+#                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
+#                         mu2e_pcie_utils::DTCInterface
+#                         mfe
+#                         midas
+#                         stdc++ m util pthread rt
+# )
+cet_make_exec(NAME      node_frontend
+              SOURCE    node_frontend.cc
                         TEquipmentNode.cc
                         TEquipmentNode_Artdaq.cc
               LIBRARIES frontends_utils
