@@ -195,7 +195,10 @@ void TEquipmentNode::InitDtcVarNames() {
   std::initializer_list<const char*> dtc_names = {"Temp", "VCCINT", "VCCAUX", "VCBRAM"};
 
   const std::string node_path     = "/Equipment/"+TMFeEquipment::fEqName;
+  midas::odb odb_node(node_path);
+  
   const std::string settings_path = node_path+"/Settings";
+  midas::odb odb_settings(node_path+"/Settings");
 //-----------------------------------------------------------------------------
 // DTCs and ROCs
 //-----------------------------------------------------------------------------
@@ -208,7 +211,6 @@ void TEquipmentNode::InitDtcVarNames() {
        
     sprintf(dirname,"Names dtc%i",idtc);
     // if (not midas::odb::exists(node_path+"/Settings/"+dirname)) {
-    midas::odb odb_settings(node_path+"/Settings");
     odb_settings[dirname] = dtc_var_names;
     // }
 //-----------------------------------------------------------------------------
@@ -223,21 +225,11 @@ void TEquipmentNode::InitDtcVarNames() {
       
     sprintf(dirname,"DTC%i",idtc);
 
-    midas::odb   dtc_dir = {
-      {"RegNames",{"a"}},
-      {"RegData" ,{"a"}},
-      {"ROC0",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } },
-      {"ROC1",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } },
-      {"ROC2",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } },
-      {"ROC3",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } },
-      {"ROC4",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } },
-      {"ROC5",{ {"RegNames",{"a"}}, {"RegData" ,{"a"}} } }
-    };
-    dtc_dir.connect(node_path+"/"+dirname);
-    dtc_dir["RegNames"] = dtc_var_names;
+    midas::odb   odb_dtc(node_path+"/"+dirname);
+    odb_dtc["RegName"] = dtc_var_names;
 
     std::vector<uint32_t> dtc_reg_data(dtc_var_names.size());
-    dtc_dir["RegData"] = dtc_reg_data;
+    odb_dtc["RegData"] = dtc_reg_data;
 //-----------------------------------------------------------------------------
 // loop over the ROCs and create names for each of them
 //-----------------------------------------------------------------------------
@@ -264,12 +256,18 @@ void TEquipmentNode::InitDtcVarNames() {
         roc_var_names.push_back(var_name);
       }
 
-      char roc_subdir[16];
-      sprintf(roc_subdir,"ROC%i",ilink);
-      dtc_dir[roc_subdir]["RegNames"] = roc_var_names;
+      char roc_subdir[128];
+
+      sprintf(roc_subdir,"%s/DTC%i/ROC%i",node_path.data(),idtc,ilink);
+      midas::odb odb_roc = {{"RegName",{"a","b"}},{"RegData",{1u,2u}}};
+      odb_roc.connect(roc_subdir);
+      // odb_roc["RegName"].resize(roc_var_names.size());;
+      odb_roc["RegName"] = roc_var_names;
       
       std::vector<uint16_t> roc_reg_data(roc_var_names.size());
-      dtc_dir[roc_subdir]["RegData"] = roc_reg_data;
+      // odb_roc["RegData"].resize(roc_reg_data.size());
+      odb_roc["RegData"] = roc_reg_data;
+
     }
   }
 
@@ -482,11 +480,13 @@ void TEquipmentNode::ReadDtcMetrics() {
 
           if (_monitorRocRegisters) {
 
-            std::vector<uint16_t>  roc_reg;
+            std::vector<uint32_t>  roc_reg;
             roc_reg.reserve(RocRegisters.size());
         
             for (const int reg : RocRegisters) {
-              uint16_t dat = dtc_i->fDtc->ReadROCRegister(DTCLib::DTC_Link_ID(ilink),reg,100); 
+              // ROC registers store 16-bit words, don't know how to declare an array
+              // of shorts for ODBXX, use uint32_t
+              uint32_t dat = dtc_i->fDtc->ReadROCRegister(DTCLib::DTC_Link_ID(ilink),reg,100); 
               roc_reg.emplace_back(dat);
             }
 
