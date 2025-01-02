@@ -34,7 +34,7 @@ public:
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  DtcFrontend(const char* Name);
+  DtcFrontend();
   
   void HandleUsage() {}   //printf("FeEverything::HandleUsage!\n");  }
    
@@ -65,11 +65,15 @@ public:
 // the base class constructor does nothing except instantiating TFME thing
 // all parameters need to be initalized here
 //-----------------------------------------------------------------------------
-DtcFrontend::DtcFrontend(const char* Name) : TMFrontend(), fName(Name) {
+DtcFrontend::DtcFrontend() : TMFrontend() {
 
-  FeSetName(Name);
+  std::string hostname = get_short_host_name("local");
+  fName  = hostname+"_fe";
+
+  fName = hostname;
+  FeSetName(fName.data());
   
-  TEquipmentNode* eq_dtc = new TEquipmentNode(Name,__FILE__);
+  TEquipmentNode* eq_dtc = new TEquipmentNode(hostname.data(),__FILE__);
 
 // add eq to the list of equipment pieces
 // equipment stores backward pointer to the frontend
@@ -92,8 +96,8 @@ int main(int argc, char* argv[]) {
   //} else {
   //   usage(); // DOES NOT RETURN
   //}
-  std::string fe_name = get_short_host_name("local")+"_fe";
-  DtcFrontend fe(fe_name.data());
+
+  DtcFrontend fe;
 
   // FeMain calls FeInit - at this point connection to the experiment happens
   // this is too late for equipment to be initialized in the constructor
