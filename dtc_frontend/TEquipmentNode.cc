@@ -153,7 +153,7 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 
   fEqConfBuffer = "SYSTEM";
   EqSetStatus("Started...", "white");
-  fMfe->Msg(MINFO, "HandleInit", std::string("Init") + " Ok!");
+  fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
   cm_get_experiment_database(&hDB, NULL);
 

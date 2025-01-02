@@ -11,8 +11,10 @@
 
   # keep using gcc 13.1.0 , problems otherwise
 
-  spack env create   <env_name>       # replace <env_name> with your own name
-  spack env activate <env_name>
+  env_name=my_env                          # replace my_env with your own name
+  spack env create   $env_name
+  spack env activate $env_name
+  ln -s spack/var/spack/environments/$env_name
 
   spack add py-psycopg2              # python interface to postgresql
 
@@ -40,6 +42,7 @@
   spack develop tfm@main%gcc@13.1.0
   spack develop midas@3.01.00%gcc@13.1.0~postgresql~sqlite~opencv
   spack develop otsdaq-mu2e-tracker@develop%gcc@13.1.0
+  pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2024; popd ;
   spack develop frontends@main%gcc@13.1.0
   
   spack add     emacs@29.3%gcc@13.1.0+X
