@@ -18,17 +18,19 @@
 #define  TRACE_NAME "dtc_mt_frontend"
 
 #include "dtc_frontend/TEquipmentNode.hh"
+#include "utils/utils.hh"
 
 //-----------------------------------------------------------------------------
-static void usage() {
-   fprintf(stderr, "Usage: tmfe_example_mt ...\n");
-   exit(1);
-}
+// static void usage() {
+//    fprintf(stderr, "Usage: tmfe_example_mt ...\n");
+//    exit(1);
+// }
 
 //-----------------------------------------------------------------------------
 class DtcFrontend: public TMFrontend {
 public:
-  
+
+  std::string   fName;
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -59,15 +61,15 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-// add future node fronten, 
+// add future node frontend, 
 // the base class constructor does nothing except instantiating TFME thing
 // all parameters need to be initalized here
 //-----------------------------------------------------------------------------
-DtcFrontend::DtcFrontend(const char* Name) : TMFrontend() {
-  
+DtcFrontend::DtcFrontend(const char* Name) : TMFrontend(), fName(Name) {
+
   FeSetName(Name);
   
-  TEquipmentNode* eq_dtc = new TEquipmentNode("mu2edaq22",__FILE__);
+  TEquipmentNode* eq_dtc = new TEquipmentNode(Name,__FILE__);
 
 // add eq to the list of equipment pieces
 // equipment stores backward pointer to the frontend
@@ -90,8 +92,8 @@ int main(int argc, char* argv[]) {
   //} else {
   //   usage(); // DOES NOT RETURN
   //}
-
-  DtcFrontend fe("dtc_mt_frontend");
+  std::string fe_name = get_short_host_name("local")+"_fe";
+  DtcFrontend fe(fe_name.data());
 
   // FeMain calls FeInit - at this point connection to the experiment happens
   // this is too late for equipment to be initialized in the constructor
