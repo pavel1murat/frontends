@@ -1,0 +1,50 @@
+#+startup:fold -*- buffer-read-only:t -*-
+
+
+* ------------------------------------------------------------------------------
+* basics:                                                                    
+- MIDAS 'save' command saves the whole of the current directory
+- this should be accounted for when using the 'load' command:
+-  one shoudl create a subdirectory, cd to there and only after that load
+-  its contents from an external file
+* run configurations                                                         
+- run configurations are stored in .json format
+- configurations are allowed to have links, but the links can NOT point
+  outside the configuration
+- to update a run configuration 'conf', do :
+#+begin_src
+odbedit
+cd Mu2e/RunConfigurations
+mkdir conf
+cd conf
+load your_env/frontends/odb/Mu2e/RunConfigurations/conf.json
+exit
+#+end_src
+* subdetector configurations                                                 
+- sometimes one needs to add to a given run configuration a single subdetector 
+- to add definition of the tracker to configuration 'conf'
+#+begin_src
+odbedit
+cd Mu2e/DetectorConfigurations/conf
+mkdir Tracker
+cd Tracker
+load your_env/frontends/odb/Mu2e/Subdetectors/Tracker.json
+exit
+#+end_src
+
+* history displays for different nodes                                       
+- assume that mu2edaq09 configuration has been saved and we want to re-use
+  it on mu2edaq11
+#+begin_src
+cat $SPACK_ENV/frontends/odb/History/Display/mu2edaq09.json | 's/mu2edaq09/mu2edaq11/g' >| ./mu2edaq11.json
+odbedit
+cd History/Display
+mkdir mu2edaq11
+cd mu2edaq11
+load mu2edaq11.json
+exit
+#+end_src
+
+* ------------------------------------------------------------------------------
+* back to file:frontends.org
+* ------------------------------------------------------------------------------
