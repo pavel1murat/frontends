@@ -43,12 +43,12 @@ public:
   int         GetDtcEmulatesCfo   (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcID            (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcJAMode        (HNDLE h_DB, HNDLE h_Card); // card: DTC
-  int         GetDtcLinkMask      (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcLinkMask      (HNDLE h_Card);             // card: DTC
   int         GetDtcEventMode     (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcMacAddrByte   (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcOnSpill       (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcPartitionID   (HNDLE h_DB, HNDLE h_Card); // card: DTC
-  int         GetDtcPcieAddress   (HNDLE h_DB, HNDLE h_Node); // h_Node: has a "DTC" link to the DTC record
+  int         GetDtcPcieAddress   (HNDLE h_Card);             // card: DTC
   int         GetDtcSampleEdgeMode(HNDLE h_DB, HNDLE h_Card); // 0:force rising; 1: force falling; 2:auto
 
   int         GetPcieAddress      (HNDLE h_DB, HNDLE h_Card); // card: either CFO or DTC
@@ -78,11 +78,20 @@ public:
 
   std::string GetTfmHostName      (HNDLE h_DB, HNDLE h_RunConf);
 //-----------------------------------------------------------------------------
-// "generic" accessors
+// "generic" accessors, first - "new style", then "old style"
+// slowly getting rid of the old style, need the transition to be transparent
 //-----------------------------------------------------------------------------
+  HNDLE       GetHandle           (HNDLE hConf, const char* Key);
+  int         GetInteger          (HNDLE hConf, const char* Key, int* Data);
+  std::string GetString           (HNDLE hConf, const char* Key);
+
   HNDLE       GetHandle           (HNDLE hDB, HNDLE hConf, const char* Key);
   int         GetInteger          (HNDLE hDB, HNDLE hConf, const char* Key, int* Data);
   std::string GetString           (HNDLE hDB, HNDLE hConf, const char* Key);
+
+  // set status of a given configuration element
+  
+  int         SetStatus           (HNDLE hElement, int Status);
 };
 
 #endif

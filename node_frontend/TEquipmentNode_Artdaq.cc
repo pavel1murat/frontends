@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
-#include "dtc_frontend/TEquipmentNode.hh"
+#include "node_frontend/TEquipmentNode.hh"
 #include "utils/OdbInterface.hh"
 #include "utils/utils.hh"
 

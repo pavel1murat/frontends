@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // equipment name is the short node name, i.e. 'mu2edaq22'
 //////////////////////////////////////////////////////////////////////////////
-#include "dtc_frontend/TEquipmentNode.hh"
+#include "node_frontend/TEquipmentNode.hh"
 #include "utils/utils.hh"
 
 #include "odbxx.h"
@@ -42,14 +42,14 @@ TMFeResult TEquipmentNode::InitDtc() {
     if (strstr(subkey.name,"DTC") != subkey.name)           continue;
     
     int enabled          = _odb_i->GetDtcEnabled    (hDB,h_subkey);
-    int pcie_addr        = _odb_i->GetPcieAddress   (hDB,h_subkey);
-    int link_mask        = _odb_i->GetDtcLinkMask   (hDB,h_subkey);
+    int pcie_addr        = _odb_i->GetDtcPcieAddress(h_subkey);
+    int link_mask        = _odb_i->GetDtcLinkMask   (h_subkey);
     
     TLOG(TLVL_DEBUG) << "link_mask:0x" <<std::hex << link_mask << std::endl; 
     
     if (enabled) {
       // for now, disable re-initialization
-      bool skip_init(true);
+      bool skip_init(false);
       trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_init);
 
       dtc_i->fLinkMask       = link_mask;

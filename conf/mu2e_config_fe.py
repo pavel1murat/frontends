@@ -243,7 +243,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         self.client.odb_set("/Mu2e/Commands/Configure/Status",CMD_STATUS_IN_PROGRESS)
 
         status  = 0;
-        hkey    = self.client._odb_get_hkey("/Mu2e/ActiveConfig");
+        hkey    = self.client._odb_get_hkey("/Mu2e/ActiveRunConfiguration");
         subkeys = self.client._odb_enum_key(hkey);
         print(subkeys);
         for key in subkeys: 
@@ -253,7 +253,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 # this is a subsystem, check if it is enabled
 #---------------v--------------------------------------------------------------
                 subsystem = key[1].name.decode("utf-8");
-                path="/Mu2e/ActiveConfig/"+subsystem+"/Enabled"
+                path="/Mu2e/ActiveRunConfiguration/"+subsystem+"/Enabled"
                 enabled = self.client.odb_get(path)
                 if (enabled == 0): continue
 #------------------------------------------------------------------------------
@@ -281,7 +281,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                 if (key[1].type == midas.TID_KEY):              # subsystem
                     subsystem = key[1].name.decode("utf-8");
                     TRACE.TRACE(4,"eeeee "+subsystem)
-                    if (self.client.odb_get("/Mu2e/ActiveConfig/"+subsystem+"/Enabled") == 0): continue;
+                    if (self.client.odb_get("/Mu2e/ActiveRunConfiguration/"+subsystem+"/Enabled") == 0): continue;
 
                     cmd_path  = "/Mu2e/Commands/Configure/"+subsystem;
                     run       = self.client.odb_get(cmd_path+"/Run");

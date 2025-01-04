@@ -72,6 +72,7 @@ namespace mu2e {
     size_t                                _nEventsDbg;
     std::string                           _tfmHost;            // used to send xmlrpc messages to
     int                                   _pcieAddr;
+    int                                   _linkMask;           // from ODB
 
                                                                // 101:simulate data internally, DTC not used; default:0
 
@@ -88,7 +89,11 @@ namespace mu2e {
     uint16_t                              _reg[200];           // DTC registers to be saved
     int                                   _nreg;               // their number
     xmlrpc_env                            _env;                // XML-RPC environment
-    ulong                                 _tstamp;             // 
+    ulong                                 _tstamp;             //
+
+    HNDLE                                 _hBoardreader;
+    std::string                           _hostname;
+    std::string                           _exptName;
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -120,6 +125,8 @@ namespace mu2e {
     int  message(const std::string& msg_type, const std::string& message);
                                         // read functions
     int  readData        (artdaq::FragmentPtrs& Frags, ulong& Timestamp);
+
+    int  validateFragment(void* DtcFragment);
 
     double _timeSinceLastSend() {
       auto now        = std::chrono::steady_clock::now();
@@ -194,18 +201,18 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 //-----------------------------------------------------------------------------
   char host_name[100], exp_name[100];
   cm_get_environment(host_name, sizeof(host_name), exp_name, sizeof(exp_name));
-  if (host_name[0] == 0)  {
-    std::string host = get_short_host_name("local");
-    sprintf(host_name, host.data());
+  _exptName = exp_name;
+  if (host_name[0] == 0)  { // always
+    _hostname = get_short_host_name("local");
   }
 
-  TLOG(TLVL_INFO) << "label: " << _artdaqLabel << " host name: " << host_name << " , exp_name: " << exp_name;
+  TLOG(TLVL_INFO) << "label: " << _artdaqLabel << " host name: " << _hostname << " , exp_name: " << exp_name;
 
-  int status = cm_connect_experiment(_tfmHost.data(), exp_name, _artdaqLabel.data(),NULL);
+  int status = cm_connect_experiment(_tfmHost.data(), _exptName.data(), _artdaqLabel.data(),NULL);
   if (status != CM_SUCCESS) {
     cm_msg(MERROR, _artdaqLabel.data(),
            "Cannot connect to experiment \'%s\' on host \'%s\', status %d",
-           exp_name,host_name,status);
+           exp_name,_hostname.data(),status);
     TLOG(TLVL_ERROR) << "label: " << _artdaqLabel << " ERROR: failed to connect to experiment. BAIL OUT";
 
     /* let user read message before window might close */
@@ -228,13 +235,12 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   
   HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
   std::string active_run_conf = odb_i->GetRunConfigName(h_active_run_conf);
-  std::string rpc_host        = get_short_host_name("local");
-  HNDLE h_host_artdaq_conf    = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,rpc_host);
+  HNDLE h_host_artdaq_conf    = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,_hostname);
 
   TLOG(TLVL_INFO) << "label: " << _artdaqLabel
                   << " h_active_run_conf:" << h_active_run_conf
                   << " active_run_conf_name:" << active_run_conf
-                  << " rpc_host:" << rpc_host << " h_host_artdaq_conf:" << h_host_artdaq_conf;
+                  << " rpc_host:" << _hostname << " h_host_artdaq_conf:" << h_host_artdaq_conf;
 //-----------------------------------------------------------------------------
 // a DAQ host has keys: "DTC0", DTC1", and "Artdaq"
 //-----------------------------------------------------------------------------
@@ -249,10 +255,17 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
                     << " Type:"  << component.type;
     if (component.name == _artdaqLabel) {
 //-----------------------------------------------------------------------------
-// the board reader configuration found, take the PCIE address from there
+// the boardreader configuration found,
+// it has a link to DTC, take the PCIE address from there
 //-----------------------------------------------------------------------------
-      pcie_addr = odb_i->GetDtcPcieAddress(hDB,h_component);
-      TLOG(TLVL_INFO) << "label: " << _artdaqLabel << " pcie_addr from ODB: " << pcie_addr;
+      _hBoardreader = h_component;
+      
+      HNDLE hdtc = odb_i->GetHandle(_hBoardreader,"DTC");
+      pcie_addr  = odb_i->GetDtcPcieAddress(hdtc);
+      _linkMask  = odb_i->GetDtcPcieAddress(hdtc);
+      TLOG(TLVL_INFO) << "label: " << _artdaqLabel
+                      << " pcie_addr(ODB): " << pcie_addr
+                      << " link mask)ODB): " << _linkMask;
       break;
     }
   }
@@ -265,9 +278,11 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   
   cm_disconnect_experiment();
 #endif
-  
+//-----------------------------------------------------------------------------
+// make sure that the link mask is right no matter what
+//-----------------------------------------------------------------------------
   bool skip_init(true);
-  _dtc_i = trkdaq::DtcInterface::Instance(_pcieAddr,0x111111,skip_init);
+  _dtc_i = trkdaq::DtcInterface::Instance(_pcieAddr,_linkMask,skip_init);
   _dtc   = _dtc_i->Dtc();
 //-----------------------------------------------------------------------------
 // finally, initialize the environment for the XML-RPC messaging client
@@ -276,7 +291,6 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   xmlrpc_env_init(&_env);
 
   _tstamp           = 0;
-  _readDTCRegisters = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -306,6 +320,82 @@ mu2e::TrackerBRDR::~TrackerBRDR() {
 
 //-----------------------------------------------------------------------------
 void mu2e::TrackerBRDR::stop() {
+}
+
+//-----------------------------------------------------------------------------
+int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
+//-----------------------------------------------------------------------------
+// quick check of the data - at ROC level
+// DTC header: 3 packets, followed by the ROC data
+// there should be 6 ROC blocks, empty ROC - 0x10 bytes
+//-----------------------------------------------------------------------------
+  uint16_t* dat = (uint16_t*) ArtdaqFragmentData;
+  int       nb  = *dat;
+  
+  //  uint16_t* end = dat+nb/2;             // 2-byte words
+  uint16_t* roc = dat+0x18;             // here the first ROC starts
+  
+  int       nerr = 0;
+  uint32_t  err_code(0);
+  int       evt_nb(0);
+          
+  for (int i=0; i<6; i++) {
+    int roc_nb = *roc;
+    if (_dtc_i->LinkEnabled(i)) {
+      if (roc_nb == 0x10) {
+//-----------------------------------------------------------------------------
+// in trouble - zero payload for enabled ROC
+//-----------------------------------------------------------------------------
+        err_code |= 0x1;
+        nerr +=1;
+      }
+    }
+    else {
+//-----------------------------------------------------------------------------
+// link is supposed to be disabled
+//-----------------------------------------------------------------------------
+      if (roc_nb != 0x10) {
+        err_code |= 0x2;
+        nerr +=1;
+      }
+    }
+    evt_nb += roc_nb;
+    roc    += roc_nb/2;
+  }
+
+  if (nerr != 0) {
+//-----------------------------------------------------------------------------
+// send alarm message and set the boardreader status to -1, also log the message
+//-----------------------------------------------------------------------------
+    int status = cm_connect_experiment(_tfmHost.data(), _exptName.data(), _artdaqLabel.data(),NULL);
+    if (status != CM_SUCCESS) {
+      cm_msg(MERROR, _artdaqLabel.data(),
+             "Cannot connect to experiment \'%s\' on host \'%s\', status %d",
+             _exptName.data(),_hostname.data(),status);
+      TLOG(TLVL_ERROR) << "label: " << _artdaqLabel << " ERROR: failed to connect to experiment. BAIL OUT";
+      
+      /* let user read message before window might close */
+      ss_sleep(5000);
+      return -1;
+    }
+    
+    HNDLE  hdb(0);
+    HNDLE  hClient(0);
+    cm_get_experiment_database(&hdb, &hClient);
+    
+    OdbInterface* odb_i = OdbInterface::Instance(hdb);
+    odb_i->SetStatus(_hBoardreader,-1);
+    cm_disconnect_experiment();
+    
+    char msg[128];
+    sprintf(msg,"%s::ReadData::ERROR event:%12ul err_code:%i",ev_counter(),err_code);
+    message("alarm",msg) ;
+    
+    TLOG(TLVL_ERROR) << "label:" << _artdaqLabel
+                     << " err_code:" << err_code
+                     << " n_err:" << nerr;
+  }
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -360,6 +450,8 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
 
           memcpy(afd,ev->GetRawBufferPointer(),nb);
           Frags.emplace_back(frag);
+
+          validateFragment(afd);
 //-----------------------------------------------------------------------------
 // this is essentially it, now - diagnostics 
 //-----------------------------------------------------------------------------

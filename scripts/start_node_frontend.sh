@@ -8,7 +8,7 @@ remote_node=$1
 #------------------------------------------------------------------------------
 local_node=`hostname -s`
 
-frontend=dtc_mt_frontend
+frontend=node_frontend
 midas_host=`hostname -s`-ctrl.fnal.gov
 
 echo LINENO=$LINENO verbose=$verbose remote_mode=$remote_node

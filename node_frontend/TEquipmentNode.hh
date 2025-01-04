@@ -12,8 +12,8 @@
 #include "midas.h"
 
 #include "utils/OdbInterface.hh"
-#include "dtc_frontend/ArtdaqComponent.hh"
-#include "dtc_frontend/ArtdaqMetrics.hh"
+#include "node_frontend/ArtdaqComponent.hh"
+#include "node_frontend/ArtdaqMetrics.hh"
 
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
