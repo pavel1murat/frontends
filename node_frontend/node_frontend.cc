@@ -15,9 +15,9 @@
 #include "tmfe.h"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "dtc_mt_frontend"
+#define  TRACE_NAME "node_frontend"
 
-#include "dtc_frontend/TEquipmentNode.hh"
+#include "node_frontend/TEquipmentNode.hh"
 #include "utils/utils.hh"
 
 //-----------------------------------------------------------------------------

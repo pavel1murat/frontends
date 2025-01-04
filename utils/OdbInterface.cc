@@ -17,17 +17,21 @@ OdbInterface* OdbInterface::Instance(HNDLE Hdb) {
   if (_instance == nullptr) {
     _instance = new OdbInterface(Hdb);
   }
+  else if (_instance->_hDB != Hdb) {
+    _instance->_hDB = Hdb;
+  }
   return _instance;
 }
 
+
 //-----------------------------------------------------------------------------
-std::string OdbInterface::GetString(HNDLE hDB, HNDLE hDir, const char* Key) {
+std::string OdbInterface::GetString(HNDLE hDir, const char* Key) {
   std::string res;
   char        val[1000];
 
   int         sz = sizeof(val);
-  if (db_get_value(hDB, hDir, Key, &val, &sz, TID_STRING, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "cant find hDB=" << hDB << " hDir=" << hDir << " Key=" << Key ;
+  if (db_get_value(_hDB, hDir, Key, &val, &sz, TID_STRING, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "cant find the key ; hDB=" << _hDB << " hDir=" << hDir << " Key=" << Key ;
   }
   else {
     res = val;
@@ -37,21 +41,36 @@ std::string OdbInterface::GetString(HNDLE hDB, HNDLE hDir, const char* Key) {
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetHandle(HNDLE hDB, HNDLE hConf, const char* Key) {
+std::string OdbInterface::GetString(HNDLE hDB, HNDLE hDir, const char* Key) {
+  return GetString(hDir,Key);
+}
+
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetHandle(HNDLE hConf, const char* Key) {
   HNDLE h(0);
   
-  if (db_find_key(hDB, hConf, Key, &h) != DB_SUCCESS) {
+  if (db_find_key(_hDB, hConf, Key, &h) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "no handle for hConf:Key:" << hConf << ":" << Key;
   }
   return h;
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetInteger(HNDLE hDB, HNDLE hCFO, const char* Key, int* Data) {
+HNDLE OdbInterface::GetHandle(HNDLE hDB, HNDLE hConf, const char* Key) {
+  return GetHandle(hConf,Key);
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetInteger(HNDLE hDir, const char* Key, int* Data) {
   int   sz = sizeof(*Data);
-  int rc = db_get_value(hDB, hCFO, Key, Data, &sz, TID_INT, FALSE);
+  int rc = db_get_value(_hDB, hDir, Key, Data, &sz, TID_INT, FALSE);
   TLOG(TLVL_INFO) << "key:" << Key << " value:" << *Data;
   return rc;
+}
+
+
+int OdbInterface::GetInteger(HNDLE hDB, HNDLE hDir, const char* Key, int* Data) {
+  return GetInteger(hDir,Key,Data);
 }
 
 //-----------------------------------------------------------------------------
@@ -231,11 +250,11 @@ int OdbInterface::GetDtcJAMode(HNDLE hDB, HNDLE hDTC) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcLinkMask(HNDLE hDB, HNDLE hDTC) {
+int OdbInterface::GetDtcLinkMask(HNDLE hDTC) {
   const char* key {"LinkMask"};
   INT   data(0);       // if not found, want all links to be disabled
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
   }
   return data;
@@ -374,11 +393,13 @@ int OdbInterface::GetPcieAddress(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcPcieAddress(HNDLE hDB, HNDLE hNode) {
-  const char* key {"DTC/PCIEAddress"};
+// get PCIE address of a boardreader DTC
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcPcieAddress(HNDLE hDtc) {
+  const char* key {"PCIEAddress"};
   INT   data(-1);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hNode, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hDtc, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "no DTC PCIE address, return -1";
   }
   return data;
@@ -408,5 +429,16 @@ std::string OdbInterface::GetOutputDir(HNDLE hDB) {
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetTfmHostName(HNDLE hDB, HNDLE hRunConf) {
   return GetString(hDB,hRunConf,"DAQ/Tfm/RpcHost");
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::SetStatus(HNDLE hElement, int Status) {
+  int rc(0);
+  HNDLE h = GetHandle(hElement,"Status");
+  if (db_set_data(_hDB,h,(void*) &Status,sizeof(int),1,TID_INT32) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to set status:" << Status;
+    rc = -1;
+  }
+  return rc;
 }
 
