@@ -164,8 +164,7 @@ OK
 ** TODO external CFO frontend                                                
 - to be completed
 ** [[file:tfm_launch_fe.org][tfm_launch_fe]] : trigger farm manager (TFM) launching frontend
-** [[file:tfm_mon_fe.org][tfm_mon_fe]]    : ARTDAQ monitoring frontend, one per node
-** [[file:dtc_frontend][dtc_frontend]]  : DTC slow monitoring frontend, also monitors the DTC's ROCs, one per node
+** [[file:../node_frontend][node_frontend]] : slow monitoring frontend, monitors DTC's, ROCs, ARTDAQ one per node
 * [[file:odb.org][ODB]]                       
 * debugging frontends                                                        
 - build it (today in EC - on daq13)
