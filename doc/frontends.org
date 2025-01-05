@@ -56,7 +56,7 @@ test_025     /home/mu2etrk/test_stand/experiments/test_025  mu2etrk
 - mlogger " configure '/Logger/Data dir'
 - elog: configure '/Elog/URL', '/Elog/External Elog'
 #+begin_src
-mthhrd -D
+mhttpd -D
 echo $$
 #+end_src
 ** configure postgres                                                        
