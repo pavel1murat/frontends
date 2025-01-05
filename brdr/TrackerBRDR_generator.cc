@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include "artdaq/DAQdata/Globals.hh"
 #define TRACE_NAME "TrackerBRDR"
-
+#include "TString.h"
 #include "canvas/Utilities/Exception.h"
 
 #include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
@@ -117,7 +117,7 @@ namespace mu2e {
     void stop       () override;
     
     //    void print_dtc_registers(DTC* Dtc, const char* Header);
-    void printBuffer        (const void* ptr, int sz);
+    //    void printBuffer        (const void* ptr, int sz);
 //-----------------------------------------------------------------------------
 // try follow Simon ... perhaps one can improve on bool? 
 // also do not pass strings by value
@@ -206,7 +206,8 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
     _hostname = get_short_host_name("local");
   }
 
-  TLOG(TLVL_INFO) << "label: " << _artdaqLabel << " host name: " << _hostname << " , exp_name: " << exp_name;
+  TLOG(TLVL_INFO) << "label: " << _artdaqLabel << " host name: " << _hostname << " , exp_name: " << exp_name
+                  << " TRACE_FILE:" << (getenv("TRACE_FILE")) ? getenv("TRACE_FILE") : "undefined";
 
   int status = cm_connect_experiment(_tfmHost.data(), _exptName.data(), _artdaqLabel.data(),NULL);
   if (status != CM_SUCCESS) {
@@ -262,10 +263,10 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
       
       HNDLE hdtc = odb_i->GetHandle(_hBoardreader,"DTC");
       pcie_addr  = odb_i->GetDtcPcieAddress(hdtc);
-      _linkMask  = odb_i->GetDtcPcieAddress(hdtc);
+      _linkMask  = odb_i->GetDtcLinkMask   (hdtc);
       TLOG(TLVL_INFO) << "label: " << _artdaqLabel
                       << " pcie_addr(ODB): " << pcie_addr
-                      << " link mask)ODB): " << _linkMask;
+                      << " link mask(ODB): " << _linkMask;
       break;
     }
   }
@@ -332,13 +333,13 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
   uint16_t* dat = (uint16_t*) ArtdaqFragmentData;
   int       nb  = *dat;
   
-  //  uint16_t* end = dat+nb/2;             // 2-byte words
   uint16_t* roc = dat+0x18;             // here the first ROC starts
   
   int       nerr = 0;
   uint32_t  err_code(0);
   int       evt_nb(0);
-          
+
+  TLOG(TLVL_DEBUG) << "START";
   for (int i=0; i<6; i++) {
     int roc_nb = *roc;
     if (_dtc_i->LinkEnabled(i)) {
@@ -348,6 +349,9 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 //-----------------------------------------------------------------------------
         err_code |= 0x1;
         nerr +=1;
+        // al_trigger_alarm("BRDB", "ERROR", "BRDR Alarm", "Readout Problem", AT_INTERNAL);
+        cm_msg(MERROR, _artdaqLabel.data(),Form("zero payload for link %i",i));
+        TLOG(TLVL_ERROR) << "zero payload for enabled link:" << i;
       }
     }
     else {
@@ -357,12 +361,16 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
       if (roc_nb != 0x10) {
         err_code |= 0x2;
         nerr +=1;
+        cm_msg(MERROR, _artdaqLabel.data(),Form("non-zero payload for DISABLED link %i",i));
+        TLOG(TLVL_ERROR) << "non-zero payload for disabled link:" << i;
       }
     }
     evt_nb += roc_nb;
     roc    += roc_nb/2;
   }
 
+  TLOG(TLVL_DEBUG) << "after loop nerr:" << nerr << " err_code:0x" << std::hex << err_code;
+  
   if (nerr != 0) {
 //-----------------------------------------------------------------------------
 // send alarm message and set the boardreader status to -1, also log the message
@@ -372,29 +380,20 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
       cm_msg(MERROR, _artdaqLabel.data(),
              "Cannot connect to experiment \'%s\' on host \'%s\', status %d",
              _exptName.data(),_hostname.data(),status);
-      TLOG(TLVL_ERROR) << "label: " << _artdaqLabel << " ERROR: failed to connect to experiment. BAIL OUT";
       
       /* let user read message before window might close */
       ss_sleep(5000);
       return -1;
     }
     
-    HNDLE  hdb(0);
-    HNDLE  hClient(0);
+    HNDLE  hdb(0), hClient(0);
     cm_get_experiment_database(&hdb, &hClient);
-    
     OdbInterface* odb_i = OdbInterface::Instance(hdb);
     odb_i->SetStatus(_hBoardreader,-1);
     cm_disconnect_experiment();
-    
-    char msg[128];
-    sprintf(msg,"%s::ReadData::ERROR event:%12ul err_code:%i",ev_counter(),err_code);
-    message("alarm",msg) ;
-    
-    TLOG(TLVL_ERROR) << "label:" << _artdaqLabel
-                     << " err_code:" << err_code
-                     << " n_err:" << nerr;
   }
+  
+  TLOG(TLVL_DEBUG) << "END";
   return 0;
 }
 
@@ -449,11 +448,15 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
           void* afd  = frag->dataBegin();
 
           memcpy(afd,ev->GetRawBufferPointer(),nb);
-          Frags.emplace_back(frag);
 
           validateFragment(afd);
 //-----------------------------------------------------------------------------
-// this is essentially it, now - diagnostics 
+// I suspect that 'emplace_back', for some reason, may be invalidating 'afd',
+// sp change the order
+//-----------------------------------------------------------------------------
+          Frags.emplace_back(frag);
+//-----------------------------------------------------------------------------
+// this essentially is it, now - diagnostics 
 //-----------------------------------------------------------------------------
           uint64_t ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
 
@@ -462,7 +465,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
                              << " subevent:" << i
                              << " EW tag:" << ew_tag
                              << " nbytes: " << nb;
-            _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2);
+            _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2,&std::cout);
           }
           rc = 0;
         }
