@@ -45,6 +45,71 @@ std::initializer_list<const char*>  DsVarName = {
 };
 
 //-----------------------------------------------------------------------------
+// init ODB structure no matter what
+TMFeResult TEquipmentNode::InitArtdaq() {
+//-----------------------------------------------------------------------------
+// ARTDAQ_PARTITION_NUMBER also comes from the active run configuration
+// get port number used by the TFM, don't assume the farm_manager is running locally
+// the frontend has to have its own xmlrpc URL,
+// TFM uses port           10000+1000*partition
+// boardreaders start from 10000+1000*partition+100+1;
+// init XML RPC            10000+1000*partition+11
+//-----------------------------------------------------------------------------
+  // int         partition   = _odb_i->GetArtdaqPartition(hDB);
+  // int         port_number = 10000+1000*partition+11;
+  
+  char cbuf[100];
+  // sprintf(cbuf,"http://%s:%i/RPC2",tfm_host.data(),port_number);
+  // _xmlrpcUrl = cbuf;
+
+  sprintf(cbuf,"%s_mon",_rpc_host.data());
+  xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS,cbuf,"v1_0");
+  xmlrpc_env_init(&_env);
+//-----------------------------------------------------------------------------
+// read ARTDAQ configuration from ODB
+//-----------------------------------------------------------------------------
+  HNDLE h_artdaq_conf = _odb_i->GetHostArtdaqConfHandle(_h_active_run_conf,_rpc_host);
+  HNDLE h_component;
+  KEY   component;
+  for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+//-----------------------------------------------------------------------------
+// use the component label 
+// component names:
+//                   brxx - board readers
+//                   ebxx - event builders
+//                   dlxx - data loggers
+//                   dsxx - dispatchers
+//-----------------------------------------------------------------------------
+    db_get_key(hDB, h_component, &component);
+    printf("Subkey %d: %s, Type: %d\n", i, component.name, component.type);
+    
+    ArtdaqComponent_t ac;
+    ac.name        = component.name;
+    
+    if      (ac.name.find("br") == 0) ac.type = kBoardReader;
+    else if (ac.name.find("eb") == 0) ac.type = kEventBuilder;
+    else if (ac.name.find("dl") == 0) ac.type = kDataLogger;
+    else if (ac.name.find("ds") == 0) ac.type = kDispatcher;
+    
+    _odb_i->GetInteger(hDB,h_component,"XmlrpcPort",&ac.xmlprc_port);
+    _odb_i->GetInteger(hDB,h_component,"Rank"      ,&ac.rank);
+    // _odb_i->GetInteger(hDB,h_component,"Target"    ,&ac.target);
+    _odb_i->GetInteger(hDB,h_component,"Subsystem" ,&ac.subsystem);
+    _odb_i->GetInteger(hDB,h_component,"NFragmentTypes" ,&ac.n_fragment_types);
+
+    char url[100];
+    sprintf(url,"http://%s:%i/RPC2",_tfm_host.data(),ac.xmlprc_port);
+    ac.xmlrpc_url  = url;
+    
+    _list_of_ac.push_back(ac);
+  }
+  
+  InitArtdaqVarNames();
+  
+  return TMFeOk();
+}
+
+//-----------------------------------------------------------------------------
 // boardreaders: 'br01', 'br02' , etc
 //-----------------------------------------------------------------------------
 void TEquipmentNode::InitArtdaqVarNames() {

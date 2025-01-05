@@ -28,45 +28,13 @@ cet_set_compiler_flags(
         -g -O0 # Equivalent to debug qualifier, for testing
         -pthread 
 )
-# cet_make_exec(NAME      dtc_frontend
-#               SOURCE    dtc_frontend.cc
-#                         dtc_driver.cc
-#                         emucfo_driver.cc
-#                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-#               LIBRARIES frontends_utils
-#                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
-#                         mu2e_pcie_utils::DTCInterface
-#                         mfe midas
-#                         stdc++ m util pthread rt
-# )
 
-# cet_make_exec(NAME      trk_dtc_frontend
-#               SOURCE    trk_dtc_frontend.cc
-#                         trk_dtc_driver.cc
-# #                        emucfo_driver.cc
-#                         #                        ../utils/my_mfe.cxx
-#                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-#               LIBRARIES frontends_utils
-#                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
-#                         mu2e_pcie_utils::DTCInterface
-#                         mfe
-#                         midas
-#                         stdc++ m util pthread rt
-# )
-
-# cet_make_exec(NAME      trk_dtc_ctl_frontend
-#               SOURCE    trk_dtc_ctl_frontend.cc
-#               LIBRARIES frontends_utils
-#                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
-#                         mu2e_pcie_utils::DTCInterface
-#                         mfe
-#                         midas
-#                         stdc++ m util pthread rt
-# )
 cet_make_exec(NAME      node_frontend
               SOURCE    node_frontend.cc
                         TEquipmentNode.cc
                         TEquipmentNode_Artdaq.cc
+                        TEquipmentNode_Dtc.cc
+                        TEquipmentNode_Rpc.cc
               LIBRARIES frontends_utils
                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
                         mu2e_pcie_utils::DTCInterface

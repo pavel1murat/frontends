@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="midas.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <title>mu2edaq22</title>
+  </head>
+  
+  <body class="mcss" onload="mhttpd_init('artdaq/nodes/mu2edaq22');">
+    
+    <!-- header and side navigation will be filled in mhttpd_start -->
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+    
+    <div id="mmain">
+
+      <h1> mu2edaq22 status page</h1>
+      <!--div class = "col-md-8">-->
+      <table class="mtable" style="display: table;">
+        <tbody><tr><td>
+<!-- 
+     here comes the DTC
+-->
+
+ <br>
+
+     <table class="mtable" style="display: table;">
+        <tbody><tr><td>
+          <table class="mtable" id="Feedback" width="100%"> 
+            <tr>
+              <td colspan="1" class = "mtableheader" style="background-color:#8cbdff">Register</td>
+              <td colspan="1" class = "mtableheader" style="background-color:#8cbdff">DTC0</td>
+              <td colspan="1" class = "mtableheader" style="background-color:#8cbdff">DTC1</td>
+              <td colspan="1" class = "mtableheader" style="background-color:#8cbdff">Comment</td>
+            </tr>
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[0]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[0]"  data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[0]" data-format="%x">  </td>
+              <td> DTC firmware version </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[1]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[1]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[1]" data-format="%x">  </td>
+              <td> DTC status register </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[2]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[2]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[2]" data-format="%x"> </td>
+              <td> DTC Link Enable </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[3]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[3]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[3]" data-format="%x"> </td>
+              <td> Locked fibers</td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[4]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[4]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[4]" data-format="%x"> </td>
+              <td> DTC timeout </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[5]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[5]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[5]" data-format="%x"> </td>
+              <td> N EVB nodes </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[6]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[6]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[6]" data-format="%x"> </td>
+              <td> Data timeout length </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[7]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[7]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[7]" data-format="%x"> </td>
+              <td> EW marker deltaT </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[8]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[8]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[8]" data-format="%x"> </td>
+              <td> N data requests </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[9]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[9]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[9]" data-format="%x"> </td>
+              <td> null HB after last valid one </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[10]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[10]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[10]" data-format="%x"> </td>
+              <td> CFO emulation event mode bytes 3,2,1,0</td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[11]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[11]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[11]" data-format="%x"> </td>
+              <td> CFO emulation event mode bytes 5,4</td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[12]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[12]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[12]" data-format="%x"> </td>
+              <td> Clk marker deltaT </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[13]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[13]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[13]" data-format="%x"> </td>
+              <td> CFO emulator enable </td>
+            </tr>
+
+            <tr>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegNames[14]" data-format="%s"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC0/RegData[14]" data-format="%x"> </td>
+              <td class="modbvalue" data-odb-path="/Equipment/mu2edaq22/DTC1/RegData[14]" data-format="%x"> </td>
+              <td> DCS timeout </td>
+            </tr>
+
+          </table>
+        </td></tr></tbody>
+      </table>
+
+    </div>
+
+    <script>
+      function dtc_command(cmd) {
+            path_host = "/Mu2e/Commands/Tracker/DTC/Host";
+            
+            mjsonrpc_db_get_values([path_host]).then(function(rpc) {
+                  let host      = rpc.result.data[0];
+                  let msg = { "client_name":host.toString(), "cmd":cmd, "args":"xxx"};
+                  mjsonrpc_call("jrpc",msg).then(function(rpc1) {
+                        document.getElementById("jrpc_data").innerHTML = JSON.stringify(rpc1.result, null, "	");
+                  }).catch(function(error){
+                        mjsonrpc_error_alert(error);
+                  });
+            }).catch(function (error) {
+                  console.error("Error fetching values:", error);
+            });
+      }
+    </script>
+  
+      <table class="mtable">
+        <tr>
+          <span><th class="mtableheader">DTC Control</th></span> <!-- Change XXX to the header name for this page -->
+        </tr>
+        <tr>
+          <td>
+            DTC PCIE address
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/Host" data-odb-editable="1" data-format="%s"> </div>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/PcieAddress" data-odb-editable="1" data-format="%d"> </div>
+          </td>
+          <td>
+            aaaaaaaaaaaaaaaa
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Command
+          </td>
+          <td>
+            <div> Register </div>
+          </td>
+          <td>
+            <div> Value</div>
+          </td>
+          <td>
+            <div> Run</div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            write register
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Register" data-odb-editable="1" data-format="%x"> </div>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Value" data-odb-editable="1"  data-format="%x"></div>
+          </td>
+          <td></td>
+        <tr>
+          <td> read DTC register </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Register" data-odb-editable="1" data-format="%x"> </div>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Value" data-format="%x"></div>
+          </td>
+          <td>
+            <input type=button value='Run' onClick='dtc_command("dtc_read_register")'>
+          </td>
+        </tr>
+        <!--   --------------------------      DTC print status  -->
+        <tr>
+          <td> DTC print status</td>
+          <td> </td>
+          <td> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_status")'> </td>
+        </tr>
+        <!--   --------------------------      DTC soft reset  -->
+        <tr>
+          <td> DTC soft reset</td>
+          <td> </td>
+          <td> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_soft_reset")'> </td>
+        </tr>
+        <!--   --------------------------      DTC hard reset  -->
+        <tr>
+          <td> DTC hard reset</td>
+          <td> </td>
+          <td> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_hard_reset")'> </td>
+        </tr>
+        <!--   --------------------------      DTC hard reset  -->
+        <tr>
+          <td> Init Readout (both DTCs) </td>
+          <td> </td>
+          <td> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_init_readout")'> </td>
+        </tr>
+        <!--   --------------------------      control roc read  -->
+        <tr>
+          <td> control_ROC_read</td>
+          <td></td>
+          <td></td>
+          <td>
+            <input type=button value='Run'
+                   onClick=' mjsonrpc_call("jrpc", { "client_name":"mu2edaq22", "cmd":"dtc_control_roc_read", "args":"yyy"}
+                            ).then( function(rpc) {
+                            document.getElementById("jrpc_data").innerHTML = JSON.stringify(rpc.result, null, "	");
+                            }).catch( function(error){
+                            mjsonrpc_error_alert(error);
+                            });'>
+            
+          </td>
+        </tr>
+        <!-- -------------------------------------- OUTPUT area ---------------------- -->
+        <tr>
+          <td colspan=4>  Output </td>
+        </tr>
+        <tr>
+          <td colspan=4 id='jrpc_data'> </td>
+        </tr>
+      </table>
+
+    
+  </body>
+</html>

@@ -37,6 +37,7 @@ std::string OdbInterface::GetString(HNDLE hDir, const char* Key) {
     res = val;
   }
 
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " res:" << res;
   return res;
 }
 
@@ -52,6 +53,7 @@ HNDLE OdbInterface::GetHandle(HNDLE hConf, const char* Key) {
   if (db_find_key(_hDB, hConf, Key, &h) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "no handle for hConf:Key:" << hConf << ":" << Key;
   }
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " h:" << h;
   return h;
 }
 
@@ -64,7 +66,7 @@ HNDLE OdbInterface::GetHandle(HNDLE hDB, HNDLE hConf, const char* Key) {
 int OdbInterface::GetInteger(HNDLE hDir, const char* Key, int* Data) {
   int   sz = sizeof(*Data);
   int rc = db_get_value(_hDB, hDir, Key, Data, &sz, TID_INT, FALSE);
-  TLOG(TLVL_INFO) << "key:" << Key << " value:" << *Data;
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " value:" << *Data;
   return rc;
 }
 
