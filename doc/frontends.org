@@ -25,15 +25,19 @@ cp  $SPACK_ENV/frontends/scripts/test_seq.sh                   $MU2E_DAQ_DIR/con
   in ~test_stand/experiments
 
 -  name your experiment, and create the .exptab file:
-#+begin_src
-export   MIDAS_EXPT_NAME=test_025
-export   MIDAS_EXPTAB=$MU2E_DAQ_DIR/config/midas/$MIDAS_EXPT_NAME.exptab
-#+end_src
-
 - the .exptab file looks like this (details - on MIDAS website):
 #+begin_src
 # expt name     ODB location                                user name
 test_025     /home/mu2etrk/test_stand/experiments/test_025  mu2etrk
+#+end_src
+
+- finally, edit the setup_daq.sh to define MIDAS env vars.
+- The first line in the example below doesn't need to be changed
+#+begin_src
+  export          MIDASSYS=$SPACK_VIEW
+  export MIDAS_SERVER_HOST=mu2edaq22-ctrl.fnal.gov
+  export   MIDAS_EXPT_NAME=test_025
+  export      MIDAS_EXPTAB=$MIDAS_DAQ_DIR/config/midas/$MIDAS_EXPT_NAME.exptab
 #+end_src
 
 ** configure MIDAS                                                           

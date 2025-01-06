@@ -87,7 +87,6 @@ INT frontend_init() {
   HNDLE h_active_run_conf = odb_i->GetActiveRunConfigHandle();
   active_run_conf         = odb_i->GetRunConfigName(h_active_run_conf);
 
-  std::string host        = get_full_host_name("local");
   HNDLE       h_cfo       = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
   int         external    = odb_i->GetCFOExternal(hDB,h_cfo);
 //-----------------------------------------------------------------------------

@@ -50,8 +50,6 @@ static int          _partition;
 // device driver routines
 // the init function creates a ODB record which contains the
 // settings and initialized it variables as well as the bus driver
-// passed from midas/src/device_driver.cxx is the address of a pointer with 
-// private info, to be allocated here... no information about the hostname
 //-----------------------------------------------------------------------------
 INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, func_t *bd) {
   int                status, size;
@@ -67,6 +65,8 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
 
   OdbInterface* odb_i         = OdbInterface::Instance(hDB);
   HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
+  std::string private_subnet  = odb_i->GetPrivateSubnet(h_active_run_conf);
+  std::string public_subnet   = odb_i->GetPublicSubnet (h_active_run_conf);
   std::string active_run_conf = odb_i->GetRunConfigName(h_active_run_conf);
 //-----------------------------------------------------------------------------
 // create DRIVER settings record 
@@ -88,17 +88,15 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
 //-----------------------------------------------------------------------------
 // now figure out what needs to be initialized
 //-----------------------------------------------------------------------------
-  _partition = odb_i->GetArtdaqPartition(hDB);
+  _partition = odb_i->GetArtdaqPartition();
 //-----------------------------------------------------------------------------
 // the frontend monitors only ARTDAQ processes running on the same node with it
 // this is convenient for book-keeping reasons
 //-----------------------------------------------------------------------------
-  std::string hname=host_name;
-  if (hname == "") hname = "local";
+  std::string full_host_name = get_full_host_name (private_subnet.data());
+  std::string host_label     = get_short_host_name(public_subnet.data() );
 
-  std::string host = get_full_host_name(hname.data());
-
-  HNDLE h_artdaq_conf = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,host);
+  HNDLE h_artdaq_conf = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,host_label);
 //-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
 // make sure it won't compile before that
@@ -107,7 +105,7 @@ INT tfm_dr_driver_init(HNDLE hkey, TFM_DR_DRIVER_INFO **pinfo, INT channels, fun
   strcpy(info->driver_settings.CompName,FrontendsGlobals::_driver->name);
 
   std::string  url;       // XML-RPC url of the data receiver
-  get_xmlrpc_url(hDB,h_artdaq_conf,host.data(),_partition,FrontendsGlobals::_driver->name,url);
+  get_xmlrpc_url(hDB,h_artdaq_conf,full_host_name.data(),_partition,FrontendsGlobals::_driver->name,url);
   strcpy(info->driver_settings.XmlrpcUrl,url.data());
 
   // at this point, update the driver record

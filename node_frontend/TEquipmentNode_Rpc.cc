@@ -75,7 +75,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"dtc_soft_reset") == 0) {
-    int      timeout_ms(150);
+    //    int      timeout_ms(150);
 
     midas::odb o("/Mu2e/Commands/Tracker/DTC");
     int pcie_addr = o["PcieAddress"];
@@ -85,7 +85,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"dtc_hard_reset") == 0) {
-    int      timeout_ms(150);
+    //    int      timeout_ms(150);
 
     midas::odb o("/Mu2e/Commands/Tracker/DTC");
     int pcie_addr = o["PcieAddress"];
@@ -110,7 +110,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     }
   }
   else if (strcmp(cmd,"dtc_print_status") == 0) {
-    int      timeout_ms(150);
+    // int      timeout_ms(150);
 
     midas::odb o("/Mu2e/Commands/Tracker/DTC");
     int pcie_addr = o["PcieAddress"];

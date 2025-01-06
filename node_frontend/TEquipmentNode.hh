@@ -52,9 +52,8 @@ public:
   HNDLE                          _h_daq_host_conf;
   trkdaq::DtcInterface*          fDtc_i[2];       // one or two DTCs, nullprt:disabled
   std::vector<ArtdaqComponent_t> _list_of_ac;
-  // std::string                    _xmlrpcUrl;
-  std::string                    _rpc_host;
-  std::string                    _tfm_host;
+  std::string                    _full_host_name;  // on private network, for communicatioin
+  std::string                    _host_label;      // on public network, for ODB
   xmlrpc_env                     _env;
   int                            _monitorDtc;
   int                            _monitorArtdaq;

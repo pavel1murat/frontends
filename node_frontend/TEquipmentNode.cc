@@ -33,29 +33,36 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   EqSetStatus("Started...", "white");
   fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
+//-----------------------------------------------------------------------------
+// cache the ODB handle, as need to loop over the keys in InitArtdaq
+//-----------------------------------------------------------------------------
   cm_get_experiment_database(&hDB, NULL);
 
   _odb_i                      = OdbInterface::Instance(hDB);
   _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
+  std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
+  std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
   std::string active_run_conf = _odb_i->GetRunConfigName(_h_active_run_conf);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
 // nodes/DTC's to be monitored 
 // MIDAS 'host_name' could be 'local'..
 //-----------------------------------------------------------------------------
-  _rpc_host = get_short_host_name("local");
-  _tfm_host = get_full_host_name ("local");
+  _host_label     = get_short_host_name(public_subnet.data());
+  _full_host_name = get_full_host_name (private_subnet.data());
 
-  TLOG(TLVL_DEBUG) << "rpc_host:" << _rpc_host
-                   << " active_run_conf:" << active_run_conf;
+  _h_daq_host_conf = _odb_i->GetHostConfHandle(_h_active_run_conf,_host_label);
+  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Dtc"   ,&_monitorDtc   );
+  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq",&_monitorArtdaq);
 
-  _h_daq_host_conf = _odb_i->GetHostConfHandle(_h_active_run_conf,_rpc_host);
-  _odb_i->GetInteger(hDB,_h_daq_host_conf,"Monitor/Dtc"   ,&_monitorDtc   );
-  _odb_i->GetInteger(hDB,_h_daq_host_conf,"Monitor/Artdaq",&_monitorArtdaq);
-
-  TLOG(TLVL_DEBUG) << "_monitorDtc:" << _monitorDtc
+  TLOG(TLVL_DEBUG) << "active_run_conf:" << active_run_conf 
+                   << " public_subnet:" << public_subnet
+                   << " private subnet:" << private_subnet 
+                   << " _full_host_name:"  << _full_host_name
+                   << " _host_label:"     << _host_label
+                   << std::endl
+                   << "_monitorDtc:" << _monitorDtc
                    << " _monitorArtdaq:" << _monitorArtdaq;
-
   InitDtc();
   InitArtdaq();
   
@@ -144,10 +151,10 @@ TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
 //-----------------------------------------------------------------------------
 void TEquipmentNode::HandlePeriodic() {
 
-  _odb_i->GetInteger(hDB,_h_daq_host_conf,"Monitor/Dtc"         ,&_monitorDtc         );
-  _odb_i->GetInteger(hDB,_h_daq_host_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
-  _odb_i->GetInteger(hDB,_h_daq_host_conf,"Monitor/RocSPI"      ,&_monitorRocSPI      );
-  _odb_i->GetInteger(hDB,_h_daq_host_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
+  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Dtc"         ,&_monitorDtc         );
+  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
+  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/RocSPI"      ,&_monitorRocSPI      );
+  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
   
   TLOG(TLVL_DEBUG+1) << "_monitorDtc:" << _monitorDtc
                      << " _monitorRocSPI:" << _monitorRocSPI

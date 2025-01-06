@@ -7,70 +7,62 @@
 #include "utils/utils.hh"
 
 //-----------------------------------------------------------------------------
-// assume Hostname is either fully domain-qualified name, or 'local'
+// get fully domain-qualified host name on a given subnet
 //-----------------------------------------------------------------------------
-std::string get_full_host_name(const char* Hostname) {
+std::string get_full_host_name(const char* Subnet) {
 
   std::string name;
-  char buf[100];
+  char cmd[256], buf[128];
 
-  if ((strstr(Hostname,"local") != Hostname) && (Hostname[0])) {
+  sprintf(cmd,"ifconfig -a | grep %s | awk '{print $2}' | nslookup | head -n 1 | sed 's/\\.$//' | awk '{print $NF}'",
+          Subnet);
 //-----------------------------------------------------------------------------
-// assume the Hostname is already fully qualified with the domain name
+// the output is one line max
 //-----------------------------------------------------------------------------
-    name = Hostname;
+  FILE* pipe = popen(cmd, "r");
+  char* s = fgets(buf, 128, pipe);
+  if (s) {
+    int len = strlen(s);
+    if ((len > 0) and (s[len-1] == '\n')) s[len-1] = 0;
+    name = buf;
   }
-  else {
-//-----------------------------------------------------------------------------
-// assume "local" or "localhost", replace it with the fully qualified name
-//-----------------------------------------------------------------------------
-    FILE* pipe = popen("hostname -f", "r");
-    while (!feof(pipe)) {
-      char* s = fgets(buf, 100, pipe);
-      if (s) {
-        int len = strlen(s);
-        if ((len > 0) and (s[len-1] == '\n')) s[len-1] = 0;
-        if (s[0] != 0) name += buf;
-      }
-    }
-    pclose(pipe);
-  }
-
-  //  name += "-data.fnal.gov";
+  pclose(pipe);
+  
   return name;
 }
 
 //-----------------------------------------------------------------------------
-// assume Hostname is either fully domain-qualified name, or 'local'
+// get short host name on a given subnet
 //-----------------------------------------------------------------------------
-std::string get_short_host_name(const char* Hostname) {
+std::string get_short_host_name(const char* Subnet) {
 
   std::string name;
-  char buf[100];
+  char cmd[256], buf[128];
 
-  if ((strstr(Hostname,"local") != Hostname) && (Hostname[0])) {
+  if (Subnet[0] == 0) {
 //-----------------------------------------------------------------------------
-// assume the Hostname is already fully qualified with the domain name
+// subnet is undefined , return hostname - that would normally give the name on a public subnet
+// which is a needed 'label'
 //-----------------------------------------------------------------------------
-    name = Hostname;
+    sprintf(cmd,"hostname -s");
   }
   else {
-//-----------------------------------------------------------------------------
-// assume "local" or "localhost", replace it with the short name
-//-----------------------------------------------------------------------------
-    FILE* pipe = popen("hostname -s", "r");
-    while (!feof(pipe)) {
-      char* s = fgets(buf, 100, pipe);
-      if (s) {
-        int len = strlen(s);
-        if ((len > 0) and (s[len-1] == '\n')) s[len-1] = 0;
-        if (s[0] != 0) name += buf;
-      }
-    }
-    pclose(pipe);
+    sprintf(cmd,
+            "ifconfig -a | grep %s | awk '{print $2}' | nslookup | head -n 1 | sed 's/\\.$//' | awk '{print $NF}' | awk -F . '{print $1}'",
+            Subnet);
   }
+//-----------------------------------------------------------------------------
+// the output is one line max
+//-----------------------------------------------------------------------------
+  FILE* pipe = popen(cmd, "r");
+  char* s    = fgets(buf, 128, pipe);
+  if (s) {
+    int len = strlen(s);
+    if ((len > 0) and (s[len-1] == '\n')) s[len-1] = 0;
+    name = buf;
+  }
+  pclose(pipe);
 
-  //  name += "-data";
   return name;
 }
 

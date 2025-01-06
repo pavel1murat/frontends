@@ -160,13 +160,10 @@ INT begin_of_run(INT run_number, char *error) {
 
   TLOG(TLVL_DEBUG) << "BEGIN RUN " << run_number;
 
-
   HNDLE       h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
   std::string active_run_conf   = _odb_i->GetRunConfigName(h_active_run_conf);
-
-  std::string host        = get_full_host_name("local");
-  _h_cfo                  = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
-  _cfo_enabled            = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
+  _h_cfo                        = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
+  _cfo_enabled                  = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
 
   _n_ewm_train   = _odb_i->GetCFONEventsPerTrain(hDB,_h_cfo);
   _ew_length     = _odb_i->GetEWLength    (hDB,_h_cfo);

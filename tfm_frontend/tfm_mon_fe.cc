@@ -126,6 +126,8 @@ INT frontend_init() {
 
   OdbInterface* odb_i             = OdbInterface::Instance(hDB);
   HNDLE         h_active_run_conf = odb_i->GetActiveRunConfigHandle();
+  std::string   private_subnet    = odb_i->GetPrivateSubnet(h_active_run_conf);
+  std::string   public_subnet     = odb_i->GetPublicSubnet (h_active_run_conf);
   std::string   active_run_conf   = odb_i->GetRunConfigName(h_active_run_conf);
   if(h_active_run_conf == 0) {
     TLOG(TLVL_ERROR) << "Configuration " << active_run_conf << " was not found in /Mu2e/RunConfigurations. BAIL OUT";
@@ -134,17 +136,14 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 // ARTDAQ_PARTITION_NUMBER also comes from the active run configuration
 //-----------------------------------------------------------------------------
-  int partition   = odb_i->GetArtdaqPartition(hDB);
-  int port_number = 10000+1000*partition;
 //-----------------------------------------------------------------------------
 // get port number used by the TF manager 
 // assume the farm_manager is running locally
 //-----------------------------------------------------------------------------
-  std::string host = get_full_host_name("local");
-
-  char url[100];
-  sprintf(url,"http://%s:%i/RPC2",host.data(),port_number);
-  _xmlrpcUrl = url;
+  int partition                 = odb_i->GetArtdaqPartition();
+  int port_number               = 10000+1000*partition;
+  std::string private_host_name = get_full_host_name(private_subnet.data());
+  _xmlrpcUrl = std::format("http://{}:{}/RPC2",private_host_name.data(),port_number);
 
   TLOG(TLVL_DEBUG+4) << "farm_manager _xmlrpcUrl   :" << _xmlrpcUrl ;
 //-----------------------------------------------------------------------------
@@ -163,10 +162,11 @@ INT frontend_init() {
 // find ARTDAQ configuration , 'host_name' (hostname, i.e. mu2edaq09.fnal.gov) 
 // is a global from midas/src/mfe.cxx and should be defined on the command line! 
 //-----------------------------------------------------------------------------
-  HNDLE h_artdaq_conf = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,host);
+  std::string host_label = get_short_host_name(public_subnet.data());
+  HNDLE h_host_artdaq_conf = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,host_label);
 
-  if (h_artdaq_conf == 0) {
-    TLOG(TLVL_ERROR) << "no ARTDAQ configuration for host:" << active_run_conf << ":" << host;
+  if (h_host_artdaq_conf == 0) {
+    TLOG(TLVL_ERROR) << "no ARTDAQ configuration for host:" << active_run_conf << ":" << host_label;
     return FE_ERR_ODB; 
   }
 //-----------------------------------------------------------------------------
@@ -176,7 +176,7 @@ INT frontend_init() {
   HNDLE h_component;
   KEY   component;
   int   ncomp(0);
-  for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+  for (int i=0; db_enum_key(hDB, h_host_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
     db_get_key(hDB, h_component, &component);
     printf("Subkey %d: %s, Type: %d\n", i, component.name, component.type);
     ncomp++;
@@ -189,7 +189,7 @@ INT frontend_init() {
   DEVICE_DRIVER* x = new DEVICE_DRIVER[ncomp+1];
   _driver_list = x;
   
-  for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+  for (int i=0; db_enum_key(hDB, h_host_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
 //-----------------------------------------------------------------------------
 // for each active component, define a driver
 // use the component label 

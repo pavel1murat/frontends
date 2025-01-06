@@ -18,10 +18,10 @@ namespace FrontendsGlobals {
 };
 
 //-----------------------------------------------------------------------------
-// assume Hostname is either a fully domain-qualified name, or 'local'
+// hostname is defined by a subnet, i.e. 192.168.1.107 and nslookup 
 //-----------------------------------------------------------------------------
-std::string get_full_host_name (const char* Hostname);
-std::string get_short_host_name(const char* Hostname);
+std::string get_full_host_name (const char* Subnet);
+std::string get_short_host_name(const char* Subnet);
 
 //-----------------------------------------------------------------------------
 // for a given artdaq node and a component name, return XMLRPC url

@@ -70,7 +70,6 @@ namespace mu2e {
     std::string                           _sFragmentType;
     int                                   _debugLevel;
     size_t                                _nEventsDbg;
-    std::string                           _tfmHost;            // used to send xmlrpc messages to
     int                                   _pcieAddr;
     int                                   _linkMask;           // from ODB
 
@@ -88,12 +87,17 @@ namespace mu2e {
 
     uint16_t                              _reg[200];           // DTC registers to be saved
     int                                   _nreg;               // their number
+    std::string                           _xmlrpcUrl;          // 
     xmlrpc_env                            _env;                // XML-RPC environment
     ulong                                 _tstamp;             //
 
-    HNDLE                                 _hBoardreader;
-    std::string                           _hostname;
+    std::string                           _midas_host;
     std::string                           _exptName;
+    std::string                           _host_label;
+    std::string                           _full_host_name;
+    std::string                           _tfmHost;            // used to send xmlrpc messages to
+
+    HNDLE                                 _hBoardreader;       // boardreader handle in ODB, hopefully doesn't change
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -136,7 +140,6 @@ namespace mu2e {
     }
     
     void   _startProcTimer() { _procStartTime = std::chrono::steady_clock::now(); }
-
 //-----------------------------------------------------------------------------
 // - the first one came from the generator template, 
 // - the second one - comments in the CommandableFragmentGenerator.hh
@@ -179,7 +182,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   , _sFragmentType     (ps.get<std::string>             ("fragmentType"       ,       "TRK"))  // 
   , _debugLevel        (ps.get<int>                     ("debugLevel"         ,           0))
   , _nEventsDbg        (ps.get<size_t>                  ("nEventsDbg"         ,         100))
-  , _tfmHost           (ps.get<std::string>             ("tfmHost"                         ))  // 
+    //  , _tfmHost           (ps.get<std::string>             ("tfmHost"                         ))  // 
   , _readData          (ps.get<int>                     ("readData"           ,           1))  // 
   , _printFreq         (ps.get<int>                     ("printFreq"          ,         100))  // 
   , _maxEventsPerSubrun(ps.get<int>                     ("maxEventsPerSubrun" ,       10000))  // 
@@ -199,80 +202,92 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 //-----------------------------------------------------------------------------
 // figure out the PCIE address - nothing wrong with connecting to ODB and
 //-----------------------------------------------------------------------------
+  _midas_host = getenv("MIDAS_SERVER_HOST");
+  
   char host_name[100], exp_name[100];
   cm_get_environment(host_name, sizeof(host_name), exp_name, sizeof(exp_name));
   _exptName = exp_name;
-  if (host_name[0] == 0)  { // always
-    _hostname = get_short_host_name("local");
-  }
 
-  TLOG(TLVL_INFO) << "label: " << _artdaqLabel << " host name: " << _hostname << " , exp_name: " << exp_name
-                  << " TRACE_FILE:" << (getenv("TRACE_FILE")) ? getenv("TRACE_FILE") : "undefined";
-
-  int status = cm_connect_experiment(_tfmHost.data(), _exptName.data(), _artdaqLabel.data(),NULL);
+  int status = cm_connect_experiment(_midas_host.data(), _exptName.data(), _artdaqLabel.data(),NULL);
   if (status != CM_SUCCESS) {
     cm_msg(MERROR, _artdaqLabel.data(),
            "Cannot connect to experiment \'%s\' on host \'%s\', status %d",
-           exp_name,_hostname.data(),status);
-    TLOG(TLVL_ERROR) << "label: " << _artdaqLabel << " ERROR: failed to connect to experiment. BAIL OUT";
-
+           exp_name,_midas_host.data(),status);
+    TLOG(TLVL_ERROR) << "label: " << _artdaqLabel
+                     << " ERROR: failed to connect to MIDAS on host:" << _midas_host << " . BAIL OUT";
     /* let user read message before window might close */
     ss_sleep(5000);
     return;
   }
-  
+
   HNDLE  hDB(0);
   HNDLE  hClient(0);
   cm_get_experiment_database(&hDB, &hClient);
 
-  TLOG(TLVL_INFO) << "label: " << _artdaqLabel << " hDB:" << hDB << " hClient:" <<  hClient;
+  OdbInterface* odb_i         = OdbInterface::Instance(hDB);
+  HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
+  std::string active_run_conf = odb_i->GetRunConfigName(h_active_run_conf);
+//-----------------------------------------------------------------------------
+// TFM host name - on the private network
+//-----------------------------------------------------------------------------
+  _tfmHost                    = odb_i->GetTfmHostName  (h_active_run_conf);
+
+  std::string private_subnet  = odb_i->GetPrivateSubnet(h_active_run_conf);
+  std::string public_subnet   = odb_i->GetPublicSubnet (h_active_run_conf);
+
+  _host_label                 = get_short_host_name(public_subnet.data() );
+  _full_host_name             = get_full_host_name (private_subnet.data());
+
+  HNDLE h_host_artdaq_conf    = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,_host_label);
+
+  TLOG(TLVL_INFO) << "label:" << _artdaqLabel << " _full_host_name:" << _full_host_name
+                  << " , exp_name: " << exp_name
+                  << " TRACE_FILE:" << (getenv("TRACE_FILE")) ? getenv("TRACE_FILE") : "undefined";
+
+  
+  TLOG(TLVL_INFO) << "label:" << _artdaqLabel << " hDB:" << hDB << " hClient:" <<  hClient;
 
   if (hDB == 0) {
-    TLOG(TLVL_ERROR) << "label: " << _artdaqLabel << " ERROR: failed to connect to ODB. BAIL OUT";
+    TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " ERROR: failed to connect to ODB. BAIL OUT";
     return;
   }
 
-  OdbInterface* odb_i         = OdbInterface::Instance(hDB);
-  
-  HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
-  std::string active_run_conf = odb_i->GetRunConfigName(h_active_run_conf);
-  HNDLE h_host_artdaq_conf    = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,_hostname);
 
   TLOG(TLVL_INFO) << "label: " << _artdaqLabel
                   << " h_active_run_conf:" << h_active_run_conf
                   << " active_run_conf_name:" << active_run_conf
-                  << " rpc_host:" << _hostname << " h_host_artdaq_conf:" << h_host_artdaq_conf;
+                  << " _full_host_name:" << _full_host_name
+                  << " h_host_artdaq_conf:" << h_host_artdaq_conf;
 //-----------------------------------------------------------------------------
 // a DAQ host has keys: "DTC0", DTC1", and "Artdaq"
 //-----------------------------------------------------------------------------
-  HNDLE h_component;
-  KEY   component;
-  int   pcie_addr(-1);
+//  HNDLE h_component;
+//  KEY   component;
 
-  for (int i=0; db_enum_key(hDB, h_host_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
-    db_get_key(hDB, h_component, &component);
-    TLOG(TLVL_INFO) << "label:"  << _artdaqLabel
-                    << " Subkey:" <<  component.name
-                    << " Type:"  << component.type;
-    if (component.name == _artdaqLabel) {
-//-----------------------------------------------------------------------------
-// the boardreader configuration found,
-// it has a link to DTC, take the PCIE address from there
-//-----------------------------------------------------------------------------
-      _hBoardreader = h_component;
-      
-      HNDLE hdtc = odb_i->GetHandle(_hBoardreader,"DTC");
-      pcie_addr  = odb_i->GetDtcPcieAddress(hdtc);
-      _linkMask  = odb_i->GetDtcLinkMask   (hdtc);
-      TLOG(TLVL_INFO) << "label: " << _artdaqLabel
-                      << " pcie_addr(ODB): " << pcie_addr
-                      << " link mask(ODB): " << _linkMask;
-      break;
-    }
-  }
-  if (pcie_addr != -1) _pcieAddr = pcie_addr;
+  _hBoardreader = odb_i->GetHandle(h_host_artdaq_conf,_artdaqLabel.data());
+  HNDLE hdtc    = odb_i->GetHandle(_hBoardreader,"DTC");
+  _pcieAddr     = odb_i->GetDtcPcieAddress(hdtc);
+  _linkMask     = odb_i->GetDtcLinkMask   (hdtc);
 
-  _tfmHost = odb_i->GetTfmHostName(hDB,h_active_run_conf);
+  TLOG(TLVL_INFO) << "label:"             << _artdaqLabel
+                  << " pcie_addr(ODB):"   << _pcieAddr
+                  << " link mask(ODB):0x" << std::hex << _linkMask;
+  
+//   for (int i=0; db_enum_key(hDB, h_host_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+//     db_get_key(hDB, h_component, &component);
+//     TLOG(TLVL_INFO) << "label:"  << _artdaqLabel
+//                     << " Subkey:" <<  component.name
+//                     << " Type:"  << component.type;
+//     if (component.name == _artdaqLabel) {
+// //-----------------------------------------------------------------------------
+// // the boardreader configuration found,
+// // it has a link to DTC, take the PCIE address from there
+// //-----------------------------------------------------------------------------
+//       _hBoardreader = h_component;
+//       break;
+//     }
+//  }
+
   TLOG(TLVL_INFO) << "label:"               << _artdaqLabel
                   << " active_run_conf:"    << active_run_conf
                   << " _tfmHost_from_ODB:"  << _tfmHost;
@@ -280,6 +295,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   cm_disconnect_experiment();
 #endif
 //-----------------------------------------------------------------------------
+// boardreaders do not re-initialize the DTCs
 // make sure that the link mask is right no matter what
 //-----------------------------------------------------------------------------
   bool skip_init(true);
@@ -288,6 +304,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 //-----------------------------------------------------------------------------
 // finally, initialize the environment for the XML-RPC messaging client
 //-----------------------------------------------------------------------------
+  _xmlrpcUrl = "http://" + _tfmHost + ":" + std::to_string((10000 +1000 * GetPartitionNumber()))+"/RPC2";
   xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS, "debug", "v1_0");
   xmlrpc_env_init(&_env);
 
@@ -299,19 +316,15 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 // so far, make the TFM hist a talk-to parameter
 // GetPartitionNumber() is an artdaq global function - see artdaq/artdaq/DAQdata/Globals.hh
 //-----------------------------------------------------------------------------
-int mu2e::TrackerBRDR::message(const std::string& msg_type, const std::string& message) {
+int mu2e::TrackerBRDR::message(const std::string& MsgType, const std::string& Msg) {
     
-  auto _xmlrpcUrl = "http://" + _tfmHost + ":" + std::to_string((10000 +1000 * GetPartitionNumber()))+"/RPC2";
-
-  xmlrpc_client_call(&_env, _xmlrpcUrl.data(), "message","(ss)", msg_type.data(), 
-                     (artdaq::Globals::app_name_+":"+message).data());
+  xmlrpc_client_call(&_env, _xmlrpcUrl.data(), "message","(ss)", MsgType.data(), 
+                     (artdaq::Globals::app_name_+":"+Msg).data());
   if (_env.fault_occurred) {
-    TLOG(TLVL_ERROR) << "label: " << _artdaqLabel << " XML-RPC rc=" << _env.fault_code << " " << _env.fault_string;
+    TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " XML-RPC rc=" << _env.fault_code << " " << _env.fault_string;
     return -1;
   }
-  else {
-    TLOG(TLVL_DEBUG) << "label: " << _artdaqLabel << "message successfully sent. type:" << msg_type << " message" << message;
-  }
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel << "message sent. type:" << MsgType << " message:" << Msg;
   return 0;
 }
 
@@ -331,7 +344,7 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 // there should be 6 ROC blocks, empty ROC - 0x10 bytes
 //-----------------------------------------------------------------------------
   uint16_t* dat = (uint16_t*) ArtdaqFragmentData;
-  int       nb  = *dat;
+  //  int       nb  = *dat;
   
   uint16_t* roc = dat+0x18;             // here the first ROC starts
   
@@ -375,11 +388,11 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 //-----------------------------------------------------------------------------
 // send alarm message and set the boardreader status to -1, also log the message
 //-----------------------------------------------------------------------------
-    int status = cm_connect_experiment(_tfmHost.data(), _exptName.data(), _artdaqLabel.data(),NULL);
+    int status = cm_connect_experiment(_midas_host.data(), _exptName.data(), _artdaqLabel.data(),NULL);
     if (status != CM_SUCCESS) {
       cm_msg(MERROR, _artdaqLabel.data(),
-             "Cannot connect to experiment \'%s\' on host \'%s\', status %d",
-             _exptName.data(),_hostname.data(),status);
+             "Cannot connect to experiment '%s' on host '%s' from '%s', status %d",
+             _exptName.data(),_midas_host.data(),_full_host_name.data(),status);
       
       /* let user read message before window might close */
       ss_sleep(5000);
