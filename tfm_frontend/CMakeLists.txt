@@ -33,37 +33,6 @@ cet_make_exec(NAME      client
                         pthread rt util
 )                  
 
-cet_make_exec(NAME      tfm_mon_fe
-              SOURCE    tfm_mon_fe.cc 
-                        tfm_br_driver.cc
-                        tfm_dr_driver.cc
-                        tfm_disk_driver.cc
-                        ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-              LIBRARIES frontends_utils midas mfe 
-                        artdaq_plugin_support::commanderMaker
-                        artdaq::Application                       # needed for messagefacility
-                        artdaq::DAQrate
-                        artdaq::DAQdata
-                        artdaq::BuildInfo
-                        artdaq_core::artdaq-core_Utilities
-                        artdaq_core::artdaq-core_Plugins
-                        util
-)                  
-
-# cet_make_exec(NAME      tfm_launch_fe 
-#               SOURCE    tfm_launch_fe.cc 
-#                         ${MIDAS_INSTALL_DIR}/drivers/device/nulldev.cxx
-#                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
-#               LIBRARIES frontends_utils midas mfe 
-#                         artdaq_plugin_support::commanderMaker
-#                         artdaq::Application                       # needed for messagefacility
-#                         artdaq::DAQrate
-#                         artdaq::DAQdata
-#                         artdaq::BuildInfo
-#                         artdaq_core::artdaq-core_Utilities
-#                         artdaq_core::artdaq-core_Plugins
-# )                  
-
 install(PROGRAMS
   tfm_launch_fe.py
     DESTINATION bin)
