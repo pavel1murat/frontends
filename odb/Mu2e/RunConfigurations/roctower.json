@@ -270,8 +270,8 @@
       "SleepTimeMs" : 200,
       "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1733525827 },
       "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/mu2edaq22/DTC0",
-      "FirstEWTag/key" : { "type" : 18, "access_mode" : 7, "last_written" : 1733525827 },
-      "FirstEWTag" : "0x0000000000000000"
+      "FirstEWTag/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+      "FirstEWTag" : 0
     },
     "Tfm" : {
       "RpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1734907334 },
