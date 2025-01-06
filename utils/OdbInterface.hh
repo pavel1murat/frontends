@@ -18,8 +18,7 @@ public:
   static OdbInterface*  Instance      (HNDLE h_DB);
 
   HNDLE       GetActiveRunConfigHandle();
-
-  int         GetArtdaqPartition      (HNDLE h_DB);
+  int         GetArtdaqPartition      ();
                                         // 'Host' - short, w/o the domain name
   int         GetHostConfHandle       (HNDLE h_RunConf, const std::string& Host);
   //  HNDLE       GetArtdaqConfigHandle   (HNDLE h_DB, std::string& RunConf, std::string& Host);
@@ -76,7 +75,10 @@ public:
   HNDLE       GetRunConfigHandle  (HNDLE h_DB, std::string& RunConf);
   std::string GetRunConfigName    (HNDLE h_Conf);
 
-  std::string GetTfmHostName      (HNDLE h_DB, HNDLE h_RunConf);
+  std::string GetPrivateSubnet    (HNDLE h_RunConf);
+  std::string GetPublicSubnet     (HNDLE h_RunConf);
+
+  std::string GetTfmHostName      (HNDLE h_RunConf);
 //-----------------------------------------------------------------------------
 // "generic" accessors, first - "new style", then "old style"
 // slowly getting rid of the old style, need the transition to be transparent

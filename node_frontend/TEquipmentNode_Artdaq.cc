@@ -59,16 +59,14 @@ TMFeResult TEquipmentNode::InitArtdaq() {
   // int         port_number = 10000+1000*partition+11;
   
   char cbuf[100];
-  // sprintf(cbuf,"http://%s:%i/RPC2",tfm_host.data(),port_number);
-  // _xmlrpcUrl = cbuf;
 
-  sprintf(cbuf,"%s_mon",_rpc_host.data());
+  sprintf(cbuf,"%s_mon",_full_host_name.data());
   xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS,cbuf,"v1_0");
   xmlrpc_env_init(&_env);
 //-----------------------------------------------------------------------------
 // read ARTDAQ configuration from ODB
 //-----------------------------------------------------------------------------
-  HNDLE h_artdaq_conf = _odb_i->GetHostArtdaqConfHandle(_h_active_run_conf,_rpc_host);
+  HNDLE h_artdaq_conf = _odb_i->GetHostArtdaqConfHandle(_h_active_run_conf,_host_label);
   HNDLE h_component;
   KEY   component;
   for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
@@ -91,15 +89,15 @@ TMFeResult TEquipmentNode::InitArtdaq() {
     else if (ac.name.find("dl") == 0) ac.type = kDataLogger;
     else if (ac.name.find("ds") == 0) ac.type = kDispatcher;
     
-    _odb_i->GetInteger(hDB,h_component,"XmlrpcPort",&ac.xmlprc_port);
-    _odb_i->GetInteger(hDB,h_component,"Rank"      ,&ac.rank);
+    _odb_i->GetInteger(h_component,"XmlrpcPort"    ,&ac.xmlprc_port);
+    _odb_i->GetInteger(h_component,"Rank"          ,&ac.rank);
     // _odb_i->GetInteger(hDB,h_component,"Target"    ,&ac.target);
-    _odb_i->GetInteger(hDB,h_component,"Subsystem" ,&ac.subsystem);
-    _odb_i->GetInteger(hDB,h_component,"NFragmentTypes" ,&ac.n_fragment_types);
+    _odb_i->GetInteger(h_component,"Subsystem"     ,&ac.subsystem);
+    _odb_i->GetInteger(h_component,"NFragmentTypes",&ac.n_fragment_types);
 
-    char url[100];
-    sprintf(url,"http://%s:%i/RPC2",_tfm_host.data(),ac.xmlprc_port);
-    ac.xmlrpc_url  = url;
+    // char url[100];
+    // sprintf(url,"http://%s:%i/RPC2",_full_host_name.data(),ac.xmlprc_port);
+    ac.xmlrpc_url  = std::format("http://{}:{}/RPC2",_full_host_name,ac.xmlprc_port);
     
     _list_of_ac.push_back(ac);
   }
@@ -113,7 +111,7 @@ TMFeResult TEquipmentNode::InitArtdaq() {
 // boardreaders: 'br01', 'br02' , etc
 //-----------------------------------------------------------------------------
 void TEquipmentNode::InitArtdaqVarNames() {
-  char dirname[256], name[128];
+  char dirname[128], name[128];
 
   const std::string node_path     = "/Equipment/"+TMFeEquipment::fEqName;
   const std::string settings_path = node_path+"/Settings";
@@ -166,7 +164,7 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
   
   // two words per process - N(segments/sec) and the data rate, MB/sec
   int           rc(0);
-  //  xmlrpc_env    env;
+  xmlrpc_env    env;
   xmlrpc_value* resultP;
 
   BrMetrics_t   brm;
@@ -178,12 +176,12 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
   int         nf(-1);
 
   try {
-    //    xmlrpc_env_init(&env);  // P.M. : use _env - it should eb initialized
+    xmlrpc_env_init(&env);  // P.M. : use _env - it should be initialized - may be not ?
                                // "({s:i,s:i})",
-    resultP = xmlrpc_client_call(&_env,url,"daq.report","(s)","stats");
-    if (_env.fault_occurred) {
-      rc = _env.fault_code;
-      TLOG(TLVL_ERROR) << "XML-RPC rc=" << _env.fault_code << " output:" << _env.fault_string;
+    resultP = xmlrpc_client_call(&env,url,"daq.report","(s)","stats");
+    if (env.fault_occurred) {
+      rc = env.fault_code;
+      TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " output:" << env.fault_string;
       // throw;
       goto DONE_PARSING;
     }
@@ -192,7 +190,7 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
 //-----------------------------------------------------------------------------
     const char* value;
     size_t      length;
-    xmlrpc_read_string_lp(&_env, resultP, &length, &value);
+    xmlrpc_read_string_lp(&env, resultP, &length, &value);
     
     res = value;
     xmlrpc_DECREF   (resultP);
@@ -408,28 +406,28 @@ int TEquipmentNode::ReadDataReceiverMetrics(const ArtdaqComponent_t* Ac) {
   
   // two words per process - N(segments/sec) and the data rate, MB/sec
   int           rc(0);
-  // xmlrpc_env    env;
+  xmlrpc_env    env;
   xmlrpc_value* resultP;
 
   EbMetrics_t   drm;
   
-  // xmlrpc_env_init(&env);
+  xmlrpc_env_init(&env);
   const char* url = Ac->xmlrpc_url.data();
   TLOG(TLVL_DEBUG+1) << "000: Url:" << url;
 
   std::string res;
 
   try {
-    resultP = xmlrpc_client_call(&_env,url,"daq.report","(s)","stats");
-    if (_env.fault_occurred) {
-      TLOG(TLVL_ERROR) << "XML-RPC rc=" << _env.fault_code << " " << _env.fault_string;
-      rc = _env.fault_code;
+    resultP = xmlrpc_client_call(&env,url,"daq.report","(s)","stats");
+    if (env.fault_occurred) {
+      TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string;
+      rc = env.fault_code;
       goto DONE_PARSING_1;
     }
 
     const char* value;
     size_t      length;
-    xmlrpc_read_string_lp(&_env, resultP, &length, &value);
+    xmlrpc_read_string_lp(&env, resultP, &length, &value);
     
     res = value;
     xmlrpc_DECREF   (resultP);
@@ -602,7 +600,7 @@ int TEquipmentNode::ReadDataReceiverMetrics(const ArtdaqComponent_t* Ac) {
   BkClose    (buf,ptr);
   EqSendEvent(buf);
 
-  return 0;
+  return rc;
 }
   
 //-----------------------------------------------------------------------------

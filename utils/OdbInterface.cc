@@ -64,9 +64,13 @@ HNDLE OdbInterface::GetHandle(HNDLE hDB, HNDLE hConf, const char* Key) {
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetInteger(HNDLE hDir, const char* Key, int* Data) {
-  int   sz = sizeof(*Data);
-  int rc = db_get_value(_hDB, hDir, Key, Data, &sz, TID_INT, FALSE);
-  TLOG(TLVL_DEBUG+1) << "key:" << Key << " value:" << *Data;
+  int rc(0);
+  int sz = sizeof(int); 
+  rc = db_get_value(_hDB, hDir, Key, Data, &sz, TID_INT, FALSE);
+  if (rc != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << hDir; 
+  }
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " value:" << Data;
   return rc;
 }
 
@@ -169,10 +173,10 @@ int OdbInterface::GetCFOSleepTime(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetArtdaqPartition(HNDLE hDB) {
+int OdbInterface::GetArtdaqPartition() {
   const char* key {"/Mu2e/ARTDAQ_PARTITION_NUMBER"};
   int   data(-1);
-  if (GetInteger(hDB,0,key,&data) != DB_SUCCESS) {
+  if (GetInteger(0,key,&data) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
   }
   return data;
@@ -429,8 +433,18 @@ std::string OdbInterface::GetOutputDir(HNDLE hDB) {
 }
 
 //-----------------------------------------------------------------------------
-std::string OdbInterface::GetTfmHostName(HNDLE hDB, HNDLE hRunConf) {
-  return GetString(hDB,hRunConf,"DAQ/Tfm/RpcHost");
+std::string OdbInterface::GetPrivateSubnet(HNDLE hRunConf) {
+  return GetString(hRunConf,"DAQ/PrivateSubnet");
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetPublicSubnet(HNDLE hRunConf) {
+  return GetString(hRunConf,"DAQ/PublicSubnet");
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetTfmHostName(HNDLE hRunConf) {
+  return GetString(hRunConf,"DAQ/Tfm/RpcHost");
 }
 
 //-----------------------------------------------------------------------------

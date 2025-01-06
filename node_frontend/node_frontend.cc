@@ -62,15 +62,15 @@ public:
 
 //-----------------------------------------------------------------------------
 // add future node frontend, 
-// the base class constructor does nothing except instantiating TFME thing
+// the base class constructor does nothing except instantiating the TFME thing
+// but that doesn't connect to ODB yet...
 // all parameters need to be initalized here
 //-----------------------------------------------------------------------------
 DtcFrontend::DtcFrontend() : TMFrontend() {
 
-  std::string hostname = get_short_host_name("local");
-  fName  = hostname+"_fe";
-
-  fName = hostname;
+  std::string hostname = get_short_host_name("");
+  // fName  = hostname+"_fe";
+  fName  = hostname;
   FeSetName(fName.data());
   
   TEquipmentNode* eq_dtc = new TEquipmentNode(hostname.data(),__FILE__);

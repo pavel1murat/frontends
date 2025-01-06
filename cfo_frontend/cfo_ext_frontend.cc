@@ -102,7 +102,6 @@ INT frontend_init() {
   _run_plan_dir           = _odb_i->GetCFORunPlanDir  (hDB);
 
 
-  std::string host        = get_full_host_name("local");
   _h_cfo                  = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
   _cfo_enabled            = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
 

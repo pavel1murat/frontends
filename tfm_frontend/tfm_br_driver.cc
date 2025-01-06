@@ -72,7 +72,9 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   OdbInterface* odb_i           = OdbInterface::Instance(hDB);
   HNDLE       h_active_run_conf = odb_i->GetActiveRunConfigHandle();
   std::string active_run_conf   = odb_i->GetRunConfigName(h_active_run_conf);
-  _partition                    = odb_i->GetArtdaqPartition(hDB);
+  std::string private_subnet    = odb_i->GetPrivateSubnet(h_active_run_conf);
+  std::string public_subnet     = odb_i->GetPublicSubnet (h_active_run_conf);
+  _partition                    = odb_i->GetArtdaqPartition();
 //-----------------------------------------------------------------------------
 // create DRIVER settings record 
 //-----------------------------------------------------------------------------
@@ -92,16 +94,15 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   info->hkey         = hkey;
 //-----------------------------------------------------------------------------
 // now figure out what needs to be initialized
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 // find out the port numbers for the first boardreader, first event builder, 
 // and first datalogger
+//
+// short host name is a label like 'mu2edaq22'
+// full host name is the name to be used to resolve the host IP and build the URLs
 //-----------------------------------------------------------------------------
-  std::string hname=host_name;
-  if (hname == "") hname = "local";
-
-  std::string host    = get_full_host_name(hname.data());
-  HNDLE h_artdaq_conf = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,host);
+  std::string full_host_name = get_full_host_name (private_subnet.data());
+  std::string host_label     = get_short_host_name(public_subnet.data());
+  HNDLE h_host_artdaq_conf   = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,host_label);
 //-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
 // make sure it won't compile before that
@@ -112,9 +113,9 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   strcpy(info->driver_settings.CompName,FrontendsGlobals::_driver->name);
 
   std::string  xmlrpcUrl;       // XML-RPC url of the board reader
-  get_xmlrpc_url(hDB,h_artdaq_conf,host.data(),_partition,FrontendsGlobals::_driver->name,xmlrpcUrl);
+  get_xmlrpc_url(hDB,h_host_artdaq_conf,full_host_name.data(),_partition,FrontendsGlobals::_driver->name,xmlrpcUrl);
 
-  TLOG(TLVL_INFO+10) << "013: host.data:" << host.data() << " xmlRpcUrl:" << xmlrpcUrl;
+  TLOG(TLVL_INFO+10) << "013: host_label:" << host_label << " xmlRpcUrl:" << xmlrpcUrl;
   strcpy(info->driver_settings.XmlrpcUrl,xmlrpcUrl.data());
 //-----------------------------------------------------------------------------
 // for the boardreader, store the number of fragment types - that defines
@@ -124,7 +125,7 @@ INT tfm_br_driver_init(HNDLE hkey, TFM_BR_DRIVER_INFO **pinfo, INT channels, fun
   int   found(0);
   HNDLE h_component; 
   KEY   component;
-  for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+  for (int i=0; db_enum_key(hDB, h_host_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
     db_get_key(hDB, h_component, &component);
     if (strcmp(FrontendsGlobals::_driver->name,component.name) == 0) {
       found = 1;
@@ -211,7 +212,7 @@ int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
   BrStatData_t  brs;
   
   const char* url = Info->driver_settings.XmlrpcUrl;
-  TLOG(TLVL_INFO + 10) << "000: Url:" << url;
+  TLOG(TLVL_DEBUG+1) << "000: Url:" << url;
   memset(&brs,0,sizeof(BrStatData_t));
 
   std::string res;
@@ -252,7 +253,7 @@ int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
     vector<string> lines;
     boost::split(lines,res,boost::is_any_of("\n"));
     int nlines = lines.size();
-    TLOG(TLVL_INFO + 10) << "001: nlines:" << nlines;
+    TLOG(TLVL_DEBUG+1) << "001: nlines:" << nlines;
     if (nlines < 4+Info->driver_settings.NFragmentTypes) {
       rc = -10-nlines;
       TLOG(TLVL_ERROR) << "002 ERROR: nlines=" << nlines;
@@ -264,12 +265,12 @@ int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
 // 0:  boardreader01 run number = 105251, Sent Fragment count = 5484253, boardreader01 statistics:\n
 //-----------------------------------------------------------------------------
     boost::trim(lines[0]); 
-    TLOG(TLVL_INFO + 10) << "002: lines[0]:" << lines[0];
+    TLOG(TLVL_DEBUG+1) << "002: lines[0]:" << lines[0];
 
     vector<string> words;                                // words of the lines[0]
     boost::split(words,lines[0],boost::is_any_of(" ,"));
 
-    TLOG(TLVL_INFO + 10) << "003: lines[0].words[4]:" << words[4] << " lines[0].words[10]:" << words[10];
+    TLOG(TLVL_DEBUG+1) << "003: lines[0].words[4]:" << words[4] << " lines[0].words[10]:" << words[10];
     brs.runNumber = std::stoi(words[ 4]);
     brs.nFragTot  = std::stoi(words[10]);
 //-----------------------------------------------------------------------------
@@ -281,8 +282,8 @@ int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
     words.clear();
     boost::split(words,lines[1],boost::is_any_of(" "));
 
-    TLOG(TLVL_INFO + 10) << "004: lines[1]:" << lines[1];
-    TLOG(TLVL_INFO + 10) << "005: lines[1].nwords:" << words.size();
+    TLOG(TLVL_DEBUG+1) << "004: lines[1]:" << lines[1];
+    TLOG(TLVL_DEBUG+1) << "005: lines[1].nwords:" << words.size();
 
     brs.nFragRead    = std::stoi(words[ 2]);
     brs.getNextRate  = std::stof(words[ 6]);
@@ -292,23 +293,23 @@ int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
     vector<string> n1;
     boost::split(n1,words[23],boost::is_any_of(":"));
 
-    TLOG(TLVL_INFO + 10) << "006: lines[1],words[23]:" << words[23] << " n1.size():" << n1.size() << " n1[0]:" << n1[0] << " n1[2]:" << n1[2] ;
+    TLOG(TLVL_DEBUG+1) << "006: lines[1],words[23]:" << words[23] << " n1.size():" << n1.size() << " n1[0]:" << n1[0] << " n1[2]:" << n1[2] ;
     
     brs.minNFrag    = std::stoi(n1[ 0]);
     brs.maxNFrag    = std::stoi(n1[ 2]);
-    TLOG(TLVL_INFO + 10) << "007: brs.minNFrag: " << brs.minNFrag << " brs.maxNFrag: " << brs.maxNFrag << " words[32]: " << words[32];
+    TLOG(TLVL_DEBUG+1) << "007: brs.minNFrag: " << brs.minNFrag << " brs.maxNFrag: " << brs.maxNFrag << " words[32]: " << words[32];
 //-----------------------------------------------------------------------------
 // it looks that there are some TAB characters hidden
 //-----------------------------------------------------------------------------
-    TLOG(TLVL_INFO + 10) << "008: words[32]: " << words[32] << " words[33]: " << words[33];
+    TLOG(TLVL_DEBUG+1) << "008: words[32]: " << words[32] << " words[33]: " << words[33];
     brs.elapsedTime = std::stof(words[33]);
-    TLOG(TLVL_INFO + 10) << "009: brs.elapsedTime: " << brs.elapsedTime;
+    TLOG(TLVL_DEBUG+1) << "009: brs.elapsedTime: " << brs.elapsedTime;
 //-----------------------------------------------------------------------------
 // third line
 // 2:    Fragment output statistics: 74827 fragments sent at 1246.97 fragments/sec, effective data rate = 0.584226 MB/sec, monitor window = 60.0068 sec, min::max event size = 0.000457764::0.000534058 MB\n
 //-----------------------------------------------------------------------------
     boost::trim(lines[2]); 
-    TLOG(TLVL_INFO + 10) << "010: lines[2]:" << lines[2];
+    TLOG(TLVL_DEBUG+1) << "010: lines[2]:" << lines[2];
 
     words.clear();
     boost::split(words,lines[2],boost::is_any_of(" "));
@@ -320,7 +321,7 @@ int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
     brs.minEventSize = std::stof(n2[ 0]);
     brs.maxEventSize = std::stof(n2[ 2]);
 
-    TLOG(TLVL_INFO + 10) << "011: words[13]:" << words[13] << " words[24]:" << words[24] << " n2[0]:" << n2[0] << " n2[2]:" << n2[2];
+    TLOG(TLVL_DEBUG+1) << "011: words[13]:" << words[13] << " words[24]:" << words[24] << " n2[0]:" << n2[0] << " n2[2]:" << n2[2];
 //-----------------------------------------------------------------------------
 // line # 4
 //    Input wait time = 0.00156023 s/fragment, buffer wait time = 4.04943e-05 s/fragment, request wait time = 0.00075403 s/fragment, output wait time = 3.5861e-05 s/fragment\n
@@ -329,7 +330,7 @@ int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
 
     words.clear();
     boost::split(words,lines[3],boost::is_any_of(" "));
-    TLOG(TLVL_INFO + 10) << "012: words[4]:" << words[4] << " words[10]:" << words[10] 
+    TLOG(TLVL_DEBUG+1) << "012: words[4]:" << words[4] << " words[10]:" << words[10] 
                          << " words[16]:" << words[16]  << " words[22]:" << words[22];
     brs.inputWaitTime   = std::stof(words[ 4]);
     brs.bufferWaitTime  = std::stof(words[10]);
@@ -342,20 +343,20 @@ int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
     nf = nlines-4;
     if (nf > 5) nf = 5;
 
-    TLOG(TLVL_INFO + 10) << "013: nf = " << nf;
+    TLOG(TLVL_DEBUG+1) << "013: nf = " << nf;
 
     for (int i=0; i<nf; i++) {
       boost::trim(lines[4+i]); 
 
-      TLOG(TLVL_INFO + 10) << "014: i=" << i << " lines[4+i]:" << lines[4+i];
+      TLOG(TLVL_DEBUG+1) << "014: i=" << i << " lines[4+i]:" << lines[4+i];
       words.clear();
       boost::split(words,lines[4+i],boost::is_any_of(" "));
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-      TLOG(TLVL_INFO + 10) << "015: words.size()" << words.size();
+      TLOG(TLVL_DEBUG+1) << "015: words.size()" << words.size();
       int nww = words.size();
-      for (int k=0; k<nww; k++) TLOG(TLVL_INFO + 10) << "016: k:" << k << "words[k]:" << words[k];
+      for (int k=0; k<nww; k++) TLOG(TLVL_DEBUG+1) << "016: k:" << k << "words[k]:" << words[k];
 
       try {
         vector<string> num;
@@ -416,7 +417,7 @@ int tfm_br_get_boardreader_data(TFM_BR_DRIVER_INFO* Info, float* Data) {
 //-----------------------------------------------------------------------------
   Data[30] = rc;
 
-  TLOG(TLVL_INFO + 10) << "Data[0]:" << Data[0] << " Data[1]" << Data[1] << " rc=" << rc;
+  TLOG(TLVL_DEBUG+1) << "Data[0]:" << Data[0] << " Data[1]" << Data[1] << " rc=" << rc;
  
   return rc;
 }
@@ -434,7 +435,7 @@ INT tfm_br_driver_get(TFM_BR_DRIVER_INFO* Info, INT Channel, float *Pvalue) {
   time_t        timer;
   const char*   default_trace_file = "/proc/trace/buffer";
 
-  TLOG(TLVL_DEBUG+20) << "000: driver called";
+  TLOG(TLVL_DEBUG+1) << "000: driver called";
 
   timer = time(NULL); 
   double time_diff = difftime(timer,previous_timer);

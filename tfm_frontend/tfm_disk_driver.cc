@@ -72,8 +72,8 @@ INT tfm_disk_driver_init(HNDLE hkey, TFM_DISK_DRIVER_INFO **pinfo, INT channels,
   cm_get_experiment_database(&hDB, NULL);
 
   OdbInterface* odb_i         = OdbInterface::Instance(hDB);
-  //  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
-  //  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
+  HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
+  std::string public_subnet   = odb_i->GetPublicSubnet(h_active_run_conf);
 //-----------------------------------------------------------------------------
 // create DRIVER settings record 
 //-----------------------------------------------------------------------------
@@ -94,7 +94,7 @@ INT tfm_disk_driver_init(HNDLE hkey, TFM_DISK_DRIVER_INFO **pinfo, INT channels,
 //-----------------------------------------------------------------------------
 // now figure out what needs to be initialized
 //-----------------------------------------------------------------------------
-  _partition = odb_i->GetArtdaqPartition(hDB);
+  _partition = odb_i->GetArtdaqPartition();
 //-----------------------------------------------------------------------------
 // need to figure which component this driver is monitoring 
 // make sure it won't compile before that
@@ -102,8 +102,8 @@ INT tfm_disk_driver_init(HNDLE hkey, TFM_DISK_DRIVER_INFO **pinfo, INT channels,
 //-----------------------------------------------------------------------------
   strcpy(info->driver_settings.CompName,FrontendsGlobals::_driver->name);
 
-  std::string host = get_short_host_name("local");
-  strcpy(info->driver_settings.HostName, host.data());
+  std::string host_label = get_short_host_name(public_subnet.data());
+  strcpy(info->driver_settings.HostName, host_label.data());
 
   // at this point, update the driver record
   db_set_record(hDB, hkeydd, &info->driver_settings, size, 0);
