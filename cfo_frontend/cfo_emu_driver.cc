@@ -73,7 +73,7 @@ INT cfo_emu_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_
 
   _n_ewm_train   = odb_i->GetCFONEventsPerTrain(hDB,h_cfo_conf);
   _ew_length     = odb_i->GetEWLength  (hDB,h_cfo_conf);
-  _first_ts      = odb_i->GetFirstEWTag(hDB,h_cfo_conf);            // normally, start from zero
+  _first_ts      = (uint64_t) odb_i->GetFirstEWTag(h_cfo_conf);            // normally, start from zero
 //-----------------------------------------------------------------------------
 // we know that this is an emulated CFO - get pointer to the corresponding DTC
 // an emulated CFO configuration includs a link to the DTC

@@ -56,7 +56,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
         dtc_i->ControlRoc_Read(&par,-1,update_mask,print_level);
       }
     }
-    ss << tmp;
+    ss << "Hopefully, success of dtc_control_roc_read";
   }
   else if (strcmp(cmd,"dtc_read_register") == 0) {
     int      timeout_ms(150);

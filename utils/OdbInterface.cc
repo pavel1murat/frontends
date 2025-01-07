@@ -134,6 +134,21 @@ int OdbInterface::GetCFOEventMode(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
+int OdbInterface::GetSkipDtcInit(HNDLE h_HostConf) {
+  const char* key{"Frontend/SkipDtcInit"};
+  
+  INT   data(0);
+  int   sz = sizeof(data);
+  if (db_get_value(_hDB, h_HostConf, key, &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+    return data;
+  }
+  else {
+    TLOG(TLVL_ERROR) << "cant retrieve key:" << key << ", return -1";
+    return -1;
+  }
+}
+
+//-----------------------------------------------------------------------------
 // for the emulated CFO
 //-----------------------------------------------------------------------------
 int OdbInterface::GetCFONEventsPerTrain(HNDLE hDB, HNDLE hCFO) {
@@ -347,10 +362,11 @@ int OdbInterface::GetEWLength(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-uint64_t OdbInterface::GetFirstEWTag(HNDLE hDB, HNDLE hCFO) {
-  UINT64  data(0);
+// uint64_t OdbInterface::GetFirstEWTag(HNDLE hCFO) {
+int OdbInterface::GetFirstEWTag(HNDLE hCFO) {
+  int  data(0);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "FirstEWTag", &data, &sz, TID_UINT64, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hCFO, "FirstEWTag", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "return 0 (disabled)";
   }
   return data;

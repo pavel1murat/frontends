@@ -167,7 +167,7 @@ INT begin_of_run(INT run_number, char *error) {
 
   _n_ewm_train   = _odb_i->GetCFONEventsPerTrain(hDB,_h_cfo);
   _ew_length     = _odb_i->GetEWLength    (hDB,_h_cfo);
-  _first_ts      = _odb_i->GetFirstEWTag  (hDB,_h_cfo);            // normally, start from zero
+  _first_ts      = (uint64_t) _odb_i->GetFirstEWTag  (_h_cfo);            // normally, start from zero
   _sleep_time_ms = _odb_i->GetCFOSleepTime(hDB,_h_cfo);
 //----------------------------------------------------------------------------- 
 // we know that this is an emulated CFO - get pointer to the corresponding DTC
