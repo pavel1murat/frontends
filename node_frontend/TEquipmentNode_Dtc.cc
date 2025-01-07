@@ -15,6 +15,7 @@
 TMFeResult TEquipmentNode::InitDtc() {
   int event_mode       = _odb_i->GetEventMode     (_h_active_run_conf);
   int roc_readout_mode = _odb_i->GetRocReadoutMode(_h_active_run_conf);
+  int skip_dtc_init    = _odb_i->GetSkipDtcInit   (_h_daq_host_conf  );
 
   HNDLE h_subkey;
   KEY   subkey;
@@ -37,8 +38,7 @@ TMFeResult TEquipmentNode::InitDtc() {
     
     if (enabled) {
       // for now, disable re-initialization
-      bool skip_init(false);
-      trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_init);
+      trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
 
       dtc_i->fLinkMask       = link_mask;
       dtc_i->fPcieAddr       = pcie_addr;

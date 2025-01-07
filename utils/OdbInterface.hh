@@ -22,7 +22,9 @@ public:
                                         // 'Host' - short, w/o the domain name
   int         GetHostConfHandle       (HNDLE h_RunConf, const std::string& Host);
   //  HNDLE       GetArtdaqConfigHandle   (HNDLE h_DB, std::string& RunConf, std::string& Host);
-  HNDLE       GetHostArtdaqConfHandle (HNDLE RunConf, const std::string& Host);
+  HNDLE       GetHostArtdaqConfHandle (HNDLE h_RunConf, const std::string& Host);
+
+  int         GetSkipDtcInit          (HNDLE h_DaqHostConf);
 
                                         // returns: 1="external" or 0="emulated"
   int         GetCFOExternal          (HNDLE Hdb, HNDLE h_CFO);
@@ -59,7 +61,9 @@ public:
   
   uint64_t    GetNEvents          (HNDLE h_DB, HNDLE h_DTC);
   int         GetEWLength         (HNDLE h_DB, HNDLE h_DTC);
-  uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
+  //  uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
+  // temporarily, back to INT
+  int         GetFirstEWTag       (HNDLE h_DTC);
 
   int         GetEventMode        (HNDLE hRunConf);
 //-----------------------------------------------------------------------------

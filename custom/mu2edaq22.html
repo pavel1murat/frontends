@@ -155,7 +155,11 @@
                   let host      = rpc.result.data[0];
                   let msg = { "client_name":host.toString(), "cmd":cmd, "args":"xxx"};
                   mjsonrpc_call("jrpc",msg).then(function(rpc1) {
-                        document.getElementById("jrpc_data").innerHTML = JSON.stringify(rpc1.result, null, "	");
+                        // let s = JSON.stringify(rpc1.result.reply, null, "	");
+                        let s = rpc1.result.reply;
+                        const regex = /\n/gi
+                        let y = s.replaceAll(regex,'<br>');
+                        document.getElementById("jrpc_data").innerHTML = y;
                   }).catch(function(error){
                         mjsonrpc_error_alert(error);
                   });
@@ -253,16 +257,7 @@
           <td> control_ROC_read</td>
           <td></td>
           <td></td>
-          <td>
-            <input type=button value='Run'
-                   onClick=' mjsonrpc_call("jrpc", { "client_name":"mu2edaq22", "cmd":"dtc_control_roc_read", "args":"yyy"}
-                            ).then( function(rpc) {
-                            document.getElementById("jrpc_data").innerHTML = JSON.stringify(rpc.result, null, "	");
-                            }).catch( function(error){
-                            mjsonrpc_error_alert(error);
-                            });'>
-            
-          </td>
+          <td><input type=button value='Run' onClick='dtc_command("dtc_control_roc_read")'> </td>
         </tr>
         <!-- -------------------------------------- OUTPUT area ---------------------- -->
         <tr>
