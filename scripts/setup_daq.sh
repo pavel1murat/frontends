@@ -48,4 +48,5 @@ export TFM_CONFIG_DIR=$MU2E_DAQ_DIR/config/artdaq
 # daq scripts
 #------------------------------------------------------------------------------
 export PATH=$PATH:$MU2E_DAQ_DIR/config/scripts
+export FHICL_FILE_PATH=$FHICL_FILE_PATH:$SPACK_ENV
 return 0
