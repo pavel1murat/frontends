@@ -1,0 +1,84 @@
+# ODB structure
+
+ActiveConfig (link to a configuration in /Mu2e/RunConfigurations/NAME)
+```
+├── Name                        # Question, is this needed or could we use the NAME from above?
+├── EventMode
+└── DAQ
+    ├── PrivateSubnet   
+    ├── PublicSubnet
+    ├── EventMode               # might this not be better in a "Run" subtree? 
+    ├── RocReadoutMode          # tracker specific?
+    ├── SkipDtcInit
+    └── hostename
+        ├── DTC
+        │   ├── Enabled
+        │   ├── PCIEAddress
+        │   ├── LinkMask
+        │   ├── EmulatesCFO
+        │   └── SampleEdgeMode
+        ├── Artdaq
+        │   ├── *br*
+        │   │   ├── XmlrpcPort
+        │   │   ├── Subsystem
+        │   │   ├── Rank
+        │   │   ├── Target
+        │   │   └── NFragmentTypes
+        │   ├── *eb*
+        │   │   ├── XmlrpcPort
+        │   │   ├── Subsystem
+        │   │   ├── Rank
+        │   │   ├── Target
+        │   │   └── NFragmentTypes
+        │   ├── *dl*
+        │   │   ├── XmlrpcPort
+        │   │   ├── Subsystem
+        │   │   ├── Rank
+        │   │   ├── Target
+        │   │   └── NFragmentTypes
+        │   ├── *ds*
+        │   │   ├── XmlrpcPort
+        │   │   ├── Subsystem
+        │   │   ├── Rank
+        │   │   ├── Target
+        │   │   └── NFragmentTypes
+        └── Monitor
+            ├── Dtc                                            # Question: maybe we want these as global flags?
+            └── Artdaq                                         # Question: maybe we want these as global flags?
+```
+
+# Slow Control Variables
+
+Slow control variables for monitoring
+```
+└── Equipment
+    └── node-name 
+        ├── Settings                                           # thse go into the hisotry system Question Why Setting? that sounds confuson to me? Monitoring?
+        │   ├── Names dtcX
+        │   │   └── [Temp, VCCINT, VCCAUX, ..]
+        │   ├── Names dtc...
+        │   ├── Names rcAB                                     # with A idtc abd B ilink
+        │   │   └── [rcAB#NAME1, rcAB#NAME2, rcAB#NAME3, ...]  # why keep rcAB?  
+        │   ├── Names rc....
+        │   ├── Names *br*
+        │   │   └── [*br*#NAME1, *br*#NAME2, *br*#NAME3, ...]
+        │   ├── Names *eb*
+        │   │   └── [*eb*#NAME1, *eb*#NAME2, *eb*#NAME3, ...]
+        │   ├── Names *dl*
+        │   │   └── [*dl*#NAME1, *dl*#NAME2, *dl*#NAME3, ...]
+        │   ├── Names *ds*
+        │   │   └── []
+        ├── DTCX                                                # these values don't go into the history system
+        │   ├── RegName
+        │   │   └── [0x0000, 0x0001, ... ]
+        │   ├── RegData
+        │   │   └── [...]
+        │   ├── ROCX 
+        │   │   ├── RegName
+        │   │   │   └── [reg_000, reg_001, ... ]
+        │   │   └── RegData
+        │   │       └── [...]
+        │   ├── ROC....
+        ├── DTC...
+```
+
