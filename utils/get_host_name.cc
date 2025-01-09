@@ -8,13 +8,14 @@
 
 //-----------------------------------------------------------------------------
 // get fully domain-qualified host name on a given subnet
+// make sure 'ipmi' names are not used
 //-----------------------------------------------------------------------------
 std::string get_full_host_name(const char* Subnet) {
 
   std::string name;
   char cmd[256], buf[128];
 
-  sprintf(cmd,"ifconfig -a | grep %s | awk '{print $2}' | nslookup | head -n 1 | sed 's/\\.$//' | awk '{print $NF}'",
+  sprintf(cmd,"ifconfig -a | grep %s | awk '{print $2}' | nslookup | grep -v ipmi | head -n 1 | sed 's/\\.$//' | awk '{print $NF}'",
           Subnet);
 //-----------------------------------------------------------------------------
 // the output is one line max
