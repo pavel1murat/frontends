@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include "artdaq/DAQdata/Globals.hh"
 #define TRACE_NAME "TrackerBRDR"
-
+#include "TString.h"
 #include "canvas/Utilities/Exception.h"
 
 #include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
@@ -24,7 +24,7 @@
 #include "fhiclcpp/fwd.h"
 
 #include "dtcInterfaceLib/DTC.h"
-#include "dtcInterfaceLib/DTCSoftwareCFO.h"
+// #include "dtcInterfaceLib/DTCSoftwareCFO.h"
 
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
@@ -42,7 +42,9 @@
 
 using namespace std;
 using namespace DTCLib;
-
+//-----------------------------------------------------------------------------
+// ARTDAQ messaging - XML-RPC
+//-----------------------------------------------------------------------------
 #include "xmlrpc-c/config.h"  /* information about this build environment */
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
@@ -65,10 +67,11 @@ namespace mu2e {
     std::chrono::steady_clock::time_point _procStartTime;
     std::vector<uint16_t>                 _fragment_ids;       // handled by CommandableGenerator,
                                                                //  but not a data member there
+    std::string                           _sFragmentType;
     int                                   _debugLevel;
     size_t                                _nEventsDbg;
     int                                   _pcieAddr;
-    std::string                           _tfmHost;            // used to send xmlrpc messages to
+    int                                   _linkMask;           // from ODB
 
                                                                // 101:simulate data internally, DTC not used; default:0
 
@@ -80,11 +83,21 @@ namespace mu2e {
 
     trkdaq::DtcInterface*                 _dtc_i;
     DTCLib::DTC*                          _dtc;
+    FragmentType                          _fragmentType;
 
     uint16_t                              _reg[200];           // DTC registers to be saved
     int                                   _nreg;               // their number
+    std::string                           _xmlrpcUrl;          // 
     xmlrpc_env                            _env;                // XML-RPC environment
-    ulong                                 _tstamp;             // 
+    ulong                                 _tstamp;             //
+
+    std::string                           _midas_host;
+    std::string                           _exptName;
+    std::string                           _host_label;
+    std::string                           _full_host_name;
+    std::string                           _tfmHost;            // used to send xmlrpc messages to
+
+    HNDLE                                 _hBoardreader;       // boardreader handle in ODB, hopefully doesn't change
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -108,7 +121,7 @@ namespace mu2e {
     void stop       () override;
     
     //    void print_dtc_registers(DTC* Dtc, const char* Header);
-    void printBuffer        (const void* ptr, int sz);
+    //    void printBuffer        (const void* ptr, int sz);
 //-----------------------------------------------------------------------------
 // try follow Simon ... perhaps one can improve on bool? 
 // also do not pass strings by value
@@ -116,6 +129,8 @@ namespace mu2e {
     int  message(const std::string& msg_type, const std::string& message);
                                         // read functions
     int  readData        (artdaq::FragmentPtrs& Frags, ulong& Timestamp);
+
+    int  validateFragment(void* DtcFragment);
 
     double _timeSinceLastSend() {
       auto now        = std::chrono::steady_clock::now();
@@ -125,7 +140,6 @@ namespace mu2e {
     }
     
     void   _startProcTimer() { _procStartTime = std::chrono::steady_clock::now(); }
-
 //-----------------------------------------------------------------------------
 // - the first one came from the generator template, 
 // - the second one - comments in the CommandableFragmentGenerator.hh
@@ -165,16 +179,19 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   , _artdaqLabel       (ps.get<std::string>             ("artdaqLabel"                     ))
   , _lastReportTime    (std::chrono::steady_clock::now())
   , _fragment_ids      (ps.get<std::vector<uint16_t>>   ("fragment_ids"       , std::vector<uint16_t>()))  // 
+  , _sFragmentType     (ps.get<std::string>             ("fragmentType"       ,       "TRK"))  // 
   , _debugLevel        (ps.get<int>                     ("debugLevel"         ,           0))
   , _nEventsDbg        (ps.get<size_t>                  ("nEventsDbg"         ,         100))
-    // , _tfmHost           (ps.get<std::string>             ("tfmHost"                         ))  // 
+    //  , _tfmHost           (ps.get<std::string>             ("tfmHost"                         ))  // 
   , _readData          (ps.get<int>                     ("readData"           ,           1))  // 
   , _printFreq         (ps.get<int>                     ("printFreq"          ,         100))  // 
   , _maxEventsPerSubrun(ps.get<int>                     ("maxEventsPerSubrun" ,       10000))  // 
   , _readoutMode       (ps.get<int>                     ("readoutMode"        ,           1))  // 
   
 {
-  TLOG(TLVL_INFO) << "CONSTRUCTOR (1) readData:" << _readData;
+  _fragmentType = mu2e::toFragmentType(_sFragmentType);
+  TLOG(TLVL_INFO) << "label:" << _artdaqLabel << " CONSTRUCTOR (1) readData:" << _readData
+                  << " fragmentType:" << _sFragmentType << ":" << int(_fragmentType);
 //-----------------------------------------------------------------------------
 // the BR interface should not be changing any settings, just read events
 // DTC is already initialized by the frontend, don't change anything !
@@ -185,80 +202,113 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 //-----------------------------------------------------------------------------
 // figure out the PCIE address - nothing wrong with connecting to ODB and
 //-----------------------------------------------------------------------------
+  _midas_host = getenv("MIDAS_SERVER_HOST");
+  
   char host_name[100], exp_name[100];
   cm_get_environment(host_name, sizeof(host_name), exp_name, sizeof(exp_name));
-  if (host_name[0] == 0)  {
-    std::string host = get_short_host_name("local");
-    sprintf(host_name, host.data());
-  }
+  _exptName = exp_name;
 
-  TLOG(TLVL_INFO) << "artdaqLabel: " << _artdaqLabel << " host name: " << host_name << " , exp_name: " << exp_name;
-
-  int status = cm_connect_experiment(host_name, exp_name, _artdaqLabel.data(),NULL);
+  int status = cm_connect_experiment(_midas_host.data(), _exptName.data(), _artdaqLabel.data(),NULL);
   if (status != CM_SUCCESS) {
     cm_msg(MERROR, _artdaqLabel.data(),
            "Cannot connect to experiment \'%s\' on host \'%s\', status %d",
-           exp_name,host_name,status);
-    TLOG(TLVL_ERROR) << "ERROR: failed to connect to experiment. BAIL OUT";
-
+           exp_name,_midas_host.data(),status);
+    TLOG(TLVL_ERROR) << "label: " << _artdaqLabel
+                     << " ERROR: failed to connect to MIDAS on host:" << _midas_host << " . BAIL OUT";
     /* let user read message before window might close */
     ss_sleep(5000);
     return;
   }
-  
+
   HNDLE  hDB(0);
   HNDLE  hClient(0);
   cm_get_experiment_database(&hDB, &hClient);
 
+  OdbInterface* odb_i         = OdbInterface::Instance(hDB);
+  HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
+  std::string active_run_conf = odb_i->GetRunConfigName(h_active_run_conf);
+//-----------------------------------------------------------------------------
+// TFM host name - on the private network
+//-----------------------------------------------------------------------------
+  _tfmHost                    = odb_i->GetTfmHostName  (h_active_run_conf);
+
+  std::string private_subnet  = odb_i->GetPrivateSubnet(h_active_run_conf);
+  std::string public_subnet   = odb_i->GetPublicSubnet (h_active_run_conf);
+
+  _host_label                 = get_short_host_name(public_subnet.data() );
+  _full_host_name             = get_full_host_name (private_subnet.data());
+
+  HNDLE h_host_artdaq_conf    = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,_host_label);
+
+  TLOG(TLVL_INFO) << "label:" << _artdaqLabel << " _full_host_name:" << _full_host_name
+                  << " , exp_name: " << exp_name
+                  << " TRACE_FILE:" << (getenv("TRACE_FILE")) ? getenv("TRACE_FILE") : "undefined";
+
+  
+  TLOG(TLVL_INFO) << "label:" << _artdaqLabel << " hDB:" << hDB << " hClient:" <<  hClient;
+
   if (hDB == 0) {
-    TLOG(TLVL_ERROR) << "ERROR: failed to connect to ODB. BAIL OUT";
+    TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " ERROR: failed to connect to ODB. BAIL OUT";
     return;
   }
 
-  OdbInterface* odb_i         = OdbInterface::Instance(hDB);
-  
-  std::string active_run_conf = odb_i->GetActiveRunConfig(hDB);
-  HNDLE h_active_run_conf     = odb_i->GetRunConfigHandle(hDB,active_run_conf);
-  std::string rpc_host        = get_short_host_name("local");
-  HNDLE h_host_artdaq_conf    = odb_i->GetDaqHostHandle(hDB,h_active_run_conf,rpc_host+"/Artdaq");
+
+  TLOG(TLVL_INFO) << "label: " << _artdaqLabel
+                  << " h_active_run_conf:" << h_active_run_conf
+                  << " active_run_conf_name:" << active_run_conf
+                  << " _full_host_name:" << _full_host_name
+                  << " h_host_artdaq_conf:" << h_host_artdaq_conf;
 //-----------------------------------------------------------------------------
 // a DAQ host has keys: "DTC0", DTC1", and "Artdaq"
 //-----------------------------------------------------------------------------
-  HNDLE h_component;
-  KEY   component;
-  int   pcie_addr(-1);
+//  HNDLE h_component;
+//  KEY   component;
 
-  for (int i=0; db_enum_key(hDB, h_host_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
-    db_get_key(hDB, h_component, &component);
-    TLOG(TLVL_INFO) << "index: " << " Subkey:" <<  component.name << " Type: " << component.type;
-    if (component.name == _artdaqLabel) {
-//-----------------------------------------------------------------------------
-// the board reader configuration found, take the PCIE address from there
-//-----------------------------------------------------------------------------
-      pcie_addr = odb_i->GetDtcPcieAddress(hDB,h_component);
-      TLOG(TLVL_INFO) << "pcie_addr from ODB: " << pcie_addr;
-      break;
-    }
-  }
-  if (pcie_addr != -1) _pcieAddr = pcie_addr;
+  _hBoardreader = odb_i->GetHandle(h_host_artdaq_conf,_artdaqLabel.data());
+  HNDLE hdtc    = odb_i->GetHandle(_hBoardreader,"DTC");
+  _pcieAddr     = odb_i->GetDtcPcieAddress(hdtc);
+  _linkMask     = odb_i->GetDtcLinkMask   (hdtc);
 
-  _tfmHost = odb_i->GetTfmHostName(hDB,h_active_run_conf);
-  TLOG(TLVL_INFO) << "active run conf: " << active_run_conf << " TFM host from ODB: " << _tfmHost;
+  TLOG(TLVL_INFO) << "label:"             << _artdaqLabel
+                  << " pcie_addr(ODB):"   << _pcieAddr
+                  << " link mask(ODB):0x" << std::hex << _linkMask;
+  
+//   for (int i=0; db_enum_key(hDB, h_host_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+//     db_get_key(hDB, h_component, &component);
+//     TLOG(TLVL_INFO) << "label:"  << _artdaqLabel
+//                     << " Subkey:" <<  component.name
+//                     << " Type:"  << component.type;
+//     if (component.name == _artdaqLabel) {
+// //-----------------------------------------------------------------------------
+// // the boardreader configuration found,
+// // it has a link to DTC, take the PCIE address from there
+// //-----------------------------------------------------------------------------
+//       _hBoardreader = h_component;
+//       break;
+//     }
+//  }
+
+  TLOG(TLVL_INFO) << "label:"               << _artdaqLabel
+                  << " active_run_conf:"    << active_run_conf
+                  << " _tfmHost_from_ODB:"  << _tfmHost;
   
   cm_disconnect_experiment();
 #endif
-  
+//-----------------------------------------------------------------------------
+// boardreaders do not re-initialize the DTCs
+// make sure that the link mask is right no matter what
+//-----------------------------------------------------------------------------
   bool skip_init(true);
-  _dtc_i = trkdaq::DtcInterface::Instance(_pcieAddr,0x111111,skip_init);
+  _dtc_i = trkdaq::DtcInterface::Instance(_pcieAddr,_linkMask,skip_init);
   _dtc   = _dtc_i->Dtc();
 //-----------------------------------------------------------------------------
 // finally, initialize the environment for the XML-RPC messaging client
 //-----------------------------------------------------------------------------
+  _xmlrpcUrl = "http://" + _tfmHost + ":" + std::to_string((10000 +1000 * GetPartitionNumber()))+"/RPC2";
   xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS, "debug", "v1_0");
   xmlrpc_env_init(&_env);
 
   _tstamp           = 0;
-  _readDTCRegisters = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -266,28 +316,98 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 // so far, make the TFM hist a talk-to parameter
 // GetPartitionNumber() is an artdaq global function - see artdaq/artdaq/DAQdata/Globals.hh
 //-----------------------------------------------------------------------------
-int mu2e::TrackerBRDR::message(const std::string& msg_type, const std::string& message) {
+int mu2e::TrackerBRDR::message(const std::string& MsgType, const std::string& Msg) {
     
-  auto _xmlrpcUrl = "http://" + _tfmHost + ":" + std::to_string((10000 +1000 * GetPartitionNumber()))+"/RPC2";
-
-  xmlrpc_client_call(&_env, _xmlrpcUrl.data(), "message","(ss)", msg_type.data(), 
-                     (artdaq::Globals::app_name_+":"+message).data());
+  xmlrpc_client_call(&_env, _xmlrpcUrl.data(), "message","(ss)", MsgType.data(), 
+                     (artdaq::Globals::app_name_+":"+Msg).data());
   if (_env.fault_occurred) {
-    TLOG(TLVL_ERROR) << "XML-RPC rc=" << _env.fault_code << " " << _env.fault_string;
+    TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " XML-RPC rc=" << _env.fault_code << " " << _env.fault_string;
     return -1;
   }
-  else {
-    TLOG(TLVL_DBG+1) << "message successfully sent. type:" << msg_type << " message" << message;
-  }
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel << "message sent. type:" << MsgType << " message:" << Msg;
   return 0;
 }
 
 //-----------------------------------------------------------------------------
 mu2e::TrackerBRDR::~TrackerBRDR() {
-}
+} 
 
 //-----------------------------------------------------------------------------
 void mu2e::TrackerBRDR::stop() {
+}
+
+//-----------------------------------------------------------------------------
+int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
+//-----------------------------------------------------------------------------
+// quick check of the data - at ROC level
+// DTC header: 3 packets, followed by the ROC data
+// there should be 6 ROC blocks, empty ROC - 0x10 bytes
+//-----------------------------------------------------------------------------
+  uint16_t* dat = (uint16_t*) ArtdaqFragmentData;
+  //  int       nb  = *dat;
+  
+  uint16_t* roc = dat+0x18;             // here the first ROC starts
+  
+  int       nerr = 0;
+  uint32_t  err_code(0);
+  int       evt_nb(0);
+
+  TLOG(TLVL_DEBUG) << "START";
+  for (int i=0; i<6; i++) {
+    int roc_nb = *roc;
+    if (_dtc_i->LinkEnabled(i)) {
+      if (roc_nb == 0x10) {
+//-----------------------------------------------------------------------------
+// in trouble - zero payload for enabled ROC
+//-----------------------------------------------------------------------------
+        err_code |= 0x1;
+        nerr +=1;
+        // al_trigger_alarm("BRDB", "ERROR", "BRDR Alarm", "Readout Problem", AT_INTERNAL);
+        cm_msg(MERROR, _artdaqLabel.data(),Form("zero payload for link %i",i));
+        TLOG(TLVL_ERROR) << "zero payload for enabled link:" << i;
+      }
+    }
+    else {
+//-----------------------------------------------------------------------------
+// link is supposed to be disabled
+//-----------------------------------------------------------------------------
+      if (roc_nb != 0x10) {
+        err_code |= 0x2;
+        nerr +=1;
+        cm_msg(MERROR, _artdaqLabel.data(),Form("non-zero payload for DISABLED link %i",i));
+        TLOG(TLVL_ERROR) << "non-zero payload for disabled link:" << i;
+      }
+    }
+    evt_nb += roc_nb;
+    roc    += roc_nb/2;
+  }
+
+  TLOG(TLVL_DEBUG) << "after loop nerr:" << nerr << " err_code:0x" << std::hex << err_code;
+  
+  if (nerr != 0) {
+//-----------------------------------------------------------------------------
+// send alarm message and set the boardreader status to -1, also log the message
+//-----------------------------------------------------------------------------
+    int status = cm_connect_experiment(_midas_host.data(), _exptName.data(), _artdaqLabel.data(),NULL);
+    if (status != CM_SUCCESS) {
+      cm_msg(MERROR, _artdaqLabel.data(),
+             "Cannot connect to experiment '%s' on host '%s' from '%s', status %d",
+             _exptName.data(),_midas_host.data(),_full_host_name.data(),status);
+      
+      /* let user read message before window might close */
+      ss_sleep(5000);
+      return -1;
+    }
+    
+    HNDLE  hdb(0), hClient(0);
+    cm_get_experiment_database(&hdb, &hClient);
+    OdbInterface* odb_i = OdbInterface::Instance(hdb);
+    odb_i->SetStatus(_hBoardreader,-1);
+    cm_disconnect_experiment();
+  }
+  
+  TLOG(TLVL_DEBUG) << "END";
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -302,7 +422,8 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
   int    nbytes     (0);
   std::vector<std::unique_ptr<DTCLib::DTC_SubEvent>> subevents;  // auto   tmo_ms(1500);
 
-  TLOG(TLVL_DBG) << "------------- START TStamp=" << TStamp << std::endl;
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                   << " START TStamp:" << TStamp << std::endl;
 
   DTC_EventWindowTag event_tag = DTC_EventWindowTag(_tstamp);
 
@@ -312,7 +433,9 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
 //-----------------------------------------------------------------------------
       subevents = _dtc->GetSubEventData(event_tag,match_ts);
       int sz    = subevents.size();
-      TLOG(TLVL_DBG) << "read =" << sz << " DTC blocks" << std::endl;
+      TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                       << " read:" << sz
+                       << " DTC blocks" << std::endl;
       if (sz > 0) {
         _tstamp  += 1;
       }
@@ -326,25 +449,36 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
 
         TStamp = ew_tag;  // hack
         
-        TLOG(TLVL_DBG) << "DTC block i: " << i<< " nbytes:" << nb << std::endl;
+        TLOG(TLVL_DEBUG) << "label:"      << _artdaqLabel
+                         << " dtc_block:" << i
+                         << " nbytes:" << nb << std::endl;
         nbytes += nb;
         if (nb > 0) {
-          artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::TRK, TStamp);
+          artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], _fragmentType, TStamp);
 
           frag->resizeBytes(nb);
       
           void* afd  = frag->dataBegin();
 
           memcpy(afd,ev->GetRawBufferPointer(),nb);
+
+          validateFragment(afd);
+//-----------------------------------------------------------------------------
+// I suspect that 'emplace_back', for some reason, may be invalidating 'afd',
+// sp change the order
+//-----------------------------------------------------------------------------
           Frags.emplace_back(frag);
 //-----------------------------------------------------------------------------
-// this is essentially it, now - diagnostics 
+// this essentially is it, now - diagnostics 
 //-----------------------------------------------------------------------------
           uint64_t ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
 
           if ((_debugLevel > 0) and (ev_counter() < _nEventsDbg)) { 
-            TLOG(TLVL_INFO) << " subevent:" << i << " EW tag:" << ew_tag << " nbytes: " << nb << std::endl;
-            _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2);
+            TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                             << " subevent:" << i
+                             << " EW tag:" << ew_tag
+                             << " nbytes: " << nb;
+            _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2,&std::cout);
           }
           rc = 0;
         }
@@ -352,21 +486,26 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
 //-----------------------------------------------------------------------------
 // ERROR: read zero bytes
 //-----------------------------------------------------------------------------
-          TLOG(TLVL_ERROR) << "zero length read, event:" << ev_counter() << std::endl;
-          message("alarm", "TrackerBRDR::ReadData::ERROR event="+std::to_string(ev_counter())+" nbytes=0") ;
+          TLOG(TLVL_ERROR) << "label:" << _artdaqLabel
+                           << " zero length read, event:" << ev_counter();
+          message("alarm", _artdaqLabel+"::ReadData::ERROR event="+std::to_string(ev_counter())+" nbytes=0") ;
         }
       }
       
-      TLOG(TLVL_DBG+1) << "read data , NDTCs=" << sz << " nbytes=" << nbytes << std::endl;
+      TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                       << " NDTCs:" << sz
+                       << " nbytes:" << nbytes;
     }
     catch (...) {
-      TLOG(TLVL_ERROR) << "ERROR reading data";
+      TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << "ERROR reading data";
     }
   
   int print_event = (ev_counter() % _printFreq) == 0;
   if (print_event) {
-    TLOG(TLVL_DBG+1) << "event readSuccess timeout: nbytes\n" << ev_counter() << " " << readSuccess
-                     << " " << timeout << " " << nbytes << std::endl;
+    TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                     << " event:" << ev_counter()
+                     << " readSuccess:"  << readSuccess
+                     << " timeout:" << timeout << " nbytes:" << nbytes;
   }
 
   return rc;
@@ -378,7 +517,7 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
 // read data
 //-----------------------------------------------------------------------------
-  TLOG(TLVL_DBG) << "start" << std::endl;
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel << " start";
   _dtc->GetDevice()->ResetDeviceTime();
 //-----------------------------------------------------------------------------
 // a hack : reduce the PMT logfile size 
@@ -398,14 +537,14 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
 // fake reading
 //-----------------------------------------------------------------------------
-    artdaq::Fragment* f1 = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::TRK, tstamp);
+    artdaq::Fragment* f1 = new artdaq::Fragment(ev_counter(), _fragment_ids[0], _fragmentType, tstamp);
     f1->resizeBytes(4);
     uint* afd  = (uint*) f1->dataBegin();
     *afd = 0x00ffffff;
     Frags.emplace_back(f1);
   }
 
-  TLOG(TLVL_DBG) << "bufferes released, end" << std::endl;
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel << "buffers released, end";
   return true;
 }
 
@@ -413,7 +552,7 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
 bool mu2e::TrackerBRDR::simulateEvent(artdaq::FragmentPtrs& Frags) {
 
   double tstamp          = ev_counter();
-  artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::TRK, tstamp);
+  artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], _fragmentType, tstamp);
 
   const uint16_t fake_event [] = {
     0x01d0 , 0x0000 , 0x0000 , 0x0000 , 0x01c8 , 0x0000 , 0x0169 , 0x0000,   // 0x000000: 
@@ -466,7 +605,8 @@ bool mu2e::TrackerBRDR::simulateEvent(artdaq::FragmentPtrs& Frags) {
 bool mu2e::TrackerBRDR::getNext_(artdaq::FragmentPtrs& Frags) {
   bool rc(true);
 
-  TLOG(TLVL_DBG) << "event: " << ev_counter() << "STARTING";
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                   << " event:" << ev_counter() << " STARTING";
 //-----------------------------------------------------------------------------
 // in the beginning, send message to the Farm manager
 //-----------------------------------------------------------------------------
@@ -479,7 +619,9 @@ bool mu2e::TrackerBRDR::getNext_(artdaq::FragmentPtrs& Frags) {
 
   _startProcTimer();
 
-  TLOG(TLVL_DEBUG) << "event: " << ev_counter() << "after startProcTimer";
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
+                   << " event:" << ev_counter()
+                   << " after startProcTimer";
 
   if (_readoutMode < 100) {
 //-----------------------------------------------------------------------------

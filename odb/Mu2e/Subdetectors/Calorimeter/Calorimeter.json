@@ -1,0 +1,195 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
+  "/filename" : "Calorimeter.json",
+  "/ODB path" : "/Mu2e/RunConfigurations/roctower/Calorimeter",
+
+  "Disk0" : {
+    "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1734011397 },
+    "Enabled" : 0,
+    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+    "Status" : 0,
+    "Crate00" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151111 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151988 },
+      "Enabled" : 1,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151090 },
+      "Status" : 0
+    },
+    "Crate01" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151122 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735152002 },
+      "Enabled" : 1,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151122 },
+      "Status" : 0
+    },
+    "Crate02" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151123 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735152004 },
+      "Enabled" : 1,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151123 },
+      "Status" : 0
+    },
+    "Crate03" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151124 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+      "Status" : 0
+    },
+    "Crate04" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151124 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+      "Status" : 0
+    },
+    "Crate05" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151124 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151124 },
+      "Status" : 0
+    },
+    "Crate06" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151125 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151125 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151125 },
+      "Status" : 0
+    },
+    "Crate07" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151125 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151125 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151125 },
+      "Status" : 0
+    },
+    "Crate08" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151126 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151126 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151126 },
+      "Status" : 0
+    },
+    "Crate09" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151126 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151126 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151126 },
+      "Status" : 0
+    }
+  },
+  "Disk1" : {
+    "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+    "Enabled" : 0,
+    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+    "Status" : 0,
+    "Crate00" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Status" : 0
+    },
+    "Crate01" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Status" : 0
+    },
+    "Crate02" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Status" : 0
+    },
+    "Crate03" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Status" : 0
+    },
+    "Crate04" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Status" : 0
+    },
+    "Crate05" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Status" : 0
+    },
+    "Crate06" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Status" : 0
+    },
+    "Crate07" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Status" : 0
+    },
+    "Crate08" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Status" : 0
+    },
+    "Crate09" : {
+      "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735151235 },
+      "# ---------------------" : "--------------------------",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1735151235 },
+      "Status" : 0
+    }
+  },
+  "MonitoringFrontend" : {
+    "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
+    "Name" : "calmon",
+    "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
+    "Host" : "mu2edaq22-ctrl",
+    "# --------------------- 1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
+    "# --------------------- 1" : "---------- configurable element",
+    "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+    "Enabled" : 0,
+    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+    "Status" : 0
+  },
+  "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+  "Enabled" : 0,
+  "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
+  "Status" : 0
+}

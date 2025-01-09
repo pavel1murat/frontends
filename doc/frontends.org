@@ -3,19 +3,21 @@
 # if you notice smth missing, don't ask permissions, go ahead, and fix it
 * ------------------------------------------------------------------------------
 * [[file:news.org][News]]                                                                       
-* [[file:build_instructions.org][installation and build instructions]]
-* configuration instructions                                                 
+* [[file:build_instructions.org][installation and build]]
+* configuration                                                              
+the folowing assumes that you read instructions on MIDAS website: 
 
-- step 1: the folowing assumes that you read instructions on MIDAS website: 
-  https://daq00.triumf.ca/MidasWiki/index.php/Quickstart_Linux#Installation                                            
+https://daq00.triumf.ca/MidasWiki/index.php/Quickstart_Linux#Installation                                            
 
-** declare working directory as $MU2E_DAQ_DIR and installconfig files
-  
+** declare working directory as $MU2E_DAQ_DIR and install config files       
+
 #+begin_src
 export   MU2E_DAQ_DIR=$PWD
-cp  $SPACK_ENV/frontends/scripts/get_next_run_number.py        config/scripts/.
-cp  $SPACK_ENV/frontends/scripts/start_trk_dtc_ctl_frontend.sh config/scripts/.
-cp  $SPACK_ENV/frontends/scripts/test_seq.sh                   config/scripts/.
+cp  $SPACK_ENV/frontends/scripts/setup_daq.sh                  $MU2E_DAQ_DIR/.
+mkdir -p $MU2E_DAQ_DIR/config/scripts
+cp  $SPACK_ENV/frontends/scripts/get_next_run_number.py        $MU2E_DAQ_DIR/config/scripts/.
+cp  $SPACK_ENV/frontends/scripts/start_node_frontend.sh        $MU2E_DAQ_DIR/config/scripts/.
+cp  $SPACK_ENV/frontends/scripts/test_seq.sh                   $MU2E_DAQ_DIR/config/scripts/.
 #+end_src
 
 - copy elog.json and runinfodb.json from ~mu2etrk/backup/ to ./config
@@ -23,45 +25,58 @@ cp  $SPACK_ENV/frontends/scripts/test_seq.sh                   config/scripts/.
   in ~test_stand/experiments
 
 -  name your experiment, and create the .exptab file:
-#+begin_src
-export   MIDAS_EXPT_NAME=test_025
-export   MIDAS_EXPTAB=$MU2E_DAQ_DIR/config/midas/$MIDAS_EXPT_NAME.exptab
-#+end_src
-
 - the .exptab file looks like this (details - on MIDAS website):
 #+begin_src
-test_025 /home/mu2etrk/test_stand/experiments/test_025  mu2etrk
+# expt name     ODB location                                user name
+test_025     /home/mu2etrk/test_stand/experiments/test_025  mu2etrk
 #+end_src
 
-- copy setup file to the work area:
-
+- finally, edit the setup_daq.sh to define MIDAS env vars.
+- The first line in the example below doesn't need to be changed
 #+begin_src
-cp $SPACK_ENV/frontends/scripts/setup_daq.sh $MU2E_DAQ_DIR/.
+  export          MIDASSYS=$SPACK_VIEW
+  export MIDAS_SERVER_HOST=mu2edaq22-ctrl.fnal.gov
+  export   MIDAS_EXPT_NAME=test_025
+  export      MIDAS_EXPTAB=$MIDAS_DAQ_DIR/config/midas/$MIDAS_EXPT_NAME.exptab
 #+end_src
 
 ** configure MIDAS                                                           
 
 - 2.1: run odbedit to setup the initial ODB 
 - 2.2: start mhttpd 
-- 2.3: run odbedit again to redefine the local port 
+- 2.3: run odbedit again to redefine the '/Webserver/localhost port' 
 - 2.4: restart mhttpd to listen to the right port   (these steps are defined 
 - 2.5: load the Mu2e configuration tree - it should show up as a top-level directory called Mu2e:
 -      run odbedit, create a top-level "Mu2e" subdirectory":
 -      mkdir Mu2e
 -      cd Mu2e
--      load srcs/frontends/odb/Mu2e/Mu2e.json
+-      load frontends/odb/Mu2e/Mu2e.json
 
 - when starting mhttpd, record the shell process ID - the TRACE file will have the name /tmp/trace_file.10003
+- sequencer: configure '/Sequencer/State/Path'
+  by default, sequencer scripts show up in $MIDAQ_EXPT_DIR/userfiles/sequencer
+  copy frontends/sequencer/get_next_run_number.msl to $MIDAQ_EXPT_DIR/userfiles/sequencer
+  if path is defined, check experimentally where to copy
+- mlogger " configure '/Logger/Data dir'
+- elog: configure '/Elog/URL', '/Elog/External Elog'
 #+begin_src
-mthhrd -D
+mhttpd -D
 echo $$
 #+end_src
-** configure postgres
+** configure postgres                                                        
+- make sure you have $MU2E_DAQ_DIR/config/runinfodb.json with the PG configuration 
 - outside the EC cluster 
 #+begin_src
 - ssh -f -KX -N -L 5434:daq14:5434 -J mu2etrk@daq-gateway mu2etrk@daq14
 #+end_src
 - after that, direct the local client (via config/runinfodb.json) to daq14:5434
+** configure ROOT interface                                                  
+#+begin_src
+cp $SPACK_ENV/frontends/scripts/.rootrc     $MU2E_DAQ_DIR/.
+cp $SPACK_ENV/frontends/scripts/rootlogon.C $MU2E_DAQ_DIR/.
+#+end_src
+** configure ELOG                                                            
+   file:elog.org::/configuration/
 * ARTDAQ                                                                     
 ** artdaq repo: https://github.com/art-daq/artdaq
 ** mu2e-45544: artdaq intro by Eric:                                         
@@ -153,8 +168,8 @@ OK
 ** TODO external CFO frontend                                                
 - to be completed
 ** [[file:tfm_launch_fe.org][tfm_launch_fe]] : trigger farm manager (TFM) launching frontend
-** [[file:tfm_mon_fe.org][tfm_mon_fe]]    : ARTDAQ monitoring frontend, one per node
-** [[file:dtc_frontend][dtc_frontend]]  : DTC slow monitoring frontend, also monitors the DTC's ROCs, one per node
+** [[file:../node_frontend][node_frontend]] : slow monitoring frontend, monitors DTC's, ROCs, ARTDAQ one per node
+* [[file:odb.org][ODB]]                       
 * debugging frontends                                                        
 - build it (today in EC - on daq13)
 - open a new shell , initialize the environment (run setup_daq.sh)

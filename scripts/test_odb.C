@@ -1,0 +1,72 @@
+
+//
+
+#include "midas.h"
+#include "utils/MidasInterface.hh"
+
+// //-----------------------------------------------------------------------------
+// int test_odb_001() {
+
+//   MidasInterface* mi = MidasInterface::Instance();
+
+//   mi->connect_experiment("mu2edaq22-ctrl","test_025","test_odb_001",nullptr);
+
+//   HNDLE hDB, hClient;
+//   mi->get_experiment_database(HNDLE * hDB, HNDLE * hKeyClient);
+  
+//   HNDLE h_conf = mi->get_;
+//   KEY   component;
+//   int   ncomp(0);
+//   for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+//     db_get_key(hDB, h_component, &component);
+//     printf("Subkey %d: %s, Type: %d\n", i, component.name, component.type);
+//     ncomp++;
+//   }
+
+//   return 0;
+// }
+
+//-----------------------------------------------------------------------------
+int test_odb_002() {
+
+  MidasInterface* mi = MidasInterface::Instance();
+
+  mi->connect_experiment("mu2edaq22-ctrl","test_025","test_odb_002",nullptr);
+
+  HNDLE hDB, hClient;
+  mi->get_experiment_database(&hDB, &hClient);
+
+  printf("%s: hDB = %i\n",__func__, hDB);
+
+  OdbInterface* odb_i = OdbInterface::Instance(hDB);
+  
+  HNDLE h;
+  int rc = mi->db_find_key(hDB,0,"/Mu2e/ActiveRunConfiguration",h);
+
+  
+  std::string name = odb_i->GetString(hDB,h,"Name");
+  printf("name = %s\n",name.data());
+  
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+int test_odb_003() {
+
+  MidasInterface* mi = MidasInterface::Instance();
+
+  mi->connect_experiment("mu2edaq22-ctrl","test_025","test_odb_002",nullptr);
+
+  HNDLE hDB, hClient;
+  mi->get_experiment_database(&hDB, &hClient);
+
+  OdbInterface* odb_i = OdbInterface::Instance(hDB);
+
+  HNDLE h_conf = odb_i->GetActiveRunConfigHandle();
+  
+  std::string name = odb_i->GetRunConfigName(h_conf);
+
+  printf("name = %s\n",name.data());
+
+  return 0;
+}

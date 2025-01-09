@@ -1,6 +1,7 @@
 #+startup:fold
 #
-* configure MIDAS
+* ------------------------------------------------------------------------------
+* configure MIDAS                                                            
                                                             
 1) configure mhttpd
 #+begin_src

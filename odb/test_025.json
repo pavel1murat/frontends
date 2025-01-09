@@ -1,7 +1,7 @@
 {
   "/MIDAS version" : "2.1",
   "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
-  "/filename" : "murat/frontends/odb/test_025.json",
+  "/filename" : "murat/frontends/odb/stm_001.json",
   "/ODB path" : "/",
 
   "Experiment" : {

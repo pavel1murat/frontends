@@ -1,5 +1,5 @@
 #
-ODBGET /Mu2e/ActiveConfig/UseRunInfoDB , use_rundb
+ODBGET /Mu2e/ActiveRunConfiguration/UseRunInfoDB , use_rundb
 IF ($use_rundb != 0)
   script get_next_run_number.py
 ENDIF

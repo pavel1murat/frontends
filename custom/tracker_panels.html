@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>Tracker Panels</title>
+   <link rel="stylesheet" href="midas.css">
+   <link type="text/css" rel="stylesheet" href="tracker_style.css">
+   <script src="controls.js"></script>
+   <script src="midas.js"></script>
+   <script src="mhttpd.js"></script>
+   <script src="filesrw.js"></script>
+   <script src="tracker_utils.js"></script> <!-- Include external utility script -->
+</head>
+
+<body class="mcss" onload="mhttpd_init('Tracker Panels');">
+   <div id="mheader"></div>
+   <div id="msidenav"></div>
+   <div id="mmain">
+      <h1 id="table-title">Panels</h1>
+      <div id="table-container"></div>
+   </div>
+
+   <script>
+      function createPanelsTable() {
+         const urlParams = new URLSearchParams(window.location.search);
+         const stationIndex = urlParams.get('station') || '0'; // Default to Station_00
+         const planeIndex = urlParams.get('plane') || '0';   // Default to Plane_00
+         const panels = 10; // Number of panels
+
+         // Set the table title dynamically
+         const title = document.querySelector("#table-title");
+         title.textContent = `Panels for Station_${stationIndex.padStart(2, '0')}, Plane_${planeIndex.padStart(2, '0')}`;
+
+         // Use the createTable utility
+         createTable("#table-container", ["Panel", "Status", "Action"], tbody => {
+            for (let i = 0; i <= panels; i++) {
+               const row = document.createElement("tr");
+
+               // Panel Cell
+               const panelCell = document.createElement("td");
+               panelCell.innerHTML = `<b>Panel_${i.toString().padStart(2, '0')}</b>`;
+               row.appendChild(panelCell);
+
+               // Status Cell
+               const statusCell = document.createElement("td");
+               statusCell.className = "status-cell";
+               row.appendChild(statusCell);
+
+               // Action Cell
+               const actionCell = document.createElement("td");
+               actionCell.innerHTML = `<button onclick="redirectToPage('tracker_details.html', {station: '${stationIndex}', plane: '${planeIndex}', panel: '${i}'})">View Details</button>`;
+               row.appendChild(actionCell);
+
+               tbody.appendChild(row);
+
+               // Load initial values and set up polling for updates
+               const path_enabled = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Enabled`;
+               const path_status = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Status`;
+
+               // Initial load
+               loadAndStyleValues([path_enabled, path_status], statusCell);
+
+               // Poll for updates
+               setInterval(() => {
+                  loadAndStyleValues([path_enabled, path_status], statusCell);
+               }, 2000);
+            }
+         });
+      }
+
+      document.addEventListener("DOMContentLoaded", createPanelsTable);
+   </script>
+</body>
+</html>

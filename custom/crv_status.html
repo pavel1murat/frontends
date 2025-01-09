@@ -4,21 +4,56 @@
    <meta charset="UTF-8">
    <title>CRV</title>
    <link rel="stylesheet" href="midas.css">
+    <link rel="stylesheet" href="tracker_style.css">
    <script src="controls.js"></script>
    <script src="midas.js"></script>
    <script src="mhttpd.js"></script>
    <script src="filesrw.js"></script>
 
    <script>
-      let midasInitialized = false;
+      function load_values(path_enabled, path_status, statusCell) {
+         mjsonrpc_db_get_values([path_enabled, path_status]).then(function (rpc) {
+            let enabled = rpc.result.data[0];
+            let status = rpc.result.data[1];
 
-     function createDiskTable() {
-         const nodes = [];
-         nodes.push("CRV-U", "CRV-D", "CRV-L", "CRV-R", "CRV-Cryo-Out");
-         const n_nodes = nodes.length;                       // Number of DAQ nodes
-         const table  = document.querySelector(".mtable");
+            if (enabled === 0) {
+               statusCell.style.backgroundColor = "gray";
+               statusCell.style.color = "gray";
+            } else if (enabled === 1) {
+               if (status === 1) {
+                  statusCell.style.backgroundColor = "green";
+                  statusCell.style.color = "green";
+               } else if (status === 0) {
+                  statusCell.style.backgroundColor = "red";
+                  statusCell.style.color = "grey";
+               } else if (status === -1) {
+                  statusCell.style.backgroundColor = "yellow";
+                  statusCell.style.color = "grey";
+               } else if (status == null) {
+                   statusCell.style.backgroundColor = "white";
+                   statusCell.style.color = "white";
+               }
 
-         // Clear existing table rows
+                   
+            } else {
+               statusCell.style.backgroundColor = "white";
+               statusCell.style.color = "white";
+            }
+         }).catch(function (error) {
+            console.error("Error fetching panel values:", error);
+         });
+      }
+
+      function createPanelsTable() {
+         const urlParams = new URLSearchParams(window.location.search);
+         const stationIndex = urlParams.get('station') || '0'; 
+         const planeIndex = urlParams.get('plane') || '0'; 
+         const panels = 10; 
+         const table = document.querySelector(".mtable");
+
+         const title = document.querySelector("#table-title");
+         title.textContent = `Panels for Station_${stationIndex.padStart(2, '0')}, Plane_${planeIndex.padStart(2, '0')}`;
+
          table.innerHTML = `
             <thead>
                <tr>
@@ -35,44 +70,29 @@
          for (let i = 0; i < n_nodes; i++) {
             const row = document.createElement("tr");
 
-            // Disk Cell
-            const diskCell = document.createElement("td");
-             diskCell.innerHTML = `<b>${nodes[i]}</b>`;
-            row.appendChild(diskCell);
+            const panelCell = document.createElement("td");
+            panelCell.innerHTML = `<b>Panel_${i.toString().padStart(2, '0')}</b>`;
+            row.appendChild(panelCell);
 
-            // Status Cell
             const statusCell = document.createElement("td");
-            statusCell.innerHTML = `
-               <div class="modbvalue status-cell"
-                  data-odb-path="/Mu2e/ActiveConfig/CRV/${nodes[i]}/Enabled"
-                  onchange="updateCellStyle(this)">
-               </div>`;
+            statusCell.className = "status-cell";
             row.appendChild(statusCell);
 
-            // Action Cell
             const actionCell = document.createElement("td");
             actionCell.innerHTML = `
                <button onclick="redirectToDisks('${i}')">View Details</button>`;
             row.appendChild(actionCell);
 
             tbody.appendChild(row);
-         }
-      }
 
-      function updateCellStyle(cell) {
-         const value = parseInt(cell.textContent.trim(), 10);
-         if (value === 1) {
-            cell.style.backgroundColor = "green";
-            cell.style.color = "white";
-         } else if (value === 0) {
-            cell.style.backgroundColor = "gray";
-            cell.style.color = "white";
-         } else if (value === -1) {
-            cell.style.backgroundColor = "red";
-            cell.style.color = "white";
-         } else {
-            cell.style.backgroundColor = "white";
-            cell.style.color = "black";
+            const path_enabled = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Enabled`;
+            const path_status  = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Status`;
+
+            load_values(path_enabled, path_status, statusCell);
+
+            setInterval(() => {
+               load_values(path_enabled, path_status, statusCell);
+            }, 2000);
          }
       }
 
@@ -85,87 +105,16 @@
             mhttpd_init("Calorimeter");
             midasInitialized = true;
          }
-
-         createDiskTable();
+         createPanelsTable();
       }
 
       document.addEventListener("DOMContentLoaded", initializePage);
    </script>
-
-   <style>
-      body {
-         font-family: Arial, sans-serif;
-         margin: 0;
-         padding: 0;
-         background-color: #f5f5f5;
-      }
-
-      #mmain {
-         margin: 20px;
-         padding: 20px;
-         background-color: white;
-         border-radius: 8px;
-         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      h1 {
-         font-size: 20px;
-         margin-bottom: 20px;
-         text-align: center;
-      }
-
-      .mtable {
-         width: 100%;
-         border-collapse: collapse;
-         font-size: 16px;
-         margin: 0 auto;
-      }
-
-      .mtable th, .mtable td {
-         border: 1px solid #ddd;
-         padding: 8px;
-         text-align: center;
-      }
-
-      .mtable th {
-         background-color: #007bff;
-         color: white;
-      }
-
-      .mtable tr:nth-child(even) {
-         background-color: #f9f9f9;
-      }
-
-      .mtable tr:hover {
-         background-color: #f1f1f1;
-      }
-
-      .mtable td button {
-         padding: 4px 12px;
-         background-color: #007bff;
-         color: white;
-         border: none;
-         border-radius: 4px;
-         cursor: pointer;
-      }
-
-      .mtable td button:hover {
-         background-color: #0056b3;
-      }
-
-      .status-cell {
-         width: 100%;
-         height: 18px;
-         border-radius: 4px;
-         font-weight: normal; ### bold;
-         padding: 2px;
-      }
-   </style>
 </head>
 
 <body class="mcss">
-   <div id="mheader"></div> <!-- MIDAS Header -->
-   <div id="msidenav"></div> <!-- MIDAS Sidebar -->
+   <div id="mheader"></div> 
+   <div id="msidenav"></div> 
    <div id="mmain">
       <h1>CRV Status</h1>
       <table class="mtable">

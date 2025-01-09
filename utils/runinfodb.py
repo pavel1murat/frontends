@@ -18,11 +18,10 @@ TRACE_NAME = "runinfodb";
 
 class RuninfoDB:
 #------------------------------------------------------------------------------
-    def __init__(self, midas_client):
+    def __init__(self, config_file ="config/runinfodb.json", midas_client = None):
 
         self.client = midas_client;
-        
-        self.info   = json.loads(open("config/runinfodb.json").read());
+        self.info   = json.loads(open(config_file).read());
 
         TRACE.TRACE(8, "db:%s host:%s port:%s user:%s passwd:%s schema:%s"%
                     (self.database(),self.host(),self.port(),self.user(),self.passwd(),self.schema()),TRACE_NAME)
@@ -130,6 +129,7 @@ class RuninfoDB:
         online_software_version = -1;
         
         rc = self.check_connection();
+        TRACE.TRACE(8,f'connection status rc={rc}',TRACE_NAME)
         if (rc < 0): return rc;
 #-----------------------------------------------------------------------------
 # retrieve from ODB parameters to be stored in Postgresql
@@ -138,11 +138,11 @@ class RuninfoDB:
 #-----------------------------------------------------------------------------
 # everything else comes from the active configuration
 #-------v---------------------------------------------------------------------
-        run_config   = self.client.odb_get("/Mu2e/ActiveRunConfiguration");
-        run_type     = self.client.odb_get(f"/Mu2e/RunConfigurations/{run_config}/RunType");
-        tt_name      = self.client.odb_get(f"/Mu2e/RunConfigurations/{run_config}/Trigger/Table");
-        hostname     = os.environ["HOSTNAME"]
-        context_name = "test"
+        run_config_name = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name");
+        run_type        = self.client.odb_get("/Mu2e/ActiveRunConfiguration/RunType");
+        tt_name         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Trigger/Table");
+        hostname        = os.environ["HOSTNAME"]
+        context_name    = "test"
 #-------------------------------------------------------------------------------
 # write run info into db
 #-  at this point run number in the DB gets incremented
@@ -154,7 +154,7 @@ class RuninfoDB:
                  f"artdaq_partition, configuration_name, configuration_version, "
                  f"context_name, context_version, online_software_version, "
                  f"trigger_table_name, trigger_table_version, commit_time) "
-                 f"VALUES ('{run_type}','{condition_id}','{hostname}','{partition_number}','{run_config}',"
+                 f"VALUES ('{run_type}','{condition_id}','{hostname}','{partition_number}','{run_config_name}',"
                  f"'{run_config_version}','{context_name}','{context_version}','{online_software_version}','{tt_name}','{tt_version}',CURRENT_TIMESTAMP);"
                  )
 
@@ -186,7 +186,7 @@ class RuninfoDB:
         #run_context_version = "0"
         #query = ("SELECT configuration_name, configuration_version, context_name, context_version "
               #f"FROM   {self.schema()}.run_condition WHERE "
-        #         f"configuration_name  = '{run_config}' AND "
+        #         f"configuration_name  = '{run_config_name}' AND "
         #         f"configuration_version = '{run_config_version}'  AND "
         #         f"context_name      = '{run_context}'  AND "
         #         f"context_version   = '{run_context_version}';"
@@ -213,7 +213,7 @@ class RuninfoDB:
             #print(f"pk ={pk}");
 
             #run_info_conditions = "unknown";
-            #pk_run = run_config + run_config_version + run_context + run_context_version;
+            #pk_run = run_config_name + run_config_version + run_context + run_context_version;
 
             #if (pk != pk_run):
             #query = (f"INSERT INTO {self.schema()}.run_condition(condition,commit_time)  VALUES"
@@ -239,12 +239,13 @@ def test1():
     TRACE.Instance = "runinfodb".encode();
 
     logger.info("Initializing %s" % "get_next_run")
-    expt   = os.getenv("MIDAS_EXPT_NAME");
-    host   = socket.gethostname();
-    client = midas.client.MidasClient("get_next_run",host,expt, None)
+    expt     = os.getenv("MIDAS_EXPT_NAME");
+    host     = socket.gethostname();
+    client   = midas.client.MidasClient("get_next_run",host,expt, None)
+    cfg_file = os.getenv("MU2E_DAQ_DIR")+'/config/runinfodb.json';
    
     # Initialize the RuninfoDB
-    runinfo_db = RuninfoDB(client)
+    runinfo_db = RuninfoDB(midas_client=client,config_file=cfg_file);
 
     print("back after creating RuninfoDB")
     

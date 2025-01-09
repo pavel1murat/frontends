@@ -159,18 +159,22 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         self.client.set_transition_sequence(midas.TR_STOP , 700)
 
         self.client.odb_watch("/Mu2e/Commands/Configure/Run", self.process_command)
-
+        TRACE.TRACE(7,f'constructor END',TRACE_NAME)
         print("constructor end");
         
     def begin_of_run(self, run_number):
         
-#        cmd = "~/products/elog/elog -v -x -s -n 1 -h " + self.elog["host"] + " -p "+self.elog['port'] \
-        cmd = "~/products/elog/elog  -x -s -n 1 -h " + self.elog["host"] + " -p "+self.elog['port'] \
-        + ' -d elog -l ' + self.elog['logbook'] + ' -u ' + self.elog['user'] + ' ' + self.elog['passwd'] \
-        + f' -a author=murat -a type=routine -a category="data taking" -a subject="new run: {run_number}" '\
-        + f'" begin run {run_number}"'
+        config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
+        artdaq_partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER")
 
-        TRACE.DEBUG(8,f'begin_of_run command:{cmd}')
+        # cmd = '~/products/elog/elog  -x -s -n 1 -h ' + self.elog["host"] + ' -p '+self.elog['port'] \
+        cmd = "elog  -x -s -n 1 -h " + self.elog["host"] + " -p "+self.elog['port'] \
+        + ' -d elog -l ' + self.elog['logbook'] + ' -u ' + self.elog['user'] + ' ' + self.elog['passwd'] \
+        + f' -a author=murat -a type=routine -a category="data taking"' \
+        + f' -a subject="new run: {run_number} config:{config_name}"' \
+        + f' "begin run {run_number} configuration:{config_name}"'
+
+        TRACE.TRACE(7,f'begin_of_run command:{cmd}')
         proc = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
 
 # search for 'Message successfully transmitted, ID=512', parse out ID
@@ -189,6 +193,8 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         
     def end_of_run(self, run_number):
 
+        config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
+        artdaq_partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER")
         
         message_id = self.elog['start_run_message_id'];
         # message_id = "512"
@@ -196,14 +202,15 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
             # reply to a given message id
             print(f'replying to message ID:{message_id}')
             
-#            cmd = "~/products/elog/elog -v -x -s -n 1 -h " + self.elog["host"] + " -p "+self.elog['port']
-            cmd = f'~/products/elog/elog -r {message_id}'\
+#            cmd = f'~/products/elog/elog -r {message_id}'\
+            cmd = f'elog -r {message_id}' \
             + ' -x -s -n 1 -h ' + self.elog['host'] + ' -p ' + self.elog['port']\
             + ' -d elog -l ' + self.elog['logbook'] + ' -u ' + self.elog['user'] + ' ' + self.elog['passwd']\
-            + f' -a author=murat -a type=routine -a category="data taking" -a subject="end of run {run_number}"'\
-            + f' " end of run {run_number}"'
+            + f' -a author=murat -a type=routine -a category="data taking"'\
+            + f' -a subject="end of run {run_number} config:{config_name}"'\
+            + f' " end of run {run_number} config:{config_name}"'
             
-            TRACE.DEBUG(8,f'end_of_run command:{cmd}')
+            TRACE.TRACE(8,f'end_of_run command:{cmd}',TRACE_NAME)
             proc = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
         
         self.set_all_equipment_status("Okay", "greenLight")
@@ -236,7 +243,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         self.client.odb_set("/Mu2e/Commands/Configure/Status",CMD_STATUS_IN_PROGRESS)
 
         status  = 0;
-        hkey    = self.client._odb_get_hkey("/Mu2e/ActiveConfig");
+        hkey    = self.client._odb_get_hkey("/Mu2e/ActiveRunConfiguration");
         subkeys = self.client._odb_enum_key(hkey);
         print(subkeys);
         for key in subkeys: 
@@ -246,7 +253,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 # this is a subsystem, check if it is enabled
 #---------------v--------------------------------------------------------------
                 subsystem = key[1].name.decode("utf-8");
-                path="/Mu2e/ActiveConfig/"+subsystem+"/Enabled"
+                path="/Mu2e/ActiveRunConfiguration/"+subsystem+"/Enabled"
                 enabled = self.client.odb_get(path)
                 if (enabled == 0): continue
 #------------------------------------------------------------------------------
@@ -274,7 +281,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                 if (key[1].type == midas.TID_KEY):              # subsystem
                     subsystem = key[1].name.decode("utf-8");
                     TRACE.TRACE(4,"eeeee "+subsystem)
-                    if (self.client.odb_get("/Mu2e/ActiveConfig/"+subsystem+"/Enabled") == 0): continue;
+                    if (self.client.odb_get("/Mu2e/ActiveRunConfiguration/"+subsystem+"/Enabled") == 0): continue;
 
                     cmd_path  = "/Mu2e/Commands/Configure/"+subsystem;
                     run       = self.client.odb_get(cmd_path+"/Run");

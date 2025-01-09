@@ -3,68 +3,96 @@
 #include "TRACE/trace.h"
 #include "OdbInterface.hh"
 
+
 OdbInterface* OdbInterface::_instance(nullptr);
+
+//-----------------------------------------------------------------------------
+OdbInterface::OdbInterface(HNDLE h_DB) {
+  _hDB = h_DB;
+}
 
 
 //-----------------------------------------------------------------------------
 OdbInterface* OdbInterface::Instance(HNDLE Hdb) {
   if (_instance == nullptr) {
-    _instance = new OdbInterface();
+    _instance = new OdbInterface(Hdb);
+  }
+  else if (_instance->_hDB != Hdb) {
+    _instance->_hDB = Hdb;
   }
   return _instance;
 }
 
+
 //-----------------------------------------------------------------------------
-std::string OdbInterface::GetString(HNDLE hDB, HNDLE hDir, const char* Key) {
+std::string OdbInterface::GetString(HNDLE hDir, const char* Key) {
   std::string res;
   char        val[1000];
 
   int         sz = sizeof(val);
-  if (db_get_value(hDB, hDir, Key, &val, &sz, TID_STRING, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "cant find hDB=" << hDB << " hDir=" << hDir << " Key=" << Key ;
+  if (db_get_value(_hDB, hDir, Key, &val, &sz, TID_STRING, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "cant find the key ; hDB=" << _hDB << " hDir=" << hDir << " Key=" << Key ;
   }
   else {
     res = val;
   }
 
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " res:" << res;
   return res;
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetHandle(HNDLE hDB, HNDLE hConf, const char* Key) {
-  HNDLE h;
-  
-  if (db_find_key(hDB, hConf, Key, &h) == DB_SUCCESS) return h;
-  else {
-    TLOG(TLVL_ERROR) << "no handle for key:" << Key;
-    return 0;
-  }
+std::string OdbInterface::GetString(HNDLE hDB, HNDLE hDir, const char* Key) {
+  return GetString(hDir,Key);
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetInteger(HNDLE hDB, HNDLE hCFO, const char* Key, int* Data) {
-  int   sz = sizeof(*Data);
-  int rc = db_get_value(hDB, hCFO, Key, Data, &sz, TID_INT, FALSE);
-  TLOG(TLVL_INFO) << "key:" << Key << " value:" << *Data;
+HNDLE OdbInterface::GetHandle(HNDLE hConf, const char* Key) {
+  HNDLE h(0);
+  
+  if (db_find_key(_hDB, hConf, Key, &h) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "no handle for hConf:Key:" << hConf << ":" << Key;
+  }
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " h:" << h;
+  return h;
+}
+
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetHandle(HNDLE hDB, HNDLE hConf, const char* Key) {
+  return GetHandle(hConf,Key);
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetInteger(HNDLE hDir, const char* Key, int* Data) {
+  int rc(0);
+  int sz = sizeof(int); 
+  rc = db_get_value(_hDB, hDir, Key, Data, &sz, TID_INT, FALSE);
+  if (rc != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << hDir; 
+  }
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " value:" << Data;
   return rc;
 }
 
-//-----------------------------------------------------------------------------
-std::string OdbInterface::GetActiveRunConfig(HNDLE hDB) {
-  return GetString(hDB,0,"/Mu2e/ActiveRunConfiguration");
+
+int OdbInterface::GetInteger(HNDLE hDB, HNDLE hDir, const char* Key, int* Data) {
+  return GetInteger(hDir,Key,Data);
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetArtdaqConfigHandle(HNDLE hDB, std::string& RunConf, std::string& Host) {
-  char     key[200];
-  HNDLE    h;
-  sprintf(key,"/Mu2e/RunConfigurations/%s/DAQ/%s/Artdaq",RunConf.data(),Host.data());
-  
-  if (db_find_key(hDB, 0, key, &h) == DB_SUCCESS) return h;
-  else {
-    TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
-    return 0;
-  }
+// /Mu2e/ActiveRunConfiguration is a link to the active run configuration
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetActiveRunConfigHandle() {
+  return GetHandle(_hDB,0,"/Mu2e/ActiveRunConfiguration");
+}
+
+//-----------------------------------------------------------------------------
+// this could become DAQ/Nodes/mu2edaqXXX
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetHostArtdaqConfHandle(HNDLE h_RunConf, const std::string& Host) {
+  char key[128];
+  sprintf(key,"DAQ/%s/Artdaq",Host.data());
+  return GetHandle(_hDB,h_RunConf,key);
 }
 
 //-----------------------------------------------------------------------------
@@ -102,6 +130,21 @@ int OdbInterface::GetCFOEventMode(HNDLE hDB, HNDLE hCFO) {
   else {
     TLOG(TLVL_ERROR) << "no CFO EventMode, return 0";
     return 0;
+  }
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetSkipDtcInit(HNDLE h_HostConf) {
+  const char* key{"Frontend/SkipDtcInit"};
+  
+  INT   data(0);
+  int   sz = sizeof(data);
+  if (db_get_value(_hDB, h_HostConf, key, &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+    return data;
+  }
+  else {
+    TLOG(TLVL_ERROR) << "cant retrieve key:" << key << ", return -1";
+    return -1;
   }
 }
 
@@ -145,10 +188,10 @@ int OdbInterface::GetCFOSleepTime(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetArtdaqPartition(HNDLE hDB) {
+int OdbInterface::GetArtdaqPartition() {
   const char* key {"/Mu2e/ARTDAQ_PARTITION_NUMBER"};
   int   data(-1);
-  if (GetInteger(hDB,0,key,&data) != DB_SUCCESS) {
+  if (GetInteger(0,key,&data) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
   }
   return data;
@@ -164,6 +207,12 @@ HNDLE OdbInterface::GetRunConfigHandle(HNDLE hDB, std::string& RunConf) {
     TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
     return 0;
   }
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetRunConfigName(HNDLE hConf) {
+  const char* key {"Name"};
+  return GetString(_hDB, hConf, key);
 }
 
 //-----------------------------------------------------------------------------
@@ -222,11 +271,11 @@ int OdbInterface::GetDtcJAMode(HNDLE hDB, HNDLE hDTC) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcLinkMask(HNDLE hDB, HNDLE hDTC) {
+int OdbInterface::GetDtcLinkMask(HNDLE hDTC) {
   const char* key {"LinkMask"};
   INT   data(0);       // if not found, want all links to be disabled
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
   }
   return data;
@@ -261,20 +310,6 @@ int OdbInterface::GetDtcPartitionID(HNDLE hDB, HNDLE hNode) {
   int   sz = sizeof(data);
   if (db_get_value(hDB, hNode, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return -1";
-  }
-  return data;
-}
-
-
-//-----------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------
-int OdbInterface::GetDtcReadoutMode(HNDLE hDB, HNDLE hDTC) {
-  const char* key {"ReadoutMode"};
-  INT   data(-1);       // if not found, want to be meaningless
-  int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << " not found, return: " << data;
   }
   return data;
 }
@@ -327,10 +362,11 @@ int OdbInterface::GetEWLength(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-uint64_t OdbInterface::GetFirstEWTag(HNDLE hDB, HNDLE hCFO) {
-  UINT64  data(0);
+// uint64_t OdbInterface::GetFirstEWTag(HNDLE hCFO) {
+int OdbInterface::GetFirstEWTag(HNDLE hCFO) {
+  int  data(0);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "FirstEWTag", &data, &sz, TID_UINT64, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hCFO, "FirstEWTag", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "return 0 (disabled)";
   }
   return data;
@@ -347,21 +383,15 @@ HNDLE OdbInterface::GetDaqConfigHandle(HNDLE hDB, HNDLE hRunConf) {
   }
   return h;
 }
+
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDaqHostHandle(HNDLE hDB, HNDLE hConf, const std::string& Hostname) {
-
-  char key[100];
-  int  sz = sizeof(key);
-
-  snprintf(key,sz-1,"DAQ/%s",Hostname.data());
-
-  HNDLE h(0);
-  if (db_find_key(hDB, hConf, key, &h) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << " not found";
-  }
-  return h;
+// this could become DAQ/Nodes/mu2edaqXXX
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetHostConfHandle(HNDLE h_RunConf, const std::string& Host) {
+  char key[128];
+  sprintf(key,"DAQ/%s",Host.data());
+  return GetHandle(_hDB,h_RunConf,key);
 }
-
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetCFORunPlanDir(HNDLE hDB) {
@@ -385,13 +415,31 @@ int OdbInterface::GetPcieAddress(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcPcieAddress(HNDLE hDB, HNDLE hNode) {
-  const char* key {"DTC/PCIEAddress"};
+// get PCIE address of a boardreader DTC
+//-----------------------------------------------------------------------------
+int OdbInterface::GetDtcPcieAddress(HNDLE hDtc) {
+  const char* key {"PCIEAddress"};
   INT   data(-1);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hNode, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hDtc, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "no DTC PCIE address, return -1";
   }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+// the ROC readout should be the same for all ROCs in the configuration
+// hDetConf - handle of the detector configuration
+//-----------------------------------------------------------------------------
+int OdbInterface::GetRocReadoutMode(HNDLE hDetConf) {
+  int data(-1);
+  GetInteger(_hDB,hDetConf,"DAQ/RocReadoutMode",&data);
+  return data;
+}
+
+int OdbInterface::GetEventMode(HNDLE hDetConf) {
+  int data(-1);
+  GetInteger(_hDB,hDetConf,"DAQ/EventMode",&data);
   return data;
 }
 
@@ -401,7 +449,28 @@ std::string OdbInterface::GetOutputDir(HNDLE hDB) {
 }
 
 //-----------------------------------------------------------------------------
-std::string OdbInterface::GetTfmHostName(HNDLE hDB, HNDLE hRunConf) {
-  return GetString(hDB,hRunConf,"DAQ/TfmRpcHost");
+std::string OdbInterface::GetPrivateSubnet(HNDLE hRunConf) {
+  return GetString(hRunConf,"DAQ/PrivateSubnet");
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetPublicSubnet(HNDLE hRunConf) {
+  return GetString(hRunConf,"DAQ/PublicSubnet");
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetTfmHostName(HNDLE hRunConf) {
+  return GetString(hRunConf,"DAQ/Tfm/RpcHost");
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::SetStatus(HNDLE hElement, int Status) {
+  int rc(0);
+  HNDLE h = GetHandle(hElement,"Status");
+  if (db_set_data(_hDB,h,(void*) &Status,sizeof(int),1,TID_INT32) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to set status:" << Status;
+    rc = -1;
+  }
+  return rc;
 }
 

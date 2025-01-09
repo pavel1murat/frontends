@@ -26,8 +26,9 @@ public:
   
   int get_experiment_database(HNDLE * hDB, HNDLE * hKeyClient);
 
-  int db_enum_key(HNDLE hDB, HNDLE hDir, int Index, HNDLE* hComp); 
-  int db_get_key (HNDLE hDB, HNDLE hComp, KEY* Key); 
+  int   db_enum_key(HNDLE hDB, HNDLE hDir , int Index, HNDLE* hComp);
+  HNDLE db_find_key(HNDLE hDB, HNDLE hConf, const char* Key, HNDLE& Handle);
+  int   db_get_key (HNDLE hDB, HNDLE hComp, KEY* Key); 
 };
 
 #endif
