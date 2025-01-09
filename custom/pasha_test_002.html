@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html class="mcss" lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>pasha test 002</title>
+   <link rel="stylesheet" href="midas.css">
+   <script src="controls.js"></script>
+   <script src="midas.js"></script>
+   <script src="mhttpd.js"></script>
+   <script src="filesrw.js"></script>
+</head>
+
+<body class="mcss" onload="mhttpd_init('pasha test 002');">
+  
+    <script>function mycall(command,fe_name) {mjsonrpc_call(command, "{ \"name\": \"${fe_name}\"}").then(function(rpc){mjsonrpc_debug_alert(rpc); }).catch( function(error){mjsonrpc_error_alert(error)})}</script> 
+  </head>
+
+<!-- Header and side navigation filled by mhttpd_init -->
+<div id="mheader"></div>
+<div id="msidenav"></div>
+
+<div id="mmain">
+  <th colspan="3" class="mtableheader">Test various options</th>
+</div>
+
+<div id="mmain">
+  <table class="mtable">
+    <thead>
+      <tr>
+        <th colspan="3" class="mtableheader">Mu2e Detector Status Page</th>
+      </tr>
+      
+      <tr>
+        <th style="padding:20px;">Subsystem</th>
+            <th style="width: 250px;">Status</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td> aaaa </td>
+        <td>
+          <input type=button value='start fetest(start_program)' onClick='mycall("start_program","\"fetest\")'>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>Programs control AAA functions</h2>
+    
+    <p>
+      Observe the effect of these functions on the MIDAS Programs page.
+
+  <input type=button value='start fetest (start_program)'
+         onClick='mjsonrpc_call("start_program", "{ \"name\": \"fetest\" }").then(function(rpc){mjsonrpc_debug_alert(rpc);}).catch(function(error){mjsonrpc_error_alert(error);});'>
+  <input type=button value='stop fetest (cm_shutdown)'
+         onClick='mjsonrpc_call("cm_shutdown", "{ \"name\": \"fetest\" }").then(function(rpc){mjsonrpc_debug_alert(rpc);}).catch(function(error){mjsonrpc_error_alert(error);});'>
+  <input type=button value='check if fetest is running (cm_exist)'
+         onClick='mjsonrpc_call("cm_exist", "{ \"name\": \"fetest\" }").then(function(rpc){mjsonrpc_debug_alert(rpc);}).catch(function(error){mjsonrpc_error_alert(error);});'>
+    </p>
+    <hr>
+
+<p>
+  
+  ~~~~~~~~~~~~~~ Observe the effect:
+  <input type=button value='start dtc_mt_frontend (start_program)' onClick='mjsonrpc_call("start_program", "{ \"name\": \"dtc_mt_frontend\" }").then(function(rpc){mjsonrpc_debug_alert(rpc);}).catch(function(error){mjsonrpc_error_alert(error);});'>
+  <input type=button value='stop dtc_mt_frontend (cm_shutdown)'
+         onClick='mjsonrpc_call("cm_shutdown", "{ \"name\": \"dtc_mt_frontend\" }").then(function(rpc){mjsonrpc_debug_alert(rpc);}).catch(function(error){mjsonrpc_error_alert(error);});'>
+  <input type=button value='check if dtc_mt_frontend is running (cm_exist)'
+         onClick='mjsonrpc_call("cm_exist", "{ \"name\": \"dtc_mt_frontend\" }").then(function(rpc){mjsonrpc_debug_alert(rpc);}).catch(function(error){mjsonrpc_error_alert(error);});'>
+  <input type=button value='Push me' onClick='mjsonrpc_call("jrpc", { "client_name":"dtc_mt_frontend", "cmd":"xxx", "args":"xxx" }).then(function(rpc){document.getElementById("jrpc_data").innerHTML = JSON.stringify(rpc.result, null, "	");}).catch(function(error){mjsonrpc_error_alert(error);});'>
+  JRPC reply: <span id='jrpc_data'></span>
+</p>
+
+
+
+</body>
+</html>

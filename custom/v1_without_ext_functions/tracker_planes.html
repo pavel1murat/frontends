@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>Tracker Planes</title>
+   <link rel="stylesheet" href="midas.css">
+   <link type="text/css" rel="stylesheet" href="tracker_style.css">
+   <script src="controls.js"></script>
+   <script src="midas.js"></script>
+   <script src="mhttpd.js"></script>
+   <script src="filesrw.js"></script>
+
+   <script>
+      function load_values(path_enabled, path_status, statusCell) {
+         // Fetch values for Enabled and Status
+         mjsonrpc_db_get_values([path_enabled, path_status]).then(function (rpc) {
+            let enabled = rpc.result.data[0];
+            let status = rpc.result.data[1];
+
+            // Apply color styles
+            if (enabled === 0) {
+               statusCell.style.backgroundColor = "gray";
+               statusCell.style.color = "white";
+            } else if (enabled === 1) {
+               if (status === 1) {
+                  statusCell.style.backgroundColor = "green";
+                  statusCell.style.color = "white";
+               } else if (status === 0) {
+                  statusCell.style.backgroundColor = "red";
+                  statusCell.style.color = "white";
+               } else if (status === -1) {
+                  statusCell.style.backgroundColor = "yellow";
+                  statusCell.style.color = "black";
+               } else if (status == null){
+                   statusCell.style.backgroundColor = "white";
+               }
+            } else {
+               statusCell.style.backgroundColor = "white";
+               statusCell.style.color = "black";
+            }
+         }).catch(function (error) {
+            mjsonrpc_error_alert(error);
+         });
+      }
+
+      function createPlanesTable() {
+         const urlParams = new URLSearchParams(window.location.search);
+         const stationIndex = urlParams.get('station') || '0'; // Default to Station_00
+         const planes = 10; // Number of planes
+         const table = document.querySelector(".mtable");
+
+         // Set the table title dynamically
+         const title = document.querySelector("#table-title");
+         title.textContent = `Planes for Station_${stationIndex.padStart(2, '0')}`;
+
+         // Clear existing table rows
+         table.innerHTML = `
+            <thead>
+               <tr>
+                  <th>Plane</th>
+                  <th>Status</th>
+                  <th>Action</th>
+               </tr>
+            </thead>
+            <tbody></tbody>
+         `;
+
+         const tbody = table.querySelector("tbody");
+
+         for (let i = 0; i <= planes; i++) {
+            const row = document.createElement("tr");
+
+            // Plane Cell
+            const planeCell = document.createElement("td");
+            planeCell.innerHTML = `<b>Plane_${i.toString().padStart(2, '0')}</b>`;
+            row.appendChild(planeCell);
+
+            // Status Cell
+            const statusCell = document.createElement("td");
+            statusCell.className = "status-cell";
+            row.appendChild(statusCell);
+
+            // Action Cell
+            const actionCell = document.createElement("td");
+            actionCell.innerHTML = `<button onclick="redirectToPanels('${stationIndex}', '${i}')">View Panels</button>`;
+            row.appendChild(actionCell);
+
+            tbody.appendChild(row);
+
+            // Load initial values and set up polling for updates
+            const path_enabled = `/Mu2e/ActiveConfig/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${i.toString().padStart(2, '0')}/Enabled`;
+            const path_status = `/Mu2e/ActiveConfig/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${i.toString().padStart(2, '0')}/Status`;
+
+            // Initial load
+            load_values(path_enabled, path_status, statusCell);
+
+            // Poll for updates
+            setInterval(() => {
+               load_values(path_enabled, path_status, statusCell);
+            }, 2000);
+         }
+      }
+
+      function redirectToPanels(stationIndex, planeIndex) {
+         window.location.href = `tracker_panels.html?station=${stationIndex}&plane=${planeIndex}`;
+      }
+
+      document.addEventListener("DOMContentLoaded", createPlanesTable);
+   </script>
+</head>
+
+<body class="mcss" onload="mhttpd_init('Tracker Planes');">
+   <div id="mheader"></div>
+   <div id="msidenav"></div>
+   <div id="mmain">
+      <h1 id="table-title">Planes</h1>
+      <table class="mtable"></table>
+   </div>
+</body>
+</html>

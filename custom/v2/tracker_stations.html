@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>Tracker Stations</title>
+   <link rel="stylesheet" href="midas.css">
+   <script src="controls.js"></script>
+   <script src="midas.js"></script>
+   <script src="mhttpd.js"></script>
+   <script src="filesrw.js"></script>
+
+   <script>
+      function load_panel_values(stationIndex, statusCell) {
+         const panels = 10; // Number of panels per station
+         for (let i = 0; i < panels; i++) {
+            const path_enabled = `/Mu2e/ActiveConfig/Tracker/Station_${stationIndex.toString().padStart(2, '0')}/Plane_00/Panel_${i.toString().padStart(2, '0')}/Enabled`;
+            const path_status = `/Mu2e/ActiveConfig/Tracker/Station_${stationIndex.toString().padStart(2, '0')}/Plane_00/Panel_${i.toString().padStart(2, '0')}/Status`;
+
+            mjsonrpc_db_get_values([path_enabled, path_status])
+               .then((rpc) => {
+                  const enabled = rpc.result.data[0];
+                  const status = rpc.result.data[1];
+
+                  // Create a panel box
+                  const panelBox = document.createElement("div");
+                  panelBox.className = "panel-box";
+
+                  // Determine color based on status and enabled
+                  if (enabled === 0) {
+                     panelBox.style.backgroundColor = "gray";
+                  } else if (enabled === 1) {
+                     if (status === 1) {
+                        panelBox.style.backgroundColor = "green";
+                     } else if (status === 0) {
+                        panelBox.style.backgroundColor = "red";
+                     } else if (status === -1) {
+                        panelBox.style.backgroundColor = "yellow";
+                     } else {
+                        panelBox.style.backgroundColor = "white";
+                     }
+                  } else {
+                     panelBox.style.backgroundColor = "white";
+                  }
+
+                  // Make the panel box clickable
+                  panelBox.title = `Panel_${i.toString().padStart(2, '0')}`;
+                  panelBox.onclick = function () {
+                     window.location.href = `tracker_details.html?station=${stationIndex}&panel=${i}`;
+                  };
+
+                  // Append the panel box to the status cell
+                  statusCell.appendChild(panelBox);
+               })
+               .catch((error) => {
+                  console.error(`Error fetching panel values for Panel_${i}:`, error);
+               });
+         }
+      }
+
+      function createStationsTable() {
+         const stations = 7; // Number of stations
+         const table = document.querySelector(".mtable");
+
+         // Clear existing table rows
+         table.innerHTML = `
+            <thead>
+               <tr>
+                  <th>Station</th>
+                  <th>Panels</th>
+               </tr>
+            </thead>
+            <tbody></tbody>
+         `;
+
+         const tbody = table.querySelector("tbody");
+
+         for (let i = 0; i < stations; i++) {
+            const row = document.createElement("tr");
+
+            // Station Cell
+            const stationCell = document.createElement("td");
+            stationCell.innerHTML = `<b>Station_${i.toString().padStart(2, '0')}</b>`;
+            row.appendChild(stationCell);
+
+            // Panels Cell
+            const statusCell = document.createElement("td");
+            statusCell.className = "status-cell";
+            row.appendChild(statusCell);
+
+            tbody.appendChild(row);
+
+            // Load panel values for this station
+            load_panel_values(i, statusCell);
+         }
+      }
+
+      document.addEventListener("DOMContentLoaded", createStationsTable);
+   </script>
+
+   <style>
+      body {
+         font-family: Arial, sans-serif;
+         margin: 0;
+         padding: 0;
+         background-color: #f5f5f5;
+      }
+
+      #mmain {
+         margin: 20px;
+         padding: 20px;
+         background-color: white;
+         border-radius: 8px;
+         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+         font-size: 24px;
+         margin-bottom: 20px;
+         text-align: center;
+      }
+
+      .mtable {
+         width: 100%;
+         border-collapse: collapse;
+         font-size: 18px;
+         margin: 0 auto;
+      }
+
+      .mtable th, .mtable td {
+         border: 1px solid #ddd;
+         padding: 12px;
+         text-align: center;
+      }
+
+      .mtable th {
+         background-color: #007bff;
+         color: white;
+      }
+
+      .mtable tr:nth-child(even) {
+         background-color: #f9f9f9;
+      }
+
+      .mtable tr:hover {
+         background-color: #f1f1f1;
+      }
+
+      .status-cell {
+         display: flex;
+         gap: 5px;
+         flex-wrap: wrap;
+         justify-content: center;
+         align-items: center;
+      }
+
+      .panel-box {
+         width: 20px;
+         height: 20px;
+         border-radius: 4px;
+         cursor: pointer;
+         border: 1px solid #ddd;
+      }
+
+      .panel-box:hover {
+         opacity: 0.8;
+      }
+   </style>
+</head>
+
+<body class="mcss" onload="mhttpd_init('Tracker Stations');">
+   <div id="mheader"></div>
+   <div id="msidenav"></div>
+   <div id="mmain">
+      <h1>Tracker Stations</h1>
+      <table class="mtable"></table>
+   </div>
+</body>
+</html>

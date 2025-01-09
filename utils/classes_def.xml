@@ -1,3 +1,4 @@
 <lcgdict>
-  <class name="MidasInterface" />
+  <class name="MidasInterface"/>
+  <class name="OdbInterface"/>
 </lcgdict>

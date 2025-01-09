@@ -1,5 +1,7 @@
 #!/usr/bin/bash
-
+#------------------------------------------------------------------------------
+# this script is also executed by the ARTDAQ processes running on different nodes
+#------------------------------------------------------------------------------
 if [ ".$MU2E_DAQ_DIR" == "." ] ; then  export        MU2E_DAQ_DIR=$PWD; fi
 
 #------------------------------------------------------------------------------
@@ -13,10 +15,9 @@ source $MU2E_DAQ_DIR/spack/share/spack/setup-env.sh
 spack env activate murat # tdaq
 
                   namestub=${USER}_`pwd | awk -F / '{print $NF}'` # example: mu2etrk_pasha_028
-export          TRACE_FILE=/tmp/trace_$namestub.$$
 export TFM_FHICL_DIRECTORY=$MU2E_DAQ_DIR/config
 
-            export TFM_DIR=$SPACK_ENVtfm
+            export TFM_DIR=$SPACK_ENV/tfm
       export FRONTENDS_DIR=$SPACK_END/frontends
 
         export  SPACK_VIEW=$SPACK_ENV/.spack-env/view
@@ -32,7 +33,7 @@ export           ARTDAQ_BASE_PORT=10000
 #------------------------------------------------------------------------------
 # TRACE - some defaults
 #------------------------------------------------------------------------------
-export                TRACE_FILE=/tmp/trace_file.$$
+export                TRACE_FILE=/tmp/trace_file.$DAQ_USER_STUB
 export            TRACE_LIMIT_MS=0,50,50
 export              TRACE_MSGMAX=0        # Activating TRACE
 

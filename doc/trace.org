@@ -177,8 +177,7 @@ tonS ()
 
 bitN_to_mask 2-4 returns '0x1c'
 
-* loooking at the TRACE memory log:                                          
-
+* tshow / tdelta : looking at the TRACE memory log:                                          
 tshow | tdelta -ct 1 -d 1 | head -n 100
 * Ron's hints from different setup files and examples                        
  --  enable kernel trace to memory buffer:

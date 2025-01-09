@@ -115,16 +115,17 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
         self._stop_run               = False;
         self.output_dir              = self.client.odb_get("/Mu2e/OutputDir")
-        self.config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration")
+        self.config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
         self.artdaq_partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER")
 
         TRACE.TRACE(7,f":0014: artdaq_partition_number={self.artdaq_partition_number}")
 
         config_path                  = "/Mu2e/RunConfigurations/"+self.config_name;
         self.use_runinfo_db          = self.client.odb_get(config_path+'/UseRunInfoDB')
-        self.tfm_rpc_host            = self.client.odb_get(config_path+'/DAQ/TfmRpcHost'  )
+        self.tfm_rpc_host            = self.client.odb_get(config_path+'/DAQ/Tfm/RpcHost')
 
-        config_dir                   = os.path.join(self.client.odb_get("/Mu2e/ArtdaqConfigDir"), self.config_name)
+        daq_config_dir               = self.client.odb_get("/Mu2e/ConfigDir");
+        config_dir                   = daq_config_dir+'/'+self.config_name;
 
         TRACE.TRACE(7,f":0014:config_dir={config_dir} use_runinfo_db={self.use_runinfo_db} rpc_host={self.tfm_rpc_host}")
 
@@ -145,14 +146,18 @@ class TfmLaunchFrontend(midas.frontend.FrontendBase):
         self.add_equipment(TfmEquipment(self.client))
         TRACE.TRACE(7,"003: equipment added , config_dir=%s"%(config_dir))
 
-        self._fm   = farm_manager.FarmManager(config_dir=config_dir,rpc_host=self.tfm_rpc_host)
+        self._fm   = farm_manager.FarmManager(odb_client=self.client,
+                                              config_dir=config_dir,
+                                              rpc_host  =self.tfm_rpc_host); 
+        
         TRACE.TRACE(7,"004: tfm instantiated, self.use_runinfo_db=%i"%(self.use_runinfo_db))
 #------------------------------------------------------------------------------
 # runinfo DB related stuff
 #-------v----------------------------------------------------------------------
         self.runinfo_db   = None;
         if (self.use_runinfo_db):
-            self.runinfo_db   = RuninfoDB(self.client);
+            rdb_config_file = daq_config_dir+'/runinfodb.json';
+            self.runinfo_db = RuninfoDB(midas_client=self.client,config_file=rdb_config_file);
 #------------------------------------------------------------------------------
 # TFM frontend starts after the DTC-ctl frontends but before the cfo_emu_frontend(520)
 #-----------------------------------------------------------------------------

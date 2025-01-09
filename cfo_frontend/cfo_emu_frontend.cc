@@ -85,7 +85,6 @@ namespace {
 INT frontend_init() {
   int          argc;
   char**       argv;
-  std::string  active_run_conf;
 //-----------------------------------------------------------------------------
 // get command line arguments - perhaps can use that one day
 //-----------------------------------------------------------------------------
@@ -98,42 +97,6 @@ INT frontend_init() {
   cm_get_experiment_database(&hDB, NULL);
 
   _odb_i = OdbInterface::Instance(hDB);
-
-  active_run_conf = _odb_i->GetActiveRunConfig(hDB);
-
-  HNDLE h_active_run_conf = _odb_i->GetRunConfigHandle(hDB,active_run_conf);
-
-  std::string host        = get_full_host_name("local");
-  _h_cfo                  = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
-  _cfo_enabled            = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
-
-  _n_ewm_train   = _odb_i->GetCFONEventsPerTrain(hDB,_h_cfo);
-  _ew_length     = _odb_i->GetEWLength    (hDB,_h_cfo);
-  _first_ts      = _odb_i->GetFirstEWTag  (hDB,_h_cfo);            // normally, start from zero
-  _sleep_time_ms = _odb_i->GetCFOSleepTime(hDB,_h_cfo);
-//----------------------------------------------------------------------------- 
-// we know that this is an emulated CFO - get pointer to the corresponding DTC
-// an emulated CFO configuration includs a link to the DTC
-//-----------------------------------------------------------------------------
-  HNDLE h_dtc    = _odb_i->GetHandle     (hDB,_h_cfo,"DTC");
-  _pcie_addr     = _odb_i->GetPcieAddress(hDB, h_dtc);
-//-----------------------------------------------------------------------------
-// don't initialize the DTC, just get a pointer to
-//-----------------------------------------------------------------------------
-  _dtc_i         = trkdaq::DtcInterface::Instance(_pcie_addr,0,true);
-  int event_mode = _odb_i->GetCFOEventMode(hDB,_h_cfo);
-  _dtc_i->SetEventMode(event_mode);
-
-  TLOG(TLVL_DEBUG) << "active_run_conf:" << active_run_conf
-                   << " hDB : " << hDB   << " _h_cfo: " << _h_cfo
-                   << " cfo_enabled: "   << _cfo_enabled
-                   << "h_dtc:"           << h_dtc
-                   << "_pcie_addr: "     << _pcie_addr;
-
-  TLOG(TLVL_DEBUG) << "_n_ewm_train:"    << _n_ewm_train
-                   << " _ew_length:"     << _ew_length
-                   << " _first_ts:"      << _first_ts
-                   << " _sleep_time_ms:" << _sleep_time_ms;
 //-----------------------------------------------------------------------------
 // the CFO frontend starts after the DTC frontends (500) and stops before them
 //-----------------------------------------------------------------------------
@@ -191,11 +154,46 @@ INT frontend_loop() {
 
 //-----------------------------------------------------------------------------
 // can afford to re-initialize the run plan at each begin run
+// active run configuration can change from one run to another
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT run_number, char *error) {
-  TLOG(TLVL_DEBUG+2) << "BEGIN RUN " << run_number;
 
+  TLOG(TLVL_DEBUG) << "BEGIN RUN " << run_number;
+
+  HNDLE       h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
+  std::string active_run_conf   = _odb_i->GetRunConfigName(h_active_run_conf);
+  _h_cfo                        = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
+  _cfo_enabled                  = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
+
+  _n_ewm_train   = _odb_i->GetCFONEventsPerTrain(hDB,_h_cfo);
+  _ew_length     = _odb_i->GetEWLength    (hDB,_h_cfo);
+  _first_ts      = (uint64_t) _odb_i->GetFirstEWTag  (_h_cfo);            // normally, start from zero
+  _sleep_time_ms = _odb_i->GetCFOSleepTime(hDB,_h_cfo);
+//----------------------------------------------------------------------------- 
+// we know that this is an emulated CFO - get pointer to the corresponding DTC
+// an emulated CFO configuration includs a link to the DTC
+//-----------------------------------------------------------------------------
+  HNDLE h_dtc    = _odb_i->GetHandle     (hDB,_h_cfo,"DTC");
+  _pcie_addr     = _odb_i->GetPcieAddress(hDB, h_dtc);
+//-----------------------------------------------------------------------------
+// don't initialize the DTC, just get a pointer to
+//-----------------------------------------------------------------------------
+  _dtc_i         = trkdaq::DtcInterface::Instance(_pcie_addr,0,true);
+  int event_mode = _odb_i->GetCFOEventMode(hDB,_h_cfo);
+  _dtc_i->SetEventMode(event_mode);
+
+  TLOG(TLVL_DEBUG) << "active_run_conf:" << active_run_conf
+                   << " hDB : " << hDB   << " _h_cfo: " << _h_cfo
+                   << " cfo_enabled: "   << _cfo_enabled
+                   << "h_dtc:"           << h_dtc
+                   << "_pcie_addr: "     << _pcie_addr;
+
+  TLOG(TLVL_DEBUG) << "_n_ewm_train:"    << _n_ewm_train
+                   << " _ew_length:"     << _ew_length
+                   << " _first_ts:"      << _first_ts
+                   << " _sleep_time_ms:" << _sleep_time_ms;
   cfo_emu_frontend::running = 1;
+
   return CM_SUCCESS;
 }
 
