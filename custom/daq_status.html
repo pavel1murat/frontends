@@ -1,57 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-  
-<head>
-  <meta charset="UTF-8">
-  <title>DAQ</title>
-  <link rel="stylesheet" href="midas.css">
-  <link type="text/css" rel="stylesheet" href="tracker.css">
-
-  <script src="controls.js"></script>
-  <script src="midas.js"></script>
-  <script src="mhttpd.js"></script>
-  <script src="filesrw.js"></script>
-
-  <script>
-    let midasInitialized = false;
-
-    function updateCellStyle(cell) {
-        if (cell.enabled == "0") {
-            cell.textContent           = "disabled";
-            cell.style.backgroundColor = "gray";
-            cell.style.color = "white";
-        } else if (cell.enabled == "1") {
-            if (cell.status == "0") {
-                cell.textContent = "OK";
-                cell.style.backgroundColor = "green";
-                cell.style.color = "white";
-            }
-            else if (cell.status == "-1") {
-                cell.textContent = "Error";
-                cell.style.backgroundColor = "red";
-                cell.style.color = "white";
-            }
-        }
-    }
-      
-    function redirectToNodes(nodeIndex) {
-        window.location.href = 'mu2edaq22.html?disk=${nodeIndex}';
-    }
+  <head>
+    <meta charset="UTF-8">
+    <title>DAQ nodes</title>
+    <link rel="stylesheet" href="midas.css">
+    <link rel="stylesheet" href="tracker_style.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
     
-  
-    function createDAQTable() {
-        const nodes = [];
-         nodes.push("mu2edaq04", "mu2edaq09", "mu2edaq10", "mu2edaq11", "mu2edaq14", "mu2edaq22" );
-        const n_nodes = nodes.length;                       // Number of DAQ nodes
-        const table  = document.querySelector(".mtable");
-        
-        // Clear existing table rows
+    <script>
+      function set_colors(path, statusCell) {
+        // Fetch values for Enabled and Status
+        const path_enabled = path+`/Enabled`;
+        const path_status  = path+`/Status`;
+        mjsonrpc_db_get_values([path_enabled, path_status]).then(function (rpc) {
+          let enabled = rpc.result.data[0];
+        let status = rpc.result.data[1];
+          
+          // Apply color styles
+          if (enabled === 0) {
+          statusCell.style.backgroundColor = "gray";
+            statusCell.style.color = "white";
+          } else if (enabled === 1) {
+            if (status === 0) {
+              statusCell.style.backgroundColor = "green";
+              statusCell.style.color = "white";
+            } else if (status < 0) {
+              statusCell.style.backgroundColor = "red";
+              statusCell.style.color = "white";
+            } else if (status > 0) {
+              statusCell.style.backgroundColor = "yellow";
+              statusCell.style.color = "black";
+            }
+          } else {
+            statusCell.style.backgroundColor = "white";
+            statusCell.style.color = "white";
+          }
+        }).catch(function (error) {
+          console.error("Error fetching values:", error);
+        });
+      }
+    
+      function drillDown(hostname,process) {
+        window.location.href = `artdaq_process_status.html?hostname=${hostname}&process=${process}`;
+      }
+
+      function createTableA() {
+        const urlParams    = new URLSearchParams(window.location.search);
+        const table        = document.querySelector(".mtable");
+      
+      // Set the table title dynamically
+        const title = document.querySelector("#table-title");
+        title.textContent = `DAQ status`;
+      
+      // Clear existing table rows
         table.innerHTML = `
             <thead>
                <tr>
-                  <th>Node</th>
-                  <th>Status</th>
-                  <th>Details</th>
+                  <th> node </th>
+                  <th colspan="10">Processes</th>
                </tr>
             </thead>
             <tbody></tbody>
@@ -59,78 +68,88 @@
         
         const tbody = table.querySelector("tbody");
         
-        for (let i = 0; i < n_nodes; i++) {
+        const nodes_path   = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes`;
+        
+        let nnodes = 1;
+        mjsonrpc_db_get_values([nodes_path]).then(function (rpc) {
+          let nodesp = rpc.result.data[0];
+          let keys = Object.keys(nodesp);
+          let values = Object.values(nodesp);
+          let entries = Object.entries(nodesp);
+          nkeys = keys.length;
+          for (let i = 1; i < nkeys; i+=2) {
             const row = document.createElement("tr");
             
-            // DAQ node Cell
-            const diskCell = document.createElement("td");
-            diskCell.innerHTML = `<b>${nodes[i]}</b>`;
-            row.appendChild(diskCell);
-            
-            // Status Cell
-             
-            const statusCell = document.createElement("td");
-            var xx = "/Mu2e/ActiveRunConfiguration/DAQ/"+nodes[i];
-            var odb_list = [xx];
-            
-            mjsonrpc_db_get_value(odb_list[0]).then(rpc => {
-                let statusCell = document.createElement("td");
+            // node Cell
+            const nodeCell = document.createElement("td");
+            let hostname = keys[i];
+            nodeCell.innerHTML = `<b>${hostname}</b>`;
+            row.appendChild(nodeCell);
+//-----------------------------------------------------------------------------
+// now - processes defined here
+//-----------------------------------------------------------------------------
+            const artdaq_path = nodes_path+'/'+hostname+'/Artdaq'
 
-                let node = rpc.result.data[0];
+            mjsonrpc_db_get_values([artdaq_path]).then(function (rpc) {
+              let data = rpc.result.data[0];
+              let keys = Object.keys(data);
+              let values = Object.values(data);
+              let entries = Object.entries(data);
+              nproc = values.length
+              
+              for (let ip=0; ip<nproc; ip++) {
+                label = values[ip];
+                if ((typeof label == 'string') && (label != 'Enabled') && (label != 'Status')) {
+                  const cell = document.createElement("td");
+                  cell.className = "status-cell";
+                  cell.innerHTML = `<button onclick="drillDown('${hostname}',${label})">${label}</button>`;
                   
-                statusCell.enabled = node.enabled;
-                statusCell.status  = node.status;
+                  // Load initial values and set up polling for updates
                 
-                statusCell.innerHTML = `<div> "${statusCell.enabled}" </div>` ;
-                statusCell.onchange  = updateCellStyle(statusCell);
-
-                //             statusCell.innerHTML = `<div class="modbvalue status-cell"
-                //                  data-odb-path="/Mu2e/ActiveRunConfiguration/DAQ/${nodes[i]}/Status"
-                //                  onchange="updateCellStyle(this)">
-                //               </div>`;
-                
-                row.appendChild(statusCell);
-                
-
-                // Action Cell
-                const actionCell = document.createElement("td");
-                actionCell.innerHTML = `
-             <button onclick="redirectToNodes('${i}')">View Details</button>`;
-                row.appendChild(actionCell);
-                
-                tbody.appendChild(row);
+                  const path     = artdaq_path+`/${label}`;
+                  
+                  // Initial load
+                  set_colors(path,cell);
+                  
+                  // Poll for updates
+                  setInterval(() => {set_colors(path,cell);},2000);
+                  
+                  row.appendChild(cell);
+                }
+              }
+            }).catch(function (error) {
+              console.error("Error fetching values:", error);
             });
 
-            //               statusCell.innerHTML = `
-            //               <div class="modbvalue status-cell" data-odb-path="${odb_list[0]}/Enabled"
-            //                  onchange="updateCellStyle(${statusCell})">
-            //               </div>`;
-            
-        }
-    }
-
-    
-    function initializePage() {
-        if (!midasInitialized) {
-            mhttpd_init("DAQ");
-            midasInitialized = true;
-        }
-
-        createDAQTable();
-    }
-    
-    document.addEventListener("DOMContentLoaded", initializePage);
-  </script>
+            tbody.appendChild(row);
+          }
+        }).catch(function (error) {
+          console.error("Error fetching values:", error);
+        });
+        
+      }
+      document.addEventListener("DOMContentLoaded", createTableA);
+    </script>
 </head>
 
-<body class="mcss">
-   <div id="mheader" ></div> <!-- MIDAS Header -->
-   <div id="msidenav"></div> <!-- MIDAS Sidebar -->
+<body class="mcss" onload="mhttpd_init('DAQ nodes');">
+   <div id="mheader"></div>
+   <div id="msidenav"></div>
    <div id="mmain">
-      <h1>DAQ</h1>
+      <h1 id="table-title">DAQ nodes</h1>
       <table class="mtable">
          <!-- Table content is generated dynamically -->
       </table>
    </div>
 </body>
 </html>
+
+<!--
+    emacs
+    Local Variables:
+    tab-width: 8
+    c-basic-offset: 2
+    js-indent-level: 0
+    indent-tabs-mode: nil
+    End:
+  -->
