@@ -135,7 +135,7 @@ int OdbInterface::GetCFOEventMode(HNDLE hDB, HNDLE hCFO) {
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetSkipDtcInit(HNDLE h_HostConf) {
-  const char* key{"Frontend/SkipDtcInit"};
+  const char* key{"DAQ/SkipDtcInit"};
   
   INT   data(0);
   int   sz = sizeof(data);
@@ -322,6 +322,17 @@ int OdbInterface::GetDtcSampleEdgeMode(HNDLE hDB, HNDLE hDTC) {
   INT   data(-1);       // if not found, want to be meaningless
   int   sz = sizeof(data);
   if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << " not found, return: " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetIsCrv(HNDLE hDTC) {
+const char* key {"IsCrv"};
+  INT   data(0);       // if not found, set to false
+  int   sz = sizeof(data);
+  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << " not found, return: " << data;
   }
   return data;
