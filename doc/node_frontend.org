@@ -1,7 +1,8 @@
 # ODB structure
 
 ActiveConfig (link to a configuration in /Mu2e/RunConfigurations/NAME)
-```
+
+#+begin_src
 ├── Name                        # Question, is this needed or could we use the NAME from above?
 ├── EventMode
 └── DAQ
@@ -48,12 +49,13 @@ ActiveConfig (link to a configuration in /Mu2e/RunConfigurations/NAME)
             ├── RocRegisters
             
             └── Artdaq                                         # Question: maybe we want these as global flags?
-```
+#+end_src
 
 # Slow Control Variables
 
 Slow control variables for monitoring
-```
+
+#+begin_src
 └── Equipment
     └── node-name 
         ├── Settings                                           # thse go into the hisotry system Question Why Setting? that sounds confuson to me? Monitoring?
@@ -83,4 +85,4 @@ Slow control variables for monitoring
         │   │       └── [...]
         │   ├── ROC....
         ├── DTC...
-```
+#+end_src
