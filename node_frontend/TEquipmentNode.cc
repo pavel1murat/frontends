@@ -89,7 +89,7 @@ TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
 
   if (handle_begin_run) {
     for (int i=0; i<2; i++) {
-      trkdaq::DtcInterface* dtc_i = fDtc_i[i];
+      mu2edaq::DtcInterface* dtc_i = fDtc_i[i];
       if (dtc_i) {
         dtc_i->fRocReadoutMode = roc_readout_mode;
         dtc_i->fEventMode      = event_mode;
@@ -163,7 +163,7 @@ void TEquipmentNode::HandlePeriodic() {
                      << " TMFE::Instance()->fStateRunning:" << TMFE::Instance()->fStateRunning; 
 
   if (_monitorDtc) {
-    ReadDtcMetrics   ();
+    ReadDtcMetrics();
   }
 
   if (_monitorArtdaq and TMFE::Instance()->fStateRunning) {

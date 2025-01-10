@@ -7,12 +7,13 @@ ActiveConfig (link to a configuration in /Mu2e/RunConfigurations/NAME)
 └── DAQ
     ├── PrivateSubnet   
     ├── PublicSubnet
-    ├── EventMode               # might this not be better in a "Run" subtree? 
-    ├── RocReadoutMode          # tracker specific?
+    ├── EventMode               
+    ├── RocReadoutMode          
     ├── SkipDtcInit
     └── hostename
         ├── DTC
         │   ├── Enabled
+        │   ├── IsCrv
         │   ├── PCIEAddress
         │   ├── LinkMask
         │   ├── EmulatesCFO
@@ -44,6 +45,8 @@ ActiveConfig (link to a configuration in /Mu2e/RunConfigurations/NAME)
         │   │   └── NFragmentTypes
         └── Monitor
             ├── Dtc                                            # Question: maybe we want these as global flags?
+            ├── RocRegisters
+            
             └── Artdaq                                         # Question: maybe we want these as global flags?
 ```
 
@@ -81,4 +84,3 @@ Slow control variables for monitoring
         │   ├── ROC....
         ├── DTC...
 ```
-

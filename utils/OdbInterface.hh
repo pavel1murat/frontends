@@ -51,6 +51,7 @@ public:
   int         GetDtcPartitionID   (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcPcieAddress   (HNDLE h_Card);             // card: DTC
   int         GetDtcSampleEdgeMode(HNDLE h_DB, HNDLE h_Card); // 0:force rising; 1: force falling; 2:auto
+  int         GetIsCrv            (HNDLE h_Card);
 
   int         GetPcieAddress      (HNDLE h_DB, HNDLE h_Card); // card: either CFO or DTC
 //-----------------------------------------------------------------------------

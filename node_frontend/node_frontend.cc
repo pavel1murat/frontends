@@ -27,14 +27,14 @@
 // }
 
 //-----------------------------------------------------------------------------
-class DtcFrontend: public TMFrontend {
+class NodeFrontend: public TMFrontend {
 public:
 
   std::string   fName;
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  DtcFrontend();
+  NodeFrontend();
   
   void HandleUsage() {}   //printf("FeEverything::HandleUsage!\n");  }
    
@@ -66,7 +66,7 @@ public:
 // but that doesn't connect to ODB yet...
 // all parameters need to be initalized here
 //-----------------------------------------------------------------------------
-DtcFrontend::DtcFrontend() : TMFrontend() {
+NodeFrontend::NodeFrontend() : TMFrontend() {
 
   std::string hostname = get_short_host_name("");
   // fName  = hostname+"_fe";
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
   //   usage(); // DOES NOT RETURN
   //}
 
-  DtcFrontend fe;
+  NodeFrontend fe;
 
   // FeMain calls FeInit - at this point connection to the experiment happens
   // this is too late for equipment to be initialized in the constructor
