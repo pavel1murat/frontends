@@ -43,11 +43,16 @@
         });
       }
     
+      function dtc_control(hostname,pcie) {
+        // window.location.href = `dtc_control_001.html?hostname=${hostname}&pcie=${pcie}`;
+        window.location.href = `dtc_control.html?hostname=${hostname}&pcie=${pcie}`;
+      }
+
       function drillDown(hostname,process) {
         window.location.href = `artdaq_process_status.html?hostname=${hostname}&process=${process}`;
       }
 
-      function createTableA() {
+      function createTable() {
         const urlParams    = new URLSearchParams(window.location.search);
         const table        = document.querySelector(".mtable");
       
@@ -72,30 +77,52 @@
         
         let nnodes = 1;
         mjsonrpc_db_get_values([nodes_path]).then(function (rpc) {
-          let nodesp = rpc.result.data[0];
-          let keys = Object.keys(nodesp);
-          let values = Object.values(nodesp);
+          let nodesp  = rpc.result.data[0];
+          let keys    = Object.keys(nodesp);
+          let values  = Object.values(nodesp);
           let entries = Object.entries(nodesp);
           nkeys = keys.length;
           for (let i = 1; i < nkeys; i+=2) {
+//-----------------------------------------------------------------------------
+// create a row
+//-----------------------------------------------------------------------------
             const row = document.createElement("tr");
             
             // node Cell
             const nodeCell = document.createElement("td");
-            let hostname = keys[i];
+            let   hostname = keys[i];
             nodeCell.innerHTML = `<b>${hostname}</b>`;
             row.appendChild(nodeCell);
+            const artdaq_path = nodes_path+'/'+hostname+'/Artdaq';
 //-----------------------------------------------------------------------------
-// now - processes defined here
+// two cells for two DTCs
 //-----------------------------------------------------------------------------
-            const artdaq_path = nodes_path+'/'+hostname+'/Artdaq'
-
+            for (let idtc=0; idtc<2; idtc++) {
+              const cell = document.createElement("td");
+              cell.className = "status-cell";
+              cell.innerHTML = `<button onclick="dtc_control('${hostname}',${idtc})">DTC${idtc}</button>`;
+                
+              // Load initial values and set up polling for updates
+                
+              const path     = artdaq_path+`/DTC${idtc}`;
+                
+              // Initial colors
+              set_colors(path,cell);
+                
+              // Poll for updates
+              setInterval(() => {set_colors(path,cell);},2000);
+              
+              row.appendChild(cell);
+            }
+//-----------------------------------------------------------------------------
+// now - processes defined here. learning about JS objects :) 
+//-----------------------------------------------------------------------------
             mjsonrpc_db_get_values([artdaq_path]).then(function (rpc) {
-              let data = rpc.result.data[0];
-              let keys = Object.keys(data);
-              let values = Object.values(data);
+              let data    = rpc.result.data[0];
+              let keys    = Object.keys(data);
+              let values  = Object.values(data);
               let entries = Object.entries(data);
-              nproc = values.length
+              nproc       = values.length
               
               for (let ip=0; ip<nproc; ip++) {
                 label = values[ip];
@@ -128,7 +155,7 @@
         });
         
       }
-      document.addEventListener("DOMContentLoaded", createTableA);
+      document.addEventListener("DOMContentLoaded", createTable);
     </script>
 </head>
 

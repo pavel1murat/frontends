@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="midas.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
+    
+    <title>DTC</title>
+    
+    <script>
+//-----------------------------------------------------------------------------
+// the hostname should be the same within the scope of this script
+//-----------------------------------------------------------------------------
+      let g_hostname = 'undefined';
+      
+      function dtc_command(cmd,pcie) {
+        let msg = { "client_name":g_hostname, "cmd":cmd, "args":'{"pcie":'+pcie.toString()+'}'};
+        mjsonrpc_call("jrpc",msg).then(function(rpc1) {
+          // let s = JSON.stringify(rpc1.result.reply, null, "	");
+          let s = rpc1.result.reply;
+          const regex = /\n/gi
+          let y = s.replaceAll(regex,'<br>');
+          document.getElementById("jrpc_data").innerHTML = y;
+        }).catch(function(error){
+          mjsonrpc_error_alert(error);
+        });
+      }
+//-----------------------------------------------------------------------------
+// createTable
+//-----------------------------------------------------------------------------
+      function createTable() {
+        const urlParams = new URLSearchParams(window.location.search);
+        g_hostname      = urlParams.get('hostname') || 'none';  // 
+        const pcie      = urlParams.get('pcie') || '0'   ;  //
+
+        let title       = document.getElementById('table-title');
+        title.innerHTML = g_hostname+' DTC status page';
+//-----------------------------------------------------------------------------
+// the column titles 
+//-----------------------------------------------------------------------------
+        const table     = document.querySelector(".mtable"); 
+        const tbody     = document.createElement('tbody');
+        table.appendChild(tbody);
+        
+        let names = ['Register', 'DTC0','DTC1','Comment'];
+        
+        const row      = document.createElement("tr");
+        for (let i=0; i<4; i++) {
+          const cell     = document.createElement("td");
+          cell.className = 'mtableheader';
+          cell.style     = 'background-color:#8cbdff';
+          cell.innerHTML = names[i];
+          cell.colSpan   = '1';
+          row.appendChild(cell);
+        }
+        tbody.appendChild(row);
+
+        let nreg = 14;
+
+        const path0   = '/Equipment/'+g_hostname;
+        const subpath = [ 'DTC0/RegNames', 'DTC0/RegData', 'DTC1/RegData' ];
+        
+        const comment = [ 'DTC firmware version', 'DTC status register', 'DTC Link Enable', 'Locked fibers', 'DTC timeout',
+                          'N EVB nodes'         , 'Data timeout length', 'EW marker deltaT', 'N data requests', 'null HB after last valid one',
+                          'CFO emulation event mode bytes 3,2,1,0', 'CFO emulation event mode bytes 5,4', ' Clk marker deltaT', 'DCS timeout'
+                        ];
+      
+        for (let ireg=0; ireg<nreg; ireg++) {
+          const row   = document.createElement("tr");
+          for (let ic=0; ic<4; ic++) {
+            const cell = document.createElement("td");
+            cell.className = 'modbvalue';
+            // cell.style     = 'background-color:#8cbdff';
+            cell.colSpan   = '1';
+            if (ic < 3) {
+              path=path0+'/'+subpath[ic]+'['+ireg+']';
+              mjsonrpc_db_get_values([path]).then(function (rpc) {
+                cell.innerHTML = rpc.result.data[0];
+              }).catch(function (error) {
+                console.error("Error fetching values:", error);
+              });
+            }
+            else {
+              cell.innerHTML = comment[ireg];
+            }
+            row.appendChild(cell);
+          }
+          tbody.appendChild(row);
+        }
+//-----------------------------------------------------------------------------
+//  create command table
+//-----------------------------------------------------------------------------
+        const com_table_title  = document.getElementById('commands-table-title');
+        com_table_title.innerHTML = 'commands for DTC at PCIE:'+pcie;
+
+        const com_table     = document.getElementById('commands');
+
+        com_table.innerHTML = `
+            <thead>
+               <tr>
+                  <th> node </th>
+                  <th colspan="10">Processes</th>
+               </tr>
+            </thead>
+            <tbody>
+        <tr>
+          <span><th class="mtableheader">DTC Control</th></span> <!-- Change XXX to the header name for this page -->
+        </tr>
+        <tr>
+          <td>
+            Command
+          </td>
+          <td>
+            <div> Register </div>
+          </td>
+          <td>
+            <div> Value</div>
+          </td>
+          <td>
+            <div> Run</div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            write register
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Register" data-odb-editable="1" data-format="%x"> </div>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Value" data-odb-editable="1"  data-format="%x"></div>
+          </td>
+          <td>
+            <input type=button value='Run' onClick='dtc_command("dtc_write_register",${pcie})'>
+          </td>
+        <tr>
+          <td> read DTC register </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Register" data-odb-editable="1" data-format="%x"> </div>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Value" data-format="%x"></div>
+          </td>
+          <td>
+            <input type=button value='Run' onClick='dtc_command("dtc_read_register",${pcie})'>
+          </td>
+        </tr>
+        <!--   --------------------------      DTC print status  -->
+        <tr>
+          <td> DTC print status</td>
+          <td> </td>
+          <td> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_status",${pcie})'> </td>
+        </tr>
+        <!--   --------------------------      DTC print ROC status  -->
+        <tr>
+          <td> DTC print ROC status</td>
+          <td> </td>
+          <td> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_roc_status",${pcie})'> </td>
+        </tr>
+        <!--   --------------------------      DTC soft reset  -->
+        <tr>
+          <td> DTC soft reset</td>
+          <td> </td>
+          <td> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_soft_reset",${pcie})'> </td>
+        </tr>
+        <!--   --------------------------      DTC hard reset  -->
+        <tr>
+          <td> DTC hard reset</td>
+          <td> </td>
+          <td> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_hard_reset"),${pcie}'> </td>
+        </tr>
+        <!--   --------------------------      DTC hard reset  -->
+        <tr>
+          <td> Init Readout (both DTCs) </td>
+          <td> </td>
+          <td> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_init_readout",${pcie})'> </td>
+        </tr>
+        <!--   --------------------------      control roc read  -->
+        <tr>
+          <td> control_ROC_read</td>
+          <td></td>
+          <td></td>
+          <td><input type=button value='Run' onClick='dtc_command("dtc_control_roc_read",${pcie})'> </td>
+        </tr>
+        <!-- -------------------------------------- OUTPUT area ---------------------- -->
+        <tr>
+          <td colspan=4>  Output </td>
+        </tr>
+        <tr>
+          <td colspan=4 id='jrpc_data'> </td>
+        </tr>
+
+            </tbody>
+         `;
+        
+        const com_tbody = com_table.querySelector("tbody");
+//-----------------------------------------------------------------------------
+//  end
+//-----------------------------------------------------------------------------
+      }
+      
+      document.addEventListener("DOMContentLoaded", createTable);
+    </script>
+  </head>
+  
+  <body class="mcss" onload="mhttpd_init('dtc_control');">
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+    <div id="mmain">
+      <h1 id="table-title">DTC </h1>
+      <table class="mtable">
+        <!-- Table content is generated dynamically -->
+      </table>
+      <h1 id="commands-table-title">Commands </h1>
+      <table class="mtable" id="commands">
+        <!-- Table content is generated dynamically -->
+      </table>
+    </div>
+  </body>
+</html>
+<!--
+    emacs
+    Local Variables:
+    tab-width: 8
+    c-basic-offset: 2
+    js-indent-level: 0
+    indent-tabs-mode: nil
+    End:
+  -->

@@ -2,13 +2,32 @@
 #include "node_frontend/TEquipmentNode.hh"
 #include "utils/OdbInterface.hh"
 #include "utils/utils.hh"
-
+#include "nlohmann/json.hpp"
 #include "odbxx.h"
+
+using json = nlohmann::json;
 
 using namespace std;
 
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "TEquipmentNode_Rpc"
+
+//-----------------------------------------------------------------------------
+namespace ns {
+
+  struct parameters {
+    int pcie;
+  };
+
+  void to_json(json& j, const parameters& p) {
+    j = json{ {"pcie", p.pcie} };
+  }
+  
+  void from_json(const json& j, parameters& p) {
+    j.at("pcie").get_to(p.pcie);
+  }
+} // namespace ns
+
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::string& response) {
   fMfe->Msg(MINFO, "HandleRpc", "RPC cmd [%s], args [%s]", cmd, args);
@@ -16,10 +35,26 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   std::stringstream ss;
 
   TLOG(TLVL_DEBUG) << "RPC cmd:" << cmd << " args:" << args;
-  
-  time_t now = time(NULL);
-  char tmp[256];
-  sprintf(tmp, "{ \"hey, emoe, current_time\":[ %d, \"%s\"] }", (int)now, ctime(&now));
+//-----------------------------------------------------------------------------
+// in principle, string could contain a list of parameters to be parsed
+// so far : only PCIE address
+// so parse parametrers : expect a string in JSON format, like '{"pcie":1}' 
+//-----------------------------------------------------------------------------
+  int pcie_addr(-1);
+  try {
+    json j1 = json::parse(args);
+    TLOG(TLVL_DEBUG) << j1 << " pcie:" << j1.at("pcie") << std::endl;
+    pcie_addr = j1.at("pcie");
+  }
+  catch(...){
+    std::string msg("couldn't parse json:");
+    TLOG(TLVL_ERROR) << msg << args;
+    return TMFeErrorMessage(msg+args);
+  }
+
+  // time_t now = time(NULL);
+  // char tmp[256];
+  // sprintf(tmp, "{ \"hey, current_time\":[ %d, \"%s\"] }", (int)now, ctime(&now));
   
   if (strcmp(cmd,"dtc_control_roc_read") == 0) {
 
@@ -53,16 +88,15 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
         printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
         bool update_mask(false);
         int  print_level(0);
-        dtc_i->ControlRoc_Read(&par,-1,update_mask,print_level);
+        dtc_i->ControlRoc_Read(&par,-1,update_mask,print_level,ss);
       }
     }
-    ss << "Hopefully, success of dtc_control_roc_read";
   }
   else if (strcmp(cmd,"dtc_read_register") == 0) {
     int      timeout_ms(150);
 
     midas::odb o("/Mu2e/Commands/Tracker/DTC");
-    int pcie_addr = o["PcieAddress"];
+    //    int pcie_addr = o["PcieAddress"];
     trkdaq::DtcInterface* dtc_i = fDtc_i[pcie_addr];
     
     uint32_t reg = o["read_register/Register"];
@@ -74,11 +108,27 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     }
     catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }
   }
+  else if (strcmp(cmd,"dtc_write_register") == 0) {
+    int      timeout_ms(150);
+
+    midas::odb o("/Mu2e/Commands/Tracker/DTC");
+    // int pcie_addr = o["PcieAddress"];
+    trkdaq::DtcInterface* dtc_i = fDtc_i[pcie_addr];
+    
+    uint32_t reg = o["write_register/Register"];
+    uint32_t val;
+    try {
+      dtc_i->fDtc->GetDevice()->read_register(reg,timeout_ms,&val);
+      o["write_register/Value"] = val;
+      ss << " -- write_dtc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
+    }
+    catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }
+  }
   else if (strcmp(cmd,"dtc_soft_reset") == 0) {
     //    int      timeout_ms(150);
 
     midas::odb o("/Mu2e/Commands/Tracker/DTC");
-    int pcie_addr = o["PcieAddress"];
+    // int pcie_addr = o["PcieAddress"];
     trkdaq::DtcInterface* dtc_i = fDtc_i[pcie_addr];
     
     try         { dtc_i->Dtc()->SoftReset(); ss << "soft reset OK" << std::endl; }
@@ -88,7 +138,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     //    int      timeout_ms(150);
 
     midas::odb o("/Mu2e/Commands/Tracker/DTC");
-    int pcie_addr = o["PcieAddress"];
+    // int pcie_addr = o["PcieAddress"];
     trkdaq::DtcInterface* dtc_i = fDtc_i[pcie_addr];
     
     try         { dtc_i->Dtc()->HardReset(); ss << "hard reset OK" << std::endl; }
@@ -113,11 +163,22 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     // int      timeout_ms(150);
 
     midas::odb o("/Mu2e/Commands/Tracker/DTC");
-    int pcie_addr = o["PcieAddress"];
+    // int pcie_addr = o["PcieAddress"];
     trkdaq::DtcInterface* dtc_i = fDtc_i[pcie_addr];
     
     try         { dtc_i->PrintStatus(ss); }
     catch (...) { ss << "ERROR : coudn't print status of the DTC ... BAIL OUT" << std::endl; }
+    
+  }
+  else if (strcmp(cmd,"dtc_print_roc_status") == 0) {
+    // int      timeout_ms(150);
+
+    midas::odb o("/Mu2e/Commands/Tracker/DTC");
+    // int pcie_addr = o["PcieAddress"];
+    trkdaq::DtcInterface* dtc_i = fDtc_i[pcie_addr];
+    
+    try         { dtc_i->PrintRocStatus(1,-1,ss); }
+    catch (...) { ss << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
     
   }
   else {
@@ -125,7 +186,10 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     TLOG(TLVL_ERROR) << ss.str();
   }
 
-  response = ss.str();
+  response  = "args:";
+  response += args;
+  response += "; ";
+  response += ss.str();
 
   TLOG(TLVL_DEBUG) << "response:" << response;
 
