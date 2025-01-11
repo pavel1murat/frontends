@@ -80,7 +80,8 @@ TMFeResult TEquipmentNode::InitArtdaq() {
 //-----------------------------------------------------------------------------
     db_get_key(hDB, h_component, &component);
     printf("Subkey %d: %s, Type: %d\n", i, component.name, component.type);
-    
+
+    if ((component.name == "Enabled") or (component.name == "Status")) continue;
     ArtdaqComponent_t ac;
     ac.name        = component.name;
     

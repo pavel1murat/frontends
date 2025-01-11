@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<head>
+  <meta charset="UTF-8">
+  <title>DAQ</title>
+  <link rel="stylesheet" href="midas.css">
+  <link type="text/css" rel="stylesheet" href="tracker.css">
+
+  <script src="controls.js"></script>
+  <script src="midas.js"></script>
+  <script src="mhttpd.js"></script>
+  <script src="filesrw.js"></script>
+
+  <script>
+    let midasInitialized = false;
+
+    function updateCellStyle(cell) {
+        if (cell.enabled == "0") {
+            cell.textContent           = "disabled";
+            cell.style.backgroundColor = "gray";
+            cell.style.color = "white";
+        } else if (cell.enabled == "1") {
+            if (cell.status == "0") {
+                cell.textContent = "OK";
+                cell.style.backgroundColor = "green";
+                cell.style.color = "white";
+            }
+            else if (cell.status == "-1") {
+                cell.textContent = "Error";
+                cell.style.backgroundColor = "red";
+                cell.style.color = "white";
+            }
+        }
+    }
+      
+    function redirectToNodes(nodeIndex) {
+        window.location.href = `daq/nodes/mu2edaq22.html?disk=${nodeIndex}`;
+    }
+    
+  
+    function createDAQTable() {
+        const nodes = [];
+         nodes.push("mu2edaq04", "mu2edaq09", "mu2edaq10", "mu2edaq11", "mu2edaq14", "mu2edaq22" );
+        const n_nodes = nodes.length;                       // Number of DAQ nodes
+        const table  = document.querySelector(".mtable");
+        
+        // Clear existing table rows
+        table.innerHTML = `
+            <thead>
+               <tr>
+                  <th>Node</th>
+                  <th>Status</th>
+                  <th>Details</th>
+               </tr>
+            </thead>
+            <tbody></tbody>
+         `;
+        
+        const tbody = table.querySelector("tbody");
+        
+        for (let i = 0; i < n_nodes; i++) {
+            const row = document.createElement("tr");
+            
+            // DAQ node Cell
+            const diskCell = document.createElement("td");
+            diskCell.innerHTML = `<b>${nodes[i]}</b>`;
+            row.appendChild(diskCell);
+            
+            // Status Cell
+             
+            const statusCell = document.createElement("td");
+            var xx = "/Mu2e/ActiveRunConfiguration/DAQ/"+nodes[i];
+            var odb_list = [xx];
+            
+            mjsonrpc_db_get_value(odb_list[0]).then(rpc => {
+                let statusCell = document.createElement("td");
+
+                let node = rpc.result.data[0];
+                  
+                statusCell.enabled = node.enabled;
+                statusCell.status  = node.status;
+                
+                statusCell.innerHTML = `<div> "${statusCell.enabled}" </div>` ;
+                statusCell.onchange  = updateCellStyle(statusCell);
+
+                //             statusCell.innerHTML = `<div class="modbvalue status-cell"
+                //                  data-odb-path="/Mu2e/ActiveRunConfiguration/DAQ/${nodes[i]}/Status"
+                //                  onchange="updateCellStyle(this)">
+                //               </div>`;
+                
+                row.appendChild(statusCell);
+                
+
+                // Action Cell
+                const actionCell = document.createElement("td");
+                actionCell.innerHTML = `
+             <button onclick="redirectToNodes('${i}')">View Details</button>`;
+                row.appendChild(actionCell);
+                
+                tbody.appendChild(row);
+            });
+
+            //               statusCell.innerHTML = `
+            //               <div class="modbvalue status-cell" data-odb-path="${odb_list[0]}/Enabled"
+            //                  onchange="updateCellStyle(${statusCell})">
+            //               </div>`;
+            
+        }
+    }
+
+    
+    function initializePage() {
+        if (!midasInitialized) {
+            mhttpd_init("DAQ");
+            midasInitialized = true;
+        }
+
+        createDAQTable();
+    }
+    
+    document.addEventListener("DOMContentLoaded", initializePage);
+  </script>
+</head>
+
+<body class="mcss">
+   <div id="mheader" ></div> <!-- MIDAS Header -->
+   <div id="msidenav"></div> <!-- MIDAS Sidebar -->
+   <div id="mmain">
+      <h1>DAQ</h1>
+      <table class="mtable">
+         <!-- Table content is generated dynamically -->
+      </table>
+   </div>
+</body>
+</html>
