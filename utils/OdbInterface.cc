@@ -68,7 +68,9 @@ int OdbInterface::GetInteger(HNDLE hDir, const char* Key, int* Data) {
   int sz = sizeof(int); 
   rc = db_get_value(_hDB, hDir, Key, Data, &sz, TID_INT, FALSE);
   if (rc != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << hDir; 
+    KEY dbkey;
+    db_get_key(_hDB,hDir,&dbkey);
+    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << dbkey.name << "(" << hDir << ")"; 
   }
   TLOG(TLVL_DEBUG+1) << "key:" << Key << " value:" << Data;
   return rc;
@@ -91,7 +93,7 @@ HNDLE OdbInterface::GetActiveRunConfigHandle() {
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetHostArtdaqConfHandle(HNDLE h_RunConf, const std::string& Host) {
   char key[128];
-  sprintf(key,"DAQ/%s/Artdaq",Host.data());
+  sprintf(key,"DAQ/Nodes/%s/Artdaq",Host.data());
   return GetHandle(_hDB,h_RunConf,key);
 }
 
@@ -389,7 +391,7 @@ HNDLE OdbInterface::GetDaqConfigHandle(HNDLE hDB, HNDLE hRunConf) {
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetHostConfHandle(HNDLE h_RunConf, const std::string& Host) {
   char key[128];
-  sprintf(key,"DAQ/%s",Host.data());
+  sprintf(key,"DAQ/Nodes/%s",Host.data());
   return GetHandle(_hDB,h_RunConf,key);
 }
 

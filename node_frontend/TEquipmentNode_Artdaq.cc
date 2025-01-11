@@ -60,6 +60,8 @@ TMFeResult TEquipmentNode::InitArtdaq() {
   
   char cbuf[100];
 
+  TLOG(TLVL_DEBUG) << "START";
+
   sprintf(cbuf,"%s_mon",_full_host_name.data());
   xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS,cbuf,"v1_0");
   xmlrpc_env_init(&_env);
@@ -81,7 +83,7 @@ TMFeResult TEquipmentNode::InitArtdaq() {
     db_get_key(hDB, h_component, &component);
     printf("Subkey %d: %s, Type: %d\n", i, component.name, component.type);
 
-    if ((component.name == "Enabled") or (component.name == "Status")) continue;
+    if ((strcmp(component.name,"Enabled") == 0) or (strcmp(component.name,"Status") == 0)) continue;
     ArtdaqComponent_t ac;
     ac.name        = component.name;
     
@@ -105,6 +107,7 @@ TMFeResult TEquipmentNode::InitArtdaq() {
   
   InitArtdaqVarNames();
   
+  TLOG(TLVL_DEBUG) << "END";
   return TMFeOk();
 }
 
@@ -114,6 +117,7 @@ TMFeResult TEquipmentNode::InitArtdaq() {
 void TEquipmentNode::InitArtdaqVarNames() {
   char dirname[128], name[128];
 
+  TLOG(TLVL_DEBUG) << "START";
   const std::string node_path     = "/Equipment/"+TMFeEquipment::fEqName;
   const std::string settings_path = node_path+"/Settings";
   midas::odb        odb_settings(settings_path);
@@ -158,6 +162,7 @@ void TEquipmentNode::InitArtdaqVarNames() {
       odb_settings[dirname] = var_names;
     }
   }
+  TLOG(TLVL_DEBUG) << "END";
 }
 
 //-----------------------------------------------------------------------------
