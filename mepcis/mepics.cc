@@ -5,22 +5,44 @@
 #include <stdlib.h>
 #include "midas.h"
 #include "mrpc.h"
-//#include "mjson.h"
+#include "mjson.h"
+//#include "mjsonrpc.h"
 
-//int handle_test(midas_json_rpc_conn_t *conn, const mjson_t *json, midas_json_rpc_result_t *result)
+
+// this only works/exists in mhttpd
+//// test of a JSON-RPC handler
+//static MJsonNode* handle_test(const MJsonNode* params)
 //{
-//    // Example response data
-//    mjson_write_string(result->buf, result->size, "Hello from MEPICS!");
-//    return MJSON_RPC_SUCCESS;
+//   if (!params) {
+//      MJSO* doc = MJSO::I();
+//      doc->D("test description");
+//      doc->P("par",  MJSON_STRING, "test parameter");
+//      doc->R("result", MJSON_INT, "returns a result");
+//      doc->R("data", MJSON_INT, "returns a result");
+//      return doc;
+//   }
+//
+//   //MJsonNode* error = NULL;
+//   MJsonNode* dresult = MJsonNode::MakeArray();
+//   MJsonNode* sresult = MJsonNode::MakeArray();
+//
+//   dresult->AddToArray(MJsonNode::MakeNull());
+//   sresult->AddToArray(MJsonNode::MakeInt(5));
+//   dresult->AddToArray(MJsonNode::MakeJSON(""));
+//   sresult->AddToArray(MJsonNode::MakeInt(1));
+//   return mjsonrpc_make_result("data", dresult, "status", sresult);
 //}
+
+
+// Test of a old-style RPC function
 INT test_function(INT index, void *prpc_param[])
 {
     printf("RPC test function called\n");
 
-    const char* cmd  = CSTRING(0);
-    const char* args = CSTRING(1);
+    //const char* cmd  = CSTRING(0);
+    //const char* args = CSTRING(1);
     char* return_buf = CSTRING(2);
-    int   return_max_length = CINT(3);
+    //int   return_max_length = CINT(3);
     sprintf(return_buf, "Hello from mepics");
 
     return SUCCESS;
@@ -46,23 +68,23 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Register the JSON-RPC handler
-    //status = mjsonrpc_add_handler("test", handle_test);
-    //if (status != SUCCESS) {
-    //    printf("Cannot register JSON-RPC handler\n");
-    //    return 1;
-    //}
-    // Register traditional RPC function
     status = cm_register_function(RPC_JRPC, test_function);
     if (status != CM_SUCCESS) {
         printf("Cannot register RPC function\n");
         return 1;
     }
 
+    //mjsonrpc_add_handler("mepics_test", handle_test, false);
+
+    cm_start_watchdog_thread();
+
     while (!cm_is_ctrlc_pressed()) {
-        cm_yield(1000);
+        status = cm_yield(1000);
+        if (status == RPC_SHUTDOWN)
+            break;
     }
 
+    cm_stop_watchdog_thread();
     cm_disconnect_experiment();
     return 0;
 }
