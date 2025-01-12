@@ -22,7 +22,8 @@ cet_set_compiler_flags(
 )
 cet_make_exec(NAME      mepics
               SOURCE    mepics.cc 
-              LIBRARIES midas 
+              LIBRARIES midas
+	                curl 
                         stdc++ m util pthread rt
 )
 
