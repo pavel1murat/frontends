@@ -299,6 +299,17 @@ int OdbInterface::GetDtcSampleEdgeMode(HNDLE hDB, HNDLE hDTC) {
 }
 
 //-----------------------------------------------------------------------------
+int OdbInterface::GetIsCrv(HNDLE hDTC) {
+const char* key {"IsCrv"};
+  INT   data(0);       // if not found, set to false
+  int   sz = sizeof(data);
+  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << " not found, return: " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetNDTCs(HNDLE hDB, HNDLE hCFO, int* NDtcs) {
   int   rc(0);
   int   n_timing_chains(8);
