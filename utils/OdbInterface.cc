@@ -98,15 +98,14 @@ HNDLE OdbInterface::GetHostArtdaqConfHandle(HNDLE h_RunConf, const std::string& 
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetCFOConfigHandle(HNDLE h_DB, HNDLE h_RunConf) {
+HNDLE OdbInterface::GetCFOConfHandle(HNDLE h_RunConf) {
   const char* key {"DAQ/CFO"};
-  HNDLE    h;
+  HNDLE    h(0);
   
-  if (db_find_key(h_DB, h_RunConf, key, &h) == DB_SUCCESS) return h;
-  else {
+  if (db_find_key(_hDB, h_RunConf, key, &h) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
-    return 0;
   }
+  return h;
 }
 
 //-----------------------------------------------------------------------------
@@ -136,12 +135,15 @@ int OdbInterface::GetCFOEventMode(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetSkipDtcInit(HNDLE h_HostConf) {
-  const char* key{"Frontend/SkipDtcInit"};
+// 'SkipDtcInit' flag is defined in ODB at "$run_conf/DAQ/SkipDtcInit",
+// the policy is assumed to be the same for all DTCs in the configuration
+//-----------------------------------------------------------------------------
+int OdbInterface::GetSkipDtcInit(HNDLE h_RunConf) {
+  const char* key{"DAQ/SkipDtcInit"};
   
   INT   data(0);
   int   sz = sizeof(data);
-  if (db_get_value(_hDB, h_HostConf, key, &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+  if (db_get_value(_hDB, h_RunConf, key, &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
     return data;
   }
   else {
@@ -189,15 +191,15 @@ int OdbInterface::GetCFOSleepTime(HNDLE hDB, HNDLE hCFO) {
   return data;
 }
 
-//-----------------------------------------------------------------------------
-int OdbInterface::GetArtdaqPartition() {
-  const char* key {"/Mu2e/ARTDAQ_PARTITION_NUMBER"};
-  int   data(-1);
-  if (GetInteger(0,key,&data) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "not found, return " << data;
-  }
-  return data;
-}
+// //-----------------------------------------------------------------------------
+// int OdbInterface::GetArtdaqPartition() {
+//   const char* key {"/Mu2e/ARTDAQ_PARTITION_NUMBER"};
+//   int   data(-1);
+//   if (GetInteger(0,key,&data) != DB_SUCCESS) {
+//     TLOG(TLVL_ERROR) << key << "not found, return " << data;
+//   }
+//   return data;
+// }
 
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetRunConfigHandle(HNDLE hDB, std::string& RunConf) {
@@ -235,17 +237,6 @@ int OdbInterface::GetDtcEnabled(HNDLE hDB, HNDLE hDTC) {
   int   sz = sizeof(data);
   if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
-  }
-  return data;
-}
-
-//-----------------------------------------------------------------------------
-int OdbInterface::GetDtcEventMode(HNDLE hDB, HNDLE hDTC) {
-  const char* key {"EventMode"};
-  INT   data(0);       // if not found, want all links to be disabled
-  int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "EventMode not found, return " << data;
   }
   return data;
 }
@@ -290,28 +281,6 @@ int OdbInterface::GetDtcMacAddrByte(HNDLE hDB, HNDLE hDTC) {
   int   sz = sizeof(data);
   if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
-  }
-  return data;
-}
-
-//-----------------------------------------------------------------------------
-int OdbInterface::GetDtcOnSpill(HNDLE hDB, HNDLE hDTC) {
-  const char* key {"OnSpill"};
-  INT   data(0);       // if not found, want all links to be disabled
-  int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "not found, return " << data;
-  }
-  return data;
-}
-
-//-----------------------------------------------------------------------------
-int OdbInterface::GetDtcPartitionID(HNDLE hDB, HNDLE hNode) {
-  const char* key {"PartitionID"};
-  INT   data(-1);
-  int   sz = sizeof(data);
-  if (db_get_value(hDB, hNode, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "not found, return -1";
   }
   return data;
 }
@@ -374,20 +343,24 @@ int OdbInterface::GetFirstEWTag(HNDLE hCFO) {
   return data;
 }
 
-
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetDaqConfigHandle(HNDLE hDB, HNDLE hRunConf) {
+HNDLE OdbInterface::GetDaqConfigHandle(HNDLE hRunConf) {
   const char* key {"DAQ"};
 
   HNDLE h(0);
-  if (db_find_key(hDB, hRunConf, key, &h) != DB_SUCCESS) {
+  if (db_find_key(_hDB, hRunConf, key, &h) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << " not found";
   }
   return h;
 }
 
 //-----------------------------------------------------------------------------
-// this could become DAQ/Nodes/mu2edaqXXX
+HNDLE OdbInterface::GetFrontendConfHandle(HNDLE h_RunConf, const std::string& Host) {
+  char key[128];
+  sprintf(key,"DAQ/Nodes/%s/Frontend",Host.data());
+  return GetHandle(_hDB,h_RunConf,key);
+}
+
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetHostConfHandle(HNDLE h_RunConf, const std::string& Host) {
   char key[128];
@@ -442,6 +415,27 @@ int OdbInterface::GetRocReadoutMode(HNDLE hDetConf) {
 int OdbInterface::GetEventMode(HNDLE hDetConf) {
   int data(-1);
   GetInteger(_hDB,hDetConf,"DAQ/EventMode",&data);
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetPartitionID(HNDLE h_RunConf) {
+  const char* key {"DAQ/PartitionID"};
+  int   data(-1);
+  if (GetInteger(h_RunConf,key,&data) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return " << data;
+  }
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetOnSpill(HNDLE h_RunConf) {
+  const char* key {"DAQ/OnSpill"};
+  INT   data(0);       // if not found, want all links to be disabled
+  int   sz = sizeof(data);
+  if (db_get_value(_hDB, h_RunConf, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << "not found, return " << data;
+  }
   return data;
 }
 

@@ -60,7 +60,7 @@ INT cfo_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *b
 
   HNDLE h_active_run_conf   = odb_i->GetActiveRunConfigHandle();
   active_run_conf           = odb_i->GetRunConfigName(h_active_run_conf);
-  HNDLE       h_cfo_conf    = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
+  HNDLE       h_cfo_conf    = odb_i->GetCFOConfHandle(h_active_run_conf);
 
   int         external      = odb_i->GetCFOExternal       (hDB,h_cfo_conf);
   int         n_ewm_per_sec = odb_i->GetCFONEventsPerTrain(hDB,h_cfo_conf);

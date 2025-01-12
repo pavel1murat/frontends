@@ -18,18 +18,24 @@ public:
   static OdbInterface*  Instance      (HNDLE h_DB);
 
   HNDLE       GetActiveRunConfigHandle();
-  int         GetArtdaqPartition      ();
+  //  int         GetArtdaqPartition      ();
+
+  int         GetPartitionID          (HNDLE h_RunConf); //
+  int         GetEventMode            (HNDLE h_RunConf); //
+  int         GetOnSpill              (HNDLE h_RunConf);
+
                                         // 'Host' - short, w/o the domain name
+  HNDLE       GetDaqConfigHandle      (HNDLE h_RunConf);
   int         GetHostConfHandle       (HNDLE h_RunConf, const std::string& Host);
-  //  HNDLE       GetArtdaqConfigHandle   (HNDLE h_DB, std::string& RunConf, std::string& Host);
+  int         GetFrontendConfHandle   (HNDLE h_RunConf, const std::string& Host);
   HNDLE       GetHostArtdaqConfHandle (HNDLE h_RunConf, const std::string& Host);
 
-  int         GetSkipDtcInit          (HNDLE h_DaqHostConf);
+  int         GetSkipDtcInit          (HNDLE h_RunConf);
 
                                         // returns: 1="external" or 0="emulated"
   int         GetCFOExternal          (HNDLE Hdb, HNDLE h_CFO);
 
-  HNDLE       GetCFOConfigHandle      (HNDLE h_DB, HNDLE h_RunConf);
+  HNDLE       GetCFOConfHandle        (HNDLE h_RunConf);
   int         GetCFOEnabled           (HNDLE h_DB, HNDLE h_CFO);
   int         GetCFOEventMode         (HNDLE h_DB, HNDLE h_CFO);
   int         GetCFONEventsPerTrain   (HNDLE h_DB, HNDLE h_CFO);
@@ -37,18 +43,13 @@ public:
   std::string GetCFORunPlan           (HNDLE h_DB, HNDLE h_CFO);
 
   int         GetCFOSleepTime         (HNDLE h_DB, HNDLE h_CFO);
-  
-  HNDLE       GetDaqConfigHandle      (HNDLE h_DB, HNDLE h_RunConf);
-  
+   
   int         GetDtcEnabled       (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcEmulatesCfo   (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcID            (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcJAMode        (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcLinkMask      (HNDLE h_Card);             // card: DTC
-  int         GetDtcEventMode     (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcMacAddrByte   (HNDLE h_DB, HNDLE h_Card); // card: DTC
-  int         GetDtcOnSpill       (HNDLE h_DB, HNDLE h_Card); // card: DTC
-  int         GetDtcPartitionID   (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcPcieAddress   (HNDLE h_Card);             // card: DTC
   int         GetDtcSampleEdgeMode(HNDLE h_DB, HNDLE h_Card); // 0:force rising; 1: force falling; 2:auto
 
@@ -64,8 +65,6 @@ public:
   //  uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
   // temporarily, back to INT
   int         GetFirstEWTag       (HNDLE h_DTC);
-
-  int         GetEventMode        (HNDLE hRunConf);
 //-----------------------------------------------------------------------------
 // tracker ROC readout mode = 0: var length length ROC patterns
 //                            1: digi patterns

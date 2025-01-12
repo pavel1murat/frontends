@@ -35,7 +35,7 @@
               statusCell.style.color = "black";
             }
           } else {
-            statusCell.style.backgroundColor = "white";
+            statusCell.style.backgroundColor = "gray";
             statusCell.style.color = "white";
           }
         }).catch(function (error) {
@@ -91,7 +91,12 @@
             // node Cell
             const nodeCell = document.createElement("td");
             let   hostname = keys[i];
-            nodeCell.innerHTML = `<b>${hostname}</b>`;
+            nodeCell.innerHTML = '<b>'+hostname+'</b>';
+            let path = nodes_path+'/'+hostname;
+            set_colors(path,nodeCell);
+            // Poll for updates
+            setInterval(() => {set_colors(path,nodeCell);},2000);
+
             row.appendChild(nodeCell);
             const artdaq_path = nodes_path+'/'+hostname+'/Artdaq';
 //-----------------------------------------------------------------------------
@@ -104,12 +109,10 @@
                 
               // Load initial values and set up polling for updates
                 
-              const path     = artdaq_path+`/DTC${idtc}`;
+              const path     = nodes_path+'/'+hostname+`/DTC${idtc}`;
                 
-              // Initial colors
+              // set colors and poll for updates
               set_colors(path,cell);
-                
-              // Poll for updates
               setInterval(() => {set_colors(path,cell);},2000);
               
               row.appendChild(cell);

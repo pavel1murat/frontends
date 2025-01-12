@@ -15,7 +15,7 @@
 TMFeResult TEquipmentNode::InitDtc() {
   int event_mode       = _odb_i->GetEventMode     (_h_active_run_conf);
   int roc_readout_mode = _odb_i->GetRocReadoutMode(_h_active_run_conf);
-  int skip_dtc_init    = _odb_i->GetSkipDtcInit   (_h_daq_host_conf  );
+  int skip_dtc_init    = _odb_i->GetSkipDtcInit   (_h_active_run_conf);
 
   HNDLE h_subkey;
   KEY   subkey;
