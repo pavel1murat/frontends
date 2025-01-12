@@ -69,7 +69,7 @@ INT cfo_emu_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_
 
   active_run_conf           = odb_i->GetActiveRunConfigHandle();
   HNDLE h_active_run_conf   = odb_i->GetRunConfigHandle(hDB,active_run_conf);
-  HNDLE       h_cfo_conf    = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
+  HNDLE       h_cfo_conf    = odb_i->GetCFOConfHandle(h_active_run_conf);
 
   _n_ewm_train   = odb_i->GetCFONEventsPerTrain(hDB,h_cfo_conf);
   _ew_length     = odb_i->GetEWLength  (hDB,h_cfo_conf);

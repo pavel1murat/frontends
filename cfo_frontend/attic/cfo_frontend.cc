@@ -86,9 +86,8 @@ INT frontend_init() {
 
   HNDLE h_active_run_conf = odb_i->GetActiveRunConfigHandle();
   active_run_conf         = odb_i->GetRunConfigName(h_active_run_conf);
-
-  HNDLE       h_cfo       = odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
-  int         external    = odb_i->GetCFOExternal(hDB,h_cfo);
+  HNDLE       h_cfo       = odb_i->GetCFOConfHandle(h_active_run_conf);
+  int         external    = odb_i->GetCFOExternal  (hDB,h_cfo);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of
 // nodes and DTC's to be monitored

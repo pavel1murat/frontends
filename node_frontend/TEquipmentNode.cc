@@ -51,18 +51,20 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   _host_label     = get_short_host_name(public_subnet.data());
   _full_host_name = get_full_host_name (private_subnet.data());
 
-  _h_daq_host_conf = _odb_i->GetHostConfHandle(_h_active_run_conf,_host_label);
-  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Dtc"   ,&_monitorDtc   );
-  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq",&_monitorArtdaq);
+  _h_daq_host_conf = _odb_i->GetHostConfHandle    (_h_active_run_conf,_host_label);
+  _h_frontend_conf = _odb_i->GetFrontendConfHandle(_h_active_run_conf,_host_label);
 
-  TLOG(TLVL_DEBUG) << "active_run_conf:" << active_run_conf 
-                   << " public_subnet:" << public_subnet
-                   << " private subnet:" << private_subnet 
-                   << " _full_host_name:"  << _full_host_name
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"   ,&_monitorDtc   );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq",&_monitorArtdaq);
+
+  TLOG(TLVL_DEBUG) << "active_run_conf:"  << active_run_conf 
+                   << " public_subnet:"   << public_subnet
+                   << " private subnet:"  << private_subnet 
+                   << " _full_host_name:" << _full_host_name
                    << " _host_label:"     << _host_label
                    << std::endl
-                   << "_monitorDtc:" << _monitorDtc
-                   << " _monitorArtdaq:" << _monitorArtdaq;
+                   << "_monitorDtc:"      << _monitorDtc
+                   << " _monitorArtdaq:"  << _monitorArtdaq;
   InitDtc();
   InitArtdaq();
   

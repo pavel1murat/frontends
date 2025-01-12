@@ -99,11 +99,11 @@ INT frontend_init() {
   HNDLE h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
   active_run_conf         = _odb_i->GetRunConfigName(h_active_run_conf);
 
-  _run_plan_dir           = _odb_i->GetCFORunPlanDir  (hDB);
+  _run_plan_dir           = _odb_i->GetCFORunPlanDir(hDB);
 
 
-  _h_cfo                  = _odb_i->GetCFOConfigHandle(hDB,h_active_run_conf);
-  _cfo_enabled            = _odb_i->GetCFOEnabled     (hDB,_h_cfo);
+  _h_cfo                  = _odb_i->GetCFOConfHandle(h_active_run_conf);
+  _cfo_enabled            = _odb_i->GetCFOEnabled   (hDB,_h_cfo);
 
   TLOG(TLVL_DEBUG+3) << "active_run_conf:" << active_run_conf
                      << " hDB : " << hDB << " _h_cfo: " << _h_cfo
