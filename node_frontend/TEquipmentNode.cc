@@ -116,7 +116,7 @@ TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::HandleEndRun   (int RunNumber) {
   fMfe->Msg(MINFO, "HandleEndRun", "End run %d!", RunNumber);
-  EqSetStatus("Stopped", "#00FF00");
+  EqSetStatus("Stopped", "green");
 
   printf("end_of_run %d\n", RunNumber);
     
@@ -126,7 +126,7 @@ TMFeResult TEquipmentNode::HandleEndRun   (int RunNumber) {
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::HandlePauseRun(int run_number) {
   fMfe->Msg(MINFO, "HandlePauseRun", "Pause run %d!", run_number);
-  EqSetStatus("Stopped", "#00FF00");
+  EqSetStatus("Stopped", "green");
     
   printf("pause_run %d\n", run_number);
     
@@ -136,7 +136,7 @@ TMFeResult TEquipmentNode::HandlePauseRun(int run_number) {
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::HandleResumeRun(int RunNumber) {
   fMfe->Msg(MINFO, "HandleResumeRun", "Resume run %d!", RunNumber);
-  EqSetStatus("Stopped", "#00FF00");
+  EqSetStatus("Stopped", "green");
 
   printf("resume_run %d\n", RunNumber);
 
@@ -147,7 +147,7 @@ TMFeResult TEquipmentNode::HandleResumeRun(int RunNumber) {
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
   fMfe->Msg(MINFO, "HandleStartAbortRun", "Begin run %d aborted!", run_number);
-  EqSetStatus("Stopped", "#00FF00");
+  EqSetStatus("Stopped", "green");
 
   printf("start abort run %d\n", run_number);
     
@@ -184,5 +184,5 @@ void TEquipmentNode::HandlePeriodic() {
   
   char status[256];
   sprintf(status, "OK");
-  EqSetStatus(status, "#00FF00");
+  EqSetStatus(status, "green");
 }
