@@ -24,25 +24,14 @@ class TEquipmentNode : public TMFeEquipment {
   } ;
 //-----------------------------------------------------------------------------
 //                                            Temp, VCCINT, VCCAUX, VCBRAM
-  std::initializer_list<int> DtcRegHist = { 0x9010, 0x9014, 0x9018, 0x901c};
+  // SC TODO: I think we should define these together with the registers? 
+  std::initializer_list<const char*> DtcRegHistNames = {"Temp", "VCCINT", "VCCAUX", "VCBRAM"};
+  std::initializer_list<int> DtcRegHist =              { 0x9010, 0x9014,    0x9018,   0x901c};
   
-
   std::initializer_list<int>  DtcRegisters = {
     0x9004, 0x9100, 0x9114, 0x9140, 0x9144,
     0x9158, 0x9188, 0x91a8, 0x91ac, 0x91bc, 
     0x91c0, 0x91c4, 0x91f4, 0x91f8, 0x93e0
-  };
-  
-  // some ROC registers are listed in decimal format, and some - in hex
-  std::initializer_list<int> RocRegisters = {
-       0,   18,    8,   15,   16,    7,      6,    4,
-      23,   24,   25,   26,   11,   12,     65,   65,   17,   28,
-      29,   30,   31,   32,   33,   34,      9,   10,   35,   36,
-      13,
-      37,   38,   38,   40,   41,   42,     43,   44,   45,   46,
-      48,   49,   51,   52,   54,   55,     57,   58,
-      72,   73,   74,   75,
-    0x90, 0x91, 0x92, 0x93, 0x94, 0x95
   };
   
 public:
