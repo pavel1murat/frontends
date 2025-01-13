@@ -30,8 +30,6 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   //fEqConfLogHistory = 1;
 
   fEqConfBuffer = "SYSTEM";
-  EqSetStatus("Started...", "white");
-  fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
 //-----------------------------------------------------------------------------
 // cache the ODB handle, as need to loop over the keys in InitArtdaq
@@ -52,6 +50,13 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   _full_host_name = get_full_host_name (private_subnet.data());
 
   _h_daq_host_conf = _odb_i->GetHostConfHandle    (_h_active_run_conf,_host_label);
+  if (_h_daq_host_conf == 0) {
+    // if we don't find the config, there is nothing we can do, abort
+    char buf[256];
+    sprintf(buf, "Host configuration DAQ/Nodes/%s not found", _host_label.c_str());
+    fMfe->Msg(MERROR, "HandleInit", buf);
+    return TMFeMidasError(buf,"TEquipmentNode::HandleInit(",DB_INVALID_NAME);
+  }
   _h_frontend_conf = _odb_i->GetFrontendConfHandle(_h_active_run_conf,_host_label);
 
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"   ,&_monitorDtc   );
@@ -65,6 +70,9 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
                    << std::endl
                    << "_monitorDtc:"      << _monitorDtc
                    << " _monitorArtdaq:"  << _monitorArtdaq;
+  EqSetStatus("Started...", "white");
+  fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
+
   InitDtc();
   InitArtdaq();
   
