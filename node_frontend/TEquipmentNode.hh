@@ -58,8 +58,9 @@ public:
   xmlrpc_env                     _env;
   int                            _monitorDtc;
   int                            _monitorArtdaq;
-  int                            _monitorRocSPI;
-  int                            _monitorRocRegisters;
+  int                            _monitorRocSPI;        // trk specific, these are history channels
+  int                            _monitorRoc;           // hisotry channels
+  int                            _monitorRocRegisters;  // non-hisotry channels
   OdbInterface*                  _odb_i;
 
   TEquipmentNode(const char* eqname, const char* eqfilename);

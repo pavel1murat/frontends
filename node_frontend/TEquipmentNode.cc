@@ -160,14 +160,16 @@ TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
 // read ARTDAQ metrics only when running
 //-----------------------------------------------------------------------------
 void TEquipmentNode::HandlePeriodic() {
-
-  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Dtc"         ,&_monitorDtc         );
-  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
-  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/RocSPI"      ,&_monitorRocSPI      );
-  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
+  // SC: question, do we want to read this at every periodic read?
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"         ,&_monitorDtc         );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocSPI"      ,&_monitorRocSPI      );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Roc"         ,&_monitorRoc         );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
   
   TLOG(TLVL_DEBUG+1) << "_monitorDtc:" << _monitorDtc
                      << " _monitorRocSPI:" << _monitorRocSPI
+                     << " _monitorRoc:" << _monitorRoc
                      << " _monitorRocRegisters:" << _monitorRocRegisters
                      << " _monitorArtdaq:" << _monitorArtdaq
                      << " TMFE::Instance()->fStateRunning:" << TMFE::Instance()->fStateRunning; 

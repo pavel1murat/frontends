@@ -44,11 +44,13 @@ ActiveConfig (link to a configuration in /Mu2e/RunConfigurations/NAME)
         │   │   │   ├── Rank
         │   │   │   ├── Target
         │   │   │   └── NFragmentTypes
-        │   └── Monitor
-        │       ├── Dtc                                            # Question: maybe we want these as global flags?
-        │       ├── RocRegisters
-        │      
-        │       └── Artdaq                                         # Question: maybe we want these as global flags?
+        │   └── Frontend
+        │       └── Monitor
+        │           ├── Dtc                 
+        │           ├── Roc           # ROC registers for hisotry system      
+        │           ├── RocRegisters  # ROC regisetrs none-hisotry
+        │           ├── RocSPI        # trk specific, these are hisotry ROC registers
+        │           └── Artdaq                                         
         ├──hostename1
 ```
 
@@ -58,7 +60,7 @@ Slow control variables for monitoring
 ```
 └── Equipment
     └── node-name 
-        ├── Settings                                           # thse go into the hisotry system Question Why Setting? that sounds confuson to me? Monitoring?
+        ├── Settings                                           # these go into the hisotry system
         │   ├── Names dtcX
         │   │   └── [Temp, VCCINT, VCCAUX, ..]
         │   ├── Names dtc...

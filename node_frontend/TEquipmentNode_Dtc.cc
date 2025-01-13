@@ -135,7 +135,6 @@ void TEquipmentNode::InitDtcVarNames() {
           sprintf(var_name,"rc%i%i#%s",idtc,ilink,trkdaq::DtcInterface::SpiVarName(k));
           roc_var_names.push_back(var_name);
         }
-      
         sprintf(dirname,"Names rc%i%i",idtc,ilink);
         if (not midas::odb::exists(settings_path+"/"+dirname)) {
           // midas::odb o = {dirname,{"a"}};
@@ -164,7 +163,33 @@ void TEquipmentNode::InitDtcVarNames() {
         odb_roc["RegData"] = roc_reg_data;
       }
     } else { // CRV
-       
+      mu2edaq::DtcInterface* dtc_i = fDtc_i[idtc];
+      for (int ilink=0; ilink<6; ilink++) {
+        // skip disabled links
+        mu2edaq::DtcInterface* dtc_i = fDtc_i[idtc];
+        if (dtc_i->LinkEnabled(ilink)) {
+            //---------------------------------
+            // history ROC registers
+            //---------------------------------
+            sprintf(dirname,"Names rc%i%i",idtc,ilink);
+            if (not midas::odb::exists(settings_path+"/"+dirname)) {
+              odb_settings[dirname] = fDtc_i[idtc]->GetRocRegistersNames(true);
+            }
+            //---------------------------------
+            // non-history ROC registers 
+            //---------------------------------
+
+            char roc_subdir[128];
+
+            sprintf(roc_subdir,"%s/DTC%i/ROC%i",node_path.data(),idtc,ilink);
+            midas::odb odb_roc = {{"RegName",{"a","b"}},{"RegData",{0u,0u}}};
+            odb_roc.connect(roc_subdir);
+            odb_roc["RegName"] = fDtc_i[idtc]->GetRocRegistersNames(false);
+            odb_roc["RegData"].resize(odb_roc["RegName"].size());
+        } else {
+            // if the ROC doesn't exist or is disabled, do we want to remove the variables to avoid confusion?
+        }
+      } 
     }
   }
 
@@ -308,7 +333,31 @@ void TEquipmentNode::ReadDtcMetrics() {
             }
           }
         } else { // CRV ROC
+          //if (_monitorRocRegisters) {
+            for (int ilink=0; ilink<6; ilink++) {
+              char buf[100];
 
+              if (dtc_i->LinkEnabled(ilink)) {
+                if (_monitorRocSPI|_monitorRoc) {
+                  sprintf(buf,"rc%i%i",idtc,ilink);
+              
+                  midas::odb xx = {{buf,{1.0f}}};
+                  xx.connect(node_path+"/Variables");
+                  auto roc_data = dtc_i->GetRocRegisters(true);
+                  xx[buf].resize(roc_data.size()); // we could do this ones when we create it?
+                  xx[buf] = roc_data;
+                }
+                if (_monitorRocRegisters) {
+                  sprintf(buf,"%s/DTC%i/ROC%i",node_path.data(),idtc,ilink);
+
+                  midas::odb roc = {{"RegData",{1u}}};
+                  roc.connect(buf);
+                  roc["RegData"] = dtc_i->GetRocRegisters(false);
+                }
+              }
+            }
+            // todo, add CRV FEBs?
+          //}
         }
       }
       catch (...) {
