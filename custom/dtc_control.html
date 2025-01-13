@@ -23,7 +23,7 @@
           let s = rpc1.result.reply;
           const regex = /\n/gi
           let y = s.replaceAll(regex,'<br>');
-          document.getElementById("jrpc_data").innerHTML = y;
+          document.getElementById("jrpc_data").innerHTML = '<pre>'+y+'</pre>';
         }).catch(function(error){
           mjsonrpc_error_alert(error);
         });
