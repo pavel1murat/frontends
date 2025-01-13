@@ -10,44 +10,46 @@ ActiveConfig (link to a configuration in /Mu2e/RunConfigurations/NAME)
     ├── EventMode               
     ├── RocReadoutMode          
     ├── SkipDtcInit
-    └── hostename
-        ├── DTC
-        │   ├── Enabled
-        │   ├── IsCrv
-        │   ├── PCIEAddress
-        │   ├── LinkMask
-        │   ├── EmulatesCFO
-        │   └── SampleEdgeMode
-        ├── Artdaq
-        │   ├── *br*
-        │   │   ├── XmlrpcPort
-        │   │   ├── Subsystem
-        │   │   ├── Rank
-        │   │   ├── Target
-        │   │   └── NFragmentTypes
-        │   ├── *eb*
-        │   │   ├── XmlrpcPort
-        │   │   ├── Subsystem
-        │   │   ├── Rank
-        │   │   ├── Target
-        │   │   └── NFragmentTypes
-        │   ├── *dl*
-        │   │   ├── XmlrpcPort
-        │   │   ├── Subsystem
-        │   │   ├── Rank
-        │   │   ├── Target
-        │   │   └── NFragmentTypes
-        │   ├── *ds*
-        │   │   ├── XmlrpcPort
-        │   │   ├── Subsystem
-        │   │   ├── Rank
-        │   │   ├── Target
-        │   │   └── NFragmentTypes
-        └── Monitor
-            ├── Dtc                                            # Question: maybe we want these as global flags?
-            ├── RocRegisters
-            
-            └── Artdaq                                         # Question: maybe we want these as global flags?
+    └── Nodes
+        ├──hostename1
+        │   ├── DTC
+        │   │   ├── Enabled
+        │   │   ├── IsCrv
+        │   │   ├── PCIEAddress
+        │   │   ├── LinkMask
+        │   │   ├── EmulatesCFO
+        │   │   └── SampleEdgeMode
+        │   ├── Artdaq
+        │   │   ├── *br*
+        │   │   │   ├── XmlrpcPort
+        │   │   │   ├── Subsystem
+        │   │   │   ├── Rank
+        │   │   │   ├── Target
+        │   │   │   └── NFragmentTypes
+        │   │   ├── *eb*
+        │   │   │   ├── XmlrpcPort
+        │   │   │   ├── Subsystem
+        │   │   │   ├── Rank
+        │   │   │   ├── Target
+        │   │   │   └── NFragmentTypes
+        │   │   ├── *dl*
+        │   │   │   ├── XmlrpcPort
+        │   │   │   ├── Subsystem
+        │   │   │   ├── Rank
+        │   │   │   ├── Target
+        │   │   │   └── NFragmentTypes
+        │   │   ├── *ds*
+        │   │   │   ├── XmlrpcPort
+        │   │   │   ├── Subsystem
+        │   │   │   ├── Rank
+        │   │   │   ├── Target
+        │   │   │   └── NFragmentTypes
+        │   └── Monitor
+        │       ├── Dtc                                            # Question: maybe we want these as global flags?
+        │       ├── RocRegisters
+        │      
+        │       └── Artdaq                                         # Question: maybe we want these as global flags?
+        ├──hostename1
 ```
 
 # Slow Control Variables
