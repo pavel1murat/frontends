@@ -1,63 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-   <meta charset="UTF-8">
-   <title>CRV</title>
-   <link rel="stylesheet" href="midas.css">
+  <head>
+    <meta charset="UTF-8">
+    <title>CRV</title>
+    <link rel="stylesheet" href="midas.css">
     <link rel="stylesheet" href="tracker_style.css">
-   <script src="controls.js"></script>
-   <script src="midas.js"></script>
-   <script src="mhttpd.js"></script>
-   <script src="filesrw.js"></script>
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
 
-   <script>
-      function load_values(path_enabled, path_status, statusCell) {
-         mjsonrpc_db_get_values([path_enabled, path_status]).then(function (rpc) {
-            let enabled = rpc.result.data[0];
-            let status = rpc.result.data[1];
+    <script>
+      let midasInitialized = 0;
+      function set_colors(path_enabled, path_status, statusCell) {
+            mjsonrpc_db_get_values([path_enabled, path_status]).then(function (rpc) {
+                  let enabled = rpc.result.data[0];
+                  let status = rpc.result.data[1];
 
-            if (enabled === 0) {
-               statusCell.style.backgroundColor = "gray";
-               statusCell.style.color = "gray";
-            } else if (enabled === 1) {
-               if (status === 1) {
-                  statusCell.style.backgroundColor = "green";
-                  statusCell.style.color = "green";
-               } else if (status === 0) {
-                  statusCell.style.backgroundColor = "red";
-                  statusCell.style.color = "grey";
-               } else if (status === -1) {
-                  statusCell.style.backgroundColor = "yellow";
-                  statusCell.style.color = "grey";
-               } else if (status == null) {
-                   statusCell.style.backgroundColor = "white";
-                   statusCell.style.color = "white";
-               }
-
-                   
-            } else {
-               statusCell.style.backgroundColor = "white";
-               statusCell.style.color = "white";
-            }
-         }).catch(function (error) {
-            console.error("Error fetching panel values:", error);
-         });
+                  if (enabled === 0) {
+                        statusCell.style.backgroundColor = "gray";
+                        statusCell.style.color = "gray";
+                  } else if (enabled === 1) {
+                        if (status === 1) {
+                              statusCell.style.backgroundColor = "green";
+                              statusCell.style.color = "green";
+                        } else if (status === 0) {
+                              statusCell.style.backgroundColor = "red";
+                              statusCell.style.color = "grey";
+                        } else if (status === -1) {
+                              statusCell.style.backgroundColor = "yellow";
+                              statusCell.style.color = "grey";
+                        } else if (status == null) {
+                              statusCell.style.backgroundColor = "white";
+                              statusCell.style.color = "white";
+                        }
+                  } else {
+                        statusCell.style.backgroundColor = "white";
+                        statusCell.style.color = "white";
+                  }
+            }).catch(function (error) {
+                  console.error("Error fetching panel values:", error);
+            });
       }
 
-      function createPanelsTable() {
-         const urlParams = new URLSearchParams(window.location.search);
-         const stationIndex = urlParams.get('station') || '0'; 
-         const planeIndex = urlParams.get('plane') || '0'; 
-         const panels = 10; 
-         const table = document.querySelector(".mtable");
+      //-----------------------------------------------------------------------------     
+      function drillDown(sector) {
+            window.location.href = `crv_sector.html?disk=${sector}`;
+      }
 
-         const title = document.querySelector("#table-title");
-         title.textContent = `Panels for Station_${stationIndex.padStart(2, '0')}, Plane_${planeIndex.padStart(2, '0')}`;
+      //-----------------------------------------------------------------------------     
+      function createTable() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const stationIndex = urlParams.get('station') || '0'; 
+            const planeIndex = urlParams.get('plane') || '0'; 
+            const panels = 10; 
+            //         const table = document.querySelector(".mtable");
+            const table = document.getElementById("t1");
 
-         table.innerHTML = `
+            const title = document.querySelector("#table-title");
+            title.textContent = `CRV (this is a boilerplate)`;
+
+            table.innerHTML = `
             <thead>
                <tr>
-                  <th>Node</th>
+                  <th>Sector</th>
                   <th>Status</th>
                   <th>Details</th>
                </tr>
@@ -65,61 +71,57 @@
             <tbody></tbody>
          `;
 
-         const tbody = table.querySelector("tbody");
-
-         for (let i = 0; i < n_nodes; i++) {
-            const row = document.createElement("tr");
-
-            const panelCell = document.createElement("td");
-            panelCell.innerHTML = `<b>Panel_${i.toString().padStart(2, '0')}</b>`;
-            row.appendChild(panelCell);
-
-            const statusCell = document.createElement("td");
-            statusCell.className = "status-cell";
-            row.appendChild(statusCell);
-
-            const actionCell = document.createElement("td");
-            actionCell.innerHTML = `
-               <button onclick="redirectToDisks('${i}')">View Details</button>`;
-            row.appendChild(actionCell);
-
-            tbody.appendChild(row);
-
-            const path_enabled = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Enabled`;
-            const path_status  = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Status`;
-
-            load_values(path_enabled, path_status, statusCell);
-
-            setInterval(() => {
-               load_values(path_enabled, path_status, statusCell);
-            }, 2000);
-         }
+            //         const tbody = table.querySelector("tbody");
+            //
+            //         for (let i = 0; i < n_nodes; i++) {
+            //            const row = document.createElement("tr");
+            //
+            //            const panelCell = document.createElement("td");
+            //            panelCell.innerHTML = `<b>Panel_${i.toString().padStart(2, '0')}</b>`;
+            //            row.appendChild(panelCell);
+            //
+            //            const statusCell = document.createElement("td");
+            //            statusCell.className = "status-cell";
+            //            row.appendChild(statusCell);
+            //
+            //            const actionCell = document.createElement("td");
+            //            actionCell.innerHTML = `
+            //               <button onclick="drillDown('${i}')">View Details</button>`;
+            //            row.appendChild(actionCell);
+            //
+            //            tbody.appendChild(row);
+            //
+            //            const path_enabled = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Enabled`;
+            //            const path_status  = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2, '0')}/Plane_${planeIndex.padStart(2, '0')}/Panel_${i.toString().padStart(2, '0')}/Status`;
+            //
+            //            set_colors(path_enabled, path_status, statusCell);
+            //
+            //            setInterval( () => {set_colors(path_enabled, path_status, statusCell);},2000)  
+            //         }
       }
 
-      function redirectToDisks(diskIndex) {
-         window.location.href = `calorimeter_disks.html?disk=${diskIndex}`;
-      }
+      document.addEventListener("DOMContentLoaded", createTable);
+    </script>
+  </head>
 
-      function initializePage() {
-         if (!midasInitialized) {
-            mhttpd_init("Calorimeter");
-            midasInitialized = true;
-         }
-         createPanelsTable();
-      }
-
-      document.addEventListener("DOMContentLoaded", initializePage);
-   </script>
-</head>
-
-<body class="mcss">
-   <div id="mheader"></div> 
-   <div id="msidenav"></div> 
-   <div id="mmain">
-      <h1>CRV Status</h1>
-      <table class="mtable">
-         <!-- Table content is generated dynamically -->
+  <body class="mcss" onload="mhttpd_init('Tracker Planes');">
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+    <div id="mmain">
+      <h1 id="table-title">CRV Status</h1>
+      <table id="t1" class="mtable">
+        <!-- Table content is generated dynamically -->
       </table>
-   </div>
-</body>
+    </div>
+  </body>
+
 </html>
+<!--
+    emacs
+    Local Variables:
+    tab-width: 8
+    c-basic-offset: 2
+    js-indent-level: 0
+    indent-tabs-mode: nil
+    End:
+  -->
