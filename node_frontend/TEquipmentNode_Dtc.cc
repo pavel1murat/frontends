@@ -40,10 +40,18 @@ TMFeResult TEquipmentNode::InitDtc() {
       // for now, disable re-initialization
       mu2edaq::DtcInterface* dtc_i = nullptr;
       if(_odb_i->GetIsCrv(h_subkey)) {
-        // TODO
-        // dtc_i = crvdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
-        dtc_i = mu2edaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
-        dtc_i->fIsCrv = 1;
+        bool initRocs = true;
+        bool initFebs = true;
+        dtc_i = crvdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init,initRocs,initFebs);
+        // CRV specific
+        //dynamic_cast<crvdaq::DtcInterface*>(dtc_i)->SetInit(initRocs, initFebs);
+        //if(initRocs) {
+        //    dynamic_cast<crvdaq::DtcInterface*>(dtc_i)->InitRocs();
+        //}
+        //dtc_i = mu2edaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
+        //dtc_i->fIsCrv = 1;
+        // TODO CRV specific inits from ODB
+
       } else {
         dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
       }
