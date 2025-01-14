@@ -18,6 +18,8 @@ link_directories(${MIDAS_INSTALL_DIR}/lib)
 link_directories($ENV{MESSAGEFACILITY_LIB})
 link_directories($ENV{XMLRPC_C_FQ_DIR}/lib)
 
+find_package(otsdaq_mu2e_crv 3.01.00 REQUIRED EXPORT)
+
 cet_set_compiler_flags(
         DIAGS VIGILANT
         # WERROR          
@@ -37,6 +39,7 @@ cet_make_exec(NAME      node_frontend
                         TEquipmentNode_Rpc.cc
               LIBRARIES frontends_utils
                         otsdaq_mu2e_tracker::otsdaq-mu2e-tracker_Ui
+                        otsdaq_mu2e_crv::otsdaq-mu2e-crv_Ui
                         mu2e_pcie_utils::DTCInterface
                         midas
                         stdc++ m util pthread rt

@@ -16,6 +16,7 @@
 #include "node_frontend/ArtdaqMetrics.hh"
 
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
+#include "otsdaq-mu2e-crv/Ui/DtcInterface.hh"
 
 class TEquipmentNode : public TMFeEquipment {
   enum {
