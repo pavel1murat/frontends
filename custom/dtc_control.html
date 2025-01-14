@@ -1,6 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.row {
+  margin-left:-5px;
+  margin-right:-5px;
+}
+  
+.column {
+  float: left;
+  width: 37%;
+  padding: 2px;
+}
+
+/* Clearfix (clear floats) */
+.row::after {
+  content: "";
+  clear  : both;
+  display: table;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #ddd;
+}
+
+th, td {
+  text-align: left;
+  padding: 4px;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+body {font-family: Arial;}
+
+#myDIV {
+    padding   : 20px;
+    height    : 380px;
+    width     : 60% ; /* 600px; */
+    overflow  : auto;
+    background: #bdb;
+}
+
+#content {
+/*  margin: 40%; */
+/*  height: 300px; */
+/*  width:  400px; */
+  background-color: #bdb;
+}
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  background-color: inherit;
+  float     : left;
+  border    : none;
+  outline   : none;
+  cursor    : pointer;
+  padding   : 12px 12px;
+  transition: 0.3s;
+  font-size : 14px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #bdb;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+
+</style>
+
+<head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="midas.css">
     <script src="controls.js"></script>
@@ -15,18 +109,36 @@
 // the hostname should be the same within the scope of this script
 //-----------------------------------------------------------------------------
       let g_hostname = 'undefined';
+      let g_pcie     = 0;
       
       function dtc_command(cmd,pcie) {
-        let msg = { "client_name":g_hostname, "cmd":cmd, "args":'{"pcie":'+pcie.toString()+'}'};
+        let msg = { "client_name":g_hostname, "cmd":cmd, "args":'{"pcie":'+g_pcie.toString()+'}'};
         mjsonrpc_call("jrpc",msg).then(function(rpc1) {
-          // let s = JSON.stringify(rpc1.result.reply, null, "	");
           let s = rpc1.result.reply;
           const regex = /\n/gi
           let y = s.replaceAll(regex,'<br>');
-          document.getElementById("jrpc_data").innerHTML = '<pre>'+y+'</pre>';
+
+          const el = document.getElementById("content");
+          el.innerHTML += y;
+          el.style.fontFamily = 'monospace';
+          el.scrollIntoView();
+
         }).catch(function(error){
           mjsonrpc_error_alert(error);
         });
+      }
+//-----------------------------------------------------------------------------      
+      function choose_dtc_id(evt, dtc_id) {
+        var i, tablinks;
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i=0; i<tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(dtc_id).style.display = "block";
+        evt.currentTarget.className += " active";
+
+        if (dtc_id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
+        console.log('g_pcie=',g_pcie);
       }
 //-----------------------------------------------------------------------------
 // createTable
@@ -37,7 +149,7 @@
         const pcie      = urlParams.get('pcie') || '0'   ;  //
 
         let title       = document.getElementById('table-title');
-        title.innerHTML = g_hostname+' DTC status page';
+        title.innerHTML = '&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
 //-----------------------------------------------------------------------------
 // the column titles 
 //-----------------------------------------------------------------------------
@@ -94,20 +206,17 @@
 //  create command table
 //-----------------------------------------------------------------------------
         const com_table_title  = document.getElementById('commands-table-title');
-        com_table_title.innerHTML = 'commands for DTC at PCIE:'+pcie;
+//        com_table_title.innerHTML = 'commands for DTC at PCIE:'+pcie;
 
         const com_table     = document.getElementById('commands');
 
         com_table.innerHTML = `
-            <thead>
-               <tr>
-                  <th> node </th>
-                  <th colspan="10">Processes</th>
-               </tr>
-            </thead>
-            <tbody>
+<div class="tab">
+                 <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">PCIE:0</button>
+                 <button class="tablinks" id="dtc1" onclick="choose_dtc_id(event,'dtc1')">PCIE:1</button>
+</div>
         <tr>
-          <span><th class="mtableheader">DTC Control</th></span> <!-- Change XXX to the header name for this page -->
+          <th <div class="mtableheader" colspan=4> DTC Control Commands </div> </th> 
         </tr>
         <tr>
           <td>
@@ -134,7 +243,7 @@
             <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Value" data-odb-editable="1"  data-format="%x"></div>
           </td>
           <td>
-            <input type=button value='Run' onClick='dtc_command("dtc_write_register",${pcie})'>
+            <input type=button value='Run' onClick='dtc_command("dtc_write_register",${g_pcie})'>
           </td>
         <tr>
           <td> read DTC register </td>
@@ -145,7 +254,7 @@
             <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Value" data-format="%x"></div>
           </td>
           <td>
-            <input type=button value='Run' onClick='dtc_command("dtc_read_register",${pcie})'>
+            <input type=button value='Run' onClick='dtc_command("dtc_read_register",${g_pcie})'>
           </td>
         </tr>
         <!--   --------------------------      DTC print status  -->
@@ -153,52 +262,44 @@
           <td> DTC print status</td>
           <td> </td>
           <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_status",${pcie})'> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_status",${g_pcie})'> </td>
         </tr>
         <!--   --------------------------      DTC print ROC status  -->
         <tr>
           <td> DTC print ROC status</td>
           <td> </td>
           <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_roc_status",${pcie})'> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_roc_status",${g_pcie})'> </td>
         </tr>
         <!--   --------------------------      DTC soft reset  -->
         <tr>
           <td> DTC soft reset</td>
           <td> </td>
           <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_soft_reset",${pcie})'> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_soft_reset",${g_pcie})'> </td>
         </tr>
         <!--   --------------------------      DTC hard reset  -->
         <tr>
           <td> DTC hard reset</td>
           <td> </td>
           <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_hard_reset"),${pcie}'> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_hard_reset"),${g_pcie}'> </td>
         </tr>
         <!--   --------------------------      DTC hard reset  -->
         <tr>
           <td> Init Readout (both DTCs) </td>
           <td> </td>
           <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_init_readout",${pcie})'> </td>
+          <td> <input type=button value='Run' onClick='dtc_command("dtc_init_readout",${g_pcie})'> </td>
         </tr>
         <!--   --------------------------      control roc read  -->
         <tr>
           <td> control_ROC_read</td>
           <td></td>
           <td></td>
-          <td><input type=button value='Run' onClick='dtc_command("dtc_control_roc_read",${pcie})'> </td>
+          <td><input type=button value='Run' onClick='dtc_command("dtc_control_roc_read",${g_pcie})'> </td>
         </tr>
-        <!-- -------------------------------------- OUTPUT area ---------------------- -->
-        <tr>
-          <td colspan=4>  Output </td>
-        </tr>
-        <tr>
-          <td colspan=4 id='jrpc_data'> </td>
-        </tr>
-
-            </tbody>
+      </tbody>
          `;
         
         const com_tbody = com_table.querySelector("tbody");
@@ -210,20 +311,36 @@
       document.addEventListener("DOMContentLoaded", createTable);
     </script>
   </head>
-  
+  <!--
+      it seems to be convenient to have the large scale topology in HtML and use
+      javascript to fill hte details
+    -->
   <body class="mcss" onload="mhttpd_init('dtc_control');">
     <div id="mheader"></div>
     <div id="msidenav"></div>
     <div id="mmain">
-      <h1 id="table-title">DTC </h1>
-      <table class="mtable">
-        <!-- Table content is generated dynamically -->
-      </table>
-      <h1 id="commands-table-title">Commands </h1>
-      <table class="mtable" id="commands">
-        <!-- Table content is generated dynamically -->
-      </table>
+      <div class="row">
+        <h1 id="table-title">DTC </h1>
+        <div class="column">
+          <table class="mtable">
+            <!-- Table content is generated dynamically -->
+          </table>
+        </div>
+
+        <div id="myDIV">
+          <div id="content"> <!-- the field for output -->
+          </div>
+        </div>
+
+      </div>
+
+      <div class="column">
+        <table class="mtable" id="commands">
+          <!-- Table content is generated dynamically -->
+        </table>
+      </div>
     </div>
+
   </body>
 </html>
 <!--
