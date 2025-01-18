@@ -43,6 +43,7 @@ TMFeResult TEquipmentNode::InitDtc() {
         bool initRocs = true;
         bool initFebs = true;
         dtc_i = crvdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init,initRocs,initFebs);
+        TLOG(TLVL_DEBUG) << "crvdaq::DtcInterface";
         // CRV specific
         //dynamic_cast<crvdaq::DtcInterface*>(dtc_i)->SetInit(initRocs, initFebs);
         //if(initRocs) {
@@ -179,6 +180,24 @@ void TEquipmentNode::InitDtcVarNames() {
             sprintf(dirname,"Names rc%i%i",idtc,ilink);
             if (not midas::odb::exists(settings_path+"/"+dirname)) {
               odb_settings[dirname] = fDtc_i[idtc]->GetRocRegistersNames(true);
+            }
+            //---------------------------------
+            // CRV specific FEB/port variables
+            //---------------------------------
+            if(fDtc_i[idtc]->IsCrv()) {
+                auto crvdtc_i = dynamic_cast<crvdaq::DtcInterface*>(dtc_i);
+                auto link = DTCLib::DTC_Link_ID(ilink);
+                uint32_t activePorts = crvdtc_i->GetRocActivePorts(link);
+                //uint32_t activePorts = crvdtc_i->GetRocActivePorts(ilink);
+                TLOG(TLVL_DEBUG) << "activePorts: 0x" << std::hex << activePorts;
+                for(int port=1; port <=24; port++) {
+                    if (activePorts & (1 << (port-1))) {
+                        sprintf(dirname,"Names rc%i%ip%02i",idtc,ilink,port);
+                        if (not midas::odb::exists(settings_path+"/"+dirname)) {
+                            odb_settings[dirname] = crvdtc_i->GetRocPortRegNames();
+                        }
+                    }
+                }
             }
             //---------------------------------
             // non-history ROC registers 
@@ -351,6 +370,23 @@ void TEquipmentNode::ReadDtcMetrics() {
                   auto roc_data = dtc_i->GetConvertedRocRegisters(ilink, true);
                   xx[buf].resize(roc_data.size()); // we could do this ones when we create it?
                   xx[buf] = roc_data;
+
+
+                  if(fDtc_i[idtc]->IsCrv()) {
+                    auto crvdtc_i = dynamic_cast<crvdaq::DtcInterface*>(dtc_i);
+                    auto link = DTCLib::DTC_Link_ID(ilink);
+                    uint32_t activePorts = crvdtc_i->GetRocActivePorts(link);
+                    for(int port=1; port <=24; port++) {
+                        if (activePorts & (1 << (port-1))) {
+                            sprintf(buf,"Names rc%i%ip%02i",idtc,ilink,port);
+                            midas::odb xxx = {{buf,{1.0f}}};
+                            xxx.connect(node_path+"/Variables");
+                            auto roc_pool_data = crvdtc_i->GetRocPortRegValues(ilink, port);
+                            xxx[buf].resize(roc_pool_data.size());
+                            xxx[buf] = roc_pool_data;
+                        }
+                    }
+                  }
                 }
                 if (_monitorRocRegisters) {
                   sprintf(buf,"%s/DTC%i/ROC%i",node_path.data(),idtc,ilink);
