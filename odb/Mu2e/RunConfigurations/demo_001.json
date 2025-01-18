@@ -4,61 +4,15 @@
   "/filename" : "demo_001.json",
   "/ODB path" : "/Mu2e/RunConfigurations/demo_001",
 
+  "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735100963 },
+  "Name" : "demo_001",
   "RunType/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
   "RunType" : 4,
-  "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1733525827 },
-  "UseRunInfoDB" : false,
+  "UseRunInfoDB/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1736645176 },
+  "UseRunInfoDB" : true,
   "DAQ" : {
-    "TfmRpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
-    "TfmRpcHost" : "mu2edaq09-ctrl",
-    "Artdaq" : {
-      "mu2edaq09" : {
-        "br01" : {
-          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Rank" : 0,
-          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Active" : 0,
-          "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "NFragmentTypes" : 1
-        },
-        "eb01" : {
-          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Rank" : 2,
-          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Active" : 0
-        },
-        "dl01" : {
-          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Rank" : 4,
-          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Active" : 0
-        },
-        "ds01" : {
-          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Rank" : 5,
-          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Active" : 0
-        }
-      },
-      "mu2edaq22" : {
-        "br02" : {
-          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Rank" : 1,
-          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Active" : 0,
-          "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "NFragmentTypes" : 1
-        },
-        "eb02" : {
-          "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Rank" : 3,
-          "Active/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525827 },
-          "Active" : 0
-        }
-      }
-    },
     "Tfm" : {
-      "RpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735062123 },
+      "RpcHost/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736645073 },
       "RpcHost" : "mu2edaq22-ctrl",
       "#00 ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1735062123 },
       "#00 ---------------------" : "------------------------------",
@@ -120,8 +74,258 @@
       "transfer_plugin_to_use" : "Bundle",
       "validate_setup_script/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1735062123 },
       "validate_setup_script" : true
+    },
+    "#1 ----------------------/key" : { "type" : 12, "item_size" : 66, "access_mode" : 7, "last_written" : 1736638661 },
+    "#1 ----------------------" : "PrivateSubnet and PublicSubnet are used to resolve the host names",
+    "# PrivateSubnet/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736638661 },
+    "# PrivateSubnet" : "192.168.157",
+    "PrivateSubnet/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736638661 },
+    "PrivateSubnet" : "131.225.237",
+    "PublicSubnet/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736638661 },
+    "PublicSubnet" : " 131.225.237",
+    "MIDAS_SERVER_HOST/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736638661 },
+    "MIDAS_SERVER_HOST" : "mu2edaq22-ctrl",
+    "# ---- assumption:/key" : { "type" : 12, "item_size" : 67, "access_mode" : 7, "last_written" : 1736638661 },
+    "# ---- assumption:" : "OnSpill, RocReadoutMode, and EventMode are the same for all DTCs",
+    "OnSpill/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736638661 },
+    "OnSpill" : 1,
+    "EventMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736638661 },
+    "EventMode" : 1,
+    "RocReadoutMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736638661 },
+    "RocReadoutMode" : 1,
+    "#1 ---------------------/key" : { "type" : 12, "item_size" : 61, "access_mode" : 7, "last_written" : 1736640529 },
+    "#1 ---------------------" : "demo configs don't know about DTCs",
+    "SkipDtcInit/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736640532 },
+    "SkipDtcInit" : 1,
+    "#0 --------------------/key" : { "type" : 12, "item_size" : 37, "access_mode" : 7, "last_written" : 1736638661 },
+    "#0 --------------------" : "--------------- configurable element",
+    "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736638661 },
+    "Enabled" : 1,
+    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736638661 },
+    "Status" : 1,
+    "Nodes" : {
+      "mu2edaq11" : {
+        "Artdaq" : {
+          "br22" : {
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643194 },
+            "Rank" : 22,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643194 },
+            "XmlrpcPort" : 21122,
+            "Subsystem/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643194 },
+            "Subsystem" : 1,
+            "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643194 },
+            "NFragmentTypes" : 1,
+            "Target/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736643194 },
+            "Target" : "",
+            "#------------/key" : { "type" : 12, "item_size" : 37, "access_mode" : 7, "last_written" : 1736643194 },
+            "#------------" : "-------------- configuration element",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643194 },
+            "Enabled" : 1,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643194 },
+            "Status" : 0
+          },
+          "br23" : {
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643774 },
+            "Rank" : 23,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643777 },
+            "XmlrpcPort" : 21123,
+            "Subsystem/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643751 },
+            "Subsystem" : 1,
+            "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643751 },
+            "NFragmentTypes" : 1,
+            "Target/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736643751 },
+            "Target" : "",
+            "#------------/key" : { "type" : 12, "item_size" : 37, "access_mode" : 7, "last_written" : 1736643751 },
+            "#------------" : "-------------- configuration element",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643782 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643751 },
+            "Status" : 0
+          },
+          "eb22" : {
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643224 },
+            "Rank" : 122,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643224 },
+            "XmlrpcPort" : 21222,
+            "Subsystem/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643224 },
+            "Subsystem" : 1,
+            "#------------/key" : { "type" : 12, "item_size" : 37, "access_mode" : 7, "last_written" : 1736643224 },
+            "#------------" : "-------------- configuration element",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643224 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643224 },
+            "Status" : 0
+          },
+          "dl22" : {
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643239 },
+            "Rank" : 222,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643239 },
+            "XmlrpcPort" : 21322,
+            "Subsystem/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643239 },
+            "Subsystem" : 1,
+            "#------------/key" : { "type" : 12, "item_size" : 37, "access_mode" : 7, "last_written" : 1736643239 },
+            "#------------" : "-------------- configuration element",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643239 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643239 },
+            "Status" : 0
+          },
+          "ds22" : {
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643256 },
+            "Rank" : 322,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643256 },
+            "XmlrpcPort" : 21422,
+            "Subsystem/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643256 },
+            "Subsystem" : 1,
+            "#------------/key" : { "type" : 12, "item_size" : 37, "access_mode" : 7, "last_written" : 1736643256 },
+            "#------------" : "-------------- configuration element",
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643256 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643256 },
+            "Status" : 0
+          }
+        },
+        "Frontend" : {
+          "HandleBeginRun/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+          "HandleBeginRun" : 1,
+          "Monitor" : {
+            "Artdaq/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+            "Artdaq" : 1,
+            "DTC/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+            "DTC" : 0,
+            "RocSPI/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+            "RocSPI" : 0,
+            "RocRegisters/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+            "RocRegisters" : 0
+          },
+          "#-------- 0/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736643000 },
+          "#-------- 0" : "----- configurable elemnt",
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+          "Enabled" : 1,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+          "Status" : 0
+        },
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736644118 },
+        "Enabled" : 1,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+        "Status" : 0
+      },
+      "mu2edaq22" : {
+        "Artdaq" : {
+          "br44" : {
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643314 },
+            "Rank" : 44,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643314 },
+            "XmlrpcPort" : 21144,
+            "Subsystem/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643314 },
+            "Subsystem" : 0,
+            "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643314 },
+            "NFragmentTypes" : 1,
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643314 },
+            "Enabled" : 1,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643314 },
+            "Status" : 0
+          },
+          "br45" : {
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643332 },
+            "Rank" : 45,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643332 },
+            "XmlrpcPort" : 21145,
+            "Subsystem/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643332 },
+            "Subsystem" : 1,
+            "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643332 },
+            "NFragmentTypes" : 1,
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643332 },
+            "Enabled" : 0,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643332 },
+            "Status" : 0
+          },
+          "eb44" : {
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643346 },
+            "Rank" : 144,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643346 },
+            "XmlrpcPort" : 21244,
+            "NFragmentTypes/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643346 },
+            "NFragmentTypes" : 1,
+            "Subsystem/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643346 },
+            "Subsystem" : 1,
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643346 },
+            "Enabled" : 1,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643346 },
+            "Status" : 0
+          },
+          "dl44" : {
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643612 },
+            "Rank" : 244,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643612 },
+            "XmlrpcPort" : 21344,
+            "Subsystem/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643612 },
+            "Subsystem" : 1,
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643612 },
+            "Enabled" : 1,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643612 },
+            "Status" : 0
+          },
+          "ds44" : {
+            "Rank/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643634 },
+            "Rank" : 344,
+            "XmlrpcPort/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643634 },
+            "XmlrpcPort" : 21444,
+            "Subsystem/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643634 },
+            "Subsystem" : 1,
+            "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643634 },
+            "Enabled" : 1,
+            "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643634 },
+            "Status" : 0
+          }
+        },
+        "Frontend" : {
+          "HandleBeginRun/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+          "HandleBeginRun" : 1,
+          "Monitor" : {
+            "Artdaq/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+            "Artdaq" : 1,
+            "DTC/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+            "DTC" : 0,
+            "RocSPI/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+            "RocSPI" : 0,
+            "RocRegisters/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+            "RocRegisters" : 0
+          },
+          "#-------- 0/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736643000 },
+          "#-------- 0" : "----- configurable elemnt",
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+          "Enabled" : 1,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736643000 },
+          "Status" : 0
+        },
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736644135 },
+        "Enabled" : 1,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+        "Status" : 0
+      }
     }
   },
-  "Status/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525827 },
-  "Status" : ""
+  "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+  "Status" : 0,
+  "Trigger" : {
+    "Table/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1736649355 },
+    "Table" : "demo_001_v01",
+    "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736649362 },
+    "Enabled" : 1,
+    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736649331 },
+    "Status" : 0,
+    "MonitoringFrontend" : {
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736649331 },
+      "Name" : "trigmon",
+      "Host/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736649331 },
+      "Host" : "mu2edaq22-ctrl",
+      "# --------------------- 1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736649331 },
+      "# --------------------- 1" : "---------- configurable element",
+      "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736649331 },
+      "Enabled" : 0,
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1736649331 },
+      "Status" : 0
+    }
+  }
 }
