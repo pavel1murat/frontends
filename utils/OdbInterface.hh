@@ -17,6 +17,9 @@ public:
 
   static OdbInterface*  Instance      (HNDLE h_DB);
 
+  int         GetEnabled              (HNDLE h_Conf); //
+  int         GetStatus               (HNDLE h_Conf); //
+
   HNDLE       GetActiveRunConfigHandle();
   //  int         GetArtdaqPartition      ();
 
@@ -32,17 +35,30 @@ public:
 
   int         GetSkipDtcInit          (HNDLE h_RunConf);
 
-                                        // returns: 1="external" or 0="emulated"
-  int         GetCFOExternal          (HNDLE Hdb, HNDLE h_CFO);
 
+//-----------------------------------------------------------------------------
+// CFO supports up to 8 timing chains, so dimension of NDTCs array should be at least 8
+// NDTCs[i] : number of DTCs in i-th timing chain
+//-----------------------------------------------------------------------------
+  int         GetNDTCs            (HNDLE h_DB, HNDLE h_CFO, int* NDTCs);
+  
   HNDLE       GetCFOConfHandle        (HNDLE h_RunConf);
+
+  uint64_t    GetNEvents              (HNDLE h_DB, HNDLE h_DTC);
+  int         GetEWLength             (HNDLE h_DTC);
+  //  uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
+  // temporarily, back to INT
+  int         GetFirstEWTag           (HNDLE h_CFO);
+
   int         GetCFOEnabled           (HNDLE h_DB, HNDLE h_CFO);
+  int         GetCFOEmulatedMode      (HNDLE h_CFO);
+  //  int         GetCFOExternal          (HNDLE Hdb, HNDLE h_CFO);
   int         GetCFOEventMode         (HNDLE h_DB, HNDLE h_CFO);
-  int         GetCFONEventsPerTrain   (HNDLE h_DB, HNDLE h_CFO);
+  int         GetCFONEventsPerTrain   (HNDLE h_CFO);
   std::string GetCFORunPlanDir        (HNDLE h_DB);
   std::string GetCFORunPlan           (HNDLE h_DB, HNDLE h_CFO);
 
-  int         GetCFOSleepTime         (HNDLE h_DB, HNDLE h_CFO);
+  int         GetCFOSleepTime         (HNDLE h_CFO);
    
   int         GetDtcEnabled       (HNDLE h_DB, HNDLE h_Card); // card: DTC
   int         GetDtcEmulatesCfo   (HNDLE h_DB, HNDLE h_Card); // card: DTC
@@ -55,17 +71,6 @@ public:
   int         GetIsCrv            (HNDLE h_Card);
 
   int         GetPcieAddress      (HNDLE h_DB, HNDLE h_Card); // card: either CFO or DTC
-//-----------------------------------------------------------------------------
-// CFO supports up to 8 timing chains, so dimension of NDTCs array should be at least 8
-// NDTCs[i] : number of DTCs in i-th timing chain
-//-----------------------------------------------------------------------------
-  int         GetNDTCs            (HNDLE h_DB, HNDLE h_CFO, int* NDTCs);
-  
-  uint64_t    GetNEvents          (HNDLE h_DB, HNDLE h_DTC);
-  int         GetEWLength         (HNDLE h_DB, HNDLE h_DTC);
-  //  uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
-  // temporarily, back to INT
-  int         GetFirstEWTag       (HNDLE h_DTC);
 //-----------------------------------------------------------------------------
 // tracker ROC readout mode = 0: var length length ROC patterns
 //                            1: digi patterns

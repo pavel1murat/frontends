@@ -60,36 +60,35 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 
     midas::odb o = {};
     o.connect("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
-    for (int i=0; i<2; i++) {
-      trkdaq::DtcInterface* dtc_i = dynamic_cast<trkdaq::DtcInterface*>(fDtc_i[i]);
-      if (dtc_i) {
-        trkdaq::ControlRoc_Read_Input_t par;
-        // parameters should be taken from ODB - where from? 
-  
-        par.adc_mode        = o["adc_mode"     ];   // -a
-        par.tdc_mode        = o["tdc_mode"     ];   // -t 
-        par.num_lookback    = o["num_lookback" ];   // -l 
-        par.num_samples     = o["num_samples"  ];   // -s
-        par.num_triggers[0] = o["num_triggers"][0]; // -T 10
-        par.num_triggers[1] = o["num_triggers"][1]; //
-        
-        par.ch_mask[0]      = o["ch_mask"][0];
-        par.ch_mask[1]      = o["ch_mask"][1];
-        par.ch_mask[2]      = o["ch_mask"][2];
-        par.ch_mask[3]      = o["ch_mask"][3];
-        par.ch_mask[4]      = o["ch_mask"][4];
-        par.ch_mask[5]      = o["ch_mask"][5];
-        
-        par.enable_pulser   = o["enable_pulser"];   // -p 1
-        par.marker_clock    = o["marker_clock" ];   // -m 3
-        par.mode            = o["mode"         ];   // 
-        par.clock           = o["clock"        ];   // 
 
-        printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
-        bool update_mask(false);
-        int  print_level(0);
-        dtc_i->ControlRoc_Read(&par,-1,update_mask,print_level,ss);
-      }
+    trkdaq::DtcInterface* dtc_i = dynamic_cast<trkdaq::DtcInterface*>(fDtc_i[pcie_addr]);
+    if (dtc_i) {
+      trkdaq::ControlRoc_Read_Input_t par;
+      // parameters should be taken from ODB - where from? 
+  
+      par.adc_mode        = o["adc_mode"     ];   // -a
+      par.tdc_mode        = o["tdc_mode"     ];   // -t 
+      par.num_lookback    = o["num_lookback" ];   // -l 
+      par.num_samples     = o["num_samples"  ];   // -s
+      par.num_triggers[0] = o["num_triggers"][0]; // -T 10
+      par.num_triggers[1] = o["num_triggers"][1]; //
+        
+      par.ch_mask[0]      = o["ch_mask"][0];
+      par.ch_mask[1]      = o["ch_mask"][1];
+      par.ch_mask[2]      = o["ch_mask"][2];
+      par.ch_mask[3]      = o["ch_mask"][3];
+      par.ch_mask[4]      = o["ch_mask"][4];
+      par.ch_mask[5]      = o["ch_mask"][5];
+        
+      par.enable_pulser   = o["enable_pulser"];   // -p 1
+      par.marker_clock    = o["marker_clock" ];   // -m 3
+      par.mode            = o["mode"         ];   // 
+      par.clock           = o["clock"        ];   // 
+      
+      printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
+      bool update_mask(false);
+      int  print_level(0);
+      dtc_i->ControlRoc_Read(&par,-1,update_mask,print_level,ss);
     }
   }
   else if (strcmp(cmd,"dtc_read_register") == 0) {
@@ -146,17 +145,15 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   }
   else if (strcmp(cmd,"dtc_init_readout") == 0) {
 
-    for (int i=0; i<2; i++) {
-      try         {
-        trkdaq::DtcInterface* dtc_i = dynamic_cast<trkdaq::DtcInterface*>(fDtc_i[i]);
-        if (dtc_i) {
-          dtc_i->InitReadout();
-          ss << "DTC:" << i << " init readout OK";
-        }
+    try         {
+      trkdaq::DtcInterface* dtc_i = dynamic_cast<trkdaq::DtcInterface*>(fDtc_i[pcie_addr]);
+      if (dtc_i) {
+        dtc_i->InitReadout();
+        ss << "DTC:" << pcie_addr << " init readout OK";
       }
-      catch (...) {
-        ss << "ERROR : coudn't init readout DTC:" << i;
-      }
+    }
+    catch (...) {
+      ss << "ERROR : coudn't init readout DTC:" << pcie_addr;
     }
   }
   else if (strcmp(cmd,"dtc_print_status") == 0) {

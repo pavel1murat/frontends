@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "node_frontend/TEquipmentNode.hh"
 #include "utils/utils.hh"
+#include "TString.h"
 
 #include "odbxx.h"
 
@@ -103,7 +104,13 @@ TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
       if (dtc_i) {
         dtc_i->fRocReadoutMode = roc_readout_mode;
         dtc_i->fEventMode      = event_mode;
-
+//-----------------------------------------------------------------------------
+// HardReset erases the DTC link mask, restore it
+// also, release all buffers from the previous read - this is the initialization
+//-----------------------------------------------------------------------------
+        dtc_i->Dtc()->HardReset();
+        dtc_i->ResetLinks(0,1);
+                                        // InitReadout performs some soft resets, ok for now
         dtc_i->InitReadout();
       }
     }
@@ -161,15 +168,17 @@ TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
 //-----------------------------------------------------------------------------
 void TEquipmentNode::HandlePeriodic() {
 
-  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Dtc"         ,&_monitorDtc         );
-  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
-  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/RocSPI"      ,&_monitorRocSPI      );
-  _odb_i->GetInteger(_h_daq_host_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
+  TLOG(TLVL_DEBUG+1) << "--- START";
+
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"         ,&_monitorDtc         );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocSPI"      ,&_monitorRocSPI      );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
   
-  TLOG(TLVL_DEBUG+1) << "_monitorDtc:" << _monitorDtc
-                     << " _monitorRocSPI:" << _monitorRocSPI
-                     << " _monitorRocRegisters:" << _monitorRocRegisters
-                     << " _monitorArtdaq:" << _monitorArtdaq
+  TLOG(TLVL_DEBUG+1) << "_monitorDtc:"                      << _monitorDtc
+                     << " _monitorRocSPI:"                  << _monitorRocSPI
+                     << " _monitorRocRegisters:"            << _monitorRocRegisters
+                     << " _monitorArtdaq:"                  << _monitorArtdaq
                      << " TMFE::Instance()->fStateRunning:" << TMFE::Instance()->fStateRunning; 
 
   if (_monitorDtc) {
@@ -180,7 +189,7 @@ void TEquipmentNode::HandlePeriodic() {
     ReadArtdaqMetrics();
   }
   
-  char status[256];
-  sprintf(status, "OK");
-  EqSetStatus(status, "#00FF00");
+  TLOG(TLVL_DEBUG+1) << "--- END";
+
+  EqSetStatus(Form("OK"),"#00FF00");
 }

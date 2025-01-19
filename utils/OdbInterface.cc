@@ -82,6 +82,36 @@ int OdbInterface::GetInteger(HNDLE hDB, HNDLE hDir, const char* Key, int* Data) 
 }
 
 //-----------------------------------------------------------------------------
+int OdbInterface::GetEnabled(HNDLE hConf) {
+  INT   data;
+  int   sz = sizeof(data);
+  if (db_get_value(_hDB, hConf, "Enabled", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+    return data;
+  }
+  else {
+    KEY dbkey;
+    db_get_key(_hDB,hConf,&dbkey);
+    TLOG(TLVL_ERROR) << "no " << dbkey.name << ".Enabled field, return 0 (disabled)";
+    return 0;
+  }
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetStatus(HNDLE hConf) {
+  INT   data;
+  int   sz = sizeof(data);
+  if (db_get_value(_hDB, hConf, "Status", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+    return data;
+  }
+  else {
+    KEY dbkey;
+    db_get_key(_hDB,hConf,&dbkey);
+    TLOG(TLVL_ERROR) << "no " << dbkey.name << ".Enabled field, return 0 (disabled)";
+    return 0;
+  }
+}
+
+//-----------------------------------------------------------------------------
 // /Mu2e/ActiveRunConfiguration is a link to the active run configuration
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetActiveRunConfigHandle() {
@@ -155,10 +185,10 @@ int OdbInterface::GetSkipDtcInit(HNDLE h_RunConf) {
 //-----------------------------------------------------------------------------
 // for the emulated CFO
 //-----------------------------------------------------------------------------
-int OdbInterface::GetCFONEventsPerTrain(HNDLE hDB, HNDLE hCFO) {
+int OdbInterface::GetCFONEventsPerTrain(HNDLE hCFO) {
   INT   data;
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "NEventsPerTrain", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+  if (db_get_value(_hDB, hCFO, "NEventsPerTrain", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
     return data;
   }
   else {
@@ -167,24 +197,24 @@ int OdbInterface::GetCFONEventsPerTrain(HNDLE hDB, HNDLE hCFO) {
   }
 }
 
-//-----------------------------------------------------------------------------
-int OdbInterface::GetCFOExternal(HNDLE hDB, HNDLE hCFO) {
-  int data(-1);
-  int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "External", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "no CFO Type, return type = -1";
-  }
-  return data;
-}
+// //-----------------------------------------------------------------------------
+// int OdbInterface::GetCFOExternal(HNDLE hDB, HNDLE hCFO) {
+//   int data(-1);
+//   int   sz = sizeof(data);
+//   if (db_get_value(hDB, hCFO, "External", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+//     TLOG(TLVL_ERROR) << "no CFO Type, return type = -1";
+//   }
+//   return data;
+// }
 
 //-----------------------------------------------------------------------------
 // emulated CFO: sleep time for rate throttling
 //-----------------------------------------------------------------------------
-int OdbInterface::GetCFOSleepTime(HNDLE hDB, HNDLE hCFO) {
+int OdbInterface::GetCFOSleepTime(HNDLE hCFO) {
   const char* key {"SleepTimeMs"};
   int   data(-1);
 
-  if (GetInteger(hDB,hCFO,key,&data) != DB_SUCCESS) {
+  if (GetInteger(_hDB,hCFO,key,&data) != DB_SUCCESS) {
     // data = -1;
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
   }
@@ -334,10 +364,10 @@ uint64_t OdbInterface::GetNEvents(HNDLE hDB, HNDLE hDTC) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetEWLength(HNDLE hDB, HNDLE hCFO) {
+int OdbInterface::GetEWLength(HNDLE hCFO) {
   INT  data(0);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "EventWindowSize", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hCFO, "EventWindowSize", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "return 0 (disabled)";
   }
   return data;

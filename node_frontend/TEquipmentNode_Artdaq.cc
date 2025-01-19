@@ -82,11 +82,26 @@ TMFeResult TEquipmentNode::InitArtdaq() {
 //-----------------------------------------------------------------------------
     db_get_key(hDB, h_component, &component);
     printf("Subkey %d: %s, Type: %d\n", i, component.name, component.type);
+//------------------------------------------------------------------------------
+// "Artdaq" is a folder, not a configuration element, so the next line is not needed
+//-----------------------------------------------------------------------------
+//    if ((strcmp(component.name,"Enabled") == 0) or (strcmp(component.name,"Status") == 0)) continue;
 
-    if ((strcmp(component.name,"Enabled") == 0) or (strcmp(component.name,"Status") == 0)) continue;
     ArtdaqComponent_t ac;
-    ac.name        = component.name;
+
+    _odb_i->GetInteger(h_component,"Enabled"    ,&ac.enabled);
+    _odb_i->GetInteger(h_component,"Status"     ,&ac.status);
+
+    if ((ac.enabled != 1) || (ac.status != 0)) {
+      TLOG(TLVL_WARNING) << " ARTDAQ component:" << component.name
+                         << " enabled:"          << ac.enabled
+                         << " status:"           << ac.status
+                         << " : NOT INITIALIZED";
+                                                            continue;
+    }
     
+    ac.name        = component.name;
+
     if      (ac.name.find("br") == 0) ac.type = kBoardReader;
     else if (ac.name.find("eb") == 0) ac.type = kEventBuilder;
     else if (ac.name.find("dl") == 0) ac.type = kDataLogger;
@@ -169,11 +184,12 @@ void TEquipmentNode::InitArtdaqVarNames() {
 int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
   
   // two words per process - N(segments/sec) and the data rate, MB/sec
-  int           rc(0);
-  xmlrpc_env    env;
-  xmlrpc_value* resultP;
-
-  BrMetrics_t   brm;
+  int            rc(0);
+  xmlrpc_env     env;
+  xmlrpc_value*  resultP;
+  xmlrpc_client* clientP;
+  
+  BrMetrics_t    brm;
   
   const char* url = Ac->xmlrpc_url.data();
   TLOG(TLVL_DEBUG+1) << "000: Url:" << url;
@@ -183,8 +199,13 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
 
   try {
     xmlrpc_env_init(&env);  // P.M. : use _env - it should be initialized - may be not ?
+
+    xmlrpc_client_create(&env, XMLRPC_CLIENT_NO_FLAGS, "read_br_metrics", "0.1", NULL,0,&clientP);
+    int timeout_ms(1000);
+    xmlrpc_client_event_loop_finish_timeout(clientP, timeout_ms);
+
                                // "({s:i,s:i})",
-    resultP = xmlrpc_client_call(&env,url,"daq.report","(s)","stats");
+    xmlrpc_client_call2f(&env,clientP,url,"daq.report",&resultP, "(s)","stats");
     if (env.fault_occurred) {
       rc = env.fault_code;
       TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " output:" << env.fault_string;
@@ -411,20 +432,25 @@ shm_nbb :250:2306872:246:4:0:0
 int TEquipmentNode::ReadDataReceiverMetrics(const ArtdaqComponent_t* Ac) {
   
   // two words per process - N(segments/sec) and the data rate, MB/sec
-  int           rc(0);
-  xmlrpc_env    env;
-  xmlrpc_value* resultP;
+  int            rc(0);
+  xmlrpc_env     env;
+  xmlrpc_value*  resultP;
+  xmlrpc_client* clientP;
 
-  EbMetrics_t   drm;
+  EbMetrics_t    drm;
   
-  xmlrpc_env_init(&env);
   const char* url = Ac->xmlrpc_url.data();
   TLOG(TLVL_DEBUG+1) << "000: Url:" << url;
 
   std::string res;
 
   try {
-    resultP = xmlrpc_client_call(&env,url,"daq.report","(s)","stats");
+    xmlrpc_env_init(&env);
+    xmlrpc_client_create(&env, XMLRPC_CLIENT_NO_FLAGS, "read_dr_metrics", "0.1", NULL,0,&clientP);
+    int timeout_ms(1000);
+    xmlrpc_client_event_loop_finish_timeout(clientP, timeout_ms);
+
+    xmlrpc_client_call2f(&env,clientP,url,"daq.report",&resultP, "(s)","stats");
     if (env.fault_occurred) {
       TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " " << env.fault_string;
       rc = env.fault_code;
