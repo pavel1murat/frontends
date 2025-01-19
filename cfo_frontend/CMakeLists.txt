@@ -36,7 +36,7 @@ cet_set_compiler_flags(
 
 cet_make_exec(NAME      cfo_emu_frontend
               SOURCE    cfo_emu_frontend.cc 
-                        cfo_emu_driver.cc
+                        # cfo_emu_driver.cc
                         # ../utils/my_mfe.cxx
                         ${MIDAS_INSTALL_DIR}/drivers/bus/null.cxx
               LIBRARIES frontends_utils 

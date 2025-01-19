@@ -58,20 +58,23 @@ INT cfo_driver_init(HNDLE hkey, CFO_DRIVER_INFO **pinfo, INT channels, func_t *b
   cm_get_experiment_database(&hDB, NULL);
   OdbInterface* odb_i = OdbInterface::Instance(hDB);
 
-  HNDLE h_active_run_conf   = odb_i->GetActiveRunConfigHandle();
-  active_run_conf           = odb_i->GetRunConfigName(h_active_run_conf);
-  HNDLE       h_cfo_conf    = odb_i->GetCFOConfHandle(h_active_run_conf);
+  HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
+  active_run_conf             = odb_i->GetRunConfigName(h_active_run_conf);
+  HNDLE       h_cfo_conf      = odb_i->GetCFOConfHandle(h_active_run_conf);
 
-  int         external      = odb_i->GetCFOExternal       (hDB,h_cfo_conf);
-  int         n_ewm_per_sec = odb_i->GetCFONEventsPerTrain(hDB,h_cfo_conf);
-  int         pcie_addr     = odb_i->GetPcieAddress       (hDB,h_cfo_conf);
+  int         enabled         = odb_i->GetEnabled           (h_cfo_conf);
+  int         pcie_addr       = odb_i->GetPcieAddress       (hDB,h_cfo_conf);
+  // int         emulated_mode   = odb_i->GetCFOEmulatedMode   (h_cfo_conf);
+  int         n_ewm_per_train = odb_i->GetCFONEventsPerTrain(h_cfo_conf);
+  int         first_ew_tag    = odb_i->GetFirstEWTag        (h_cfo_conf);
+  int         ew_length       = odb_i->GetEWLength          (h_cfo_conf);
 //-----------------------------------------------------------------------------
 // create DTC_DRIVER settings record - what is that already exists ? - not overwritten?
 // assume index = 0 corresponds to the PCIE card address=0
 //------------------------------------------------------------------------------
   char str[1000];
 
-  sprintf(str,CFO_DRIVER_SETTINGS_STR,pcie_addr,external,n_ewm_per_sec);
+  sprintf(str,CFO_DRIVER_SETTINGS_STR,pcie_addr,enabled,ew_length,n_ewm_per_train,first_ew_tag);
   status = db_create_record(hDB, hkey, "DD", str);
 
   if (status != DB_SUCCESS)                                 return FE_ERR_ODB;

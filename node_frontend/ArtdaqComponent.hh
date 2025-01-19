@@ -19,6 +19,8 @@ struct ArtdaqComponent_t {
   std::string   xmlrpc_url;
   int           subsystem;
   int           n_fragment_types;
+  int           enabled;
+  int           status;
 };
 
 #endif
