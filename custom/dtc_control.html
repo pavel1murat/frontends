@@ -42,7 +42,15 @@ tr:nth-child(even) {
 body {font-family: Arial;}
 
 #myDIV {
-    padding   : 20px;
+    padding   : 10px;
+    height    : 450px;
+    width     : 60% ; /* 600px; */
+    overflow  : auto;
+    background: #bdb;
+}
+
+#roc_tabs {
+    padding   : 10px;
     height    : 380px;
     width     : 60% ; /* 600px; */
     overflow  : auto;
@@ -50,6 +58,13 @@ body {font-family: Arial;}
 }
 
 #content {
+/*  margin: 40%; */
+/*  height: 300px; */
+/*  width:  400px; */
+  background-color: #bdb;
+}
+
+#roc_content {
 /*  margin: 40%; */
 /*  height: 300px; */
 /*  width:  400px; */
@@ -69,7 +84,7 @@ body {font-family: Arial;}
   border    : none;
   outline   : none;
   cursor    : pointer;
-  padding   : 12px 12px;
+  padding   : 10px 10px;
   transition: 0.3s;
   font-size : 14px;
 }
@@ -110,6 +125,7 @@ body {font-family: Arial;}
 //-----------------------------------------------------------------------------
       let g_hostname = 'undefined';
       let g_pcie     = 0;
+      let g_roc      = 0;
 //-----------------------------------------------------------------------------
 // CFO frontend : the name shoudl be fixed! 
 //-----------------------------------------------------------------------------
@@ -123,7 +139,7 @@ body {font-family: Arial;}
           const el = document.getElementById("content");
           el.innerHTML += y;
           el.style.fontFamily = 'monospace';
-          el.scrollIntoView();
+          el.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
         }).catch(function(error){
           mjsonrpc_error_alert(error);
@@ -131,16 +147,19 @@ body {font-family: Arial;}
       }
 //-----------------------------------------------------------------------------
       function dtc_command(cmd,pcie) {
-        let msg = { "client_name":g_hostname, "cmd":cmd, "args":'{"pcie":'+g_pcie.toString()+'}'};
+        let msg = { "client_name":g_hostname, "cmd":cmd, "args":'{"pcie":'+g_pcie.toString()+',"roc":'+g_roc.toString()+'}'};
         mjsonrpc_call("jrpc",msg).then(function(rpc1) {
-          let s = rpc1.result.reply;
-          const regex = /\n/gi
-          let y = s.replaceAll(regex,'<br>');
+          let s = rpc1.result.reply
+          console.log(s.length);
+          let y = '<br>'+s.replaceAll(/\n/gi,'<br>').replace(/ /g, '&nbsp;');
 
           const el = document.getElementById("content");
           el.innerHTML += y;
           el.style.fontFamily = 'monospace';
-          el.scrollIntoView();
+          // el.scrollIntoView();
+          const scrollToBottom = (id) => {
+            el.scrollTop = el.scrollHeight;
+          }
 
         }).catch(function(error){
           mjsonrpc_error_alert(error);
@@ -158,6 +177,19 @@ body {font-family: Arial;}
 
         if (dtc_id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
         console.log('g_pcie=',g_pcie);
+      }
+//-----------------------------------------------------------------------------      
+      function choose_roc_id(evt, roc_id) {
+        var i, roctabs;
+        roctabs = document.getElementsByClassName("roctabs");
+        for (i=0; i<roctabs.length; i++) {
+          roctabs[i].className = roctabs[i].className.replace(" active", "");
+        }
+        document.getElementById(roc_id).style.display = "block";
+        evt.currentTarget.className += " active";
+
+        g_roc = Number(roc_id.charAt(3));
+        console.log('g_roc=',g_roc);
       }
 //-----------------------------------------------------------------------------
 // createTable
@@ -222,18 +254,15 @@ body {font-family: Arial;}
           tbody.appendChild(row);
         }
 //-----------------------------------------------------------------------------
-//  create command table
+//  create DTC commands table
 //-----------------------------------------------------------------------------
-        const com_table_title  = document.getElementById('commands-table-title');
-//        com_table_title.innerHTML = 'commands for DTC at PCIE:'+pcie;
+        const dtc_com_table     = document.getElementById('dtc_commands');
 
-        const com_table     = document.getElementById('commands');
-
-        com_table.innerHTML = `
-<div class="tab">
+        dtc_com_table.innerHTML = `
+        <div class="tab">
                  <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">PCIE:0</button>
                  <button class="tablinks" id="dtc1" onclick="choose_dtc_id(event,'dtc1')">PCIE:1</button>
-</div>
+        </div>
         <tr>
           <th <div class="mtableheader" colspan=4> DTC Control Commands </div> </th> 
         </tr>
@@ -253,82 +282,130 @@ body {font-family: Arial;}
         </tr>
         <tr>
           <td>
-            write register
+            <input type=button value='write DTC register' onClick='dtc_command("dtc_write_register",${g_pcie})'>
           </td>
           <td>
-            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Register" data-odb-editable="1" data-format="%x"> </div>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Register" data-odb-editable="1" data-format="%x"></div>
           </td>
           <td>
             <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Value" data-odb-editable="1"  data-format="%x"></div>
           </td>
-          <td>
-            <input type=button value='Run' onClick='dtc_command("dtc_write_register",${g_pcie})'>
-          </td>
+          <td> </td>
         <tr>
-          <td> read DTC register </td>
+          <td><input type=button value='read DTC register' onClick='dtc_command("dtc_read_register",${g_pcie})'></td>
           <td>
-            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Register" data-odb-editable="1" data-format="%x"> </div>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Register" data-odb-editable="1" data-format="%x"></div>
           </td>
           <td>
             <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Value" data-format="%x"></div>
           </td>
-          <td>
-            <input type=button value='Run' onClick='dtc_command("dtc_read_register",${g_pcie})'>
-          </td>
+          <td> </td>
         </tr>
         <!--   --------------------------      DTC print status  -->
         <tr>
-          <td> DTC print status</td>
+          <td>
+            <input type=button value='DTC print status' onClick='dtc_command("dtc_print_status",${g_pcie})'>
+            <input type=button value='DTC print ROC status' onClick='dtc_command("dtc_print_roc_status",${g_pcie})'>
+          </td>
           <td> </td>
           <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_status",${g_pcie})'> </td>
-        </tr>
-        <!--   --------------------------      DTC print ROC status  -->
-        <tr>
-          <td> DTC print ROC status</td>
           <td> </td>
-          <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_roc_status",${g_pcie})'> </td>
         </tr>
         <!--   --------------------------      DTC soft reset  -->
         <tr>
-          <td> DTC soft reset</td>
-          <td> </td>
-          <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_soft_reset",${g_pcie})'> </td>
+          <td>
+            <input type=button value='DTC soft reset' onClick='dtc_command("dtc_soft_reset",${g_pcie})'>
+            <input type=button value='DTC hard reset' onClick='dtc_command("dtc_hard_reset"),${g_pcie}'>
+          </td>
+          <td></td>
+          <td></td>
+          <td></td>
         </tr>
-        <!--   --------------------------      DTC hard reset  -->
+        <!--   --------------------------      DTC Init Readout -->
         <tr>
-          <td> DTC hard reset</td>
+          <td>
+            <input type=button value='Init Readout' onClick='dtc_command("dtc_init_readout",${g_pcie})'>
+            <input type=button value='CFO launch run plan' onClick='cfo_command("cfo_launch_run_plan",${g_pcie})'>
+          </td>
           <td> </td>
           <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_hard_reset"),${g_pcie}'> </td>
+          <td> </td>
         </tr>
-        <!--   --------------------------      DTC hard reset  -->
+        <!--   --------------------------      DTC read subevents  -->
         <tr>
-          <td> Init Readout </td>
+          <td>
+            <input type=button value='DTC read subevents' onClick='dtc_command("dtc_read_subevents",${g_pcie})'>
+          </td>
           <td> </td>
           <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_init_readout",${g_pcie})'> </td>
+          <td> </td>
         </tr>
         <!--   --------------------------      control roc read  -->
         <tr>
-          <td> control_ROC_read</td>
-          <td></td>
-          <td></td>
-          <td><input type=button value='Run' onClick='dtc_command("dtc_control_roc_read",${g_pcie})'> </td>
-        </tr>
-        <!--   --------------------------      control roc read  -->
-        <tr>
-          <td> CFO_launch_run_plan</td>
-          <td></td>
-          <td></td>
-          <td><input type=button value='Run' onClick='cfo_command("cfo_launch_run_plan",${g_pcie})'> </td>
+          <td> <input type=button value='control_ROC_read' onClick='dtc_command("dtc_control_roc_read",${g_pcie})'></td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
         </tr>
       </tbody>
          `;
         
-        const com_tbody = com_table.querySelector("tbody");
+        const com_tbody = dtc_com_table.querySelector("tbody");
+//-----------------------------------------------------------------------------
+//  create ROC commands table
+//-----------------------------------------------------------------------------
+        const roc_com_table     = document.getElementById('roc_commands');
+
+        roc_com_table.innerHTML = `
+        <tbody>
+        <tr>
+          <th <div class="mtableheader" colspan=3> ROC Control Commands </div> </th> 
+        </tr>
+        <tr>
+          <td>
+            Command
+          </td>
+          <td>
+            <div> Register </div>
+          </td>
+          <td>
+            <div> Value</div>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <input type=button value='write ROC register' onClick='dtc_command("write_roc_register")'>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Value" data-odb-editable="1"  data-format="%x"></div>
+          </td>
+        <tr>
+          <td><input type=button value='read ROC register' onClick='dtc_command("read_roc_register")'></td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Value" data-format="%x"></div>
+          </td>
+        </tr>
+        <tr>
+          <td><input type=button value='reset ROC' onClick='dtc_command("reset_roc")'></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><input type=button value='print ROC status' onClick='dtc_command("print_roc_status")'></td>
+          <td></td>
+          <td></td>
+        </tr>
+
+
+        </tbody>
+        `;      
 //-----------------------------------------------------------------------------
 //  end
 //-----------------------------------------------------------------------------
@@ -345,8 +422,12 @@ body {font-family: Arial;}
     <div id="mheader"></div>
     <div id="msidenav"></div>
     <div id="mmain">
+
+<!-- ---------------- row 1: DTC registers - are they needed?  and the output field ----------------  -->
+      
       <div class="row">
         <h1 id="table-title">DTC </h1>
+        
         <div class="column">
           <table class="mtable">
             <!-- Table content is generated dynamically -->
@@ -354,17 +435,40 @@ body {font-family: Arial;}
         </div>
 
         <div id="myDIV">
-          <div id="content"> <!-- the field for output -->
+          <div id="content"> 
           </div>
         </div>
 
       </div>
 
-      <div class="column">
-        <table class="mtable" id="commands">
-          <!-- Table content is generated dynamically -->
-        </table>
+<!-- ---------------- row 2: DTC commands and ROC commands ----------------  -->
+      
+      <div class="row">
+        <div class="column">
+          <table class="mtable" id="dtc_commands">
+            <!-- Table content is generated dynamically -->
+          </table>
+        </div>
+
+        <div class="column">
+
+          <div class="tab">
+            <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
+            <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
+            <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
+            <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
+            <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
+            <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
+          </div>
+
+          <table class="mtable" id="roc_commands">
+            <!-- Table content is generated dynamically -->
+          </table>
+        </div>
+
+
       </div>
+      
     </div>
 
   </body>

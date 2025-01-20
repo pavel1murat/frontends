@@ -96,6 +96,7 @@ namespace mu2e {
     std::string                           _host_label;
     std::string                           _full_host_name;
     std::string                           _tfmHost;            // used to send xmlrpc messages to
+    int                                   _partition_id;
 
     HNDLE                                 _hBoardreader;       // boardreader handle in ODB, hopefully doesn't change
 //-----------------------------------------------------------------------------
@@ -231,6 +232,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 // TFM host name - on the private network
 //-----------------------------------------------------------------------------
   _tfmHost                    = odb_i->GetTfmHostName  (h_active_run_conf);
+  _partition_id               = odb_i->GetPartitionID  (h_active_run_conf);
 
   std::string private_subnet  = odb_i->GetPrivateSubnet(h_active_run_conf);
   std::string public_subnet   = odb_i->GetPublicSubnet (h_active_run_conf);
@@ -308,8 +310,10 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   _dtc_i->PrintRocStatus();
 //-----------------------------------------------------------------------------
 // finally, initialize the environment for the XML-RPC messaging client
+// use ARTDAQ port numbering convention
 //-----------------------------------------------------------------------------
-  _xmlrpcUrl = "http://" + _tfmHost + ":" + std::to_string((10000 +1000 * GetPartitionNumber()))+"/RPC2";
+  int rpc_port = 10000+1000*_partition_id;
+  _xmlrpcUrl   = "http://" + _tfmHost + ":" + std::to_string(rpc_port)+"/RPC2";
   xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS, "debug", "v1_0");
   xmlrpc_env_init(&_env);
 

@@ -81,11 +81,14 @@ TMFeResult TEquipmentNode::InitArtdaq() {
 //                   dsxx - dispatchers
 //-----------------------------------------------------------------------------
     db_get_key(hDB, h_component, &component);
-    printf("Subkey %d: %s, Type: %d\n", i, component.name, component.type);
+    TLOG(TLVL_DEBUG) << "i:" << i
+                     << " component.name:" << component.name
+                     << " component.type:" << component.type;
 //------------------------------------------------------------------------------
-// "Artdaq" is a folder, not a configuration element, so the next line is not needed
+// "Artdaq" can also be disabled - on a node ? or want a global flag ?
+// stay with local for now...
 //-----------------------------------------------------------------------------
-//    if ((strcmp(component.name,"Enabled") == 0) or (strcmp(component.name,"Status") == 0)) continue;
+    if ((strcmp(component.name,"Enabled") == 0) or (strcmp(component.name,"Status") == 0)) continue;
 
     ArtdaqComponent_t ac;
 

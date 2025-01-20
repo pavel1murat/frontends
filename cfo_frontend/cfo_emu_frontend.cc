@@ -56,8 +56,9 @@ int             _cfo_running;
 //-----------------------------------------------------------------------------
 namespace {
   class FeName {
-    std::string name;
   public:
+    std::string name;
+
     FeName() { 
       name         += "cfo_emu_fe";
       frontend_name = name.data();  // frontend_name is a global variable
@@ -66,9 +67,7 @@ namespace {
 //-----------------------------------------------------------------------------
 // need to figure how to get name, but that doesn't seem overwhelmingly difficult
 //-----------------------------------------------------------------------------
-  FeName         xx;
-  //  DEVICE_DRIVER  mon_driver[2];
-
+  FeName                _frontend;
   OdbInterface*         _odb_i          (nullptr);
   HNDLE                 _h_active_run_conf ;
   HNDLE                 _h_cfo ;
@@ -80,7 +79,7 @@ namespace {
   int                   _sleep_time_ms;
   trkdaq::DtcInterface* _dtc_i(nullptr);
                                               // redirect output to a file
-  std::ofstream         _out;
+  std::ofstream         _fout;
   std::streambuf*       _coutbuf;
 }
 
@@ -106,18 +105,19 @@ int init_cfo_parameters() {
 //-----------------------------------------------------------------------------
 // get a pointer to the underlying interface to DTC and initialize its parameters
 //-----------------------------------------------------------------------------
-  _dtc_i         = trkdaq::DtcInterface::Instance(_pcie_addr,0,true);
+  bool skip_init = true;
+  _dtc_i         = trkdaq::DtcInterface::Instance(_pcie_addr,0,skip_init);
   int event_mode = _odb_i->GetEventMode(_h_active_run_conf);
   _dtc_i->SetEventMode(event_mode);
 
-  _dtc_i->fDtcID          = _odb_i->GetDtcID(hDB,h_dtc);
-  _dtc_i->fLinkMask       = _odb_i->GetDtcLinkMask(h_dtc);
   _dtc_i->fPcieAddr       = _pcie_addr;
-  _dtc_i->fEnabled        = _odb_i->GetEnabled    (h_dtc);
-  _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(hDB,h_dtc);
+  _dtc_i->fDtcID          = _odb_i->GetDtcID            (h_dtc);
+  _dtc_i->fLinkMask       = _odb_i->GetDtcLinkMask      (h_dtc);
+  _dtc_i->fEnabled        = _odb_i->GetEnabled          (h_dtc);
+  _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_dtc);
   _dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode(_h_active_run_conf);
-  _dtc_i->fJAMode         = _odb_i->GetDtcJAMode(hDB,h_dtc);
-  _dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte(hDB,h_dtc);
+  _dtc_i->fJAMode         = _odb_i->GetDtcJAMode        (h_dtc);
+  _dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte   (h_dtc);
   
   TLOG(TLVL_DEBUG) << "active_run_conf:" << active_run_conf
                    << " hDB : " << hDB   << " _h_cfo: " << _h_cfo
@@ -175,6 +175,7 @@ INT frontend_init() {
 //-----------------------------------------------------------------------------
 // get command line arguments - perhaps can use that one day
 //-----------------------------------------------------------------------------
+  TLOG(TLVL_DEBUG) << "--- START";
   mfe_get_args(&argc,&argv);
 //-----------------------------------------------------------------------------
 // figure out the active configuration from ODB 0 
@@ -192,7 +193,7 @@ INT frontend_init() {
 
   cm_register_function(RPC_JRPC, rpc_callback);
 
-  std::string odir = _odb_i->GetString(0,"/Mu2e/OutpuDir");
+  std::string odir = _odb_i->GetOutputDir();
   
   char   tstamp[128], fname[256];
   time_t now = time(NULL);
@@ -200,17 +201,17 @@ INT frontend_init() {
   struct tm* tinfo;
   tinfo = localtime (&now);
   
-  strftime(tstamp,sizeof(tstamp), "%Y-%m-%d_%H-%M-%S.log",tinfo);
+  strftime(tstamp,sizeof(tstamp), "%Y-%m-%d_%H-%M-%S",tinfo);
 
-  sprintf(fname,"%s/logs/cfo/%s.log",odir.data(),tstamp);
+  sprintf(fname,"%s/logs/cfo/%s.%s.log",_frontend.name.data(),odir.data(),tstamp);
  
-  _out.open(fname);
+  _fout.open(fname);
   _coutbuf = std::cout.rdbuf(); //save old buf
   
-  std::cout.rdbuf(_out.rdbuf()); //redirect std::cout to out.txt!
+  std::cout.rdbuf(_fout.rdbuf()); //redirect std::cout to out.txt!
 
   
-  TLOG(TLVL_DEBUG) << "END";
+  TLOG(TLVL_DEBUG) << "--- END";
   return CM_SUCCESS;
 }
 
@@ -219,9 +220,9 @@ INT frontend_init() {
 int cfo_emu_launch_run_plan(char *pevent, int) {
   TLOG(TLVL_DEBUG+1) << "START" ;
 
-  TLOG(TLVL_DEBUG) << " _ew_length:"     << _ew_length
-                   << "_n_ewm_train:"    << _n_ewm_train
-                   << " _first_ts:"      << _first_ts;
+  TLOG(TLVL_DEBUG+1) << " _ew_length:"     << _ew_length
+                     << "_n_ewm_train:"    << _n_ewm_train
+                     << " _first_ts:"      << _first_ts;
   
   _dtc_i->LaunchRunPlanEmulatedCfo(_ew_length,_n_ewm_train+1,_first_ts);
   _first_ts += _n_ewm_train;
@@ -249,7 +250,7 @@ INT interrupt_configure(INT cmd, INT source, POINTER_T adr) {
 INT frontend_exit() {
   TLOG(TLVL_DEBUG+2) << "called";
   
-  _out.close();
+  _fout.close();
   std::cout.rdbuf(_coutbuf);            //reset to standard output again
   return CM_SUCCESS;
 }
@@ -275,13 +276,17 @@ INT frontend_loop() {
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT run_number, char *error) {
 
-  TLOG(TLVL_DEBUG) << "BEGIN RUN " << run_number;
+  TLOG(TLVL_DEBUG) << "--- START run:" << run_number;
 
   int rc = init_cfo_parameters();
   cfo_emu_frontend::running = 1;
 
   if (rc < 0) TLOG(TLVL_ERROR) << "rc(init_cfo_parameters):" << rc;
 
+  _dtc_i->PrintStatus();
+  _dtc_i->PrintRocStatus();
+
+  TLOG(TLVL_DEBUG) << "--- END run: " << run_number;
   return CM_SUCCESS;
 }
 

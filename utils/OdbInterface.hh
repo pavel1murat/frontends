@@ -20,6 +20,7 @@ public:
   int         GetEnabled              (HNDLE h_Conf); //
   int         GetStatus               (HNDLE h_Conf); //
 
+  std::string GetOutputDir            ();
   HNDLE       GetActiveRunConfigHandle();
   //  int         GetArtdaqPartition      ();
 
@@ -60,14 +61,13 @@ public:
 
   int         GetCFOSleepTime         (HNDLE h_CFO);
    
-  int         GetDtcEnabled       (HNDLE h_DB, HNDLE h_Card); // card: DTC
-  int         GetDtcEmulatesCfo   (HNDLE h_DB, HNDLE h_Card); // card: DTC
-  int         GetDtcID            (HNDLE h_DB, HNDLE h_Card); // card: DTC
-  int         GetDtcJAMode        (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcEmulatesCfo   (HNDLE h_Card); // card: DTC
+  int         GetDtcID            (HNDLE h_Card); // card: DTC
+  int         GetDtcJAMode        (HNDLE h_Card); // card: DTC
   int         GetDtcLinkMask      (HNDLE h_Card);             // card: DTC
-  int         GetDtcMacAddrByte   (HNDLE h_DB, HNDLE h_Card); // card: DTC
+  int         GetDtcMacAddrByte   (HNDLE h_Card); // card: DTC
   int         GetDtcPcieAddress   (HNDLE h_Card);             // card: DTC
-  int         GetDtcSampleEdgeMode(HNDLE h_DB, HNDLE h_Card); // 0:force rising; 1: force falling; 2:auto
+  int         GetDtcSampleEdgeMode(HNDLE h_Card);  // 0:force rising; 1: force falling; 2:auto
   int         GetIsCrv            (HNDLE h_Card);
 
   int         GetPcieAddress      (HNDLE h_DB, HNDLE h_Card); // card: either CFO or DTC
@@ -77,8 +77,6 @@ public:
 //                            2: fixed length ROC patterns
 // hDetConf : detector configuration handle 
 //-----------------------------------------------------------------------------
-  std::string GetOutputDir        (HNDLE h_DB);
-
   int         GetRocReadoutMode   (HNDLE hDetConf); 
 
   HNDLE       GetRunConfigHandle  (HNDLE h_DB, std::string& RunConf);

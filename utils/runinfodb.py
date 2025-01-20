@@ -69,13 +69,13 @@ class RuninfoDB:
                                 port     = self.port())
 
         if conn.status == extensions.STATUS_READY:
-          print("Connection is active and ready.")
+            TRACE.TRACE(8,"Connection is active and ready.",TRACE_NAME);
         elif conn.status == extensions.STATUS_BEGIN:
-          print("A transaction is currently open.")
+            TRACE.TRACE(5,"A transaction is currently open.",TRACE_NAME);
         elif conn.status == extensions.STATUS_PREPARED:
-          print("Connection is in prepared state.")
+            TRACE.TRACE(5,"Connection is in prepared state.",TRACE_NAME);
         elif conn.status == extensions.STATUS_UNKNOWN:
-          print("Connection is in an unknown state.")
+            TRACE.TRACE(5,"Connection is in a unknown state.",TRACE_NAME);
 
         if (conn.status == extensions.STATUS_READY): 
             TRACE.TRACE(8, "success in connecting to Postgresql",TRACE_NAME);
@@ -163,11 +163,11 @@ class RuninfoDB:
 
         query = f"select max(run_number) from {self.schema()}.run_configuration;"
         self.execute_query(query)
-        print("run number = ",run_number)
+        # print("run number = ",run_number)
         row        = self.cur.fetchone()
-        print(row)
+        # print(row)
         run_number = int(row[0])
-        print("run_number ",run_number)
+        # print("run_number ",run_number)
 
         run_info_conditions = "unknown"
         query = (f"INSERT INTO {self.schema()}.run_condition(condition,commit_time)  VALUES ("
@@ -176,7 +176,7 @@ class RuninfoDB:
         self.execute_query(query)
         query = f"select max(condition_id) from {self.schema()}.run_condition;"
         self.execute_query(query)
-        print("condition id = ",condition_id)
+        # print("condition id = ",condition_id)
 #------------------------------------------------------------------------------
 # P.M. hopefully, these are going away
 # insert a new row in the run_condition table if 
@@ -226,7 +226,7 @@ class RuninfoDB:
 # instead of printing, store the next run number directly in ODB
 # MIDAS increments the next run number, so subtract one in advance
 #-------v----------------------------------------------------------------------
-        print("run number",run_number);
+        # print("run number",run_number);
         if (store_in_odb): 
             rc = self.client.odb_set("/Runinfo/Run number",run_number-1);
         return run_number 
@@ -247,16 +247,15 @@ def test1():
     # Initialize the RuninfoDB
     runinfo_db = RuninfoDB(midas_client=client,config_file=cfg_file);
 
-    print("back after creating RuninfoDB")
+    # print("back after creating RuninfoDB")
     
     # Call next_run_number
     try:
         next_run = runinfo_db.next_run_number(store_in_odb=True)
-        print(f"Next run number:{next_run}")
+        # print(f"Next run number:{next_run}")
     except Exception as e:
-        print(f"Error occurred: {e}")
+        TRACE.TRACE(4,"ERROR",TRACE_NAME) # print(f"Error occurred: {e}")
               
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
-
     test1()

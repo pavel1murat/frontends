@@ -85,6 +85,7 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 // init DTC reaout for a given mode at begin run
 // for now, assume that all DTCs are using the same ROC readout mode
 // if this assumption will need to be dropped, will do that
+// may want to change the link mask at begin run w/o restarting the frontend
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
 
@@ -101,15 +102,19 @@ TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
   if (handle_begin_run) {
     for (int i=0; i<2; i++) {
       mu2edaq::DtcInterface* dtc_i = fDtc_i[i];
+      HNDLE h_dtc = _h_dtc[dtc_i->fPcieAddr];
       if (dtc_i) {
-        dtc_i->fRocReadoutMode = roc_readout_mode;
         dtc_i->fEventMode      = event_mode;
+        dtc_i->fRocReadoutMode = roc_readout_mode;
+        dtc_i->fLinkMask       = _odb_i->GetDtcLinkMask(h_dtc);
+        dtc_i->fJAMode         = _odb_i->GetDtcJAMode  (h_dtc);
+        dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_dtc);
 //-----------------------------------------------------------------------------
 // HardReset erases the DTC link mask, restore it
 // also, release all buffers from the previous read - this is the initialization
 //-----------------------------------------------------------------------------
-        dtc_i->Dtc()->HardReset();
-        dtc_i->ResetLinks(0,1);
+        // 2025-01-19 PM dtc_i->Dtc()->HardReset();
+        // 2025-01-19 PM dtc_i->ResetLinks(0,1);
                                         // InitReadout performs some soft resets, ok for now
         dtc_i->InitReadout();
       }

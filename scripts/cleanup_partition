@@ -3,10 +3,10 @@
 partition=$1
 view_only="yes"; if [ ."$2" != "." ] ; then view_only=$2; fi
 
-list_of_processes=`ps -efl | grep partition | grep "partition_number: $partition" | grep -v cleanup_partition | grep -v grep | awk '{print $4}'`
+list_of_processes=`ps -efl | grep partition | egrep "partition_number: $partition"\|"partition_$partition" | grep -v cleanup_partition | grep -v grep | awk '{print $4}'`
 if [ ."$list_of_processes" != "." ] ; then
     echo killing the followng:
-    ps -efl | grep partition | grep "partition_number: $partition" | grep -v cleanup_partition | grep -v grep
+    ps -efl | grep partition | egrep "partition_number: $partition"\|"partition_$partition" | grep -v cleanup_partition | grep -v grep
     if [ $view_only != "yes" ] ; then 
 	kill -9 $list_of_processes ;
 	echo done
