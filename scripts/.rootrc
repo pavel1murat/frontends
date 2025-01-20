@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------
 # assume HOSTNAME=`hostname -s`
 #------------------------------------------------------------------------------
-Unix.*.Root.MacroPath:.:$(SPACK_ENV)/otsdaq-mu2e-tracker/scripts
+Unix.*.Root.MacroPath:.:$(SPACK_ENV)/otsdaq-mu2e-tracker/scripts:$(SPACK_VIEW)/include
 
 Unix*.Root.DynamicPath:.:$(LD_LIBRARY_PATH):$(SPACK_VIEW)/lib/root
 Root.Html.OutputDir:.

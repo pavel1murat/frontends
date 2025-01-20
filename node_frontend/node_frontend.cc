@@ -30,7 +30,9 @@
 class NodeFrontend: public TMFrontend {
 public:
 
-  std::string   fName;
+  std::string            fName;
+  std::ofstream         _fout;
+  std::streambuf*       _coutbuf;
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------

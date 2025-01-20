@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <RunSequence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="">
-<ODBGet l="2" fn="/home/mu2etrk/test_stand/experiments/test_025/userfiles/sequencer/get_next_run_number.msl" path="/Mu2e/ActiveRunConfiguration/UseRunInfoDB">use_rundb</ODBGet>
-<If l="3" fn="/home/mu2etrk/test_stand/experiments/test_025/userfiles/sequencer/get_next_run_number.msl" condition="($use_rundb != 0)">
-<Script l="4" fn="/home/mu2etrk/test_stand/experiments/test_025/userfiles/sequencer/get_next_run_number.msl">get_next_run_number.py</Script>
+<ODBGet l="2" path="/Mu2e/ActiveRunConfiguration/UseRunInfoDB">use_rundb</ODBGet>
+<If l="3" condition="($use_rundb != 0)">
+<Script l="4">get_next_run_number.py</Script>
 </If>
 </RunSequence>

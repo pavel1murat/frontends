@@ -9,9 +9,12 @@
                                 // the line below tells rootcling where to look 
 				// for include files
 
-  gInterpreter->AddIncludePath(Form("%s/otsdaq-mu2e-tracker",gSystem->Getenv("SPACK_ENV" )));
-  gInterpreter->AddIncludePath(Form("%s/mu2e-pcie-utils"    ,gSystem->Getenv("SPACK_ENV" )));
-  gInterpreter->AddIncludePath(Form("%s/include/root"       ,gSystem->Getenv("SPACK_VIEW")));
+  gInterpreter->AddIncludePath(Form("%s/otsdaq-mu2e-tracker"     ,gSystem->Getenv("SPACK_ENV" )));
+  gInterpreter->AddIncludePath(Form("%s/mu2e-pcie-utils"         ,gSystem->Getenv("SPACK_ENV" )));
+  gInterpreter->AddIncludePath(Form("%s/include/root"            ,gSystem->Getenv("SPACK_VIEW")));
+  gInterpreter->AddIncludePath(Form("%s/include/frontends"       ,gSystem->Getenv("SPACK_VIEW")));
+  gInterpreter->AddIncludePath(Form("%s/include"                 ,gSystem->Getenv("SPACK_VIEW")));
 
   gInterpreter->ExecuteMacro("daq.C");
+
 }

@@ -250,44 +250,33 @@ std::string OdbInterface::GetRunConfigName(HNDLE hConf) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcEmulatesCfo(HNDLE hDB, HNDLE hDTC) {
+int OdbInterface::GetDtcEmulatesCfo(HNDLE hDTC) {
   const char* key {"EmulatesCFO"};
   INT   data(0);       // if not found, want all links to be disabled
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
   }
   return data;
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcEnabled(HNDLE hDB, HNDLE hDTC) {
-  const char* key {"Enabled"};
-  INT   data(0);       // if not found, want all links to be disabled
-  int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "not found, return " << data;
-  }
-  return data;
-}
-
-//-----------------------------------------------------------------------------
-int OdbInterface::GetDtcID(HNDLE hDB, HNDLE hNode) {
+int OdbInterface::GetDtcID(HNDLE hNode) {
   const char* key {"DtcID"};
   INT   data(-1);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hNode, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hNode, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "no DTC ID, return -1";
   }
   return data;
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcJAMode(HNDLE hDB, HNDLE hDTC) {
+int OdbInterface::GetDtcJAMode(HNDLE hDTC) {
   const char* key {"JAMode"};
   INT   data(0);       // if not found, want all links to be disabled
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "JAMode not found, return " << data;
   }
   return data;
@@ -298,18 +287,18 @@ int OdbInterface::GetDtcLinkMask(HNDLE hDTC) {
   const char* key {"LinkMask"};
   INT   data(0);       // if not found, want all links to be disabled
   int   sz = sizeof(data);
-  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_UINT32, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
   }
   return data;
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcMacAddrByte(HNDLE hDB, HNDLE hDTC) {
+int OdbInterface::GetDtcMacAddrByte(HNDLE hDTC) {
   const char* key {"MacAddrByte"};
   INT   data(0);       // if not found, want all links to be disabled
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
   }
   return data;
@@ -318,11 +307,11 @@ int OdbInterface::GetDtcMacAddrByte(HNDLE hDB, HNDLE hDTC) {
 //-----------------------------------------------------------------------------
 // assum hDTC is a DTC handle
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcSampleEdgeMode(HNDLE hDB, HNDLE hDTC) {
+int OdbInterface::GetDtcSampleEdgeMode(HNDLE hDTC) {
   const char* key {"SampleEdgeMode"};
   INT   data(-1);       // if not found, want to be meaningless
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << " not found, return: " << data;
   }
   return data;
@@ -481,8 +470,8 @@ int OdbInterface::GetOnSpill(HNDLE h_RunConf) {
 }
 
 //-----------------------------------------------------------------------------
-std::string OdbInterface::GetOutputDir(HNDLE hDB) {
-  return GetString(hDB,0,"Mu2e/OutputDir");
+std::string OdbInterface::GetOutputDir() {
+  return GetString(0,"Mu2e/OutputDir");
 }
 
 //-----------------------------------------------------------------------------

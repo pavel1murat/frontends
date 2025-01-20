@@ -14,14 +14,12 @@
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::InitDtc() {
   
-  int event_mode       = _odb_i->GetEventMode     (_h_active_run_conf);
-  int roc_readout_mode = _odb_i->GetRocReadoutMode(_h_active_run_conf);
   int skip_dtc_init    = _odb_i->GetSkipDtcInit   (_h_active_run_conf);
 
   HNDLE h_subkey;
   KEY   subkey;
 
-  TLOG(TLVL_DEBUG) << "----------- START";
+  TLOG(TLVL_DEBUG) << "--- START";
 
   for (int i=0; db_enum_key(hDB,_h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
 //-----------------------------------------------------------------------------
@@ -33,13 +31,17 @@ TMFeResult TEquipmentNode::InitDtc() {
     
     if (strstr(subkey.name,"DTC") != subkey.name)           continue;
     
-    int enabled          = _odb_i->GetDtcEnabled    (hDB,h_subkey);
+    int enabled          = _odb_i->GetEnabled       (h_subkey);
+    TLOG(TLVL_DEBUG) << "enabled:" << enabled;
+
     int pcie_addr        = _odb_i->GetDtcPcieAddress(h_subkey);
     int link_mask        = _odb_i->GetDtcLinkMask   (h_subkey);
-    
-    TLOG(TLVL_DEBUG) << "enabled:" << enabled << " link_mask:0x" <<std::hex << link_mask << " pcie_addr:" << pcie_addr; 
+    TLOG(TLVL_DEBUG) << "link_mask:0x" <<std::hex << link_mask << " pcie_addr:" << pcie_addr;
+
+    _h_dtc[pcie_addr]    = h_subkey;
     
     if (enabled) {
+
       // for now, disable re-initialization
       mu2edaq::DtcInterface* dtc_i = nullptr;
       if(_odb_i->GetIsCrv(h_subkey)) {
@@ -51,18 +53,18 @@ TMFeResult TEquipmentNode::InitDtc() {
         dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
       }
 
-      dtc_i->fDtcID          = _odb_i->GetDtcID(hDB,h_subkey);
       dtc_i->fLinkMask       = link_mask;
       dtc_i->fPcieAddr       = pcie_addr;
       dtc_i->fEnabled        = enabled;
+
+      dtc_i->fDtcID          = _odb_i->GetDtcID         (h_subkey);
+      dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte(h_subkey);
+      dtc_i->fEmulateCfo     = _odb_i->GetDtcEmulatesCfo(h_subkey);
         
-      dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(hDB,h_subkey);
-      dtc_i->fEmulateCfo     = _odb_i->GetDtcEmulatesCfo   (hDB,h_subkey);
-      
-      dtc_i->fEventMode      = event_mode;
-      dtc_i->fRocReadoutMode = roc_readout_mode;
-      dtc_i->fJAMode         = _odb_i->GetDtcJAMode(hDB,h_subkey);
-      dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte(hDB,h_subkey);
+      dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_subkey);
+      dtc_i->fEventMode      = _odb_i->GetEventMode        (_h_active_run_conf);
+      dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode   (_h_active_run_conf);
+      dtc_i->fJAMode         = _odb_i->GetDtcJAMode        (h_subkey);
 
       TLOG(TLVL_DEBUG) << "is_crv:"            << dtc_i->fIsCrv
                        << " roc_readout_mode:" << dtc_i->fRocReadoutMode
@@ -70,16 +72,16 @@ TMFeResult TEquipmentNode::InitDtc() {
                        << " event_mode:"       << dtc_i->fEventMode
                        << " emulate_cfo:"      << dtc_i->fEmulateCfo;
 //-----------------------------------------------------------------------------
-// reset ROCs on enabled links
+// don't reset ROCs on enabled links
 //-----------------------------------------------------------------------------
-      dtc_i->ResetLinks();
+      // dtc_i->ResetLinks();
       fDtc_i[pcie_addr]   = dtc_i;
     }
   }
 
   InitDtcVarNames();
   
-  TLOG(TLVL_DEBUG) << "----------- DONE";
+  TLOG(TLVL_DEBUG) << "--- END";
 
   return TMFeOk();
 }
@@ -90,7 +92,7 @@ TMFeResult TEquipmentNode::InitDtc() {
 void TEquipmentNode::InitDtcVarNames() {
   char dirname[256], var_name[128];
   
-  midas::odb::set_debug(true);
+  // midas::odb::set_debug(true);
 
   // SC TODO: I think we should define these together with the registers? 
   std::initializer_list<const char*> dtc_names = {"Temp", "VCCINT", "VCCAUX", "VCBRAM"};
