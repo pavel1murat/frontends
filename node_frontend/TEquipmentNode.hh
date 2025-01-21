@@ -75,9 +75,11 @@ public:
   virtual TMFeResult HandleResumeRun    (int RunNumber);
   virtual TMFeResult HandleStartAbortRun(int RunNumber);
   
-  TMFeResult         InitDtc            ();
-  void               InitDtcVarNames    ();
-  void               ReadDtcMetrics     ();
+  TMFeResult         InitDtc                ();
+  void               InitDtcVarNames        ();
+  void               ReadDtcMetrics         ();
+  // to be able to call it interactively
+  void               ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i);
 
   TMFeResult         InitArtdaq             ();
   void               InitArtdaqVarNames     ();

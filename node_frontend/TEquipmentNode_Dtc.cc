@@ -183,6 +183,36 @@ void TEquipmentNode::InitDtcVarNames() {
   midas::odb::set_debug(false);
 };
 
+
+//-----------------------------------------------------------------------------
+void TEquipmentNode::ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i) {
+  
+  std::string node_path = "/Equipment/"+TMFeEquipment::fEqName;
+
+  std::vector<uint32_t>  dtc_reg;
+  dtc_reg.reserve(DtcRegisters.size());
+        
+  for (const int reg : DtcRegisters) {
+    uint32_t dat;
+    Dtc_i->fDtc->GetDevice()->read_register(reg,100,&dat); 
+    dtc_reg.emplace_back(dat);
+  }
+
+  char buf[64];
+  
+  sprintf(buf,"%s/DTC%i",node_path.data(),Dtc_i->PcieAddr());
+      
+  TLOG(TLVL_DEBUG+1) << "N(DTC registers):" << DtcRegisters.size() << " buf:" << buf;
+        
+  midas::odb xx = {{"RegData",{1u}}};
+  xx.connect(buf);
+  xx["RegData"].resize(DtcRegisters.size());
+  xx["RegData"] = dtc_reg;
+
+  TLOG(TLVL_DEBUG+1) << "saved to:" << buf;
+}
+
+
 //-----------------------------------------------------------------------------
 void TEquipmentNode::ReadDtcMetrics() {
   char   text[200];
@@ -220,28 +250,9 @@ void TEquipmentNode::ReadDtcMetrics() {
         
         odb_dtc_tv[buf] = dtc_tv;
 //-----------------------------------------------------------------------------
-// non-history registers : dtr - "DTcRegisters"
+// non-history registers : 'dtr' = "DTcRegisters"
 //-----------------------------------------------------------------------------
-        std::vector<uint32_t>  dtc_reg;
-        dtc_reg.reserve(DtcRegisters.size());
-        
-        for (const int reg : DtcRegisters) {
-          uint32_t dat;
-          dtc_i->fDtc->GetDevice()->read_register(reg,100,&dat); 
-          dtc_reg.emplace_back(dat);
-        }
-
-        sprintf(buf,"%s/DTC%i",node_path.data(),idtc);
-      
-        TLOG(TLVL_DEBUG+1) << "N(DTC registers):" << DtcRegisters.size()
-                           << " buf:" << buf;
-        
-        midas::odb xx = {{"RegData",{1u}}};
-        xx.connect(buf);
-        xx["RegData"].resize(DtcRegisters.size());
-        xx["RegData"] = dtc_reg;
-
-        TLOG(TLVL_DEBUG+1) << "saved to:" << buf;
+        ReadNonHistDtcRegisters(dtc_i);
 //-----------------------------------------------------------------------------
 // for each enabled DTC, loop over its ROCs and read ROC registers
 // this part can depend on on the type of the ROC
