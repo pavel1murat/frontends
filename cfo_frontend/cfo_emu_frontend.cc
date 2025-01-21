@@ -100,7 +100,7 @@ int init_cfo_parameters() {
 // we know that this is an emulated CFO - get pointer to the corresponding DTC
 // an emulated CFO configuration includs a link to the DTC
 //-----------------------------------------------------------------------------
-  HNDLE h_dtc    = _odb_i->GetHandle     (hDB,_h_cfo,"DTC");
+  HNDLE h_dtc    = _odb_i->GetHandle     (_h_cfo,"DTC");
   _pcie_addr     = _odb_i->GetDtcPcieAddress(h_dtc);
 //-----------------------------------------------------------------------------
 // get a pointer to the underlying interface to DTC and initialize its parameters
@@ -120,7 +120,7 @@ int init_cfo_parameters() {
   _dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte   (h_dtc);
   
   TLOG(TLVL_DEBUG) << "active_run_conf:" << active_run_conf
-                   << " hDB : " << hDB   << " _h_cfo: " << _h_cfo
+                   << " _h_cfo: "        << _h_cfo
                    << " cfo_enabled: "   << _cfo_enabled
                    << " h_dtc:"          << h_dtc
                    << "_pcie_addr: "     << _pcie_addr ;
@@ -209,7 +209,6 @@ INT frontend_init() {
   _coutbuf = std::cout.rdbuf(); //save old buf
   
   std::cout.rdbuf(_fout.rdbuf()); //redirect std::cout to out.txt!
-
   
   TLOG(TLVL_DEBUG) << "--- END";
   return CM_SUCCESS;
@@ -217,20 +216,22 @@ INT frontend_init() {
 
 
 //-----------------------------------------------------------------------------
+// it looks that the periodic function is called no matter what...
+// need to protect
+//-----------------------------------------------------------------------------
 int cfo_emu_launch_run_plan(char *pevent, int) {
   TLOG(TLVL_DEBUG+1) << "START" ;
 
   TLOG(TLVL_DEBUG+1) << " _ew_length:"     << _ew_length
                      << "_n_ewm_train:"    << _n_ewm_train
-                     << " _first_ts:"      << _first_ts;
+                     << " _first_ts:"      << _first_ts
+                     << " running:"        << cfo_emu_frontend::running;
+
+  if (_n_ewm_train > 0) {
+    _dtc_i->LaunchRunPlanEmulatedCfo(_ew_length,_n_ewm_train+1,_first_ts);
+    _first_ts += _n_ewm_train;
+  }
   
-  _dtc_i->LaunchRunPlanEmulatedCfo(_ew_length,_n_ewm_train+1,_first_ts);
-  _first_ts += _n_ewm_train;
-
-  // at this point, the ROCs should see the EWMs
-
-  _dtc_i->PrintRocStatus();
-
   TLOG(TLVL_DEBUG+1) << "END" ;
   return 0;
 }
@@ -276,17 +277,17 @@ INT frontend_loop() {
 //-----------------------------------------------------------------------------
 INT begin_of_run(INT run_number, char *error) {
 
-  TLOG(TLVL_DEBUG) << "--- START run:" << run_number;
+  TLOG(TLVL_DEBUG) << "--- START, run:" << run_number;
 
   int rc = init_cfo_parameters();
   cfo_emu_frontend::running = 1;
 
   if (rc < 0) TLOG(TLVL_ERROR) << "rc(init_cfo_parameters):" << rc;
 
-  _dtc_i->PrintStatus();
-  _dtc_i->PrintRocStatus();
+  // _dtc_i->PrintStatus();
+  // _dtc_i->PrintRocStatus();
 
-  TLOG(TLVL_DEBUG) << "--- END run: " << run_number;
+  TLOG(TLVL_DEBUG) << "--- END, run:" << run_number;
   return CM_SUCCESS;
 }
 
