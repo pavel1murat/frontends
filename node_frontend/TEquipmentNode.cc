@@ -102,8 +102,8 @@ TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
   if (handle_begin_run) {
     for (int i=0; i<2; i++) {
       mu2edaq::DtcInterface* dtc_i = fDtc_i[i];
-      HNDLE h_dtc = _h_dtc[dtc_i->fPcieAddr];
       if (dtc_i) {
+        HNDLE h_dtc = _h_dtc[dtc_i->fPcieAddr];
         dtc_i->fEventMode      = event_mode;
         dtc_i->fRocReadoutMode = roc_readout_mode;
         dtc_i->fLinkMask       = _odb_i->GetDtcLinkMask(h_dtc);
