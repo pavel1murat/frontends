@@ -63,9 +63,10 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   trkdaq::DtcInterface* dtc_i = dynamic_cast<trkdaq::DtcInterface*>(fDtc_i[pcie_addr]);
   
   if (dtc_i == nullptr) {
-    std::string msg("DTC is not enabled");
-    TLOG(TLVL_ERROR) << msg << args;
-    return TMFeErrorMessage(msg+args);
+    ss << "DTC" << pcie_addr << " is not enabled";
+    response = ss.str();
+    TLOG(TLVL_ERROR) << response << args;
+    return TMFeErrorMessage(response+args);
   }
   
   if (strcmp(cmd,"dtc_control_roc_read") == 0) {
@@ -147,6 +148,12 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   else if (strcmp(cmd,"dtc_print_status") == 0) {
     try         { dtc_i->PrintStatus(ss); }
     catch (...) { ss << "ERROR : coudn't print status of the DTC ... BAIL OUT" << std::endl; }
+  }
+  else if (strcmp(cmd,"dtc_update_registers") == 0) {
+    try         {
+      ReadNonHistDtcRegisters(dtc_i);
+    }
+    catch (...) { ss << "ERROR : coudn't update DTC non-hist registers... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"dtc_print_roc_status") == 0) {
     try         { dtc_i->PrintRocStatus(1,-1,ss); }
