@@ -1,0 +1,599 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
+  "/filename" : "Commands.json",
+  "/ODB path" : "/Mu2e/Commands",
+
+  "Configure" : {
+    "#0/key" : { "type" : 12, "item_size" : 34, "access_mode" : 7, "last_written" : 1733525829 },
+    "#0" : "configures all enabled subsystems",
+    "#1/key" : { "type" : 12, "item_size" : 47, "access_mode" : 7, "last_written" : 1733525829 },
+    "#1" : "parameters, if needed, passed as a text string",
+    "#2/key" : { "type" : 12, "item_size" : 36, "access_mode" : 7, "last_written" : 1733525829 },
+    "#2" : "status of the last executed command",
+    "#------------------------------/key" : { "type" : 12, "item_size" : 47, "access_mode" : 7, "last_written" : 1733525829 },
+    "#------------------------------" : "----------------------------------------------",
+    "Run/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1733525829 },
+    "Run" : 1,
+    "Parameters/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1733525829 },
+    "Parameters" : "12 2 45",
+    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+    "Status" : -2,
+    "Tracker" : {
+      "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Run" : 2,
+      "Parameters/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1733525829 },
+      "Parameters" : "12 2 45",
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Status" : 0,
+      "Station00" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station01" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station02" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station03" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station04" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station05" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station06" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station07" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station08" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station09" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station10" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station11" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station12" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station13" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station14" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station15" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station16" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      },
+      "Station17" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "",
+        "Plane0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        },
+        "Plane1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 0,
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 0,
+          "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : ""
+        }
+      }
+    },
+    "DAQ" : {
+      "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Run" : 1,
+      "Parameters/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1733525829 },
+      "Parameters" : "12 2 45",
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Status" : 0,
+      "mu2edaq22" : {
+        "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Run" : 0,
+        "Parameters/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1733525829 },
+        "Parameters" : "12 2 45",
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+        "Status" : 0,
+        "DTC0" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 1,
+          "Parameters/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : "12 2 45",
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 1
+        },
+        "DTC1" : {
+          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Run" : 1,
+          "Parameters/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1733525829 },
+          "Parameters" : "12 2 45",
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+          "Status" : 1
+        }
+      }
+    },
+    "Calorimeter" : {
+      "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Run" : 0,
+      "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+      "Parameters" : "",
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Status" : 0
+    },
+    "CRV" : {
+      "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Run" : 0,
+      "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+      "Parameters" : "",
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Status" : 0
+    },
+    "EXM" : {
+      "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Run" : 0,
+      "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+      "Parameters" : "",
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Status" : 0
+    },
+    "STM" : {
+      "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Run" : 0,
+      "Parameters/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1733525829 },
+      "Parameters" : "",
+      "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+      "Status" : 0
+    }
+  },
+  "Generate FCL" : {
+    "#1 not implemented yet/key" : { "type" : 12, "item_size" : 47, "access_mode" : 7, "last_written" : 1733525829 },
+    "#1 not implemented yet" : "generate FCLs for active configuration",
+    "#------------------------------/key" : { "type" : 12, "item_size" : 47, "access_mode" : 7, "last_written" : 1733525829 },
+    "#------------------------------" : "----------------------------------------------",
+    "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+    "Run" : 0,
+    "Parameters/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1733525829 },
+    "Parameters" : "12 2 45",
+    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1733525829 },
+    "Status" : 0
+  },
+  "Tracker" : {
+    "DTC" : {
+      "control_ROC_read" : {
+        "version/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1737493717 },
+        "version" : 1,
+        "# -- comment:/key" : { "type" : 12, "item_size" : 47, "access_mode" : 7, "last_written" : 1736624372 },
+        "# -- comment:" : "--------  default: digi checkerboard (-a4 -p1)",
+        "adc_mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1735625773 },
+        "adc_mode" : "0x0004",
+        "tdc_mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1735625773 },
+        "tdc_mode" : "0x0000",
+        "num_lookback/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1735625773 },
+        "num_lookback" : "0x0008",
+        "num_triggers/key" : { "type" : 4, "num_values" : 2, "access_mode" : 7, "last_written" : 1735625773 },
+        "num_triggers" : [ "0x000a", "0x0000" ],
+        "ch_mask/key" : { "type" : 4, "num_values" : 6, "access_mode" : 7, "last_written" : 1735625773 },
+        "ch_mask" : [ "0xffff", "0xffff", "0xffff", "0xffff", "0xffff", "0xffff" ],
+        "num_samples/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1735625773 },
+        "num_samples" : "0x0001",
+        "enable_pulser/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1735625773 },
+        "enable_pulser" : "0x0001",
+        "max_total_delay/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1735625773 },
+        "max_total_delay" : "0x0000",
+        "marker_clock/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1735625773 },
+        "marker_clock" : "0x0003",
+        "mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1735625773 },
+        "mode" : "0x0000",
+        "clock/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1735625773 },
+        "clock" : "0x0063"
+      },
+      "write_register" : {
+        "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1736007733 },
+        "Register" : "0x00009114",
+        "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1736800619 },
+        "Value" : "0x00004505"
+      },
+      "read_register" : {
+        "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1737418215 },
+        "Register" : "0x000091a8",
+        "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1737421793 },
+        "Value" : "0x000003e8"
+      },
+      "write_roc_register" : {
+        "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 0 },
+        "Register" : "0x0000",
+        "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 0 },
+        "Value" : "0x0000"
+      },
+      "read_roc_register" : {
+        "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1737404815 },
+        "Register" : "0x0000",
+        "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1737419346 },
+        "Value" : "0x1234"
+      }
+    }
+  },
+  "shell" : {
+    "ls/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1736833327 },
+    "ls" : "ls"
+  }
+}
