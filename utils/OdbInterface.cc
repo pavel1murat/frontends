@@ -232,15 +232,11 @@ int OdbInterface::GetCFOSleepTime(HNDLE hCFO) {
 // }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetRunConfigHandle(HNDLE hDB, std::string& RunConf) {
-  char     key[200];
-  HNDLE    h;
+HNDLE OdbInterface::GetRunConfigHandle(std::string& RunConf) {
+  char     key[128];
   sprintf(key,"/Mu2e/RunConfigurations/%s",RunConf.data());
-	if (db_find_key(hDB, 0, key, &h) == DB_SUCCESS) return h;
-  else {
-    TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
-    return 0;
-  }
+
+  return GetHandle(0,key);
 }
 
 //-----------------------------------------------------------------------------
