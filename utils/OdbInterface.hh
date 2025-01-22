@@ -17,11 +17,15 @@ public:
 
   static OdbInterface*  Instance      (HNDLE h_DB);
 
+  std::string GetOutputDir();
+
   int         GetEnabled              (HNDLE h_Conf); //
   int         GetStatus               (HNDLE h_Conf); //
 
-  std::string GetOutputDir            ();
   HNDLE       GetActiveRunConfigHandle();
+  std::string GetRunConfigName        (HNDLE h_RunConf);
+  HNDLE       GetRunConfigHandle      (std::string& RunConf);
+
   //  int         GetArtdaqPartition      ();
 
   int         GetPartitionID          (HNDLE h_RunConf); //
@@ -78,9 +82,6 @@ public:
 // hDetConf : detector configuration handle 
 //-----------------------------------------------------------------------------
   int         GetRocReadoutMode   (HNDLE hDetConf); 
-
-  HNDLE       GetRunConfigHandle  (HNDLE h_DB, std::string& RunConf);
-  std::string GetRunConfigName    (HNDLE h_Conf);
 
   std::string GetPrivateSubnet    (HNDLE h_RunConf);
   std::string GetPublicSubnet     (HNDLE h_RunConf);
