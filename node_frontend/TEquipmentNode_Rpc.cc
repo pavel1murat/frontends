@@ -73,32 +73,52 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
 
     trkdaq::ControlRoc_Read_Input_t par;
-    // parameters should be taken from ODB - where from? 
-  
+    // parameters should be taken from ODB - where from?
+
+    par.version         = o["version"      ];
     par.adc_mode        = o["adc_mode"     ];   // -a
     par.tdc_mode        = o["tdc_mode"     ];   // -t 
     par.num_lookback    = o["num_lookback" ];   // -l 
-    par.num_samples     = o["num_samples"  ];   // -s
-    par.num_triggers[0] = o["num_triggers"][0]; // -T 10
-    par.num_triggers[1] = o["num_triggers"][1]; //
+
+    if (par.version == 1) {
+      par.v1.num_samples     = o["num_samples"  ];   // -s
+      par.v1.num_triggers[0] = o["num_triggers"][0]; // -T 10
+      par.v1.num_triggers[1] = o["num_triggers"][1]; //
         
-    par.ch_mask[0]      = o["ch_mask"][0];
-    par.ch_mask[1]      = o["ch_mask"][1];
-    par.ch_mask[2]      = o["ch_mask"][2];
-    par.ch_mask[3]      = o["ch_mask"][3];
-    par.ch_mask[4]      = o["ch_mask"][4];
-    par.ch_mask[5]      = o["ch_mask"][5];
+      par.v1.ch_mask[0]      = o["ch_mask"][0];
+      par.v1.ch_mask[1]      = o["ch_mask"][1];
+      par.v1.ch_mask[2]      = o["ch_mask"][2];
+      par.v1.ch_mask[3]      = o["ch_mask"][3];
+      par.v1.ch_mask[4]      = o["ch_mask"][4];
+      par.v1.ch_mask[5]      = o["ch_mask"][5];
         
-    par.enable_pulser   = o["enable_pulser"];   // -p 1
-    par.marker_clock    = o["marker_clock" ];   // -m 3
-    par.mode            = o["mode"         ];   // 
-    par.clock           = o["clock"        ];   // 
-    
+      par.v1.enable_pulser   = o["enable_pulser"];   // -p 1
+      par.v1.marker_clock    = o["marker_clock" ];   // -m 3
+      par.v1.mode            = o["mode"         ];   // 
+      par.v1.clock           = o["clock"        ];   //
+    }
+    else if (par.version == 2) {
+      par.v2.num_samples     = o["num_samples"  ];   // -s
+      par.v2.num_triggers[0] = o["num_triggers"][0]; // -T 10
+      par.v2.num_triggers[1] = o["num_triggers"][1]; //
+        
+      par.v2.ch_mask[0]      = o["ch_mask"][0];
+      par.v2.ch_mask[1]      = o["ch_mask"][1];
+      par.v2.ch_mask[2]      = o["ch_mask"][2];
+      par.v2.ch_mask[3]      = o["ch_mask"][3];
+      par.v2.ch_mask[4]      = o["ch_mask"][4];
+      par.v2.ch_mask[5]      = o["ch_mask"][5];
+        
+      par.v2.enable_pulser   = o["enable_pulser"];   // -p 1
+      par.v2.marker_clock    = o["marker_clock" ];   // -m 3
+      par.v2.mode            = o["mode"         ];   // 
+      par.v2.clock           = o["clock"        ];   //
+    }
+      
     printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
-    bool update_mask(false);
     int  print_level(0);
     try {
-      dtc_i->ControlRoc_Read(&par,-1,update_mask,print_level,ss);
+      dtc_i->ControlRoc_Read(&par,-1,print_level,ss);
     }
     catch(...) {
       ss << "ERROR : coudn't execute ControlRoc_Read ... BAIL OUT" << std::endl;
