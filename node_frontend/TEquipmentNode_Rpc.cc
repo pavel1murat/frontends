@@ -143,10 +143,9 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       int      timeout_ms(150);
       midas::odb o("/Mu2e/Commands/Tracker/DTC/write_register");
       uint32_t reg = o["Register"];
-      uint32_t val;
-      dtc_i->fDtc->GetDevice()->read_register(reg,timeout_ms,&val);
-      o["Value"] = val;
-      ss << " -- write_dtc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
+      uint32_t val = o["Value"];
+      ss << " -- write_dtc_register::0x" << std::hex << reg << " val:0x" << val << std::dec;
+      dtc_i->fDtc->GetDevice()->write_register(reg,timeout_ms,val);
     }
     catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }
   }
