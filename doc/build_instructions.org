@@ -8,8 +8,10 @@
 #+begin_src
 - git clone https://github.com/pavel1murat/spack_packages murat-spack
   spack repo add murat-spack
-
-  # keep using gcc 13.1.0 , problems otherwise
+#------------------------------------------------------------------------------
+# these instructions hold for teh environment based on artdaq v3_13_01
+#------------------------------------------------------------------------------
+# keep using gcc 13.1.0 , problems otherwise
 
   env_name=my_env                          # replace my_env with your own name
   spack env create   $env_name
@@ -27,8 +29,11 @@
   spack add canvas-root-io@1.13.06%gcc@13.1.0 cxxstd=20 # otherwise I see C++17 vs C++20 mismatch in art-root-io
 
   # with the latest version of artdaq, cant read the produced files in the offline
-  spack add artdaq@v3_13_01%gcc@13.1.0 
-  spack add otsdaq@develop%gcc@13.1.0     # needed by otsdaq-mu2e-tracker (which is @develop)
+  spack add artdaq@v3_13_01%gcc@13.1.0
+#------------------------------------------------------------------------------
+# otsdaq-mu2e-tracker/2025 has the build of FEInterfaces, the only part which depends on otsdaq, disabled
+#------------------------------------------------------------------------------
+  # spack add otsdaq@develop%gcc@13.1.0     # needed by otsdaq-mu2e-tracker (which is @develop)
 
   spack add otsdaq-mu2e-tracker@develop%gcc@13.1.0
   spack add elog@2024-09-25
@@ -42,7 +47,9 @@
   spack develop tfm@main%gcc@13.1.0
   spack develop midas@3.01.00%gcc@13.1.0~postgresql~sqlite~opencv
   spack develop otsdaq-mu2e-tracker@develop%gcc@13.1.0
-  pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2024; popd ;
+  pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2025       ; popd ;
+  pushd $env_name/otsdaq-mu2e-stm     ; git fetch --all; git checkout stm_develop; popd ;
+
   spack develop frontends@main%gcc@13.1.0
   
   spack add     emacs@29.3%gcc@13.1.0+X
