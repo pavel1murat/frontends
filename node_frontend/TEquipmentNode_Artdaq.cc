@@ -48,7 +48,6 @@ std::initializer_list<const char*>  DsVarName = {
 // init ODB structure no matter what
 TMFeResult TEquipmentNode::InitArtdaq() {
 //-----------------------------------------------------------------------------
-// ARTDAQ_PARTITION_NUMBER also comes from the active run configuration
 // get port number used by the TFM, don't assume the farm_manager is running locally
 // the frontend has to have its own xmlrpc URL,
 // TFM uses port           10000+1000*partition
@@ -109,16 +108,20 @@ TMFeResult TEquipmentNode::InitArtdaq() {
     else if (ac.name.find("eb") == 0) ac.type = kEventBuilder;
     else if (ac.name.find("dl") == 0) ac.type = kDataLogger;
     else if (ac.name.find("ds") == 0) ac.type = kDispatcher;
+
+    int x;
+    _odb_i->GetInteger(h_component,"XmlrpcPort",&x);
+    ac.xmlrpc_port = std::format("{}",x);
     
-    _odb_i->GetInteger(h_component,"XmlrpcPort"    ,&ac.xmlprc_port);
+    ac.subsystem   = _odb_i->GetString (h_component,"Subsystem");
+
     _odb_i->GetInteger(h_component,"Rank"          ,&ac.rank);
     // _odb_i->GetInteger(hDB,h_component,"Target"    ,&ac.target);
-    _odb_i->GetInteger(h_component,"Subsystem"     ,&ac.subsystem);
     _odb_i->GetInteger(h_component,"NFragmentTypes",&ac.n_fragment_types);
 
     // char url[100];
     // sprintf(url,"http://%s:%i/RPC2",_full_host_name.data(),ac.xmlprc_port);
-    ac.xmlrpc_url  = std::format("http://{}:{}/RPC2",_full_host_name,ac.xmlprc_port);
+    ac.xmlrpc_url  = std::format("http://{}:{}/RPC2",_full_host_name,ac.xmlrpc_port);
     
     _list_of_ac.push_back(ac);
   }

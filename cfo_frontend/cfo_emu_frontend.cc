@@ -227,7 +227,7 @@ int cfo_emu_launch_run_plan(char *pevent, int) {
                      << " _first_ts:"      << _first_ts
                      << " running:"        << cfo_emu_frontend::running;
 
-  if (_n_ewm_train > 0) {
+  if (cfo_emu_frontend::running and (_n_ewm_train > 0)) {
     _dtc_i->LaunchRunPlanEmulatedCfo(_ew_length,_n_ewm_train+1,_first_ts);
     _first_ts += _n_ewm_train;
   }

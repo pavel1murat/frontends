@@ -33,9 +33,7 @@ cet_make_exec(NAME      client
                         pthread rt util
 )                  
 
-install(PROGRAMS
-  tfm_launch_fe.py
-    DESTINATION bin)
+install(PROGRAMS tfm_fe.py DESTINATION bin)
 
 # install(FILES
 #         m_frontend.py

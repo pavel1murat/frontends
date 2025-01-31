@@ -14,10 +14,10 @@ struct ArtdaqComponent_t {
   std::string   name;
   int           type;
   int           rank;
-  int           xmlprc_port;
+  std::string   xmlrpc_port;
   int           target;
   std::string   xmlrpc_url;
-  int           subsystem;
+  std::string   subsystem;
   int           n_fragment_types;
   int           enabled;
   int           status;

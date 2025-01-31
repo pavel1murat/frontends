@@ -119,7 +119,7 @@ class RuninfoDB:
 #-----------------------------------------------------------------------------
     def next_run_number(self, store_in_odb):
 
-        TRACE.TRACE(8,"001 next_run_number",TRACE_NAME)
+        TRACE.TRACE(8,"--- start",TRACE_NAME)
         
         run_number              = -1;
         run_type                = -1;
@@ -134,19 +134,17 @@ class RuninfoDB:
 #-----------------------------------------------------------------------------
 # retrieve from ODB parameters to be stored in Postgresql
 #-------v---------------------------------------------------------------------
-        partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER");
-#-----------------------------------------------------------------------------
-# everything else comes from the active configuration
-#-------v---------------------------------------------------------------------
-        run_config_name = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name");
-        run_type        = self.client.odb_get("/Mu2e/ActiveRunConfiguration/RunType");
-        tt_name         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Trigger/Table");
-        hostname        = os.environ["HOSTNAME"]
-        context_name    = "test"
+        partition_number = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID');
+        run_config_name  = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name");
+        run_type         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/RunType");
+        tt_name          = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Trigger/Table");
+        hostname         = os.environ["HOSTNAME"]
+        TRACE.TRACE(8,f'run_config_name{run_config_name} run_type:{run_type} tt_name:{tt_name} hostname:{hostname}',TRACE_NAME)
 #-------------------------------------------------------------------------------
 # write run info into db
 #-  at this point run number in the DB gets incremented
 #-------v-----------------------------------------------------------------------
+        context_name       = "test"
         run_config_version = "1"
         tt_version         = "1"
         
@@ -155,7 +153,8 @@ class RuninfoDB:
                  f"context_name, context_version, online_software_version, "
                  f"trigger_table_name, trigger_table_version, commit_time) "
                  f"VALUES ('{run_type}','{condition_id}','{hostname}','{partition_number}','{run_config_name}',"
-                 f"'{run_config_version}','{context_name}','{context_version}','{online_software_version}','{tt_name}','{tt_version}',CURRENT_TIMESTAMP);"
+                 f"'{run_config_version}','{context_name}','{context_version}','{online_software_version}',"
+                 f"'{tt_name}','{tt_version}',CURRENT_TIMESTAMP);"
                  )
 
         TRACE.TRACE(8,"query=%s"%query,TRACE_NAME)
