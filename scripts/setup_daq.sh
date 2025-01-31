@@ -5,7 +5,9 @@
 #------------------------------------------------------------------------------
 spack_env="replace_with_your_default"; if [ $1 ] ; then spack_env=$1 ; fi
 
-if [ -z $MU2E_DAQ_DIR ] ; then  export MU2E_DAQ_DIR=$PWD; fi
+if [ -z $MU2E_DAQ_DIR ] ; then
+    export MU2E_DAQ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+fi
 #------------------------------------------------------------------------------
 # ensure uniform (short) interpretation of the hostname
 #------------------------------------------------------------------------------
