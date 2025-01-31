@@ -149,7 +149,7 @@ int db_runinfo::nextRunNumber(const char* RunConfiguration, int StoreInODB) { //
 
   int sz;
   sz = sizeof(partition_number);
-  db_get_value(hDB, 0, "/Mu2e/ARTDAQ_PARTITION_NUMBER", &partition_number, &sz, TID_INT, FALSE);
+  db_get_value(hDB, 0, "/Mu2e/ActiveRunConfiguration/DAQ/PartitionID", &partition_number, &sz, TID_INT, FALSE);
 //-----------------------------------------------------------------------------
 // everything else comes from the active configuration
 //-----------------------------------------------------------------------------

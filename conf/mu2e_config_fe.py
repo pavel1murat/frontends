@@ -55,13 +55,13 @@ class PeriodicEquipment(midas.frontend.EquipmentBase):
         # on the frontend_index - this is important so you can later 
         # distinguish/assemble the events.
         default_common = midas.frontend.InitialEquipmentCommon()
-        default_common.equip_type = midas.EQ_PERIODIC
-        default_common.buffer_name = "SYSTEM"
+        default_common.equip_type   = midas.EQ_PERIODIC
+        default_common.buffer_name  = "SYSTEM"
         default_common.trigger_mask = 0
-        default_common.event_id = 500 + midas.frontend.frontend_index
-        default_common.period_ms = 100
-        default_common.read_when = midas.RO_RUNNING
-        default_common.log_history = 1
+        default_common.event_id     = 500 + midas.frontend.frontend_index
+        default_common.period_ms    = 100
+        default_common.read_when    = midas.RO_RUNNING
+        default_common.log_history  = 1
 
         # These settings will appear in the ODB at
         # /Equipment/MyMultiPeriodicEquipment_1/Settings etc. The settings can
@@ -139,19 +139,14 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         # Whereas the C frontend system only allows one polled
         # equipment per frontend, the python system allows multiple.
         self.add_equipment(PeriodicEquipment(self.client))
-        
+       
 #------------------------------------------------------------------------------
 # elog configuration
 #-------v-----------------------------------------------------------------------
-        self.elog = json.loads(open("config/elog.json").read());
+        self.mu2e_config_dir = os.path.expandvars(self.client.odb_get('/Mu2e/ConfigDir'));
+        self.elog            = json.loads(open(f'{self.mu2e_config_dir}/elog.json').read());
 
-        print(self.elog);
-
-        # print("calling begin_of_run");
-        # self.begin_of_run(105122);
-        
-        # print("calling end_of_run");
-        # self.end_of_run(105122);
+        TRACE.TRACE(7,f'self.elog:{self.elog}',TRACE_NAME);
 #------------------------------------------------------------------------------
 # mu2e_config is called the latest - it sends BOR and EOR messages...
 #-----------------------------------------------------------------------------
@@ -163,9 +158,12 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         print("constructor end");
         
     def begin_of_run(self, run_number):
-        
-        config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
-        artdaq_partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER")
+#------------------------------------------------------------------------------
+# the configuration may change from one run to another,
+# don't need to restart this frontend only because of that
+#------------------------------------------------------------------------------
+        config_name  = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
+        partition_id = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
 
         # cmd = '~/products/elog/elog  -x -s -n 1 -h ' + self.elog["host"] + ' -p '+self.elog['port'] \
         cmd = "elog  -x -s -n 1 -h " + self.elog["host"] + " -p "+self.elog['port'] \
@@ -193,8 +191,8 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         
     def end_of_run(self, run_number):
 
-        config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
-        artdaq_partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER")
+        config_name  = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
+        partition_id = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
         
         message_id = self.elog['start_run_message_id'];
         # message_id = "512"
@@ -311,7 +309,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 # and mark command execution as finished, done
 #-------v----------------------------------------------------------------------
         self.client.odb_set(cmd_path+"/Run",CMD_EXECUTION_FINISHED)
-        TRACE.TRACE(4,"FINISHED")
+        TRACE.TRACE(7,"FINISHED")
         return
 
 if __name__ == "__main__":

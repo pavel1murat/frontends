@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Read Text File</title>
+</head>
+
+<body>
+    <input type="file" name="inputfile" id="inputfile">
+    <br>
+
+    <pre id="output"></pre>
+
+    <script type="text/javascript">
+      function loadFile(filePath) {
+            var result = null;
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.open("GET", filePath, false);
+            xmlhttp.send();
+            if (xmlhttp.status==200) {
+                  result = xmlhttp.responseText;
+            }
+            return result;
+      }
+
+      document.getElementById('inputfile').addEventListener('change', function () {
+            document.getElementById('output').textContent = loadFile('aaa.txt');
+      })
+    </script>
+</body>
+
+</html>

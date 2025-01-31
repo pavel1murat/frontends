@@ -221,16 +221,6 @@ int OdbInterface::GetCFOSleepTime(HNDLE hCFO) {
   return data;
 }
 
-// //-----------------------------------------------------------------------------
-// int OdbInterface::GetArtdaqPartition() {
-//   const char* key {"/Mu2e/ARTDAQ_PARTITION_NUMBER"};
-//   int   data(-1);
-//   if (GetInteger(0,key,&data) != DB_SUCCESS) {
-//     TLOG(TLVL_ERROR) << key << "not found, return " << data;
-//   }
-//   return data;
-// }
-
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetRunConfigHandle(std::string& RunConf) {
   char     key[128];

@@ -17,7 +17,6 @@ logger = logging.getLogger('midas')
 #            "/Mu2e/PostgresqlDB/User"      : "run_user",
 #            "/Mu2e/PostgresqlDB/Pwd"       : "ask_antonio",
 #            "/Mu2e/PostgresqlDB/Schema"    : "test",
-#            "/Mu2e/ARTDAQ_PARTITION_NUMBER": 13,
 #            "/Mu2e/RunConfigurations/demo/RunType": 4,
 #            "/Mu2e/RunConfigurations/demo/TriggerTable": "demo_tt_v00",
 #        }

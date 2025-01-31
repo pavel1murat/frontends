@@ -36,7 +36,9 @@ TMFeResult TEquipmentNode::InitDtc() {
 
     int pcie_addr        = _odb_i->GetDtcPcieAddress(h_subkey);
     int link_mask        = _odb_i->GetDtcLinkMask   (h_subkey);
-    TLOG(TLVL_DEBUG) << "link_mask:0x" <<std::hex << link_mask << " pcie_addr:" << pcie_addr;
+    TLOG(TLVL_DEBUG) << "link_mask:0x" <<std::hex << link_mask
+                     << " DTC pcie_addr:" << pcie_addr
+                     << " enabled:" << enabled;
 
     _h_dtc[pcie_addr]    = h_subkey;
     
@@ -81,7 +83,7 @@ TMFeResult TEquipmentNode::InitDtc() {
 
   InitDtcVarNames();
   
-  TLOG(TLVL_DEBUG) << "--- END";
+  TLOG(TLVL_DEBUG) << "--- END: DTC0:" <<  fDtc_i[0] << " DTC1:" <<  fDtc_i[1];
 
   return TMFeOk();
 }

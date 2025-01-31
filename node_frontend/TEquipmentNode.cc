@@ -102,6 +102,7 @@ TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
   if (handle_begin_run) {
     for (int i=0; i<2; i++) {
       mu2edaq::DtcInterface* dtc_i = fDtc_i[i];
+      TLOG(TLVL_DEBUG) << "DTC" << i << ":" << dtc_i;
       if (dtc_i) {
         HNDLE h_dtc = _h_dtc[dtc_i->fPcieAddr];
         dtc_i->fEventMode      = event_mode;
