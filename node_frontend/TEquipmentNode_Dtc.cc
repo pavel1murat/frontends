@@ -301,8 +301,8 @@ void TEquipmentNode::ReadDtcMetrics() {
                 try { 
                   std::vector<uint16_t> spi_raw_data;
                   struct trkdaq::TrkSpiData_t   spi;
-                  trkdtc_i->ReadSpiData   (ilink,spi_raw_data,0);
-                  trkdtc_i->ConvertSpiData(spi_raw_data,&spi,0);
+                  trkdtc_i->ControlRoc_ReadSpi(ilink,spi_raw_data,0);
+                  trkdtc_i->ConvertSpiData     (spi_raw_data,&spi,0);
               
                   std::vector<float> roc_spi;
               

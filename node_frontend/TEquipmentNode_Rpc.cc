@@ -193,6 +193,16 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     }
     catch (...) { ss << "ERROR : coudn't read ROC register ... BAIL OUT" << std::endl; }
   }
+  else if (strcmp(cmd,"read_spi") == 0) {
+//-----------------------------------------------------------------------------
+// get formatted SPI output for a given ROC
+//-----------------------------------------------------------------------------
+    try         {
+      std::vector<uint16_t>   spi_data;
+      dtc_i->ControlRoc_ReadSpi(roc,spi_data,2,ss);
+    }
+    catch (...) { ss << "ERROR : coudn't read SPI ... BAIL OUT" << std::endl; }
+  }
   else if (strcmp(cmd,"write_roc_register") == 0) {
     try         {
       int timeout_ms(150);
