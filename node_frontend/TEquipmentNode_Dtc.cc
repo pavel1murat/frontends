@@ -35,7 +35,7 @@ TMFeResult TEquipmentNode::InitDtc() {
     TLOG(TLVL_DEBUG) << "enabled:" << enabled;
 
     int pcie_addr        = _odb_i->GetDtcPcieAddress(h_subkey);
-    int link_mask        = _odb_i->GetDtcLinkMask   (h_subkey);
+    int link_mask        = _odb_i->GetLinkMask      (h_subkey);
     TLOG(TLVL_DEBUG) << "link_mask:0x" <<std::hex << link_mask
                      << " DTC pcie_addr:" << pcie_addr
                      << " enabled:" << enabled;
@@ -66,7 +66,7 @@ TMFeResult TEquipmentNode::InitDtc() {
       dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_subkey);
       dtc_i->fEventMode      = _odb_i->GetEventMode        (_h_active_run_conf);
       dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode   (_h_active_run_conf);
-      dtc_i->fJAMode         = _odb_i->GetDtcJAMode        (h_subkey);
+      dtc_i->fJAMode         = _odb_i->GetJAMode           (h_subkey);
 
       TLOG(TLVL_DEBUG) << "is_crv:"            << dtc_i->fIsCrv
                        << " roc_readout_mode:" << dtc_i->fRocReadoutMode

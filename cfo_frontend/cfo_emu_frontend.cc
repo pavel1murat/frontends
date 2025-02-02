@@ -89,13 +89,13 @@ int init_cfo_parameters() {
   
   _h_active_run_conf            = _odb_i->GetActiveRunConfigHandle();
   std::string active_run_conf   = _odb_i->GetRunConfigName(_h_active_run_conf);
-  _h_cfo                        = _odb_i->GetCFOConfHandle(_h_active_run_conf);
+  _h_cfo                        = _odb_i->GetCfoConfHandle(_h_active_run_conf);
   _cfo_enabled                  = _odb_i->GetEnabled      (_h_cfo);
 
-  _n_ewm_train                  = _odb_i->GetCFONEventsPerTrain   (_h_cfo);
+  _n_ewm_train                  = _odb_i->GetCfoNEventsPerTrain   (_h_cfo);
   _ew_length                    = _odb_i->GetEWLength             (_h_cfo);
   _first_ts                     = (uint64_t) _odb_i->GetFirstEWTag(_h_cfo);  // normally, start from zero
-  _sleep_time_ms                = _odb_i->GetCFOSleepTime         (_h_cfo);
+  _sleep_time_ms                = _odb_i->GetCfoSleepTime         (_h_cfo);
 //----------------------------------------------------------------------------- 
 // we know that this is an emulated CFO - get pointer to the corresponding DTC
 // an emulated CFO configuration includs a link to the DTC
@@ -112,11 +112,11 @@ int init_cfo_parameters() {
 
   _dtc_i->fPcieAddr       = _pcie_addr;
   _dtc_i->fDtcID          = _odb_i->GetDtcID            (h_dtc);
-  _dtc_i->fLinkMask       = _odb_i->GetDtcLinkMask      (h_dtc);
+  _dtc_i->fLinkMask       = _odb_i->GetLinkMask         (h_dtc);
   _dtc_i->fEnabled        = _odb_i->GetEnabled          (h_dtc);
   _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_dtc);
   _dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode(_h_active_run_conf);
-  _dtc_i->fJAMode         = _odb_i->GetDtcJAMode        (h_dtc);
+  _dtc_i->fJAMode         = _odb_i->GetJAMode           (h_dtc);
   _dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte   (h_dtc);
   
   TLOG(TLVL_DEBUG) << "active_run_conf:" << active_run_conf

@@ -107,8 +107,8 @@ TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
         HNDLE h_dtc = _h_dtc[dtc_i->fPcieAddr];
         dtc_i->fEventMode      = event_mode;
         dtc_i->fRocReadoutMode = roc_readout_mode;
-        dtc_i->fLinkMask       = _odb_i->GetDtcLinkMask(h_dtc);
-        dtc_i->fJAMode         = _odb_i->GetDtcJAMode  (h_dtc);
+        dtc_i->fLinkMask       = _odb_i->GetLinkMask         (h_dtc);
+        dtc_i->fJAMode         = _odb_i->GetJAMode           (h_dtc);
         dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_dtc);
 //-----------------------------------------------------------------------------
 // HardReset erases the DTC link mask, restore it

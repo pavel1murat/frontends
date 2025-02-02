@@ -45,33 +45,32 @@ public:
 // CFO supports up to 8 timing chains, so dimension of NDTCs array should be at least 8
 // NDTCs[i] : number of DTCs in i-th timing chain
 //-----------------------------------------------------------------------------
-  int         GetNDTCs            (HNDLE h_DB, HNDLE h_CFO, int* NDTCs);
+  int         GetNDTCs                (HNDLE h_DB, HNDLE h_CFO, int* NDTCs);
   
-  HNDLE       GetCFOConfHandle        (HNDLE h_RunConf);
+  HNDLE       GetCfoConfHandle        (HNDLE h_RunConf);
 
   uint64_t    GetNEvents              (HNDLE h_DB, HNDLE h_DTC);
-  int         GetEWLength             (HNDLE h_DTC);
+  int         GetEWLength             (HNDLE h_CFO);
   //  uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
   // temporarily, back to INT
   int         GetFirstEWTag           (HNDLE h_CFO);
 
-  int         GetCFOEnabled           (HNDLE h_DB, HNDLE h_CFO);
-  int         GetCFOEmulatedMode      (HNDLE h_CFO);
-  //  int         GetCFOExternal          (HNDLE Hdb, HNDLE h_CFO);
-  int         GetCFOEventMode         (HNDLE h_DB, HNDLE h_CFO);
-  int         GetCFONEventsPerTrain   (HNDLE h_CFO);
-  std::string GetCFORunPlanDir        (HNDLE h_DB);
-  std::string GetCFORunPlan           (HNDLE h_DB, HNDLE h_CFO);
+  int         GetCfoEnabled           (HNDLE h_CFO);
+  int         GetCfoEmulatedMode      (HNDLE h_CFO);
+  int         GetCfoEventMode         (HNDLE h_CFO);
+  int         GetCfoNEventsPerTrain   (HNDLE h_CFO);
+  std::string GetCfoRunPlanDir        ();
+  std::string GetCfoRunPlan           (HNDLE h_CFO);
 
-  int         GetCFOSleepTime         (HNDLE h_CFO);
+  int         GetCfoSleepTime         (HNDLE h_CFO);
    
   int         GetDtcEmulatesCfo   (HNDLE h_Card); // card: DTC
   int         GetDtcID            (HNDLE h_Card); // card: DTC
-  int         GetDtcJAMode        (HNDLE h_Card); // card: DTC
-  int         GetDtcLinkMask      (HNDLE h_Card);             // card: DTC
+  int         GetJAMode           (HNDLE h_Card); // card: CFO or DTC
+  int         GetLinkMask         (HNDLE h_Card); // card: CFO or DTC
   int         GetDtcMacAddrByte   (HNDLE h_Card); // card: DTC
-  int         GetDtcPcieAddress   (HNDLE h_Card);             // card: DTC
-  int         GetDtcSampleEdgeMode(HNDLE h_Card);  // 0:force rising; 1: force falling; 2:auto
+  int         GetDtcPcieAddress   (HNDLE h_Card); // card: DTC
+  int         GetDtcSampleEdgeMode(HNDLE h_Card); // 0:force rising; 1: force falling; 2:auto
   int         GetIsCrv            (HNDLE h_Card);
 
   int         GetPcieAddress      (HNDLE h_DB, HNDLE h_Card); // card: either CFO or DTC
@@ -92,7 +91,8 @@ public:
 // slowly getting rid of the old style, need the transition to be transparent
 //-----------------------------------------------------------------------------
   HNDLE       GetHandle           (HNDLE hConf, const char* Key);
-  int         GetInteger          (HNDLE hConf, const char* Key, int* Data);
+  int         GetInteger          (HNDLE hConf, const char* Key, int*      Data);
+  int         GetUInt32           (HNDLE hConf, const char* Key, uint32_t* Data);
   std::string GetString           (HNDLE hConf, const char* Key);
 
   HNDLE       GetHandle           (HNDLE hDB, HNDLE hConf, const char* Key);
