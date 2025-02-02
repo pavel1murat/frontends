@@ -269,7 +269,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   _hBoardreader = odb_i->GetHandle(h_host_artdaq_conf,_artdaqLabel.data());
   HNDLE hdtc    = odb_i->GetHandle(_hBoardreader,"DTC");
   _pcieAddr     = odb_i->GetDtcPcieAddress(hdtc);
-  _linkMask     = odb_i->GetDtcLinkMask   (hdtc);
+  _linkMask     = odb_i->GetLinkMask      (hdtc);
 
   TLOG(TLVL_INFO) << "label:"             << _artdaqLabel
                   << " pcie_addr(ODB):"   << _pcieAddr

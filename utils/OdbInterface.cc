@@ -63,6 +63,20 @@ HNDLE OdbInterface::GetHandle(HNDLE hDB, HNDLE hConf, const char* Key) {
 }
 
 //-----------------------------------------------------------------------------
+int OdbInterface::GetUInt32(HNDLE hDir, const char* Key, uint32_t* Data) {
+  int rc(0);
+  int sz = sizeof(uint32_t); 
+  rc = db_get_value(_hDB, hDir, Key, Data, &sz, TID_UINT32, FALSE);
+  if (rc != DB_SUCCESS) {
+    KEY dbkey;
+    db_get_key(_hDB,hDir,&dbkey);
+    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << dbkey.name << "(" << hDir << ")"; 
+  }
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " value:" << Data;
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetInteger(HNDLE hDir, const char* Key, int* Data) {
   int rc(0);
   int sz = sizeof(int); 
@@ -128,7 +142,7 @@ HNDLE OdbInterface::GetHostArtdaqConfHandle(HNDLE h_RunConf, const std::string& 
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetCFOConfHandle(HNDLE h_RunConf) {
+HNDLE OdbInterface::GetCfoConfHandle(HNDLE h_RunConf) {
   const char* key {"DAQ/CFO"};
   HNDLE    h(0);
   
@@ -139,10 +153,10 @@ HNDLE OdbInterface::GetCFOConfHandle(HNDLE h_RunConf) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetCFOEnabled(HNDLE hDB, HNDLE hCFO) {
+int OdbInterface::GetCfoEnabled(HNDLE hCFO) {
   INT   data;
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "Enabled", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+  if (db_get_value(_hDB, hCFO, "Enabled", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
     return data;
   }
   else {
@@ -152,10 +166,18 @@ int OdbInterface::GetCFOEnabled(HNDLE hDB, HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetCFOEventMode(HNDLE hDB, HNDLE hCFO) {
+int OdbInterface::GetCfoEmulatedMode(HNDLE hCFO) {
+  INT   data(0);
+
+  GetInteger(_hDB,hCFO,"EmulatedMode",&data);
+  return data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetCfoEventMode(HNDLE hCFO) {
   INT   data(0);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, "EventMode", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
+  if (db_get_value(_hDB, hCFO, "EventMode", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
     return data;
   }
   else {
@@ -185,7 +207,7 @@ int OdbInterface::GetSkipDtcInit(HNDLE h_RunConf) {
 //-----------------------------------------------------------------------------
 // for the emulated CFO
 //-----------------------------------------------------------------------------
-int OdbInterface::GetCFONEventsPerTrain(HNDLE hCFO) {
+int OdbInterface::GetCfoNEventsPerTrain(HNDLE hCFO) {
   INT   data;
   int   sz = sizeof(data);
   if (db_get_value(_hDB, hCFO, "NEventsPerTrain", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
@@ -197,20 +219,10 @@ int OdbInterface::GetCFONEventsPerTrain(HNDLE hCFO) {
   }
 }
 
-// //-----------------------------------------------------------------------------
-// int OdbInterface::GetCFOExternal(HNDLE hDB, HNDLE hCFO) {
-//   int data(-1);
-//   int   sz = sizeof(data);
-//   if (db_get_value(hDB, hCFO, "External", &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-//     TLOG(TLVL_ERROR) << "no CFO Type, return type = -1";
-//   }
-//   return data;
-// }
-
 //-----------------------------------------------------------------------------
 // emulated CFO: sleep time for rate throttling
 //-----------------------------------------------------------------------------
-int OdbInterface::GetCFOSleepTime(HNDLE hCFO) {
+int OdbInterface::GetCfoSleepTime(HNDLE hCFO) {
   const char* key {"SleepTimeMs"};
   int   data(-1);
 
@@ -258,7 +270,9 @@ int OdbInterface::GetDtcID(HNDLE hNode) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcJAMode(HNDLE hDTC) {
+// handle: CFO or DTC record in ODB
+//-----------------------------------------------------------------------------
+int OdbInterface::GetJAMode(HNDLE hDTC) {
   const char* key {"JAMode"};
   INT   data(0);       // if not found, want all links to be disabled
   int   sz = sizeof(data);
@@ -269,14 +283,10 @@ int OdbInterface::GetDtcJAMode(HNDLE hDTC) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcLinkMask(HNDLE hDTC) {
-  const char* key {"LinkMask"};
-  INT   data(0);       // if not found, want all links to be disabled
-  int   sz = sizeof(data);
-  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_UINT32, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "not found, return " << data;
-  }
-  return data;
+int OdbInterface::GetLinkMask(HNDLE hDTC) {
+  uint32_t   data(0);       // if not found, want all links to be disabled
+  GetUInt32(hDTC,"LinkMask",&data);
+  return (int) data;
 }
 
 //-----------------------------------------------------------------------------
@@ -385,13 +395,19 @@ HNDLE OdbInterface::GetHostConfHandle(HNDLE h_RunConf, const std::string& Host) 
 }
 
 //-----------------------------------------------------------------------------
-std::string OdbInterface::GetCFORunPlanDir(HNDLE hDB) {
-  return GetString(hDB,0,"/Mu2e/RunPlanDir");
+// stored in "/Mu2e/CfoRunPlanDir" may be an environment variable
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetCfoRunPlanDir() {
+  std::string s = GetString(_hDB,0,"/Mu2e/CfoRunPlanDir");
+  if (s[0] == '$') {
+    s = getenv(s.substr(1).data());
+  }
+  return s;
 }
 
 //-----------------------------------------------------------------------------
-std::string OdbInterface::GetCFORunPlan(HNDLE hDB, HNDLE hCFO) {
-  return GetString(hDB,hCFO,"RunPlan");
+std::string OdbInterface::GetCfoRunPlan(HNDLE hCFO) {
+  return GetString(_hDB,hCFO,"RunPlan");
 }
 
 //-----------------------------------------------------------------------------
