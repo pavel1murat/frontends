@@ -70,6 +70,9 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   }
   
   if (strcmp(cmd,"dtc_control_roc_read") == 0) {
+//-----------------------------------------------------------------------------
+// for control_ROC_read, it would make sense to have a separate page
+//-----------------------------------------------------------------------------
     midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
 
     trkdaq::ControlRoc_Read_Input_t par;
@@ -116,7 +119,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     }
       
     printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
-    int  print_level(0);
+    int  print_level(3);
     try {
       dtc_i->ControlRoc_Read(&par,-1,print_level,ss);
     }
