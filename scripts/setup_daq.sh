@@ -32,9 +32,17 @@ export TFM_FHICL_DIRECTORY=$MU2E_DAQ_DIR/config
     export MIDAS_EXPT_NAME=test_025
     export    MIDAS_EXPTAB=$PWD/config/midas/$MIDAS_EXPT_NAME.exptab
 
+# P.M. need to get rid of ARTDAQ_PARTITION_NUMBER here
 export    ARTDAQ_PARTITION_NUMBER=11
 export ARTDAQ_PORTS_PER_PARTITION=1000
 export           ARTDAQ_BASE_PORT=10000
+#------------------------------------------------------------------------------
+# STM specific variables
+#------------------------------------------------------------------------------
+export STM_HPGE_SW_IP="127.0.0.2" # HPGe (CH0) UDP IP address (send)
+export STM_LABR_SW_IP="127.0.0.3" # LaBr (CH1) UDP IP address (send)
+export STM_HPGE_SW_PORT=10010 # HPGe (CH0) UDP IP port (send)
+export STM_LABR_SW_PORT=10012 # LaBr (CH1) UDP IP port (send)
 #------------------------------------------------------------------------------
 # TRACE - some defaults
 #------------------------------------------------------------------------------
