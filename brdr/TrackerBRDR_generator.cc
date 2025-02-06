@@ -54,6 +54,40 @@ using namespace DTCLib;
 namespace mu2e {
   class TrackerBRDR : public artdaq::CommandableFragmentGenerator {
 
+    struct RocDataHeaderPacket_t {            // 8 16-byte words in total
+                                        // 16-bit word 0
+      uint16_t            byteCount    : 16;
+                                        // 16-bit word 1
+      uint16_t            unused       : 4;
+      uint16_t            packetType   : 4;
+      uint16_t            linkID       : 3;
+      uint16_t            DtcErrors    : 4;
+      uint16_t            valid        : 1;
+                                        // 16-bit word 2
+      uint16_t            packetCount  : 11;
+      uint16_t            unused2      : 2;
+      uint16_t            subsystemID  : 3;
+                                        // 16-bit words 3-5
+      uint16_t            eventTag[3];
+                                        // 16-bit word 6
+      uint8_t             status       : 8;
+      uint8_t             version      : 8;
+                                        // 16-bit word 7
+      uint8_t             dtcID        : 8;
+      uint8_t             onSpill      : 1;
+      uint8_t             subrun       : 2;
+      uint8_t             eventMode    : 5;
+                                        // decoding status
+
+      int                 empty     () { return (status & 0x01) == 0; }
+      int                 invalid_dr() { return (status & 0x02); }
+      int                 corrupt   () { return (status & 0x04); }
+      int                 timeout   () { return (status & 0x08); }
+      int                 overflow  () { return (status & 0x10); }
+
+      int                 error_code() { return (status & 0x1e); }
+    };
+
     enum {
       kReadDigis   = 0,
       kReadPattern = 1
@@ -364,39 +398,45 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
   
   int       nerr = 0;
   uint32_t  err_code(0);
-  int       evt_nb(0);
+  int       evt_nb(0), roc_nb[6];
 
   TLOG(TLVL_DEBUG) << "START";
   for (int i=0; i<6; i++) {
-    int roc_nb = *roc;
+    RocDataHeaderPacket_t* rdh = (RocDataHeaderPacket_t*) roc;
+    roc_nb[i] = rdh->byteCount;
     if (_dtc_i->LinkEnabled(i)) {
-      if (roc_nb == 0x10) {
+      if (rdh->error_code()) {
 //-----------------------------------------------------------------------------
 // in trouble - zero payload for enabled ROC
 //-----------------------------------------------------------------------------
         err_code |= 0x1;
-        nerr +=1;
+        nerr     += 1;
         // al_trigger_alarm("BRDB", "ERROR", "BRDR Alarm", "Readout Problem", AT_INTERNAL);
-        cm_msg(MERROR, _artdaqLabel.data(),Form("event: %10li zero payload for link %i",ev_counter(),i));
-        TLOG(TLVL_ERROR) << "event:" << ev_counter() << " zero payload for enabled link:" << i;
+        std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x}",ev_counter(),i,rdh->error_code());
+        cm_msg(MERROR, _artdaqLabel.data(),msg.data());
+        TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
       }
     }
     else {
 //-----------------------------------------------------------------------------
 // link is supposed to be disabled
 //-----------------------------------------------------------------------------
-      if (roc_nb != 0x10) {
+      if (roc_nb[i] != 0x10) {
         err_code |= 0x2;
-        nerr +=1;
-        cm_msg(MERROR, _artdaqLabel.data(),Form("event %10li non-zero payload for DISABLED link %i",ev_counter(),i));
-        TLOG(TLVL_ERROR) << "event:" << ev_counter() << " non-zero payload for disabled link:" << i;
+        nerr     += 1;
+        std::string msg = std::format("event:{:10d} non-zero payload for DISABLED link:{}",ev_counter(),i);
+        cm_msg(MERROR, _artdaqLabel.data(),msg.data());
+        TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
       }
     }
-    evt_nb += roc_nb;
-    roc    += roc_nb/2;
+    evt_nb += roc_nb[i];
+    roc    += roc_nb[i]/2;
   }
 
-  TLOG(TLVL_DEBUG) << "event:" << ev_counter() << " after loop nerr:" << nerr << " err_code:0x" << std::hex << err_code;
+  TLOG(TLVL_DEBUG) << "event:" << ev_counter() << " nerr:" << nerr
+                   << " err_code:0x" << std::hex << err_code
+                   << std::format("roc_nb: {:5}{:5}{:5}{:5}{:5}{:5}",
+                                  roc_nb[0],roc_nb[1],roc_nb[2],roc_nb[3],roc_nb[4],roc_nb[5]);
   
   if (nerr != 0) {
 //-----------------------------------------------------------------------------
@@ -631,8 +671,7 @@ bool mu2e::TrackerBRDR::simulateEvent(artdaq::FragmentPtrs& Frags) {
 bool mu2e::TrackerBRDR::getNext_(artdaq::FragmentPtrs& Frags) {
   bool rc(true);
 
-  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
-                   << " event:" << ev_counter() << " STARTING";
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel << " event:" << ev_counter() << " START";
 //-----------------------------------------------------------------------------
 // in the beginning, send message to the Farm manager
 //-----------------------------------------------------------------------------
@@ -645,9 +684,9 @@ bool mu2e::TrackerBRDR::getNext_(artdaq::FragmentPtrs& Frags) {
 
   _startProcTimer();
 
-  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel
-                   << " event:" << ev_counter()
-                   << " after startProcTimer";
+  TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
+                     << " event:" << ev_counter()
+                     << " after startProcTimer";
 
   if (_readoutMode < 100) {
 //-----------------------------------------------------------------------------
@@ -682,6 +721,8 @@ bool mu2e::TrackerBRDR::getNext_(artdaq::FragmentPtrs& Frags) {
     *esf->dataBegin() = 0;
     Frags.emplace_back(esf);
   }
+  
+  TLOG(TLVL_DEBUG) << "label:" << _artdaqLabel << " event:" << ev_counter() << " END";
 
   return rc;
 }
