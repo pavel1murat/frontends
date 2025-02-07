@@ -146,6 +146,11 @@ body {font-family: Arial;}
         });
       }
 //-----------------------------------------------------------------------------
+      function dtc_control_roc_read_command() {
+        window.location.href = `dtc_control_roc_read.html?hostname=${g_hostname}&pcie=${g_pcie}`;
+      }
+      
+//-----------------------------------------------------------------------------
       function dtc_command(cmd) {
         let msg = { "client_name":g_hostname, "cmd":cmd, "max_reply_length":10000,
                     "args":'{"pcie":'+g_pcie.toString()+',"roc":'+g_roc.toString()+'}'};
@@ -341,7 +346,7 @@ body {font-family: Arial;}
         <tr>
           <td>
             <input type=button value='DTC read subevents' onClick='dtc_command("dtc_read_subevents")'>
-            <input type=button value='control_ROC_read' onClick='dtc_command("dtc_control_roc_read")'>
+            <input type=button value='control_ROC_read' onClick='dtc_control_roc_read_command()'>
           </td>
           <td></td>
           <td></td>
