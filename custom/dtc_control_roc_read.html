@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.row {
+  margin-left : 5px;
+  margin-right: 5px;
+}
+  
+.column {
+  float: left;
+  width: 37%;
+  padding: 2px;
+}
+
+/* Clearfix (clear floats) */
+.row::after {
+  content: "";
+  clear  : both;
+  display: table;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #ddd;
+}
+
+th, td {
+  text-align: left;
+  padding: 4px;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+body {font-family: Arial;}
+
+#myDIV {
+    padding   : 10px;
+    height    : 870px;
+    width     : 60% ; /* 600px; */
+    overflow  : auto;
+    background: #bdb;
+}
+
+#roc_tabs {
+    padding   : 10px;
+    height    : 380px;
+    width     : 60% ; /* 600px; */
+    overflow  : auto;
+    background: #bdb;
+}
+
+#content {
+/*  margin: 40%; */
+/*  height: 300px; */
+/*  width:  400px; */
+  background-color: #bdb;
+}
+
+#roc_content {
+/*  margin: 40%; */
+/*  height: 300px; */
+/*  width:  400px; */
+  background-color: #bdb;
+}
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  background-color: inherit;
+  float     : left;
+  border    : none;
+  outline   : none;
+  cursor    : pointer;
+  padding   : 10px 10px;
+  transition: 0.3s;
+  font-size : 14px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #bdb;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="midas.css">
+    <script src="odbbrowser.js"></script>
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
+    
+    <title>control_ROC_read</title>
+    
+    <script>
+//-----------------------------------------------------------------------------
+// the hostname should be the same within the scope of this script
+//-----------------------------------------------------------------------------
+      let g_hostname = 'undefined';
+      let g_pcie     = 0;
+      let g_roc      = 0;
+//-----------------------------------------------------------------------------
+      function dtc_command(cmd) {
+        let msg = { "client_name":g_hostname, "cmd":cmd, "max_reply_length":10000,
+                    "args":'{"pcie":'+g_pcie.toString()+',"roc":'+g_roc.toString()+'}'};
+        mjsonrpc_call("jrpc",msg).then(function(rpc1) {
+          let s = rpc1.result.reply
+          console.log(s.length);
+          let y = '<br>'+s.replaceAll(/\n/gi,'<br>').replace(/ /g, '&nbsp;');
+
+          const el = document.getElementById("content");
+          el.innerHTML += y;
+          el.style.fontFamily = 'monospace';
+          // el.scrollIntoView();
+          const scrollToBottom = (id) => {
+            el.scrollTop = el.scrollHeight;
+          }
+
+        }).catch(function(error){
+          mjsonrpc_error_alert(error);
+        });
+      }
+
+//-----------------------------------------------------------------------------      
+      function choose_dtc_id(evt, dtc_id) {
+        var i, tablinks;
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i=0; i<tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(dtc_id).style.display = "block";
+        evt.currentTarget.className += " active";
+
+        if (dtc_id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
+        console.log('g_pcie=',g_pcie);
+      }
+//-----------------------------------------------------------------------------      
+      function choose_roc_id(evt, roc_id) {
+        var i, roctabs;
+        roctabs = document.getElementsByClassName("roctabs");
+        for (i=0; i<roctabs.length; i++) {
+          roctabs[i].className = roctabs[i].className.replace(" active", "");
+        }
+        document.getElementById(roc_id).style.display = "block";
+        evt.currentTarget.className += " active";
+
+        g_roc = Number(roc_id.charAt(3));
+        console.log('g_roc=',g_roc);
+      }
+//-----------------------------------------------------------------------------
+// load page - define its HTML content
+// dont encode PCIE into the title
+//-----------------------------------------------------------------------------
+      function loadPage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        g_hostname      = urlParams.get('hostname') || 'none';  // 
+        const pcie      = urlParams.get('pcie') || '0'   ;  //
+
+        let title       = document.getElementById('table-title');
+        title.innerHTML = '&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC Control_ROC read';
+//-----------------------------------------------------------------------------
+// fill Control ROC parameters table
+//-----------------------------------------------------------------------------
+        const table     = document.getElementById('dtc_control_roc_pars');
+        const tbody     = document.createElement('tbody');
+
+        tbody.innerHTML = odb_browser('dtc_control_roc_pars','/Mu2e/Commands/Tracker/DTC/control_ROC_read',0);
+
+        table.appendChild(tbody);
+//-----------------------------------------------------------------------------
+//  create DTC commands table with the only command
+//-----------------------------------------------------------------------------
+        const dtc_com_table     = document.getElementById('dtc_commands');
+
+        dtc_com_table.innerHTML = `
+        <tr>
+          <th <div class="mtableheader" colspan=3> Commands </div> </th> 
+        </tr>
+        <!--   --------------------------      DTC control ROC read button  -->
+        <tr>
+          <td>
+            <input type=button value='control_ROC_read' onClick='dtc_command("dtc_control_roc_read")'>
+          </td>
+        </tr>
+        </tbody>
+         `;
+//-----------------------------------------------------------------------------
+//  end
+//-----------------------------------------------------------------------------
+      }
+      
+      document.addEventListener("DOMContentLoaded", loadPage);
+    </script>
+  </head>
+  <!--
+      it seems to be convenient to have the large scale topology in HtML and use
+      javascript to fill the details
+    -->
+  <body class="mcss" onload="mhttpd_init('dtc_control');">
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+    <div id="mmain">
+
+      <div class="row">
+        <h1 id="table-title">DTC control ROC read </h1>
+        
+        <div class="column">
+          <table class="mtablea" id="dtc_control_roc_pars">                     <!-- DTC Control ROC parameters -->
+          </table>
+
+          <div class="tab">
+            <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">PCIE:0</button>
+            <button class="tablinks" id="dtc1" onclick="choose_dtc_id(event,'dtc1')">PCIE:1</button>
+          </div>
+
+          <div class="tab">
+            <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
+            <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
+            <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
+            <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
+            <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
+            <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
+          </div>
+
+          <table class="mtable" id="dtc_commands">   <!-- Table content is generated dynamically -->
+          </table>
+        </div>
+<!-- ---------------------------   output window -------------------------    -->
+        <div id="myDIV">
+          <div id="content"> 
+          </div>
+        </div>
+
+      </div>  <!-- end of "row" -->
+    </div>
+
+  </body>
+</html>
+<!--
+    emacs
+    Local Variables:
+    tab-width: 8
+    c-basic-offset: 2
+    js-indent-level: 0
+    indent-tabs-mode: nil
+    End:
+  -->
