@@ -127,6 +127,31 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       ss << "ERROR : coudn't execute ControlRoc_Read ... BAIL OUT" << std::endl;
     }
   }
+  if (strcmp(cmd,"dtc_control_roc_digi_rw") == 0) {
+//-----------------------------------------------------------------------------
+// for control_ROC_read, it would make sense to have a separate page
+//-----------------------------------------------------------------------------
+    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_digi_rw");
+
+    trkdaq::ControlRoc_DigiRW_Input_t  par;
+    trkdaq::ControlRoc_DigiRW_Output_t pout;
+    // parameters should be taken from ODB - where from?
+
+    par.rw         = o["rw"     ];    //
+    par.hvcal      = o["hvcal"  ];    //
+    par.address    = o["address"];    //
+    par.data[0]    = o["data"   ][0]; //
+    par.data[1]    = o["data"   ][1]; //
+      
+    printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
+    int  print_level(3);
+    try {
+      dtc_i->ControlRoc_DigiRW(&par,&pout,roc,print_level,ss);
+    }
+    catch(...) {
+      ss << "ERROR : coudn't execute ControlRoc_DigiRW ... BAIL OUT" << std::endl;
+    }
+  }
   else if (strcmp(cmd,"dtc_read_register") == 0) {
     int      timeout_ms(150);
 
