@@ -28,11 +28,9 @@
 
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
-#ifdef USE_MIDAS
 #include "midas.h"
 #include "utils/utils.hh"
 #include "utils/OdbInterface.hh"
-#endif
 
 #include <atomic>
 #include <chrono>
@@ -232,9 +230,6 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 // DTC is already initialized by the frontend, don't change anything !
 // for skip_init=true, the linkmask is not used. The board reader shouldn't even know
 // about it, but it has to know about the DTC PCIE address
-//-----------------------------------------------------------------------------
-#ifdef USE_MIDAS
-//-----------------------------------------------------------------------------
 // figure out the PCIE address - nothing wrong with connecting to ODB and
 //-----------------------------------------------------------------------------
   _midas_host = getenv("MIDAS_SERVER_HOST");
@@ -329,7 +324,6 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
                   << " _tfmHost_from_ODB:"  << _tfmHost;
   
   cm_disconnect_experiment();
-#endif
 //-----------------------------------------------------------------------------
 // boardreaders do not re-initialize the DTCs
 // make sure that the link mask is right no matter what
