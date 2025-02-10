@@ -227,7 +227,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
     try         {
       std::vector<uint16_t>   spi_data;
-      dtc_i->ControlRoc_ReadSpi(roc,spi_data,2,ss);
+      dtc_i->ControlRoc_ReadSpi(spi_data,roc,2,ss);
     }
     catch (...) { ss << "ERROR : coudn't read SPI ... BAIL OUT" << std::endl; }
   }

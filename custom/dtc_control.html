@@ -111,13 +111,13 @@ body {font-family: Arial;}
 
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="midas.css">
-    <link rel="stylesheet" href="dropup.css">
+    <link   rel="stylesheet" href="midas.css">
     <script src="controls.js"></script>
     <script src="midas.js"></script>
     <script src="mhttpd.js"></script>
     <script src="filesrw.js"></script>
     <script src="odbbrowser.js"></script>
+    <link   rel="stylesheet" href="mu2edaq.css">
     
     <title>DTC</title>
     
@@ -246,8 +246,7 @@ body {font-family: Arial;}
               <input type=button value='soft reset'       onClick='dtc_command("dtc_soft_reset")'>
               <input type=button value='hard reset'       onClick='dtc_command("dtc_hard_reset")'>
               <input type=button value='print status'     onClick='dtc_command("dtc_print_status")'>
-              <input type=button value='Init Readout'     onClick='dtc_command("dtc_init_readout")'>
-              <input type=button value='read subevents'   onClick='dtc_command("dtc_read_subevents")'>
+              <input type=button value='print ROC status' onClick='dtc_command("dtc_print_roc_status")'>
             </td>
            <td> Register </td>
            <td> Value    </td>
@@ -255,8 +254,9 @@ body {font-family: Arial;}
           <!----------------- DTC print status, print ROC status , write reg   -->
           <tr>
             <td>
-              <input type=button value='print ROC status' onClick='dtc_command("dtc_print_roc_status")'>
+              <input type=button value='Init Readout'     onClick='dtc_command("dtc_init_readout")'>
               <input type=button value='CFO launch run plan' onClick='cfo_command("cfo_launch_run_plan")'>
+              <input type=button value='read subevents'   onClick='dtc_command("dtc_read_subevents")'>
             </td>
             <td>
               <input type=button value='write register'   onClick='dtc_command("dtc_write_register")'>
@@ -307,7 +307,32 @@ body {font-family: Arial;}
             </td>
           </tr>
           <tr>
-            <td colspan=2> Command </td> <td> <div> Register </div> </td> <td> <div> Value</div> </td>
+            <td colspan=2>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='control_ROC_read'>
+                <div class="dropup-content">
+  <!--
+                  <a href="#">Load Parameters 1</a>
+                  <a href="#">Run 1</a>
+  -->
+                  <div onClick='dtc_load_control_roc_read_parameters()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='control_ROC_digi_rw'>
+                <div class="dropup-content">
+  <!--
+                  <a href="#">Load Parameters 1</a>
+                  <a href="#">Run 1</a>
+  -->
+                  <div onClick='dtc_load_control_roc_digi_rw_parameters()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
+                </div>
+              </div>
+            </td>
+            <td> <div> Register </div> </td>
+            <td> <div> Value    </div> </td>
           </tr>
 
         <tr>
@@ -327,28 +352,6 @@ body {font-family: Arial;}
           </td>
         <tr>
           <td colspan>
-            <div class="dropup">
-              <input type=button class="dropbtn" value='control_ROC_read'>
-              <div class="dropup-content">
-<!--
-                <a href="#">Load Parameters 1</a>
-                <a href="#">Run 1</a>
--->
-                <div onClick='dtc_load_control_roc_read_parameters()'> Load Parameters </div>
-                <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
-              </div>
-            </div>
-            <div class="dropup">
-              <input type=button class="dropbtn" value='control_ROC_digi_rw'>
-              <div class="dropup-content">
-<!--
-                <a href="#">Load Parameters 1</a>
-                <a href="#">Run 1</a>
--->
-                <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
-                <div onClick='dtc_load_control_roc_digi_rw_parameters()'> Load Parameters </div>
-              </div>
-            </div>
           </td>
           <td><input type=button value='read ROC register' onClick='dtc_command("read_roc_register")'></td>
           <td>
