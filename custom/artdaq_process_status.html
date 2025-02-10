@@ -224,6 +224,12 @@
       </tbody>
     `;      
 //-----------------------------------------------------------------------------
+//  fill process parameters table
+//-----------------------------------------------------------------------------
+      const process_params_table     = document.getElementById('process_params');
+      process_params_table.innerHTML = '';
+      odb_browser('process_params',`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/Artdaq/${g_process}`,0);
+//-----------------------------------------------------------------------------
 //  end
 //-----------------------------------------------------------------------------
 //      const history_url = 'artdaq_process_status.html?cmd=History&group=mu2edaq22&panel=ARTDAQ_DataRate'
@@ -260,7 +266,7 @@
           <table class="mtable" id="history_table">  <!-- Table content is generated dynamically -->
           </table>
           
-          <table class="mtable" id="cmd_params">    <!-- Table content is generated dynamically -->
+          <table class="mtable" id="process_params">    <!-- Table content is generated dynamically -->
           </table>
           
         </div>
