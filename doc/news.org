@@ -3,11 +3,11 @@
 # development news
 # ------------------------------------------------------------------------------
 ** <2025-02-09 Sun>
-*** ARTDAQ_BASE_PORT_NUMBER and ARTDAQ_PORTS_PER_PARTITION now data members of the FarmManager
-*** DTC control page - significantly improved javascript
-*** DAQ status page - add future CFO status
-*** prototypes of the DAQ node and process JS status pages
-*** mu2e and tracker configuration frontends committed 
+- ARTDAQ_BASE_PORT_NUMBER and ARTDAQ_PORTS_PER_PARTITION now data members of the FarmManager
+- DTC control page - significantly improved javascript
+- DAQ status page - add future CFO status
+- prototypes of the DAQ node and process JS status pages
+- mu2e and tracker configuration frontends committed, first version of the global communication protocol implemented
 ** <2025-02-01 Sat>                                                           
 *** no more 'settings' file in ARTDAQ configuration (Namitha), Tfm/Settings subtree instead
 *** first version of the emulated CFO frontend operational
