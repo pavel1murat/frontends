@@ -1,86 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-  <style>
-    #myDIV {
-        height: 250px;
-        width: 250px;
-        overflow: auto;
-        background: coral;
-    }
-    
-    #content {
-        margin:500px;
-        height: 800px;
-        width: 2000px;
-        background-color: coral;
-    }
-  </style>
-  
   <head>
     <meta charset="UTF-8">
     <title>DAQ nodes</title>
     <link rel="stylesheet" href="midas.css">
+    <link rel="stylesheet" href="mu2edaq.css">
     <link rel="stylesheet" href="tracker_style.css">
     <script src="controls.js"></script>
     <script src="midas.js"></script>
     <script src="mhttpd.js"></script>
     <script src="filesrw.js"></script>
-    
+    <script src="mu2edaq.js"></script>
     <script>
-      function set_colors(path, statusCell) {
-        // Fetch values for Enabled and Status
-        const path_enabled = path+`/Enabled`;
-        const path_status  = path+`/Status`;
-        mjsonrpc_db_get_values([path_enabled, path_status]).then(function (rpc) {
-          let enabled = rpc.result.data[0];
-        let status = rpc.result.data[1];
-          
-          // Apply color styles
-          if (enabled === 0) {
-          statusCell.style.backgroundColor = "gray";
-            statusCell.style.color = "white";
-          } else if (enabled === 1) {
-            if (status === 0) {
-              statusCell.style.backgroundColor = "green";
-              statusCell.style.color = "white";
-            } else if (status < 0) {
-              statusCell.style.backgroundColor = "red";
-              statusCell.style.color = "white";
-            } else if (status > 0) {
-              statusCell.style.backgroundColor = "yellow";
-              statusCell.style.color = "black";
-            }
-          } else {
-            statusCell.style.backgroundColor = "gray";
-            statusCell.style.color = "white";
-          }
-        }).catch(function (error) {
-          console.error("Error fetching values:", error);
-        });
-      }
-
 //-----------------------------------------------------------------------------
-      function dtc_control(hostname,pcie) {
-        window.location.href = `dtc_control.html?hostname=${hostname}&pcie=${pcie}`;
-      }
-
-
+// main function doing the job - defines internals of this page
 //-----------------------------------------------------------------------------
-      function host_status(hostname) {
-        window.location.href = `node_status.html?hostname=${hostname}&process=${process}`;
-      }
-
-
-//-----------------------------------------------------------------------------
-      function artdaq_process_status(hostname,process) {
-        window.location.href = `artdaq_process_status.html?hostname=${hostname}&process=${process}`;
-      }
-
-
-//-----------------------------------------------------------------------------
-      function createTable() {
+      function loadPage() {
         const urlParams    = new URLSearchParams(window.location.search);
-        const table        = document.querySelector(".mtable");
+//-----------------------------------------------------------------------------
+// CFO status table
+//-----------------------------------------------------------------------------
+        const cfo_status_table = document.getElementById("cfo_status_table");
+        cfo_status_table.innerHTML = 'CFO status table: to be added <br>';
+        const r1 = document.createElement("tr");
+        cfo_status_table.appendChild(r1);
+        
+//-----------------------------------------------------------------------------
+// DAQ nodes table
+//-----------------------------------------------------------------------------
+        const table        = document.getElementById("daq_nodes");
       
       // Set the table title dynamically
         const title = document.querySelector("#table-title");
@@ -117,7 +65,7 @@
             // node Cell
             const nodeCell = document.createElement("td");
             let   hostname = keys[i];
-            nodeCell.innerHTML = `<button onclick="host_status('${hostname}')">${hostname}</button>`;
+            nodeCell.innerHTML = `<button onclick="node_status('${hostname}')">${hostname}</button>`;
             let path = nodes_path+'/'+hostname;
             set_colors(path,nodeCell);
             // Poll for updates
@@ -161,7 +109,7 @@
                 if ((typeof label == 'string') && (label != 'Enabled') && (label != 'Status')) {
                   const cell = document.createElement("td");
                   cell.className = "status-cell";
-                  cell.innerHTML = `<button onclick="artdaq_process_status('${hostname}',${label})">${label}</button>`;
+                  cell.innerHTML = `<button onclick="artdaq_process_status('${hostname}','${label}')">${label}</button>`;
                   
                   // Load initial values and set up polling for updates
                 
@@ -187,7 +135,7 @@
         });
         
       }
-      document.addEventListener("DOMContentLoaded", createTable);
+      document.addEventListener("DOMContentLoaded", loadPage);
     </script>
 </head>
 
@@ -196,8 +144,11 @@
    <div id="msidenav"></div>
    <div id="mmain">
       <h1 id="table-title">DAQ nodes</h1>
-      <table class="mtable">
-         <!-- Table content is generated dynamically -->
+
+      <table class="mtable" id="cfo_status_table">  <!-- CFO status -->
+      </table>
+      
+      <table class="mtable" id="daq_nodes">   <!-- DAQ nodes -->
       </table>
    </div>
 </body>
@@ -206,6 +157,7 @@
 <!--
     emacs
     Local Variables:
+    mode: XHTML+
     tab-width: 8
     c-basic-offset: 2
     js-indent-level: 0

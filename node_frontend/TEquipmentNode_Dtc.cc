@@ -299,13 +299,10 @@ void TEquipmentNode::ReadDtcMetrics() {
                 TLOG(TLVL_DEBUG+1) << "saving ROC:" << ilink << " SPI data";
               
                 try { 
-                  std::vector<uint16_t> spi_raw_data;
                   struct trkdaq::TrkSpiData_t   spi;
-                  trkdtc_i->ControlRoc_ReadSpi(ilink,spi_raw_data,0);
-                  trkdtc_i->ConvertSpiData     (spi_raw_data,&spi,0);
+                  trkdtc_i->ControlRoc_ReadSpi_1(&spi,ilink,0);
               
                   std::vector<float> roc_spi;
-              
                   for (int iw=0; iw<trkdaq::TrkSpiDataNWords; iw++) {
                     roc_spi.emplace_back(spi.Data(iw));
                   }
