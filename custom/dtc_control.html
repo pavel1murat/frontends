@@ -149,6 +149,14 @@ body {font-family: Arial;}
       }
 
 //-----------------------------------------------------------------------------
+      function dtc_load_parameters() {
+        const table     = document.getElementById('cmd_params');
+        table.innerHTML = '';
+        odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/DTC${g_pcie}`,0);
+//        window.location.href = `dtc_control_roc_read.html?hostname=${g_hostname}&pcie=${g_pcie}`;
+      }
+
+      //-----------------------------------------------------------------------------
       function dtc_load_control_roc_read_parameters() {
         const table     = document.getElementById('cmd_params');
         table.innerHTML = '';
@@ -247,6 +255,7 @@ body {font-family: Arial;}
               <input type=button value='hard reset'       onClick='dtc_command("dtc_hard_reset")'>
               <input type=button value='print status'     onClick='dtc_command("dtc_print_status")'>
               <input type=button value='print ROC status' onClick='dtc_command("dtc_print_roc_status")'>
+              <input type=button value='load parameters'  onClick='dtc_load_parameters()'>
             </td>
            <td> Register </td>
            <td> Value    </td>

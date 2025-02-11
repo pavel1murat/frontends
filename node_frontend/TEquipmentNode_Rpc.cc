@@ -263,7 +263,9 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     TLOG(TLVL_ERROR) << ss.str();
   }
 
-  response  = "args:";
+  response  = "cmd:";
+  response += cmd;
+  response += " args:";
   response += args;
   response += ";\n";
   response += ss.str();
