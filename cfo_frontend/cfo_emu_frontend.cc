@@ -96,10 +96,17 @@ int init_cfo_parameters() {
   _ew_length                    = _odb_i->GetEWLength             (_h_cfo);
   _first_ts                     = (uint64_t) _odb_i->GetFirstEWTag(_h_cfo);  // normally, start from zero
   _sleep_time_ms                = _odb_i->GetCfoSleepTime         (_h_cfo);
-//----------------------------------------------------------------------------- 
-// we know that this is an emulated CFO - get pointer to the corresponding DTC
-// an emulated CFO configuration includs a link to the DTC
 //-----------------------------------------------------------------------------
+// _sleep_time_ms defines the time interval between the two calls to the "read" routine
+// we know that this is an emulated CFO - get pointer to the corresponding DTC
+// an emulated CFO configuration includes a link to the DTC
+// and at this point may want to propagate the change into ODB
+//-----------------------------------------------------------------------------
+  equipment[0].info.period      = _sleep_time_ms;
+
+  HNDLE h_eq = _odb_i->GetHandle(0,"/Equipment/EmulatedCFO/Common");
+  db_set_record(hDB, h_eq, &equipment[0].info, sizeof(EQUIPMENT_INFO), 0);
+
   HNDLE h_dtc    = _odb_i->GetHandle     (_h_cfo,"DTC");
   _pcie_addr     = _odb_i->GetDtcPcieAddress(h_dtc);
 //-----------------------------------------------------------------------------
@@ -156,6 +163,15 @@ int rpc_callback(INT index, void *prpc_param[]) {
     catch (...) {
       TLOG(TLVL_ERROR) << "failed to launch the run plan";
       sprintf(return_buf, "failed to launch the run plan");
+    }
+  }
+  else if (strcmp(cmd, "init_cfo_parameters") == 0) {
+    try {
+      init_cfo_parameters();
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "failed to init CFO parameters";
+      sprintf(return_buf, "failed to init CFO parameters");
     }
   }
   else {
@@ -231,7 +247,9 @@ int cfo_emu_launch_run_plan(char *pevent, int) {
     _dtc_i->LaunchRunPlanEmulatedCfo(_ew_length,_n_ewm_train+1,_first_ts);
     _first_ts += _n_ewm_train;
   }
-  
+
+  // assuming that takes 1 ms (which should be an overkill)
+  cm_yield(_sleep_time_ms-1.);
   TLOG(TLVL_DEBUG+1) << "END" ;
   return 0;
 }
@@ -261,8 +279,8 @@ INT frontend_exit() {
 //-----------------------------------------------------------------------------
 INT frontend_loop() {
   TLOG(TLVL_DEBUG+2) << "frontend_loop ENTERED";
-  if (_sleep_time_ms > 1) {
-    ss_sleep(_sleep_time_ms-1);
+  if (cfo_emu_frontend::running == 0) {
+    ss_sleep(10);
   }
   return CM_SUCCESS;
 }
