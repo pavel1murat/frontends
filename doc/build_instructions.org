@@ -35,7 +35,8 @@
 #------------------------------------------------------------------------------
   # spack add otsdaq@develop%gcc@13.1.0     # needed by otsdaq-mu2e-tracker (which is @develop)
 
-  spack add otsdaq-mu2e-tracker@develop%gcc@13.1.0
+  # spack add otsdaq-mu2e-tracker@2025%gcc@13.1.0
+
   spack add elog@2024-09-25
   spack add midas@3.01.00%gcc@13.1.0~postgresql~sqlite~opencv
   spack add tfm@main%gcc@13.1.0
