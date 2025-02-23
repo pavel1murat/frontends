@@ -46,7 +46,7 @@ export STM_LABR_SW_PORT=10012 # LaBr (CH1) UDP IP port (send)
 #------------------------------------------------------------------------------
 # TRACE - some defaults
 #------------------------------------------------------------------------------
-export                TRACE_FILE=/tmp/trace_file.$DAQ_USER_STUB
+export                TRACE_FILE=/tmp/trace_file.$DAQ_USER_STUB.`spack env status | awk '{print $NF}'`
 export            TRACE_LIMIT_MS=0,50,50
 export              TRACE_MSGMAX=0        # Activating TRACE
 

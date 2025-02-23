@@ -161,18 +161,47 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 # the configuration may change from one run to another,
 # don't need to restart this frontend only because of that
+# for now, this frontend also starts DQM 
 #------------------------------------------------------------------------------
     def begin_of_run(self, run_number):
 
-        config_name  = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
-        partition_id = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
+        config_name     = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
+        partition_id    = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
+#------------------------------------------------------------------------------
+# if requested, start tracker DQM
+#------------------------------------------------------------------------------
+        run_tracker_dqm = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DQM/Tracker/Run')
+        if (run_tracker_dqm):
+            fcl_file            = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DQM/Tracker/FclFile')
+            base_port_number    = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/Tfm/base_port_number')
+            ports_per_partition = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/Tfm/ports_per_partition')
+            cmd      = f'export ARTDAQ_RUN_NUMBER={run_number};'
+            cmd     += f' export ARTDAQ_PARTITION_NUMBER={partition_id};'
+            cmd     += f' export ARTDAQ_PORTS_PER_PARTITION={ports_per_partition};'
+            cmd     += f' export ARTDAQ_BASE_PORT_NUMBER={base_port_number};'
+            cmd     += f' mu2e -c config/{config_name}/{fcl_file} >| dq01_{run_number}.log  2>&1 &';  
+            TRACE.TRACE(TRACE.TLVL_DEBUG,f'start DQM client:{cmd}')
+            proc = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
+            TRACE.TRACE(TRACE.TLVL_DEBUG,f'DQM client started')
+#------------------------------------------------------------------------------
+# begin run message in elog
+#------------------------------------------------------------------------------
+        nev_per_train = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/NeventsPerTrain')
+        ew_length     = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/EventWindowSize')
+        sleep_time_ms = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/SleepTimeMs')
+        cfo_emu_mode  = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/EmulatedMode')
 
-        # cmd = '~/products/elog/elog  -x -s -n 1 -h ' + self.elog["host"] + ' -p '+self.elog['port'] \
+        fn = f'/tmp/begin_run_msg_{run_number}.txt'
+        f = open(fn, "w")
+        f.write(f'begin run:{run_number} configuration:{config_name}')
+        f.write(f' CFO: emulated_mode:{cfo_emu_mode} run:{nev_per_train}/{ew_length}/{sleep_time_ms}')
+        f.close()
+#
         cmd = "elog  -x -s -n 1 -h " + self.elog["host"] + " -p "+self.elog['port'] \
         + ' -d elog -l ' + self.elog['logbook'] + ' -u ' + self.elog['user'] + ' ' + self.elog['passwd'] \
         + f' -a author=murat -a type=routine -a category="data taking"' \
         + f' -a subject="new run: {run_number} config:{config_name}"' \
-        + f' "begin run {run_number} configuration:{config_name}"'
+        + f' -m {fn}'
 
         TRACE.TRACE(TRACE.TLVL_DEBUG,f'begin_of_run command:{cmd}')
         proc = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
@@ -202,7 +231,6 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
             # reply to a given message id
             print(f'replying to message ID:{message_id}')
             
-#            cmd = f'~/products/elog/elog -r {message_id}'\
             cmd = f'elog -r {message_id}' \
             + ' -x -s -n 1 -h ' + self.elog['host'] + ' -p ' + self.elog['port']\
             + ' -d elog -l ' + self.elog['logbook'] + ' -u ' + self.elog['user'] + ' ' + self.elog['passwd']\
