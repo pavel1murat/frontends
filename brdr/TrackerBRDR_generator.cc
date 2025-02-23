@@ -6,6 +6,7 @@
 #include "TString.h"
 #include "canvas/Utilities/Exception.h"
 
+#include "artdaq-core/Data/MetadataFragment.hh"
 #include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
 #include "artdaq/Generators/GeneratorMacros.hh"
 #include "cetlib_except/exception.h"
@@ -687,17 +688,8 @@ bool mu2e::TrackerBRDR::getNext_(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
   if ((CommandableFragmentGenerator::ev_counter() % _maxEventsPerSubrun) == 0) {
 
-    artdaq::Fragment* esf = new artdaq::Fragment(1);
-    esf->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
-
-    long int ew_tag = ev_counter();
-    esf->setSequenceID(ew_tag+1);
-//-----------------------------------------------------------------------------
-// not sure I understand the logic of assigning the first event number in the subrun here
-//-----------------------------------------------------------------------------
-    esf->setTimestamp(1 + (ew_tag / _maxEventsPerSubrun));
-    *esf->dataBegin() = 0;
-    Frags.emplace_back(esf);
+    auto endOfSubrunFrag = artdaq::MetadataFragment::CreateEndOfSubrunFragment(artdaq::Globals::my_rank_, ev_counter() + 1, 1 + (ev_counter() / _maxEventsPerSubrun), 0);
+    Frags.emplace_back(std::move(endOfSubrunFrag));
   }
   
   TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel << " event:" << ev_counter() << " END";
