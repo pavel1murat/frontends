@@ -17,4 +17,9 @@
 
   gInterpreter->ExecuteMacro("daq.C");
 
+  gStyle->SetOptStat(1111111);
+  gStyle->SetOptFit(11111111);
+  gStyle->SetFitFormat("7.6g");
+  gStyle->SetStatFormat("7.6g");
+
 }

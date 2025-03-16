@@ -70,3 +70,48 @@ int test_odb_003() {
 
   return 0;
 }
+
+//-----------------------------------------------------------------------------
+// test setting the ROC ID for DTC1:Link2
+//-----------------------------------------------------------------------------
+int test_odb_004(int DtcID = 1, int Link = 2) {
+
+  if (Link == -1) {
+    printf("ERROR\n");
+    return -1;
+  }
+
+  MidasInterface* mi = MidasInterface::Instance();
+
+  mi->connect_experiment("mu2edaq22-ctrl","test_025","test_odb_002",nullptr);
+
+  HNDLE hDB, hClient;
+  mi->get_experiment_database(&hDB, &hClient);
+
+  OdbInterface* odb_i = OdbInterface::Instance(hDB);
+
+  HNDLE h_conf = odb_i->GetActiveRunConfigHandle();
+  
+  std::string name = odb_i->GetRunConfigName(h_conf);
+
+  printf("name = %s\n",name.data());
+
+
+  trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(DtcID);
+  std::string roc_id      = dtc_i->GetRocID         (Link);
+  std::string design_info = dtc_i->GetRocDesignInfo (Link);
+  std::string git_commit  = dtc_i->GetRocFwGitCommit(Link);
+
+  std::string p0 = Form("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/mu2edaq22/DTC%i/Link%i",DtcID,Link);
+  printf("p0 = %s\n",p0.data());
+
+  HNDLE h_link = odb_i->GetHandle(hDB,0,p0.data());
+
+  odb_i->SetRocID         (h_link,roc_id);
+  odb_i->SetRocDesignInfo (h_link,design_info);
+  odb_i->SetRocFwGitCommit(h_link,git_commit);
+
+  //  mi->disconnect_experiment();
+
+  return 0;
+}

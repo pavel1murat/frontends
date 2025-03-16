@@ -1,0 +1,25 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Fri Jul 21 09:19:07 2023 -0700 - midas-2022-05-c-449-gf254ebd6-dirty on branch HEAD",
+  "/filename" : "DQM.json",
+  "/ODB path" : "/Mu2e/RunConfigurations/roctower/DQM",
+
+  "Tracker" : {
+    "Run/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1740504799 },
+    "Run" : false,
+    "FclFile/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1740335633 },
+    "FclFile" : "dq01.fcl"
+  },
+  "Calorimeter" : {
+  },
+  "CRV" : {
+  },
+  "STM" : {
+    "Run/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1740526186 },
+    "Run" : false,
+    "FclFile/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1740526234 },
+    "FclFile" : "dqm_stm_01.fcl"
+  },
+  "EXM" : {
+  }
+}

@@ -129,6 +129,9 @@ cp $SPACK_ENV/frontends/scripts/rootlogon.C $MU2E_DAQ_DIR/.
 *** SetRunplan
 *** LaunchRunplan
 *** ConfigureForTimingChain
+* DQM
+- DQM jobs are started by the file:../conf/mu2e_config_fe.py
+- ARTDAQ env vars need to be set for that
 * [[file:dtc.org][DTC]]
 * [[file:elog.org][elog]]
 * runinfo database (PostgreSQL)                                              

@@ -74,6 +74,26 @@ TMFeResult TEquipmentNode::InitDtc() {
                        << " event_mode:"       << dtc_i->fEventMode
                        << " emulate_cfo:"      << dtc_i->fEmulateCfo;
 //-----------------------------------------------------------------------------
+// loop over links and store in ODB IDs of the ROCs
+// this place is tracker-specific
+//-----------------------------------------------------------------------------
+      for (int i=0; i<6; i++) {
+        if (dtc_i->LinkEnabled(i)) {
+          std::string roc_id      = dtc_i->GetRocID         (i);
+          std::string design_info = dtc_i->GetRocDesignInfo (i);
+          std::string git_commit  = dtc_i->GetRocFwGitCommit(i);
+//-----------------------------------------------------------------------------
+// 'h_link' points to a subsystem-specific place
+//-----------------------------------------------------------------------------
+          char key[10];
+          sprintf(key,"Link%d",i);
+          HNDLE h_link = _odb_i->GetHandle(h_subkey,key);
+          _odb_i->SetRocID         (h_link,roc_id     );
+          _odb_i->SetRocDesignInfo (h_link,design_info);
+          _odb_i->SetRocFwGitCommit(h_link,git_commit );
+        }
+      }
+//-----------------------------------------------------------------------------
 // don't reset ROCs on enabled links
 //-----------------------------------------------------------------------------
       // dtc_i->ResetLinks();

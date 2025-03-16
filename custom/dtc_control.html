@@ -339,11 +339,15 @@ body {font-family: Arial;}
                   <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
                 </div>
               </div>
+              
+              <input type=button value='find alignment'  onClick='dtc_command("find_alignment")'>
+              
             </td>
             <td> <div> Register </div> </td>
             <td> <div> Value    </div> </td>
           </tr>
 
+        <!--  --------------------------------------------  -->
         <tr>
           <td>
             <input type=button value='reset ROC'        onClick='dtc_command("reset_roc")'>
@@ -359,8 +363,13 @@ body {font-family: Arial;}
           <td>
             <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Value" data-odb-editable="1"  data-format="%x"></div>
           </td>
+        </tr>
+        <!--  --------------------------------------------  -->
         <tr>
           <td colspan>
+            <input type=button value='get ID'           onClick='dtc_command("get_roc_id")'>
+            <input type=button value='get design info'  onClick='dtc_command("get_roc_design_info")'>
+            <input type=button value='get GIT commit'   onClick='dtc_command("get_roc_fw_git_commit")'>
           </td>
           <td><input type=button value='read ROC register' onClick='dtc_command("read_roc_register")'></td>
           <td>

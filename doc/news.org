@@ -2,24 +2,28 @@
 # ------------------------------------------------------------------------------
 # development news
 # ------------------------------------------------------------------------------
-** <2025-02-09 Sun>
+** <2025-03-01 Sat>
+- DQM functional again with ROOT 6.32.08 +http7+webgui
+- add prototype of the custom page to access the DQM histograms - still raw
+- the number of the browser threads has to be large, 5 is not enough for one thread per canvas
+** <2025-02-09 Sun>                                                          
 - ARTDAQ_BASE_PORT_NUMBER and ARTDAQ_PORTS_PER_PARTITION now data members of the FarmManager
 - DTC control page - significantly improved javascript
 - DAQ status page - add future CFO status
 - prototypes of the DAQ node and process JS status pages
 - mu2e and tracker configuration frontends committed, first version of the global communication protocol implemented
-** <2025-02-01 Sat>                                                           
+** <2025-02-01 Sat>                                                          
 *** no more 'settings' file in ARTDAQ configuration (Namitha), Tfm/Settings subtree instead
 *** first version of the emulated CFO frontend operational
 *** DTC control page (HTML/javasctipt) implemented
 *** node_frontend implemented and deployed
-** <2024-12-25 Wed>                                                           
+** <2024-12-25 Wed>                                                          
 *** subdetector configuration framework implemented
 *** version 1 of the monitoring pages deployed (Mark Vakulenko)               
   - see custom pages on the bottom of the control bar
 *** integration configurations 'ierc' and 'extracted' added
 *** 'stm_test' configuration added
-** <2024-11-30 Sat>                                                           
+** <2024-11-30 Sat>                                                          
 *** python-based access to postgresql DB re-established (Namitha)             
 - if for the active configuration, UseRuninfoDB=1, the run numbers come from runinfo DB
 - to request a run number, use Sequencer script get_next_run_number
@@ -27,13 +31,13 @@
 *** first version of the configuration frontend implemented (python)          
 - at this point, it sends begin run and end run messages to elog
 - source: file:../conf/mu2e_config_fe.py
-** <2024-05-10 Fri>                                                           
+** <2024-05-10 Fri>                                                          
 - python version of the tfm_launch is the default
 - first successful test of running with the remote frontend
-** <2024-03-04 Mon>                                                           
+** <2024-03-04 Mon>                                                          
 - as ARTDAQ_PARTITION_NUMBER is used only for the port assignment, make is a global variable, 
   /Mu2e/ARTDAQ_PARTITION_NUMBER, not a part of a configuration
-** <2024-02-09 Fri>                                                           
+** <2024-02-09 Fri>                                                          
 - [[file:../dtc_frontend/dtc_frontend.cc][dtc_frontend]] updated to include monitoring of the DTC registers
 *( <2024-02-08 Thu>                                                           
 - a number of updates to frontends merged into to the main branch :

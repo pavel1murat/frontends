@@ -20,7 +20,7 @@
 
   spack add py-psycopg2              # python interface to postgresql
 
-  spack add root@6.30.06%gcc@13.1.0+postgres+root7+webgui cxxstd=20       # for direct DQM
+  spack add root@6.32.08+postgres+root7+webgui cxxstd=20       # for direct DQM
   spack add geant4@11.1.2
 
   spack add art@3.15.00 cxxstd=20
