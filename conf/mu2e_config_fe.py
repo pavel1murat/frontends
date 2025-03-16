@@ -165,24 +165,31 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
     def begin_of_run(self, run_number):
 
-        config_name     = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
-        partition_id    = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
+        config_name         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
+        partition_id        = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
+        base_port_number    = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/Tfm/base_port_number')
+        ports_per_partition = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/Tfm/ports_per_partition')
 #------------------------------------------------------------------------------
-# if requested, start tracker DQM
+# if requested, start DQM processes for all subsystems
+# TODO: can do multithreading
+# first, check is the subsystem is enabled
+# if it is, check if the DQM for this subsystem is enabled 
 #------------------------------------------------------------------------------
-        run_tracker_dqm = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DQM/Tracker/Run')
-        if (run_tracker_dqm):
-            fcl_file            = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DQM/Tracker/FclFile')
-            base_port_number    = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/Tfm/base_port_number')
-            ports_per_partition = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/Tfm/ports_per_partition')
-            cmd      = f'export ARTDAQ_RUN_NUMBER={run_number};'
-            cmd     += f' export ARTDAQ_PARTITION_NUMBER={partition_id};'
-            cmd     += f' export ARTDAQ_PORTS_PER_PARTITION={ports_per_partition};'
-            cmd     += f' export ARTDAQ_BASE_PORT_NUMBER={base_port_number};'
-            cmd     += f' mu2e -c config/{config_name}/{fcl_file} >| dq01_{run_number}.log  2>&1 &';  
-            TRACE.TRACE(TRACE.TLVL_DEBUG,f'start DQM client:{cmd}')
-            proc = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
-            TRACE.TRACE(TRACE.TLVL_DEBUG,f'DQM client started')
+        subsystems =  ['Tracker', 'Calorimeter', 'CRV', 'STM', 'EXM', 'Trigger' ]
+        for ss in subsystems:
+            ss_enabled  = self.client.odb_get(f'/Mu2e/ActiveRunConfiguration/{ss}/Enabled')
+            if (ss_enabled):
+                dqm_enabled = self.client.odb_get(f'/Mu2e/ActiveRunConfiguration/DQM/{ss}/Enabled')
+                if (dqm_enabled):
+                    fcl_file = self.client.odb_get(f'/Mu2e/ActiveRunConfiguration/DQM/{ss}/FclFile')
+                    cmd      = f'export ARTDAQ_RUN_NUMBER={run_number};'
+                    cmd     += f' export ARTDAQ_PARTITION_NUMBER={partition_id};'
+                    cmd     += f' export ARTDAQ_PORTS_PER_PARTITION={ports_per_partition};'
+                    cmd     += f' export ARTDAQ_BASE_PORT_NUMBER={base_port_number};'
+                    cmd     += f' mu2e -c config/{config_name}/{fcl_file} >| dq01_{run_number}.log  2>&1 &';  
+                    TRACE.TRACE(TRACE.TLVL_DEBUG,f'subsystem:{ss} start DQM client:{cmd}')
+                    proc = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
+                    TRACE.TRACE(TRACE.TLVL_DEBUG,f'DQM client for subsystem:{ss} started')
 #------------------------------------------------------------------------------
 # begin run message in elog
 #------------------------------------------------------------------------------

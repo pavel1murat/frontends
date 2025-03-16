@@ -127,7 +127,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       ss << "ERROR : coudn't execute ControlRoc_Read ... BAIL OUT" << std::endl;
     }
   }
-  if (strcmp(cmd,"dtc_control_roc_digi_rw") == 0) {
+  else if (strcmp(cmd,"dtc_control_roc_digi_rw") == 0) {
 //-----------------------------------------------------------------------------
 // for control_ROC_read, it would make sense to have a separate page
 //-----------------------------------------------------------------------------
@@ -205,6 +205,40 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   else if (strcmp(cmd,"dtc_print_roc_status") == 0) {
     try         { dtc_i->PrintRocStatus(1,-1,ss); }
     catch (...) { ss << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
+  }
+  else if (strcmp(cmd,"find_alignment") == 0) {
+    try         { dtc_i->FindAlignments(1,(0x1<<4*roc),ss); }
+    catch (...) { ss << "ERROR : coudn't execute FindAlignments ... BAIL OUT" << std::endl; }
+  }
+  else if (strcmp(cmd,"get_roc_id") == 0) {
+//-----------------------------------------------------------------------------
+// get ROC ID
+//-----------------------------------------------------------------------------
+    try         {
+      std::string roc_id = dtc_i->GetRocID(roc);
+      ss << "roc_id:" << roc_id;
+    }
+    catch (...) { ss << "ERROR : coudn't execute GetRocID ... BAIL OUT" << std::endl; }
+  }
+  else if (strcmp(cmd,"get_roc_design_info") == 0) {
+//-----------------------------------------------------------------------------
+// get ROC design info
+//-----------------------------------------------------------------------------
+    try         {
+      std::string design_info = dtc_i->GetRocDesignInfo(roc);
+      ss << "roc_design_info:" << design_info;
+    }
+    catch (...) { ss << "ERROR : coudn't execute GetRocDesignInfo ... BAIL OUT" << std::endl; }
+  }
+  else if (strcmp(cmd,"get_roc_fw_git_commit") == 0) {
+//-----------------------------------------------------------------------------
+// get ROC firmware git commit
+//-----------------------------------------------------------------------------
+    try         {
+      std::string git_commit = dtc_i->GetRocFwGitCommit(roc);
+      ss << "git_commit:" << git_commit;
+    }
+    catch (...) { ss << "ERROR : coudn't execute GetRocFwGitCommit ... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"read_roc_register") == 0) {
 //-----------------------------------------------------------------------------

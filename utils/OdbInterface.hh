@@ -102,6 +102,14 @@ public:
   // set status of a given configuration element
   
   int         SetStatus           (HNDLE hElement, int Status);
+//-----------------------------------------------------------------------------
+// an element corresponding to a ROC (in case of the tracker - a panel) stores
+// expect hLink subdirectory to have the following keys:
+// 'RocDeviceSerial', 'RocDesignInfo', 'RocGitCommit'
+//-----------------------------------------------------------------------------
+  int         SetRocID            (HNDLE hLink, std::string& RocID     );
+  int         SetRocDesignInfo    (HNDLE hLink, std::string& DesignInfo);
+  int         SetRocFwGitCommit   (HNDLE hLink, std::string& Commit    );
 };
 
 #endif

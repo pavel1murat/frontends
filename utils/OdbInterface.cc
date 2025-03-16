@@ -502,3 +502,36 @@ int OdbInterface::SetStatus(HNDLE hElement, int Status) {
   return rc;
 }
 
+//-----------------------------------------------------------------------------
+int OdbInterface::SetRocID(HNDLE hLink, std::string& RocID) {
+  int rc(0);
+  HNDLE h = GetHandle(hLink,"RocDeviceSerial");
+  if (db_set_data(_hDB,h,(void*) RocID.data(),strlen(RocID.data())+1,1,TID_STRING) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to set ROC ID:" << RocID;
+    rc = -1;
+  }
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::SetRocDesignInfo(HNDLE hLink, std::string& DesignInfo) {
+  int rc(0);
+  HNDLE h = GetHandle(hLink,"RocDesignInfo");
+  if (db_set_data(_hDB,h,(void*) DesignInfo.data(),strlen(DesignInfo.data())+1,1,TID_STRING) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to set design info:" << DesignInfo;
+    rc = -1;
+  }
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::SetRocFwGitCommit(HNDLE hLink, std::string& Commit) {
+  int rc(0);
+  HNDLE h = GetHandle(hLink,"RocGitCommit");
+  if (db_set_data(_hDB,h,(void*) Commit.data(),strlen(Commit.data())+1,1,TID_STRING) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to set git commit:" << Commit;
+    rc = -1;
+  }
+  return rc;
+}
+
