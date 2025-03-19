@@ -36,6 +36,7 @@ function set_colors(path, statusCell) {
 
 //-----------------------------------------------------------------------------
 // redirects browser to the DTC control page
+// may need to decide which particular DTC type
 //-----------------------------------------------------------------------------
 function dtc_control(hostname,pcie) {
   window.location.href = `dtc_control.html?hostname=${hostname}&pcie=${pcie}`;

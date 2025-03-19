@@ -55,26 +55,6 @@ message(-- frontends: MIDAS_INCLUDE_DIR=.${MIDAS_INCLUDE_DIR}. "    "  MIDAS_LIB
 message(-- frontends: current dir : .${CMAKE_SOURCE_DIR}.)
 message(-- frontends: midas include dirs : .${MIDAS_INCLUDE_DIRS}.)
 
-# find_package(artdaq_core     REQUIRED EXPORT QUIET)
-
-
-#------------------------------------------------------------------------------
-# XDAQ Extra setup
-#------------------------------------------------------------------------------x
-# include_directories($ENV{XDAQ_INC} $ENV{XDAQ_INC}/linux)
-# link_directories   ($ENV{XDAQ_LIB})
-
-# message(>>> OTSDAQ_MU2E_TRACKER: XDAQ_INC=$ENV{XDAQ_INC})
-# 
-#string(REGEX MATCHALL "[0-9][0-9]?[0-9]?" ART_VERSION_LIST "$ENV{ART_VERSION}")
-#list(GET ART_VERSION_LIST 0 ART_MAJOR_VERSION)
-#list(GET ART_VERSION_LIST 1 ART_MINOR_VERSION)
-#list(GET ART_VERSION_LIST 2 ART_PATCH_VERSION)
-
-#message("-DART_HEX_VERSION=0x${ART_MAJOR_VERSION}${ART_MINOR_VERSION}${ART_PATCH_VERSION}")
-#set(ART_HEX_VERSION 0x${ART_MAJOR_VERSION}${ART_MINOR_VERSION}${ART_PATCH_VERSION})
-#add_definitions(-DART_HEX_VERSION=0x${ART_MAJOR_VERSION}${ART_MINOR_VERSION}${ART_PATCH_VERSION})
-
 include(BuildPlugins)
 #------------------------------------------------------------------------------
 # subdirectories
