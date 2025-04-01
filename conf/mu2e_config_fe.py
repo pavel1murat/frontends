@@ -82,24 +82,28 @@ class PeriodicEquipment(midas.frontend.EquipmentBase):
         
         # Set the status that appears on the midas status page.
         self.set_status("Initialized")
-        
+
+
+#------------------------------------------------------------------------------
+# readout function propagates the status of failed elements,
+# returns None, as no actual readout is performed
+#------------------------------------------------------------------------------
     def readout_func(self):
-        """
-        In this periodic equipment, this function will be called periodically.
-        It should return a `midas.event.Event` or None.
-        """
-        if self.prescale_count == self.settings["Prescale factor"]:
-            event = midas.event.Event()
-            data = [1,2,3,4,5,6,7,8]
-            
-            event.create_bank("MYBK", midas.TID_INT, data)
-            event.create_bank("BNK2", midas.TID_BOOL, [True, False])
-            
-            self.prescale_count = 0
-            return event
-        else:
-            self.prescale_count += 1
-            return None
+        # check nodes
+        daq_nodes_hkey = self.client.odb_get_hkey("/Mu2e/ActiveRunConfiguration/DAQ/Nodes")
+        nodes = self.client._odb_enum_key(hkey);
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'nodes:{nodes}')
+        
+        for node in nodes: 
+            print(node, node[1], ".....",node[1].name,".....",node[1].type)
+            # if (node[1].type == midas.TID_KEY):
+                
+
+        
+
+
+        
+        return None
 
     def settings_changed_func(self):
         """
@@ -159,22 +163,14 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         print("constructor end");
 
 #------------------------------------------------------------------------------
-# the configuration may change from one run to another,
-# don't need to restart this frontend only because of that
-# for now, this frontend also starts DQM 
+#
 #------------------------------------------------------------------------------
-    def begin_of_run(self, run_number):
-
+    def start_dqm_processes(self):
         config_name         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
         partition_id        = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
         base_port_number    = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/Tfm/base_port_number')
         ports_per_partition = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/Tfm/ports_per_partition')
-#------------------------------------------------------------------------------
-# if requested, start DQM processes for all subsystems
-# TODO: can do multithreading
-# first, check is the subsystem is enabled
-# if it is, check if the DQM for this subsystem is enabled 
-#------------------------------------------------------------------------------
+
         subsystems =  ['Tracker', 'Calorimeter', 'CRV', 'STM', 'EXM', 'Trigger' ]
         for ss in subsystems:
             ss_enabled  = self.client.odb_get(f'/Mu2e/ActiveRunConfiguration/{ss}/Enabled')
@@ -190,9 +186,12 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                     TRACE.TRACE(TRACE.TLVL_DEBUG,f'subsystem:{ss} start DQM client:{cmd}')
                     proc = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
                     TRACE.TRACE(TRACE.TLVL_DEBUG,f'DQM client for subsystem:{ss} started')
+
 #------------------------------------------------------------------------------
-# begin run message in elog
+#
 #------------------------------------------------------------------------------
+    def send_begin_run_elog_message(self):
+
         nev_per_train = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/NeventsPerTrain')
         ew_length     = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/EventWindowSize')
         sleep_time_ms = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/SleepTimeMs')
@@ -213,7 +212,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         TRACE.TRACE(TRACE.TLVL_DEBUG,f'begin_of_run command:{cmd}')
         proc = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
 
-# search for 'Message successfully transmitted, ID=512', parse out ID
+# search for 'Message successfully transmitted, ID=512', parse out the message ID
 
         output = proc.stdout.readlines()
         self.elog['start_run_message_id'] = None;
@@ -222,6 +221,25 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
             if (line.find('Message successfully transmitted') == 0):
                  self.elog['start_run_message_id'] = line.strip().split('=')[1]
                  break;
+        
+#------------------------------------------------------------------------------
+# the configuration may change from one run to another,
+# don't need to restart this frontend only because of that
+# for now, this frontend also starts DQM 
+#------------------------------------------------------------------------------
+    def begin_of_run(self, run_number):
+
+#------------------------------------------------------------------------------
+# if requested, start DQM processes for all subsystems
+# TODO: can do multithreading
+# first, check is the subsystem is enabled
+# if it is, check if the DQM for this subsystem is enabled 
+#------------------------------------------------------------------------------
+        self.start_dqm_processes()
+#------------------------------------------------------------------------------
+# begin run message in elog
+#------------------------------------------------------------------------------
+        self.send_begin_run_elog_message();
 
         self.set_all_equipment_status("Running", "greenLight")
         self.client.msg("CONFIG_FE: run number %d started" % run_number)

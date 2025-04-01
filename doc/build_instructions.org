@@ -6,10 +6,12 @@
 - assuming top="your working area"
 - cd to the top/spack-repos
 #+begin_src
-- git clone https://github.com/pavel1murat/spack_packages murat-spack
-  spack repo add murat-spack
+pushd spack-repos
+git clone https://github.com/pavel1murat/spack_packages murat-spack
+spack repo add murat-spack
+popd
 #------------------------------------------------------------------------------
-# these instructions hold for teh environment based on artdaq v3_13_01
+# these instructions hold for the environment based on artdaq v3_13_01
 #------------------------------------------------------------------------------
 # keep using gcc 13.1.0 , problems otherwise
 
@@ -20,7 +22,7 @@
 
   spack add py-psycopg2              # python interface to postgresql
 
-  spack add root@6.32.08+postgres+root7+webgui cxxstd=20       # for direct DQM
+  spack add root@6.34.04+postgres+http+root7+webgui cxxstd=20       # for direct DQM
   spack add geant4@11.1.2
 
   spack add art@3.15.00 cxxstd=20
@@ -29,20 +31,19 @@
   spack add canvas-root-io@1.13.06%gcc@13.1.0 cxxstd=20 # otherwise I see C++17 vs C++20 mismatch in art-root-io
 
   # with the latest version of artdaq, cant read the produced files in the offline
-  spack add artdaq@v3_13_01%gcc@13.1.0
+  spack add artdaq@v4_00_00%gcc@13.1.0
 #------------------------------------------------------------------------------
 # otsdaq-mu2e-tracker/2025 has the build of FEInterfaces, the only part which depends on otsdaq, disabled
 #------------------------------------------------------------------------------
   # spack add otsdaq@develop%gcc@13.1.0     # needed by otsdaq-mu2e-tracker (which is @develop)
-
-  # spack add otsdaq-mu2e-tracker@2025%gcc@13.1.0
 
   spack add elog@2024-09-25
   spack add midas@3.01.00%gcc@13.1.0~postgresql~sqlite~opencv
   spack add tfm@main%gcc@13.1.0
   spack add frontends@main%gcc@13.1.0
   spack add mu2e-pcie-utils@develop%gcc@13.1.0
-  spack add kinkal@3.1.3                           # needed by Offline ? 
+  spack add kinkal@3.1.6                          # needed by Offline ?
+  spack add Offline@12.00.00
 
   spack develop mu2e-pcie-utils@develop%gcc@13.1.0
   spack develop tfm@main%gcc@13.1.0
@@ -52,8 +53,9 @@
   pushd $env_name/otsdaq-mu2e-stm     ; git fetch --all; git checkout stm_develop; popd ;
 
   spack develop frontends@main%gcc@13.1.0
-  
-  spack add     emacs@29.3%gcc@13.1.0+X
+
+  spack add     cairo@1.17.4
+  spack add     emacs@30.1%gcc@13.1.0 gui=x11
   
   spack concretize -f
   spack install
