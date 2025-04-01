@@ -31,18 +31,18 @@ TMFeResult TEquipmentNode::InitDtc() {
     
     if (strstr(subkey.name,"DTC") != subkey.name)           continue;
     
-    int enabled          = _odb_i->GetEnabled       (h_subkey);
-    TLOG(TLVL_DEBUG) << "enabled:" << enabled;
+    int dtc_enabled      = _odb_i->GetEnabled       (h_subkey);
+    TLOG(TLVL_DEBUG) << "enabled:" << dtc_enabled;
 
     int pcie_addr        = _odb_i->GetDtcPcieAddress(h_subkey);
     int link_mask        = _odb_i->GetLinkMask      (h_subkey);
     TLOG(TLVL_DEBUG) << "link_mask:0x" <<std::hex << link_mask
                      << " DTC pcie_addr:" << pcie_addr
-                     << " enabled:" << enabled;
+                     << " dtc_enabled:" << dtc_enabled;
 
     _h_dtc[pcie_addr]    = h_subkey;
     
-    if (enabled) {
+    if (dtc_enabled) {
 
       // for now, disable re-initialization
       mu2edaq::DtcInterface* dtc_i = nullptr;
@@ -57,7 +57,7 @@ TMFeResult TEquipmentNode::InitDtc() {
 
       dtc_i->fLinkMask       = link_mask;
       dtc_i->fPcieAddr       = pcie_addr;
-      dtc_i->fEnabled        = enabled;
+      dtc_i->fEnabled        = dtc_enabled;
 
       dtc_i->fDtcID          = _odb_i->GetDtcID         (h_subkey);
       dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte(h_subkey);
@@ -78,10 +78,15 @@ TMFeResult TEquipmentNode::InitDtc() {
 // this place is tracker-specific
 //-----------------------------------------------------------------------------
       for (int i=0; i<6; i++) {
-        if (dtc_i->LinkEnabled(i)) {
+        int link_enabled = dtc_i->LinkEnabled(i);
+        TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
+        if (link_enabled) {
           std::string roc_id      = dtc_i->GetRocID         (i);
+          TLOG(TLVL_DEBUG) << "roc_id:" << roc_id;
           std::string design_info = dtc_i->GetRocDesignInfo (i);
-          std::string git_commit  = dtc_i->GetRocFwGitCommit(i);
+          TLOG(TLVL_DEBUG) << "design_info:" << design_info;
+          std::string git_commit  = "READ_DISABLED" ; // dtc_i->GetRocFwGitCommit(i);
+          TLOG(TLVL_DEBUG) << "git_commit:" << git_commit;
 //-----------------------------------------------------------------------------
 // 'h_link' points to a subsystem-specific place
 //-----------------------------------------------------------------------------
@@ -91,6 +96,40 @@ TMFeResult TEquipmentNode::InitDtc() {
           _odb_i->SetRocID         (h_link,roc_id     );
           _odb_i->SetRocDesignInfo (h_link,design_info);
           _odb_i->SetRocFwGitCommit(h_link,git_commit );
+        }
+      }
+//-----------------------------------------------------------------------------
+// write panel IDs - to begin with, make it a separate loop
+//-----------------------------------------------------------------------------
+      trkdaq::ControlRoc_DigiRW_Input_t  pin;
+      trkdaq::ControlRoc_DigiRW_Output_t pout;
+      pin.rw      = 1;
+      pin.hvcal   = 0;
+      pin.address = 0x90;
+      for (int i=0; i<6; i++) {
+        int link_enabled = dtc_i->LinkEnabled(i);
+        TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
+        if (link_enabled) {
+//-----------------------------------------------------------------------------
+// Minnesota panel name .. at this point 
+//-----------------------------------------------------------------------------
+          char key[32];
+          sprintf(key,"Link%d",i);
+          HNDLE h_link = _odb_i->GetHandle(h_subkey,key);
+          std::string panel_mn_name = _odb_i->GetString(h_link,"DetectorElement/Name");
+          int mn_id = atoi(panel_mn_name.substr(2).data());
+          // and write it to the digis
+          pin.data[0] = int16_t(mn_id);
+          pin.data[1] = 0;
+          TLOG(TLVL_DEBUG) << "link:" << i << " panel_mn_name:" << panel_mn_name
+                           << " mn_id:" << mn_id
+                           << " pin.data[0]:" << pin.data[0] << " pin.data[1]:" << pin.data[1];
+//-----------------------------------------------------------------------------
+// PM: make it look ugly - the ugliness indicates that the logic is not right
+// most likely, need different node frontends for different subsystems
+//-----------------------------------------------------------------------------
+          trkdaq::DtcInterface* trk_dtc_i = (trkdaq::DtcInterface*) dtc_i;
+          trk_dtc_i->ControlRoc_DigiRW(&pin,&pout,i);
         }
       }
 //-----------------------------------------------------------------------------
@@ -114,7 +153,8 @@ TMFeResult TEquipmentNode::InitDtc() {
 void TEquipmentNode::InitDtcVarNames() {
   char dirname[256], var_name[128];
   
-  // midas::odb::set_debug(true);
+  TLOG(TLVL_DEBUG) << " --- START";
+// midas::odb::set_debug(true);
 
   // SC TODO: I think we should define these together with the registers? 
   std::initializer_list<const char*> dtc_names = {"Temp", "VCCINT", "VCCAUX", "VCBRAM"};
@@ -203,6 +243,8 @@ void TEquipmentNode::InitDtcVarNames() {
   }
 
   midas::odb::set_debug(false);
+
+  TLOG(TLVL_DEBUG) << " --- END";
 };
 
 

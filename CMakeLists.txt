@@ -8,8 +8,6 @@
 cmake_minimum_required (VERSION 3.19 FATAL_ERROR)
 find_package(cetmodules 3.19.02 REQUIRED)
 
-# project(otsdaq_mu2e_tracker VERSION 1.03.02)
-
 project(frontends VERSION 1.01.01)
 
 include(CetCMakeEnv)
@@ -37,15 +35,14 @@ find_package(TRACE  3.17.04              REQUIRED EXPORT)
 message(-- frontends: Trace_inc_dir=.${Trace_inc_dir}. )
 
 # these are minimum required versions, not the actual product versions
-find_package(otsdaq_mu2e_tracker 3.01.00 REQUIRED EXPORT)
-find_package(mu2e_pcie_utils     3.01.00 REQUIRED EXPORT)
+find_package(otsdaq-mu2e-tracker 3.01.00 REQUIRED EXPORT)
+find_package(mu2e-pcie-utils     3.01.00 REQUIRED EXPORT)
 
 find_package(SQLite3                     REQUIRED EXPORT QUIET)
 find_package(messagefacility             REQUIRED EXPORT QUIET)
 
 find_package(Midas                       REQUIRED EXPORT)
 find_package(PostgreSQL 13.2             REQUIRED EXPORT)
-# find_package(canvas_root_io              REQUIRED EXPORT)
 
 string (REGEX REPLACE "/include" ""  MIDAS_INSTALL_DIR ${MIDAS_INCLUDE_DIR})
 
