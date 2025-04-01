@@ -141,6 +141,13 @@ cp $SPACK_ENV/frontends/scripts/rootlogon.C $MU2E_DAQ_DIR/.
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=37376&filename=20220922_DAQNodes.pdf][mu2e-37376]] : DAQ node configuration in the DAQ room                        
 * [[file:ots.org][ots]]                                                                        
 * [[file:trace.org][TRACE]]
+* troubleshooting  
+** TFM frontend doesn't start up                                             
+- start it interactively, check that the PG DB connection is established
+- if not, run (replace 'xxx' with your account)
+#+begin_src
+  ssh -f -KX -N -L 5434:mu2edaq14:5434 -J xxx@mu2edaq-gateway xxx@mu2edaq14
+#+end_src
 * [[file:code_repositories.org][code repositories]]                                                        
 * frontends                                                                  
 ** emulated CFO frontend                                                     
