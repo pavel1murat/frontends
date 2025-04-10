@@ -100,38 +100,39 @@ TMFeResult TEquipmentNode::InitDtc() {
       }
 //-----------------------------------------------------------------------------
 // write panel IDs - to begin with, make it a separate loop
+// comment it out, already done by Vadim
 //-----------------------------------------------------------------------------
-      trkdaq::ControlRoc_DigiRW_Input_t  pin;
-      trkdaq::ControlRoc_DigiRW_Output_t pout;
-      pin.rw      = 1;
-      pin.hvcal   = 0;
-      pin.address = 0x90;
-      for (int i=0; i<6; i++) {
-        int link_enabled = dtc_i->LinkEnabled(i);
-        TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
-        if (link_enabled) {
-//-----------------------------------------------------------------------------
-// Minnesota panel name .. at this point 
-//-----------------------------------------------------------------------------
-          char key[32];
-          sprintf(key,"Link%d",i);
-          HNDLE h_link = _odb_i->GetHandle(h_subkey,key);
-          std::string panel_mn_name = _odb_i->GetString(h_link,"DetectorElement/Name");
-          int mn_id = atoi(panel_mn_name.substr(2).data());
-          // and write it to the digis
-          pin.data[0] = int16_t(mn_id);
-          pin.data[1] = 0;
-          TLOG(TLVL_DEBUG) << "link:" << i << " panel_mn_name:" << panel_mn_name
-                           << " mn_id:" << mn_id
-                           << " pin.data[0]:" << pin.data[0] << " pin.data[1]:" << pin.data[1];
-//-----------------------------------------------------------------------------
-// PM: make it look ugly - the ugliness indicates that the logic is not right
-// most likely, need different node frontends for different subsystems
-//-----------------------------------------------------------------------------
-          trkdaq::DtcInterface* trk_dtc_i = (trkdaq::DtcInterface*) dtc_i;
-          trk_dtc_i->ControlRoc_DigiRW(&pin,&pout,i);
-        }
-      }
+//       trkdaq::ControlRoc_DigiRW_Input_t  pin;
+//       trkdaq::ControlRoc_DigiRW_Output_t pout;
+//       pin.rw      = 1;
+//       pin.hvcal   = 0;
+//       pin.address = 0x90;
+//       for (int i=0; i<6; i++) {
+//         int link_enabled = dtc_i->LinkEnabled(i);
+//         TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
+//         if (link_enabled) {
+// //-----------------------------------------------------------------------------
+// // Minnesota panel name .. at this point 
+// //-----------------------------------------------------------------------------
+//           char key[32];
+//           sprintf(key,"Link%d",i);
+//           HNDLE h_link = _odb_i->GetHandle(h_subkey,key);
+//           std::string panel_mn_name = _odb_i->GetString(h_link,"DetectorElement/Name");
+//           int mn_id = atoi(panel_mn_name.substr(2).data());
+//           // and write it to the digis
+//           pin.data[0] = int16_t(mn_id);
+//           pin.data[1] = 0;
+//           TLOG(TLVL_DEBUG) << "link:" << i << " panel_mn_name:" << panel_mn_name
+//                            << " mn_id:" << mn_id
+//                            << " pin.data[0]:" << pin.data[0] << " pin.data[1]:" << pin.data[1];
+// //-----------------------------------------------------------------------------
+// // PM: make it look ugly - the ugliness indicates that the logic is not right
+// // most likely, need different node frontends for different subsystems
+// //-----------------------------------------------------------------------------
+//           trkdaq::DtcInterface* trk_dtc_i = (trkdaq::DtcInterface*) dtc_i;
+//           trk_dtc_i->ControlRoc_DigiRW(&pin,&pout,i);
+//         }
+//       }
 //-----------------------------------------------------------------------------
 // don't reset ROCs on enabled links
 //-----------------------------------------------------------------------------
