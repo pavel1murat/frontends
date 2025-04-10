@@ -90,18 +90,14 @@ class PeriodicEquipment(midas.frontend.EquipmentBase):
 #------------------------------------------------------------------------------
     def readout_func(self):
         # check nodes
-        daq_nodes_hkey = self.client.odb_get_hkey("/Mu2e/ActiveRunConfiguration/DAQ/Nodes")
-        nodes = self.client._odb_enum_key(hkey);
-        TRACE.TRACE(TRACE.TLVL_DEBUG,f'nodes:{nodes}')
-        
-        for node in nodes: 
-            print(node, node[1], ".....",node[1].name,".....",node[1].type)
-            # if (node[1].type == midas.TID_KEY):
-                
-
-        
-
-
+#         daq_nodes_hkey = self.client.odb_get_hkey("/Mu2e/ActiveRunConfiguration/DAQ/Nodes")
+#         nodes = self.client._odb_enum_key(hkey);
+#         TRACE.TRACE(TRACE.TLVL_DEBUG,f'nodes:{nodes}')
+#         
+#         for node in nodes: 
+#             print(node, node[1], ".....",node[1].name,".....",node[1].type)
+#             # if (node[1].type == midas.TID_KEY):
+#                 
         
         return None
 
@@ -165,7 +161,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------
-    def start_dqm_processes(self):
+    def start_dqm_processes(self,run_number):
         config_name         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
         partition_id        = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
         base_port_number    = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/Tfm/base_port_number')
@@ -190,8 +186,10 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------
-    def send_begin_run_elog_message(self):
+    def send_begin_run_elog_message(self,run_number):
 
+        config_name   = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
+        
         nev_per_train = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/NeventsPerTrain')
         ew_length     = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/EventWindowSize')
         sleep_time_ms = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/SleepTimeMs')
@@ -221,6 +219,9 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
             if (line.find('Message successfully transmitted') == 0):
                  self.elog['start_run_message_id'] = line.strip().split('=')[1]
                  break;
+             
+        msg_id = self.elog['start_run_message_id']
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'-- END: run_number:{run_number} message_id:{msg_id}')
         
 #------------------------------------------------------------------------------
 # the configuration may change from one run to another,
@@ -228,6 +229,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 # for now, this frontend also starts DQM 
 #------------------------------------------------------------------------------
     def begin_of_run(self, run_number):
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'-- BEGIN: run_number:{run_number}')
 
 #------------------------------------------------------------------------------
 # if requested, start DQM processes for all subsystems
@@ -235,22 +237,30 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 # first, check is the subsystem is enabled
 # if it is, check if the DQM for this subsystem is enabled 
 #------------------------------------------------------------------------------
-        self.start_dqm_processes()
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'-- before_dqm:{run_number}')
+        self.start_dqm_processes(run_number)
 #------------------------------------------------------------------------------
 # begin run message in elog
 #------------------------------------------------------------------------------
-        self.send_begin_run_elog_message();
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'-- before_elog:{run_number}')
+        self.send_begin_run_elog_message(run_number);
 
         self.set_all_equipment_status("Running", "greenLight")
         self.client.msg("CONFIG_FE: run number %d started" % run_number)
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'-- END: run_number:{run_number}')
 
         
     def end_of_run(self, run_number):
+
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'-- start END_OF_RUN: {run_number}')
 
         config_name  = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
         partition_id = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
         
         message_id = self.elog['start_run_message_id'];
+
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'run_number:{run_number} config_name:{config_name} partition_id{partition_id} message_id:{message_id}',TRACE_NAME)
+
         # message_id = "512"
         if (message_id):
             # reply to a given message id
@@ -268,6 +278,8 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         
         self.set_all_equipment_status("Okay", "greenLight")
         self.client.msg("CONFIG_FE: end of run number %d" % run_number)
+
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'-- END END_OF_RUN: {run_number}')
         return;
 
 #---v--------------------------------------------------------------------------
