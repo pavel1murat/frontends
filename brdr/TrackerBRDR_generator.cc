@@ -386,14 +386,28 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
     if (_dtc_i->LinkEnabled(i)) {
       if (rdh->error_code()) {
 //-----------------------------------------------------------------------------
-// in trouble - zero payload for enabled ROC
+// some kind of an error 
 //-----------------------------------------------------------------------------
         err_code |= 0x1;
-        nerr     += 1;
-        // al_trigger_alarm("BRDB", "ERROR", "BRDR Alarm", "Readout Problem", AT_INTERNAL);
-        std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x}",ev_counter(),i,rdh->error_code());
-        cm_msg(MERROR, _artdaqLabel.data(),msg.data());
-        TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
+        if (rdh->error_code() == 0x10) {
+//-----------------------------------------------------------------------------
+// buffer overflow - make it a warning
+//-----------------------------------------------------------------------------
+          std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{}",
+                                        ev_counter(),i,rdh->error_code(),roc_nb[i]);
+          cm_msg(MINFO, _artdaqLabel.data(),msg.data());
+          TLOG(TLVL_WARNING) << _artdaqLabel.data() << ": " << msg;
+        }
+        else if (rdh->error_code() == 0x8) {
+//-----------------------------------------------------------------------------
+// timeout - definitely an error
+//-----------------------------------------------------------------------------
+          nerr += 1;
+          std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{}",
+                                        ev_counter(),i,rdh->error_code(),roc_nb[i]);
+          cm_msg(MERROR, _artdaqLabel.data(),msg.data());
+          TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
+        }
       }
     }
     else {
