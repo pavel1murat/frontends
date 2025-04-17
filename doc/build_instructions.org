@@ -2,6 +2,119 @@
 * ------------------------------------------------------------------------------
 * installation under spack - hints                                           
 - last update: <2024-12-12 Thu> - versions are time-dependent
+  fermi 0.23: remotes/origin/v0.23.0-fermi
+  spack 0.23: tags/v0.23.0
+- do not use spack v1.0
+- for more info, see https://github.com/Mu2e/daq-operations/wiki/Getting-Started-With-Spack
+- assuming top="your working area"
+- cd to the top/spack-repos
+#+begin_src
+mkdir pasha_404
+cd pasha_404
+git clone https://github.com/spack/spack.git
+export SPACK_DISABLE_LOCAL_CONFIG=true
+source spack/share/spack/setup-env.sh
+env_name=v001                                # replace v001 with your own name, i.e. 'v001'
+spack env create   $env_name
+spack env activate $env_name
+ln -s spack/var/spack/environments/$env_name
+#------------------------------------------------------------------------------
+# repositories
+#------------------------------------------------------------------------------
+mkdir spack-repos
+pushd spack-repos
+git clone https://github.com/FNALssi/fnal_art.git
+git clone https://github.com/marcmengel/scd_recipes.git
+git clone https://github.com/art-daq/artdaq-spack.git
+git clone https://github.com/Mu2e/mu2e-spack.git
+git clone https://github.com/pavel1murat/spack_packages murat-spack
+for d in `ls` ; do echo $d; spack repo add $d ; done
+popd
+#------------------------------------------------------------------------------
+# now fix the recipes:                          
+#------------------------------------------------------------------------------
+#  fnal_art/packages/art-suite
+
+#        depends_on("libxml2@2.9")
+        depends_on("libxml2")
+#        depends_on("root@6.30.06 +http+mlp+root7+spectrum+tmva+tmva-sofie cxxstd=20", when="+root")
+        depends_on("root@6.32.06 +http+mlp+root7+spectrum+tmva+tmva-sofie cxxstd=20", when="+root")
+
+# artdaq-spack/packages/artdaq-suite
+
+#        depends_on("curl@7.76.1")
+        depends_on("curl")
+#        depends_on("librdkafka@2.8.0")
+        depends_on("librdkafka")
+#------------------------------------------------------------------------------
+# these instructions hold for the environment based on artdaq v3_13_01
+# keep using gcc 13.1.0 , problems otherwise
+#------------------------------------------------------------------------------
+spack add gcc@13.1.0
+spack concretize -f
+spack install
+spack compiler find                # add GCC to the list of compilers
+#------------------------------------------------------------------------------
+# after that ;
+#------------------------------------------------------------------------------
+spack add py-psycopg2              # python interface to postgresql
+spack add geant4@11.1.2
+spack add emacs+X # the rest is for spack 1.0 ... %gcc@13.1.0 gui=x11
+#------------------------------------------------------------------------------
+# art packages
+#------------------------------------------------------------------------------
+spack add     artdaq-core-mu2e@develop
+spack develop artdaq-core-mu2e@develop
+spack add     Offline@develop
+spack develop Offline@develop
+
+spack add elog@2024-09-25
+spack add midas@2025-04-01
+spack concretize -f  # success
+spack install
+#------------------------------------------------------------------------------
+# artdaq 
+#------------------------------------------------------------------------------
+spack add artdaq@develop
+#------------------------------------------------------------------------------
+# development packages
+# otsdaq-mu2e-tracker/2025 has the build of FEInterfaces, the only part which depends on otsdaq, disabled
+# there is a midas link problem with +postgres investigate
+#------------------------------------------------------------------------------
+  spack add mu2e-pcie-utils@develop
+
+  spack add tfm@main
+  spack add frontends@main
+
+  spack develop midas@2025-04-01+sqlite #  +postgresql - link problems with postgres
+
+  spack develop mu2e-pcie-utils@develop
+
+  spack develop otsdaq-mu2e-tracker@develop
+  pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2025       ; popd ;
+
+  spack develop tfm@main
+  spack develop frontends@main
+
+#  pushd $env_name/otsdaq-mu2e-stm     ; git fetch --all; git checkout stm_develop; popd ;
+
+  spack concretize -f
+  spack install
+#+end_src
+
+
+
+
+
+
+
+
+
+
+
+
+
+- last update: <2024-12-12 Thu> - versions are time-dependent
 - do the mu2e spack thing - see https://github.com/Mu2e/daq-operations/wiki/Getting-Started-With-Spack
 - assuming top="your working area"
 - cd to the top/spack-repos
