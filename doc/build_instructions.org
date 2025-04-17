@@ -102,15 +102,13 @@ spack add artdaq@develop
   spack install
 #+end_src
 
-* ROOT interface to mu2e_pcie_utils    validated <2024-11-20 Wed>            
+* ROOT interface to mu2e-pcie-utils    validated <2025-04-17 Thu>            
 - ROOT interface library is not available by default, you have to build it
 - mu2e-pcie-utils depends on artdaq-core-mu2e
 #+begin_src                                                                  
 export BUILD_ROOT_INTERFACE=1
-spack     add canvas-root-io@1.13.06%gcc@13.1.0 cxxstd=20
 spack     add mu2e-pcie-utils@develop%gcc@13.1.0
 
-# spack develop mu2e_pcie_utils@develop%gcc@13.1.0
 spack concretize -f
 spack install mu2e-pcie-utils@develop%gcc@13.1.0
 #+end_src
@@ -145,9 +143,9 @@ root [4]   rc = dev->read_register(0x9100,100,&res); printf("0x9100: DTC status 
 
 *Comments*
 
-- for examples, see https://github.com/Mu2e/otsdaq_mu2e_tracker/blob/develop/scripts/daq_scripts.C , 
+- for examples, see https://github.com/Mu2e/otsdaq_mu2e_tracker/blob/develop/scripts/daq.C , 
   or any other .C script in that area
-- every script should have the following line on top"
+- every script should have the following line on top:
 #+begin_src
 #define __CLING__ 1
 #+end_src
