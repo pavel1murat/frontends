@@ -1,7 +1,7 @@
 #+startup:fold -*- buffer-read-only:t -*- 
 * ------------------------------------------------------------------------------
 * installation under spack - hints                                           
-- last update: <2024-12-12 Thu> - versions are time-dependent
+- last update: <2025-04-17 Thu> - versions are time-dependent
   fermi 0.23: remotes/origin/v0.23.0-fermi
   spack 0.23: tags/v0.23.0
 - do not use spack v1.0
@@ -102,77 +102,6 @@ spack add artdaq@develop
   spack install
 #+end_src
 
-
-
-
-
-
-
-
-
-
-
-
-
-- last update: <2024-12-12 Thu> - versions are time-dependent
-- do the mu2e spack thing - see https://github.com/Mu2e/daq-operations/wiki/Getting-Started-With-Spack
-- assuming top="your working area"
-- cd to the top/spack-repos
-#+begin_src
-pushd spack-repos
-git clone https://github.com/pavel1murat/spack_packages murat-spack
-spack repo add murat-spack
-popd
-#------------------------------------------------------------------------------
-# these instructions hold for the environment based on artdaq v3_13_01
-#------------------------------------------------------------------------------
-# keep using gcc 13.1.0 , problems otherwise
-
-  env_name=my_env                          # replace my_env with your own name
-  spack env create   $env_name
-  spack env activate $env_name
-  ln -s spack/var/spack/environments/$env_name
-
-  spack add py-psycopg2              # python interface to postgresql
-
-  spack add root@6.34.04+postgres+http+root7+webgui cxxstd=20       # for direct DQM
-  spack add geant4@11.1.2
-
-  spack add art@3.15.00 cxxstd=20
-  spack add canvas@3.17.00%gcc@13.1.0  cxxstd=20
-  spack add art-root-io@1.13.06%gcc@13.1.0 cxxstd=20
-  spack add canvas-root-io@1.13.06%gcc@13.1.0 cxxstd=20 # otherwise I see C++17 vs C++20 mismatch in art-root-io
-
-  # with the latest version of artdaq, cant read the produced files in the offline
-  spack add artdaq@v4_00_00%gcc@13.1.0
-#------------------------------------------------------------------------------
-# otsdaq-mu2e-tracker/2025 has the build of FEInterfaces, the only part which depends on otsdaq, disabled
-#------------------------------------------------------------------------------
-  # spack add otsdaq@develop%gcc@13.1.0     # needed by otsdaq-mu2e-tracker (which is @develop)
-
-  spack add elog@2024-09-25
-  spack add midas@3.01.00%gcc@13.1.0~postgresql~sqlite~opencv
-  spack add tfm@main%gcc@13.1.0
-  spack add frontends@main%gcc@13.1.0
-  spack add mu2e-pcie-utils@develop%gcc@13.1.0
-  spack add kinkal@3.1.6                          # needed by Offline ?
-  spack add Offline@12.00.00
-
-  spack develop mu2e-pcie-utils@develop%gcc@13.1.0
-  spack develop tfm@main%gcc@13.1.0
-  spack develop midas@3.01.00%gcc@13.1.0~postgresql~sqlite~opencv
-  spack develop otsdaq-mu2e-tracker@develop%gcc@13.1.0
-  pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2025       ; popd ;
-  pushd $env_name/otsdaq-mu2e-stm     ; git fetch --all; git checkout stm_develop; popd ;
-
-  spack develop frontends@main%gcc@13.1.0
-
-  spack add     cairo@1.17.4
-  spack add     emacs@30.1%gcc@13.1.0 gui=x11
-  
-  spack concretize -f
-  spack install
-#+end_src
 * ROOT interface to mu2e_pcie_utils    validated <2024-11-20 Wed>            
 - ROOT interface library is not available by default, you have to build it
 - mu2e-pcie-utils depends on artdaq-core-mu2e
