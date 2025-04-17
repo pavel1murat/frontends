@@ -81,12 +81,20 @@ TMFeResult TEquipmentNode::InitDtc() {
         int link_enabled = dtc_i->LinkEnabled(i);
         TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
         if (link_enabled) {
-          std::string roc_id      = dtc_i->GetRocID         (i);
-          TLOG(TLVL_DEBUG) << "roc_id:" << roc_id;
-          std::string design_info = dtc_i->GetRocDesignInfo (i);
-          TLOG(TLVL_DEBUG) << "design_info:" << design_info;
-          std::string git_commit  = "READ_DISABLED" ; // dtc_i->GetRocFwGitCommit(i);
-          TLOG(TLVL_DEBUG) << "git_commit:" << git_commit;
+          std::string roc_id     ("READ_ERROR");
+          std::string design_info("READ_ERROR");
+          std::string git_commit ("READ_ERROR");
+          try {
+            roc_id      = dtc_i->GetRocID         (i);
+            TLOG(TLVL_DEBUG) << "roc_id:" << roc_id;
+            dtc_i->GetRocDesignInfo (i);
+            TLOG(TLVL_DEBUG) << "design_info:" << design_info;
+            git_commit  = "READ_DISABLED" ; // dtc_i->GetRocFwGitCommit(i);
+            TLOG(TLVL_DEBUG) << "git_commit:" << git_commit;
+          }
+          catch(...) {
+            TLOG(TLVL_ERROR) << "cant read link:" << i << " ROC info";
+          }
 //-----------------------------------------------------------------------------
 // 'h_link' points to a subsystem-specific place
 //-----------------------------------------------------------------------------
@@ -258,8 +266,14 @@ void TEquipmentNode::ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i) {
   dtc_reg.reserve(DtcRegisters.size());
         
   for (const int reg : DtcRegisters) {
-    uint32_t dat;
-    Dtc_i->fDtc->GetDevice()->read_register(reg,100,&dat); 
+    uint32_t dat(0);
+    try {
+      Dtc_i->fDtc->GetDevice()->read_register(reg,100,&dat);
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "failed to read register:" << reg;
+      dat = 0xFFFFFFFF;
+    }
     dtc_reg.emplace_back(dat);
   }
 
@@ -300,9 +314,15 @@ void TEquipmentNode::ReadDtcMetrics() {
         for (const int reg : DtcRegHist) {
           uint32_t val;
           float    fval(-1.);
-          dtc_i->fDtc->GetDevice()->read_register(reg,100,&val); 
-          if      ( reg == 0x9010) fval = (val/4096.)*503.975 - 273.15;   // temperature
-          else                     fval = (val/4095.)*3.;                 // voltage
+          try { 
+            dtc_i->fDtc->GetDevice()->read_register(reg,100,&val); 
+            if      ( reg == 0x9010) fval = (val/4096.)*503.975 - 273.15;   // temperature
+            else                     fval = (val/4095.)*3.;                 // voltage
+          }
+          catch(...) {
+            TLOG(TLVL_ERROR) << "failed to read register:" << reg;
+            fval = -1;
+          }
           
           dtc_tv.emplace_back(fval);
         }
