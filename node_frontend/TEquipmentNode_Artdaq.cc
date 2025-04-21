@@ -404,17 +404,22 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
 //-----------------------------------------------------------------------------
 // shared memory
 //-----------------------------------------------------------------------------
+  double* psave = ptr;
   if (nf <= 5) {
     for (int i=0; i<nf; i++) {
-      *ptr++ = brm.fr_id [i];
-      *ptr++ = brm.nf_shm[i];
-      *ptr++ = brm.nb_shm[i];
+      *ptr      = brm.fr_id [i];
+      *(ptr+5)  = brm.nf_shm[i];
+      *(ptr+10) = brm.nb_shm[i];
+      ptr++;
     }
   }
   else {
     TLOG(TLVL_ERROR) << "010: nf=" << nf;
   }
-  
+//-----------------------------------------------------------------------------
+// record has a fixed length !
+//-----------------------------------------------------------------------------
+  ptr = psave+15;
   BkClose    (buf,ptr);
   EqSendEvent(buf);
 //-----------------------------------------------------------------------------

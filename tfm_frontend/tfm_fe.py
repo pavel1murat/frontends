@@ -155,6 +155,12 @@ class TfmFrontend(midas.frontend.FrontendBase):
         if (self.use_runinfo_db):
             rdb_config_file = mu2e_config_dir+'/runinfodb.json';
             self.runinfo_db = RuninfoDB(midas_client=self.client,config_file=rdb_config_file);
+            if (self.runinfo_db.error):
+#------------------------------------------------------------------------------
+# an error has been detected, parse
+#-----------------------------------------------------------------------------
+                self.client.msg(self.runinfo_db.error,is_error = True)
+                raise Exception("tfm_fe::__init__ : problem connecting to Postgresql DB")
 #------------------------------------------------------------------------------
 # TFM frontend starts after the DTC-ctl frontends but before the cfo_emu_frontend(520)
 #-----------------------------------------------------------------------------

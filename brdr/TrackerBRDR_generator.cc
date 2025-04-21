@@ -435,22 +435,27 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 //-----------------------------------------------------------------------------
 // send alarm message and set the boardreader status to -1, also log the message
 //-----------------------------------------------------------------------------
-    int status = cm_connect_experiment(_midas_host.data(), _exptName.data(), _artdaqLabel.data(),NULL);
-    if (status != CM_SUCCESS) {
-      cm_msg(MERROR, _artdaqLabel.data(),
-             "Cannot connect to experiment '%s' on host '%s' from '%s', status %d",
-             _exptName.data(),_midas_host.data(),_full_host_name.data(),status);
-      
-      /* let user read message before window might close */
-      ss_sleep(5000);
-      return -1;
-    }
+// 2025-04-19 PM?    int status = cm_connect_experiment(_midas_host.data(), _exptName.data(), _artdaqLabel.data(),NULL);
+// 2025-04-19 PM?    if (status != CM_SUCCESS) {
     
-    HNDLE  hdb(0), hClient(0);
-    cm_get_experiment_database(&hdb, &hClient);
-    OdbInterface* odb_i = OdbInterface::Instance(hdb);
-    odb_i->SetStatus(_hBoardreader,-1);
-    cm_disconnect_experiment();
+    // cm_msg(MERROR, _artdaqLabel.data(),
+    //        "Cannot connect to experiment '%s' on host '%s' from '%s', status %d",
+    //        _exptName.data(),_midas_host.data(),_full_host_name.data(),status);
+
+    cm_msg(MERROR, _artdaqLabel.data(),
+           "Cannot connect to experiment '%s' on host '%s' from '%s'",
+           _exptName.data(),_midas_host.data(),_full_host_name.data());
+    
+      /* let user read message before window might close */
+    //   ss_sleep(5000);
+    //   return -1;
+    // }
+    
+// 2025-04-19 PM?    HNDLE  hdb(0), hClient(0);
+// 2025-04-19 PM?    cm_get_experiment_database(&hdb, &hClient);
+// 2025-04-19 PM?    OdbInterface* odb_i = OdbInterface::Instance(hdb);
+// 2025-04-19 PM?    odb_i->SetStatus(_hBoardreader,-1);
+// 2025-04-19 PM?    cm_disconnect_experiment();
   }
   
   TLOG(TLVL_DEBUG+1) << "event:" << ev_counter() << " END";

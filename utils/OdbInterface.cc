@@ -2,7 +2,7 @@
 
 #include "TRACE/trace.h"
 #include "OdbInterface.hh"
-
+#include <format>
 
 OdbInterface* OdbInterface::_instance(nullptr);
 
@@ -287,6 +287,25 @@ int OdbInterface::GetLinkMask(HNDLE hDTC) {
   uint32_t   data(0);       // if not found, want all links to be disabled
   GetUInt32(hDTC,"LinkMask",&data);
   return (int) data;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetLinkEnabled(HNDLE hDTC, int Link) {
+  std::string s = std::format("Link{:d}",Link);
+  HNDLE h_link = GetHandle(hDTC,s.data());
+  return GetEnabled(h_link);
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::SetLinkMask(HNDLE hDTC, int LinkMask) {
+  int rc(0);
+  
+  HNDLE h = GetHandle(hDTC,"LinkMask");
+  if (db_set_data(_hDB,h,(void*) &LinkMask,sizeof(int),1,TID_UINT32) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to set LinkMask:" << "0x" << std::hex << LinkMask;
+    rc = -1;
+  }
+  return rc;
 }
 
 //-----------------------------------------------------------------------------

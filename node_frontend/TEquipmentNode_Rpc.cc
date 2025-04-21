@@ -75,53 +75,35 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
     midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
 
-    trkdaq::ControlRoc_Read_Input_t par;
+    trkdaq::ControlRoc_Read_Input_t0 par;
     // parameters should be taken from ODB - where from?
 
-    par.version         = o["version"      ];
     par.adc_mode        = o["adc_mode"     ];   // -a
     par.tdc_mode        = o["tdc_mode"     ];   // -t 
     par.num_lookback    = o["num_lookback" ];   // -l 
 
-    if (par.version == 1) {
-      par.v1.num_samples     = o["num_samples"  ];   // -s
-      par.v1.num_triggers[0] = o["num_triggers"][0]; // -T 10
-      par.v1.num_triggers[1] = o["num_triggers"][1]; //
+    par.num_samples     = o["num_samples"  ];   // -s
+    par.num_triggers[0] = o["num_triggers"][0]; // -T 10
+    par.num_triggers[1] = o["num_triggers"][1]; //
         
-      par.v1.ch_mask[0]      = o["ch_mask"][0];
-      par.v1.ch_mask[1]      = o["ch_mask"][1];
-      par.v1.ch_mask[2]      = o["ch_mask"][2];
-      par.v1.ch_mask[3]      = o["ch_mask"][3];
-      par.v1.ch_mask[4]      = o["ch_mask"][4];
-      par.v1.ch_mask[5]      = o["ch_mask"][5];
+    par.ch_mask[0]      = o["ch_mask"][0];
+    par.ch_mask[1]      = o["ch_mask"][1];
+    par.ch_mask[2]      = o["ch_mask"][2];
+    par.ch_mask[3]      = o["ch_mask"][3];
+    par.ch_mask[4]      = o["ch_mask"][4];
+    par.ch_mask[5]      = o["ch_mask"][5];
         
-      par.v1.enable_pulser   = o["enable_pulser"];   // -p 1
-      par.v1.marker_clock    = o["marker_clock" ];   // -m 3
-      par.v1.mode            = o["mode"         ];   // 
-      par.v1.clock           = o["clock"        ];   //
-    }
-    else if (par.version == 2) {
-      par.v2.num_samples     = o["num_samples"  ];   // -s
-      par.v2.num_triggers[0] = o["num_triggers"][0]; // -T 10
-      par.v2.num_triggers[1] = o["num_triggers"][1]; //
-        
-      par.v2.ch_mask[0]      = o["ch_mask"][0];
-      par.v2.ch_mask[1]      = o["ch_mask"][1];
-      par.v2.ch_mask[2]      = o["ch_mask"][2];
-      par.v2.ch_mask[3]      = o["ch_mask"][3];
-      par.v2.ch_mask[4]      = o["ch_mask"][4];
-      par.v2.ch_mask[5]      = o["ch_mask"][5];
-        
-      par.v2.enable_pulser   = o["enable_pulser"];   // -p 1
-      par.v2.marker_clock    = o["marker_clock" ];   // -m 3
-      par.v2.mode            = o["mode"         ];   // 
-      par.v2.clock           = o["clock"        ];   //
-    }
+    par.enable_pulser   = o["enable_pulser"];   // -p 1
+    par.marker_clock    = o["marker_clock" ];   // -m 3
+    par.mode            = o["mode"         ];   // 
+    par.clock           = o["clock"        ];   //
       
-    printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
     int  print_level(3);
     try {
-      dtc_i->ControlRoc_Read(&par,-1,print_level,ss);
+//-----------------------------------------------------------------------------
+// ControlRoc_Read handles roc=-1 internally
+//-----------------------------------------------------------------------------
+      dtc_i->ControlRoc_Read(&par,roc,print_level,ss);
     }
     catch(...) {
       ss << "ERROR : coudn't execute ControlRoc_Read ... BAIL OUT" << std::endl;
@@ -210,6 +192,16 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     try         { dtc_i->FindAlignments(1,(0x1<<4*roc),ss); }
     catch (...) { ss << "ERROR : coudn't execute FindAlignments ... BAIL OUT" << std::endl; }
   }
+  else if (strcmp(cmd,"get_key") == 0) {
+//-----------------------------------------------------------------------------
+// get key data
+//-----------------------------------------------------------------------------
+    try         {
+      std::vector<uint16_t> data;
+      int rc = dtc_i->ControlRoc_GetKey(data,roc,2,ss);
+    }
+    catch (...) { ss << "ERROR : coudn't execute ControlRoc_GetKey ... BAIL OUT" << std::endl; }
+  }
   else if (strcmp(cmd,"get_roc_id") == 0) {
 //-----------------------------------------------------------------------------
 // get ROC ID
@@ -240,6 +232,32 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     }
     catch (...) { ss << "ERROR : coudn't execute GetRocFwGitCommit ... BAIL OUT" << std::endl; }
   }
+  else if (strcmp(cmd,"measure_thresholds") == 0) {
+//-----------------------------------------------------------------------------
+// measure thresholds
+//-----------------------------------------------------------------------------
+    // fMfe->Yield(20);
+    try         {
+      int rmin(roc), rmax(roc+1);
+      if (roc == -1) {
+        rmin = 0;
+        rmax = 6;
+      }
+      
+      TLOG(TLVL_INFO) << "-------------- rmin, rmax:" << rmin << " " << rmax;
+        
+      for (int i=rmin; i<rmax; i++) {
+        if (dtc_i->LinkEnabled(i)) {
+          TLOG(TLVL_INFO) << " -- link:" << i << " enabled";
+          dtc_i->ControlRoc_MeasureThresholds(i,2,ss);
+        }
+        else {
+          ss << "Link:" << i << " is disabled" << std::endl;
+        }
+      }
+    }
+    catch (...) { ss << "ERROR : coudn't execute MeasureThresholds ... BAIL OUT" << std::endl; }
+  }
   else if (strcmp(cmd,"read_roc_register") == 0) {
 //-----------------------------------------------------------------------------
 // ROC registers are 16-bit
@@ -255,13 +273,23 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     }
     catch (...) { ss << "ERROR : coudn't read ROC register ... BAIL OUT" << std::endl; }
   }
+  else if (strcmp(cmd,"read_ilp") == 0) {
+//-----------------------------------------------------------------------------
+// read ILP
+//-----------------------------------------------------------------------------
+    try         {
+      std::vector<uint16_t>   data;
+      dtc_i->ControlRoc_ReadIlp(data,roc,2,ss);
+    }
+    catch (...) { ss << "ERROR : coudn't read ILP ... BAIL OUT" << std::endl; }
+  }
   else if (strcmp(cmd,"read_spi") == 0) {
 //-----------------------------------------------------------------------------
 // get formatted SPI output for a given ROC
 //-----------------------------------------------------------------------------
     try         {
-      std::vector<uint16_t>   spi_data;
-      dtc_i->ControlRoc_ReadSpi(spi_data,roc,2,ss);
+      std::vector<uint16_t>   data;
+      dtc_i->ControlRoc_ReadSpi(data,roc,2,ss);
     }
     catch (...) { ss << "ERROR : coudn't read SPI ... BAIL OUT" << std::endl; }
   }

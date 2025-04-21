@@ -216,13 +216,13 @@ body {font-family: Arial;}
         document.getElementById(roc_id).style.display = "block";
         evt.currentTarget.className += " active";
 
-        g_roc = Number(roc_id.charAt(3));
+        g_roc = Number(roc_id.charAt(3)); // forth character: 'rocX'
         // -1: all ROCs
         if (g_roc == 6) {g_roc = -1};
         console.log('g_roc=',g_roc);
       }
 //-----------------------------------------------------------------------------
-// createTable
+// main function: createTable
 //-----------------------------------------------------------------------------
       function createTable() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -290,7 +290,7 @@ body {font-family: Arial;}
               <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Value" data-format="%x"></div>
             </td>
           </tr>
-      </tbody>
+        </tbody>
          `;
         
         const com_tbody = dtc_com_table.querySelector("tbody");
@@ -379,6 +379,14 @@ body {font-family: Arial;}
             <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Value" data-format="%x"></div>
           </td>
         </tr>
+        <!--  --------------------------------------------  -->
+        <tr>
+          <td colspan>
+            <input type=button value='measure thresholds' onClick='dtc_command("measure_thresholds")'>
+            <input type=button value='read ILP' onClick='dtc_command("read_ilp")'>
+            <input type=button value='get key'  onClick='dtc_command("get_key")'>
+          </td>
+        </tr>
         </tbody>
         `;      
 //-----------------------------------------------------------------------------
@@ -387,11 +395,12 @@ body {font-family: Arial;}
       }
       
       document.addEventListener("DOMContentLoaded", createTable);
+      // choose_roc_id('DOMContentLoaded','roc0')
     </script>
   </head>
   <!--
-      it seems to be convenient to have the large scale topology in HtML and use
-      javascript to fill hte details
+      it seems to be convenient to have the large scale topology defined in HTML
+      and use javascript to fill internal details
     -->
   <body class="mcss" onload="mhttpd_init('dtc_control');">
     <div id="mheader"></div>

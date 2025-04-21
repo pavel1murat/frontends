@@ -77,10 +77,14 @@ TMFeResult TEquipmentNode::InitDtc() {
 // loop over links and store in ODB IDs of the ROCs
 // this place is tracker-specific
 //-----------------------------------------------------------------------------
+      int mask = 0;
       for (int i=0; i<6; i++) {
-        int link_enabled = dtc_i->LinkEnabled(i);
+        // int link_enabled = dtc_i->LinkEnabled(i);
+        int link_enabled = _odb_i->GetLinkEnabled(h_subkey,i);
         TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
         if (link_enabled) {
+          mask |= (1 << 4*i);
+            
           std::string roc_id     ("READ_ERROR");
           std::string design_info("READ_ERROR");
           std::string git_commit ("READ_ERROR");
@@ -106,6 +110,11 @@ TMFeResult TEquipmentNode::InitDtc() {
           _odb_i->SetRocFwGitCommit(h_link,git_commit );
         }
       }
+//-----------------------------------------------------------------------------
+// set link mask, also update link mask in ODB - that is not used, but is convenient
+//-----------------------------------------------------------------------------
+      dtc_i->fLinkMask       = mask;
+      _odb_i->SetLinkMask(h_subkey,mask);
 //-----------------------------------------------------------------------------
 // write panel IDs - to begin with, make it a separate loop
 // comment it out, already done by Vadim
