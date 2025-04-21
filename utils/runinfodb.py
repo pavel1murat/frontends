@@ -20,19 +20,24 @@ class RuninfoDB:
 #------------------------------------------------------------------------------
     def __init__(self, config_file ="config/runinfodb.json", midas_client = None):
 
+        self.error  = None;
         self.client = midas_client;
-        self.info   = json.loads(open(config_file).read());
+        self.info   = None;
+        try:
+            self.info   = json.loads(open(config_file).read());
+            TRACE.TRACE(8, "db:%s host:%s port:%s user:%s passwd:%s schema:%s"%
+                        (self.database(),self.host(),self.port(),self.user(),self.passwd(),self.schema()),TRACE_NAME)
+        except:
+            self.error = f"Postgresql DB user is not defined - check {config_file}";
+            TRACE.ERROR(self.error,TRACE_NAME)
+            # raise Exception("RuninfoDB::__init__ : Postgresql DB user is not defined")
 
-        TRACE.TRACE(8, "db:%s host:%s port:%s user:%s passwd:%s schema:%s"%
-                    (self.database(),self.host(),self.port(),self.user(),self.passwd(),self.schema()),TRACE_NAME)
-        
-        if (self.user() == None):
-            TRACE.ERROR("Postgresql DB user is not defined",TRACE_NAME)
-            raise Exception("RuninfoDB::__init__ : Postgresql DB user is not defined")
-
-        self.conn     = self.open_connection();
-        self.cur      = self.conn.cursor();
-        TRACE.TRACE(8, "after open_connection",TRACE_NAME)
+        try:
+            self.conn     = self.open_connection();
+            self.cur      = self.conn.cursor();
+            TRACE.TRACE(8, "after open_connection",TRACE_NAME)
+        except:
+            self.error    = "DB connection failed. If ssh tunnel is used, check it";
 
 #------------------------------------------------------------------------------
     def __del__(self):

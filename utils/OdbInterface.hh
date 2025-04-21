@@ -68,10 +68,12 @@ public:
   int         GetDtcID            (HNDLE h_Card); // card: DTC
   int         GetJAMode           (HNDLE h_Card); // card: CFO or DTC
   int         GetLinkMask         (HNDLE h_Card); // card: CFO or DTC
+  int         GetLinkEnabled      (HNDLE h_Card, int Link); // card: DTC
   int         GetDtcMacAddrByte   (HNDLE h_Card); // card: DTC
   int         GetDtcPcieAddress   (HNDLE h_Card); // card: DTC
   int         GetDtcSampleEdgeMode(HNDLE h_Card); // 0:force rising; 1: force falling; 2:auto
   int         GetIsCrv            (HNDLE h_Card);
+  int         SetLinkMask         (HNDLE h_Card, int Mask);
 
   int         GetPcieAddress      (HNDLE h_DB, HNDLE h_Card); // card: either CFO or DTC
 //-----------------------------------------------------------------------------
