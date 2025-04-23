@@ -153,23 +153,41 @@ body {font-family: Arial;}
         const table     = document.getElementById('cmd_params');
         table.innerHTML = '';
         odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/DTC${g_pcie}`,0);
-//        window.location.href = `dtc_control_roc_read.html?hostname=${g_hostname}&pcie=${g_pcie}`;
       }
 
       //-----------------------------------------------------------------------------
-      function dtc_load_control_roc_read_parameters() {
+      function dtc_load_parameters_control_roc_read() {
         const table     = document.getElementById('cmd_params');
         table.innerHTML = '';
         odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_read',0);
-//        window.location.href = `dtc_control_roc_read.html?hostname=${g_hostname}&pcie=${g_pcie}`;
       }
       
 //-----------------------------------------------------------------------------
-      function dtc_load_control_roc_digi_rw_parameters() {
+      function dtc_load_parameters_control_roc_digi_rw() {
         const table     = document.getElementById('cmd_params');
         table.innerHTML = '';
         odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_digi_rw',0);
-//        window.location.href = `dtc_control_roc_read.html?hostname=${g_hostname}&pcie=${g_pcie}`;
+      }
+      
+//-----------------------------------------------------------------------------
+      function dtc_load_parameters_control_roc_pulser_on() {
+        const table     = document.getElementById('cmd_params');
+        table.innerHTML = '';
+        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_pulser_on',0);
+      }
+      
+//-----------------------------------------------------------------------------
+      function dtc_load_parameters_control_roc_rates() {
+        const table     = document.getElementById('cmd_params');
+        table.innerHTML = '';
+        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_rates',0);
+      }
+      
+//-----------------------------------------------------------------------------
+      function dtc_load_parameters_control_roc_pulser_off() {
+        const table     = document.getElementById('cmd_params');
+        table.innerHTML = '';
+        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_pulser_off',0);
       }
       
 //-----------------------------------------------------------------------------
@@ -263,9 +281,9 @@ body {font-family: Arial;}
           <!----------------- DTC print status, print ROC status , write reg   -->
           <tr>
             <td>
-              <input type=button value='Init Readout'     onClick='dtc_command("dtc_init_readout")'>
+              <input type=button value='Init Readout'        onClick='dtc_command("dtc_init_readout")'>
               <input type=button value='CFO launch run plan' onClick='cfo_command("cfo_launch_run_plan")'>
-              <input type=button value='read subevents'   onClick='dtc_command("dtc_read_subevents")'>
+              <input type=button value='read subevents'      onClick='dtc_command("dtc_read_subevents")'>
             </td>
             <td>
               <input type=button value='write register'   onClick='dtc_command("dtc_write_register")'>
@@ -302,7 +320,7 @@ body {font-family: Arial;}
         roc_com_table.innerHTML = `
         <tbody>
           <tr>
-            <td> <div class="mtableheader" colspan=2> ROC Control Commands </div> </td> 
+            <td> <div class="mtableheader" colspan=2> control_ROC commands </div> </td> 
             <td colspan=3>
             <div class="tab">
             <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
@@ -318,30 +336,40 @@ body {font-family: Arial;}
           <tr>
             <td colspan=2>
               <div class="dropup">
-                <input type=button class="dropbtn" value='control_ROC_read'>
+                <input type=button class="dropbtn" value='read'>
                 <div class="dropup-content">
-  <!--
-                  <a href="#">Load Parameters 1</a>
-                  <a href="#">Run 1</a>
-  -->
-                  <div onClick='dtc_load_control_roc_read_parameters()'> Load Parameters </div>
+                  <div onClick='dtc_load_parameters_control_roc_read()'> Load Parameters </div>
                   <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
                 </div>
               </div>
               <div class="dropup">
-                <input type=button class="dropbtn" value='control_ROC_digi_rw'>
+                <input type=button class="dropbtn" value='digi_rw'>
                 <div class="dropup-content">
-  <!--
-                  <a href="#">Load Parameters 1</a>
-                  <a href="#">Run 1</a>
-  -->
-                  <div onClick='dtc_load_control_roc_digi_rw_parameters()'> Load Parameters </div>
+                  <div onClick='dtc_load_parameters_control_roc_digi_rw()'> Load Parameters </div>
                   <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
                 </div>
               </div>
-              
-              <input type=button value='find alignment'  onClick='dtc_command("find_alignment")'>
-              
+              <div class="dropup">
+                <input type=button class="dropbtn" value='pulser_on'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_pulser_on()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_pulser_on")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='rates'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='pulser_off'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_pulser_off()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
+                </div>
+              </div>
             </td>
             <td> <div> Register </div> </td>
             <td> <div> Value    </div> </td>
@@ -381,10 +409,13 @@ body {font-family: Arial;}
         </tr>
         <!--  --------------------------------------------  -->
         <tr>
-          <td colspan>
-            <input type=button value='measure thresholds' onClick='dtc_command("measure_thresholds")'>
-            <input type=button value='read ILP' onClick='dtc_command("read_ilp")'>
-            <input type=button value='get key'  onClick='dtc_command("get_key")'>
+          <td colspan=4>
+            <input type=button value='read ILP'           onClick='dtc_command("read_ilp")'>
+            <input type=button value='get key'            onClick='dtc_command("get_key")'>
+            <input type=button value='find alignment'     onClick='dtc_command("dtc_control_roc_find_alignment")'>
+            <input type=button value='measure thresholds' onClick='dtc_command("dtc_control_roc_measure_thresholds")'>
+            <input type=button value='set thresholds'     onClick='dtc_command("dtc_control_roc_set_thresholds")'>
+              
           </td>
         </tr>
         </tbody>
