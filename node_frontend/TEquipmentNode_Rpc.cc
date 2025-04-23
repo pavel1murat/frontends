@@ -56,11 +56,17 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     return TMFeErrorMessage(msg+args);
   }
 
-  // time_t now = time(NULL);
-  // char tmp[256];
-  // sprintf(tmp, "{ \"hey, current_time\":[ %d, \"%s\"] }", (int)now, ctime(&now));
+  TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr
+                   << " DTC[0]:" << fDtc_i[0]
+                   << " DTC[1]:" << fDtc_i[1] ;
   
-  trkdaq::DtcInterface* dtc_i = dynamic_cast<trkdaq::DtcInterface*>(fDtc_i[pcie_addr]);
+  trkdaq::DtcInterface* dtc_i(nullptr);
+  try {
+    dtc_i = dynamic_cast<trkdaq::DtcInterface*>(fDtc_i[pcie_addr]);
+  }
+  catch(...) {
+    TLOG(TLVL_ERROR) << "cant initialize the DTC";
+  }
   
   if (dtc_i == nullptr) {
     ss << "DTC" << pcie_addr << " is not enabled";
@@ -85,16 +91,39 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     par.num_samples     = o["num_samples"  ];   // -s
     par.num_triggers[0] = o["num_triggers"][0]; // -T 10
     par.num_triggers[1] = o["num_triggers"][1]; //
-        
-    par.ch_mask[0]      = o["ch_mask"][0];
-    par.ch_mask[1]      = o["ch_mask"][1];
-    par.ch_mask[2]      = o["ch_mask"][2];
-    par.ch_mask[3]      = o["ch_mask"][3];
-    par.ch_mask[4]      = o["ch_mask"][4];
-    par.ch_mask[5]      = o["ch_mask"][5];
+
+    // this is how we get the panel name
+
+    if (o["UsePanelMask"] < 0) {
+//-----------------------------------------------------------------------------
+// use straw mask defined for the panels, save the masks in the command ODB record
+// the missing part - need to know the node name. But that is the local host name,
+// the one the frontend is running on
+//-----------------------------------------------------------------------------
+      std::string  panel_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
+                                            _host_label.data(),pcie_addr,roc);
+      midas::odb   odb_panel(panel_path);
+      
+      for (int i=0; i<96; i++) {
+        int on_off = odb_panel["on_off"];
+        int iw = i / 16;
+        int ib = i % 16;
+        if (ib == 0) {
+          par.ch_mask[iw] = 0;
+        }
+        par.ch_mask[iw] |= on_off << ib;
+      }
+      for (int i=0; i<6; i++) o["ch_mask"][i] = par.ch_mask[i];
+    }
+    else {
+//-----------------------------------------------------------------------------
+// use masks stored in the command ODB record
+//-----------------------------------------------------------------------------
+      for (int i=0; i<6; i++) par.ch_mask[i] = o["ch_mask"][i];
+    }
         
     par.enable_pulser   = o["enable_pulser"];   // -p 1
-    par.marker_clock    = o["marker_clock" ];   // -m 3
+    par.marker_clock    = o["marker_clock" ];   // -m 3 (for data taking) , 0: for noise
     par.mode            = o["mode"         ];   // 
     par.clock           = o["clock"        ];   //
       
@@ -188,7 +217,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     try         { dtc_i->PrintRocStatus(1,-1,ss); }
     catch (...) { ss << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
   }
-  else if (strcmp(cmd,"find_alignment") == 0) {
+  else if (strcmp(cmd,"dtc_control_roc_find_alignment") == 0) {
     try         { dtc_i->FindAlignments(1,(0x1<<4*roc),ss); }
     catch (...) { ss << "ERROR : coudn't execute FindAlignments ... BAIL OUT" << std::endl; }
   }
@@ -198,7 +227,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
     try         {
       std::vector<uint16_t> data;
-      int rc = dtc_i->ControlRoc_GetKey(data,roc,2,ss);
+      dtc_i->ControlRoc_GetKey(data,roc,2,ss);
     }
     catch (...) { ss << "ERROR : coudn't execute ControlRoc_GetKey ... BAIL OUT" << std::endl; }
   }
@@ -232,7 +261,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     }
     catch (...) { ss << "ERROR : coudn't execute GetRocFwGitCommit ... BAIL OUT" << std::endl; }
   }
-  else if (strcmp(cmd,"measure_thresholds") == 0) {
+  else if (strcmp(cmd,"dtc_control_roc_measure_thresholds") == 0) {
 //-----------------------------------------------------------------------------
 // measure thresholds
 //-----------------------------------------------------------------------------
@@ -272,6 +301,72 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       ss << " -- read_roc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
     }
     catch (...) { ss << "ERROR : coudn't read ROC register ... BAIL OUT" << std::endl; }
+  }
+  else if (strcmp(cmd,"dtc_control_roc_pulser_on") == 0) {
+//-----------------------------------------------------------------------------
+// turn pulser ON
+//-----------------------------------------------------------------------------
+    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_pulser_on";
+    
+    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_pulser_on");
+
+    int first_channel_mask = o["FirstChannelMask" ];    //
+    int duty_cycle         = o["DutyCycle"        ];    //
+    int pulser_delay       = o["PulserDelay"      ];    //
+    int print_level        = o["PrintLevel"       ];
+
+    TLOG(TLVL_DEBUG) << "trying to call ControlRoc_PulserOn, roc:" << roc;
+    try {
+      dtc_i->ControlRoc_PulserOn(roc,first_channel_mask,duty_cycle,pulser_delay,print_level,ss);
+    }
+    catch(...) {
+      ss << "ERROR : coudn't execute ControlRoc_PulserON ... BAIL OUT" << std::endl;
+    }
+  }
+  else if (strcmp(cmd,"dtc_control_roc_pulser_off") == 0) {
+//-----------------------------------------------------------------------------
+// turn pulser OFF
+//-----------------------------------------------------------------------------
+    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_pulser_off";
+    
+    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_pulser_off");
+
+    int print_level        = o["PrintLevel"       ];
+
+    TLOG(TLVL_DEBUG) << "trying to call ControlRoc_PulserOff, roc:" << roc;
+    try {
+      dtc_i->ControlRoc_PulserOff(roc,print_level,ss);
+    }
+    catch(...) {
+      ss << "ERROR : coudn't execute ControlRoc_PulserOFF ... BAIL OUT" << std::endl;
+    }
+  }
+  else if (strcmp(cmd,"dtc_control_roc_rates") == 0) {
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_rates";
+    
+    int timeout_ms(150);
+    try {
+      midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_rates");
+
+      trkdaq::ControlRoc_Rates_t  par;
+      // parameters should be taken from ODB - where from?
+    
+      par.num_lookback = o["num_lookback"];    //
+      par.num_samples  = o["num_samples" ];    //
+      for (int i=0; i<6; i++) par.chan_mask[i] = o["chan_mask"][i];
+      
+      printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
+      
+      int  print_level = o["PrintLevel"];
+      dtc_i->ControlRoc_Rates(roc,print_level,&par,ss);
+    }
+    catch(...) {
+      ss << "ERROR : coudn't execute ControlRoc_rates ... BAIL OUT" << std::endl;
+    }
+
   }
   else if (strcmp(cmd,"read_ilp") == 0) {
 //-----------------------------------------------------------------------------

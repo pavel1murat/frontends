@@ -17,28 +17,33 @@
 
       function setPathFromUrl() {
           const urlParams = new URLSearchParams(window.location.search);
-          const station = urlParams.get("station") || "0";
-          const plane = urlParams.get("plane") || "0";
-          const panel = urlParams.get("panel") || "0";
+          const station   = urlParams.get("station") || "0";
+          const plane     = urlParams.get("plane"  ) || "0";
+          const panel     = urlParams.get("panel"  ) || "0";
 
           PATH = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${station.padStart(2, '0')}/Plane_${plane.padStart(2, '0')}/Panel_${panel.padStart(2, '0')}`;
       }
 
       function setTableTitle() {
-          const title = document.getElementById("TableName");
-          const stIndex = PATH.indexOf("Station");
-          title.textContent = `Details for ${PATH.slice(stIndex)}`;
+          const title       = document.getElementById("TableName");
+          const stIndex     = PATH.indexOf("Station");
+          db_get_value(PATH+'/Name', rpc => {
+              document.getElementById("TableName").textContent = `${PATH.slice(stIndex)} : ` + JSON.stringify(rpc['result']['data']);
+          });
       }
 
       function prepareTable() {
           const table = document.getElementById("MVtable");
           table.innerHTML = `<thead>
                     <tr>
-                        <th>Channel</th>
-                        <th>Gain_HV</th>
-                        <th>Gain_CAL</th>
-                        <th>ThrHld_HV</th>
-                        <th>ThrHld_CAL</th>
+                        <th>Channel       </th>
+                        <th>On/Off        </th>
+                        <th>Thr  HV       </th>
+                        <th>Thr  HV meas  </th>
+                        <th>Thr  CAL      </th>
+                        <th>Thr  CAL meas </th>
+                        <th>Gain HV       </th>
+                        <th>Gain CAL      </th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -53,10 +58,13 @@
               
               row.innerHTML = `
                     <td style="background-color: #d6eaff; font-weight: bold; text-align: center;">${i}</td>
+                    <td class="modbvalue" align="center" data-odb-path="${PATH}/on_off[${i}]"></td>
+                    <td class="modbvalue" align="center" data-odb-path="${PATH}/threshold_hv[${i}]"></td>
+                    <td> </fd>
+                    <td class="modbvalue" align="center" data-odb-path="${PATH}/threshold_cal[${i}]"></td>
+                    <td> </fd>
                     <td class="modbvalue" align="center" data-odb-path="${PATH}/gain_hv[${i}]"></td>
                     <td class="modbvalue" align="center" data-odb-path="${PATH}/gain_cal[${i}]"></td>
-                    <td class="modbvalue" align="center" data-odb-path="${PATH}/threshold_hv[${i}]"></td>
-                    <td class="modbvalue" align="center" data-odb-path="${PATH}/threshold_cal[${i}]"></td>
                 `;
               tbody.appendChild(row);
           }

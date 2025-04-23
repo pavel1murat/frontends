@@ -1,95 +1,121 @@
 {
   "/MIDAS version" : "2.1",
-  "/MIDAS git revision" : "Fri Oct 18 18:02:51 2024 -0700 - midas-2022-05-c-1467-geb625af1-dirty on branch develop",
+  "/MIDAS git revision" : "Fri Jul 21 09:19:07 2023 -0700 - midas-2022-05-c-449-gf254ebd6-dirty on branch HEAD",
   "/filename" : "Commands.json",
   "/ODB path" : "/Mu2e/Commands",
 
   "Tracker" : {
     "DTC" : {
+      "control_ROC_digi_rw" : {
+        "rw/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1742658601 },
+        "rw" : "0x0001",
+        "hvcal/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1742658601 },
+        "hvcal" : "0x0000",
+        "address/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1742658601 },
+        "address" : "0x0090",
+        "data/key" : { "type" : 4, "num_values" : 2, "access_mode" : 7, "last_written" : 1742658601 },
+        "data" : [ "0x0000", "0x0000" ]
+      },
+      "control_ROC_pulser_off" : {
+        "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1745380446 },
+        "PrintLevel" : 2
+      },
+      "control_ROC_pulser_on" : {
+        "FirstChannelMask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1745370643 },
+        "FirstChannelMask" : 16,
+        "DutyCycle/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1745370662 },
+        "DutyCycle" : 10,
+        "PulserDelay/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1745370635 },
+        "PulserDelay" : 1000,
+        "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1745378482 },
+        "PrintLevel" : 2
+      },
+      "control_ROC_rates" : {
+        "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1745377116 },
+        "PrintLevel" : 2,
+        "num_lookback/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1745372004 },
+        "num_lookback" : 100,
+        "num_samples/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1745372018 },
+        "num_samples" : 10,
+        "chan_mask/key" : { "type" : 4, "num_values" : 6, "access_mode" : 7, "last_written" : 1745372081 },
+        "chan_mask" : [ "0xffff", "0xffff", "0xffff", "0xffff", "0xffff", "0xffff" ]
+      },
       "control_ROC_read" : {
-        "version/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1739231862 },
-        "version" : 2,
-        "# -- comment:/key" : { "type" : 12, "item_size" : 47, "access_mode" : 7, "last_written" : 1739156937 },
+        "# -- comment:/key" : { "type" : 12, "item_size" : 47, "access_mode" : 7, "last_written" : 1742658601 },
         "# -- comment:" : "--------  default: digi checkerboard (-a4 -p1)",
-        "adc_mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
-        "adc_mode" : "0x0004",
-        "tdc_mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
+        "adc_mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1744319412 },
+        "adc_mode" : "0x0000",
+        "tdc_mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1742658601 },
         "tdc_mode" : "0x0000",
-        "num_lookback/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
-        "num_lookback" : "0x0008",
-        "num_triggers/key" : { "type" : 4, "num_values" : 2, "access_mode" : 7, "last_written" : 1739156937 },
+        "num_lookback/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1742659109 },
+        "num_lookback" : "0x0000",
+        "num_triggers/key" : { "type" : 4, "num_values" : 2, "access_mode" : 7, "last_written" : 1742658601 },
         "num_triggers" : [ "0x000a", "0x0000" ],
-        "ch_mask/key" : { "type" : 4, "num_values" : 6, "access_mode" : 7, "last_written" : 1739156937 },
+        "UsePanelMask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+        "UsePanelMask" : 0,
+        "ch_mask/key" : { "type" : 4, "num_values" : 6, "access_mode" : 7, "last_written" : 1742658601 },
         "ch_mask" : [ "0xffff", "0xffff", "0xffff", "0xffff", "0xffff", "0xffff" ],
-        "num_samples/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739204709 },
-        "num_samples" : "0x0001",
-        "enable_pulser/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
-        "enable_pulser" : "0x0001",
-        "max_total_delay/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
+        "num_samples/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1745377768 },
+        "num_samples" : "0x0002",
+        "enable_pulser/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1745373749 },
+        "enable_pulser" : "0x0000",
+        "max_total_delay/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1742658601 },
         "max_total_delay" : "0x0000",
-        "marker_clock/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
+        "# -----/key" : { "type" : 12, "item_size" : 53, "access_mode" : 7, "last_written" : 1745369476 },
+        "# -----" : "marker_clock:  3, when runnung,  0 when no EWMs",
+        "marker_clock/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1745383921 },
         "marker_clock" : "0x0003",
-        "mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
+        "mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1742658601 },
         "mode" : "0x0000",
-        "clock/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
+        "clock/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1742658601 },
         "clock" : "0x0063"
       },
-      "write_register" : {
-        "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1739156937 },
-        "Register" : "0x000091a8",
-        "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1739156937 },
-        "Value" : "0x00000200"
-      },
       "read_register" : {
-        "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1739156937 },
+        "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1743094199 },
+        "Register" : "0x00009140",
+        "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1743095296 },
+        "Value" : "0x00000041"
+      },
+      "read_roc_register" : {
+        "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1744257325 },
+        "Register" : "0x0000",
+        "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1744257329 },
+        "Value" : "0x1234"
+      },
+      "write_register" : {
+        "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1742658601 },
         "Register" : "0x000091a8",
-        "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1739156937 },
+        "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1742658601 },
         "Value" : "0x00000200"
       },
       "write_roc_register" : {
-        "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
+        "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1742658601 },
         "Register" : "0x0000",
-        "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
+        "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1742658601 },
         "Value" : "0x0000"
-      },
-      "read_roc_register" : {
-        "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739156937 },
-        "Register" : "0x0000",
-        "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739214876 },
-        "Value" : "0x1234"
-      },
-      "control_ROC_digi_rw" : {
-        "rw/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739217193 },
-        "rw" : "0x0001",
-        "hvcal/key" : { "type" : 4, "access_mode" : 7, "last_written" : 0 },
-        "hvcal" : "0x0000",
-        "address/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1739217162 },
-        "address" : "0x0090",
-        "data/key" : { "type" : 4, "num_values" : 2, "access_mode" : 7, "last_written" : 1739157503 },
-        "data" : [ "0x0000", "0x0000" ]
       }
     }
   },
   "Global" : {
-    "# ------ command names: ---/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1739156870 },
+    "# ------ command names: ---/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1742658601 },
     "# ------ command names: ---" : "configure, generate_fcl",
-    "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1739156870 },
+    "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1742658601 },
     "Name" : "",
-    "Parameters/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1739156870 },
+    "Parameters/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1742658601 },
     "Parameters" : "12 2 45",
-    "#-1 -------------------/key" : { "type" : 12, "item_size" : 46, "access_mode" : 7, "last_written" : 1739156870 },
+    "#-1 -------------------/key" : { "type" : 12, "item_size" : 46, "access_mode" : 7, "last_written" : 1742658601 },
     "#-1 -------------------" : "------------- modified by the caller --------",
-    "Locked/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1739156870 },
+    "Locked/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1742658601 },
     "Locked" : 0,
-    "Doit/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1739156870 },
+    "Doit/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1742658601 },
     "Doit" : 0,
-    "ResultChecked/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1739156870 },
+    "ResultChecked/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1742658601 },
     "ResultChecked" : 0,
-    "#0 -------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1739156870 },
+    "#0 -------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1742658601 },
     "#0 -------------------" : "--- modified by the callee",
-    "State/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1739156870 },
+    "State/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1742658601 },
     "State" : 0,
-    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1739156870 },
+    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1742658601 },
     "Status" : 0
   }
 }
