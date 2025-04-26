@@ -390,9 +390,9 @@ void TEquipmentNode::ReadDtcMetrics() {
               if (_monitorRocSPI) {
                 TLOG(TLVL_DEBUG+1) << "saving ROC:" << ilink << " SPI data";
               
-                try { 
-                  struct trkdaq::TrkSpiData_t   spi;
-                  trkdtc_i->ControlRoc_ReadSpi_1(&spi,ilink,0);
+                struct trkdaq::TrkSpiData_t   spi;
+                int rc = trkdtc_i->ControlRoc_ReadSpi_1(&spi,ilink,0);
+                if (rc == 0) {
               
                   std::vector<float> roc_spi;
                   for (int iw=0; iw<trkdaq::TrkSpiDataNWords; iw++) {
@@ -411,8 +411,8 @@ void TEquipmentNode::ReadDtcMetrics() {
                   TLOG(TLVL_DEBUG+1) << "ROC:" << ilink
                                    << " saved N(SPI) words:" << trkdaq::TrkSpiDataNWords;
                 }
-                catch(...) {
-                  TLOG(TLVL_ERROR) << "failed to read DTC:" << idtc << " ROC:" << ilink << " SPI";
+                else {
+                  TLOG(TLVL_ERROR) << "failed to read SPI, DTC:" << idtc << " ROC:" << ilink;
 //-----------------------------------------------------------------------------
 // set ROC status to -1
 //-----------------------------------------------------------------------------
