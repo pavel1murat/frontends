@@ -1,6 +1,6 @@
 #+startup:fold -*- buffer-read-only:t -*- 
 * ------------------------------------------------------------------------------
-* installation under spack - hints                                           
+* installation under spack                                           
 - last update: <2025-04-17 Thu> - versions are time-dependent
   fermi 0.23: remotes/origin/v0.23.0-fermi
   spack 0.23: tags/v0.23.0
@@ -11,7 +11,9 @@
 #+begin_src
 mkdir pasha_404
 cd pasha_404
+unset SPACK_ROOT
 git clone https://github.com/spack/spack.git
+cd spack; git checkout v0.23.1; cd ..
 export SPACK_DISABLE_LOCAL_CONFIG=true
 source spack/share/spack/setup-env.sh
 env_name=v001                                # replace v001 with your own name, i.e. 'v001'
@@ -33,21 +35,13 @@ popd
 #------------------------------------------------------------------------------
 # now fix the recipes:                          
 #------------------------------------------------------------------------------
-#  fnal_art/packages/art-suite
+#  artdaq-spack/packages/art-suite
 
 #        depends_on("libxml2@2.9")
         depends_on("libxml2")
 #        depends_on("root@6.30.06 +http+mlp+root7+spectrum+tmva+tmva-sofie cxxstd=20", when="+root")
         depends_on("root@6.32.06 +http+mlp+root7+spectrum+tmva+tmva-sofie cxxstd=20", when="+root")
-
-# artdaq-spack/packages/artdaq-suite
-
-#        depends_on("curl@7.76.1")
-        depends_on("curl")
-#        depends_on("librdkafka@2.8.0")
-        depends_on("librdkafka")
 #------------------------------------------------------------------------------
-# these instructions hold for the environment based on artdaq v3_13_01
 # keep using gcc 13.1.0 , problems otherwise
 #------------------------------------------------------------------------------
 spack add gcc@13.1.0
@@ -58,7 +52,6 @@ spack compiler find                # add GCC to the list of compilers
 # after that ;
 #------------------------------------------------------------------------------
 spack add py-psycopg2              # python interface to postgresql
-spack add geant4@11.1.2
 spack add emacs+X # the rest is for spack 1.0 ... %gcc@13.1.0 gui=x11
 #------------------------------------------------------------------------------
 # art packages
@@ -69,7 +62,7 @@ spack add     Offline@develop
 spack develop Offline@develop
 
 spack add elog@2024-09-25
-spack add midas@2025-04-01
+spack add midas@2025-04-25
 spack concretize -f  # success
 spack install
 #------------------------------------------------------------------------------
@@ -86,10 +79,11 @@ spack add artdaq@develop
   spack add tfm@main
   spack add frontends@main
 
-  spack develop midas@2025-04-01+sqlite #  +postgresql - link problems with postgres
+  spack develop midas@2025-04-25+sqlite #  +postgresql - link problems with postgres
 
   spack develop mu2e-pcie-utils@develop
 
+  spack add     otsdaq-mu2e-tracker@develop
   spack develop otsdaq-mu2e-tracker@develop
   pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2025       ; popd ;
 
