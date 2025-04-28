@@ -62,8 +62,8 @@ spack add     Offline@develop
 spack develop Offline@develop
 
 spack add elog@2024-09-25
-spack add midas@2025-04-25
-spack concretize -f  # success
+spack add midas@2025-04-25+sqlite
+spack concretize -f                          # success
 spack install
 #------------------------------------------------------------------------------
 # artdaq 
