@@ -1,7 +1,7 @@
 #+startup:fold -*- buffer-read-only:t -*- 
 * ------------------------------------------------------------------------------
-* installation under spack                                           
-- last update: <2025-04-17 Thu> - versions are time-dependent
+* installation under spack                                               
+- last update: <2025-04-28 Thu> - versions are time-dependent
   fermi 0.23: remotes/origin/v0.23.0-fermi
   spack 0.23: tags/v0.23.0
 - do not use spack v1.0
@@ -81,6 +81,7 @@ spack add artdaq@develop
 
   spack develop midas@2025-04-25+sqlite #  +postgresql - link problems with postgres
 
+  spack add     mu2e-pcie-utils@develop
   spack develop mu2e-pcie-utils@develop
 
   spack add     otsdaq-mu2e-tracker@develop
