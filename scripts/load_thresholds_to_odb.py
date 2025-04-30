@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import  midas,TRACE
 import  midas.client
 import  os, psycopg2
@@ -12,7 +14,7 @@ logger = logging.getLogger('midas')
 # example : set thresholds(21,'MN101')
 #           set thresholds(25,'MN262')
 #------------------------------------------------------------------------------
-def load_thresholds_to_odb(station,thresholds):
+def load_thresholds_to_odb(station):
     
     logger.info("Initializing : test2_set_thresholds")
 
@@ -31,7 +33,7 @@ def load_thresholds_to_odb(station,thresholds):
 #------------------------------------------------------------------------------
 # read input file
 #------------------------------------------------------------------------------
-            fn = f'config/tracker/station_{station:02d}/{thresholds}/{panel_name}.json';
+            fn = f'config/tracker/station_00/thresholds/{panel_name}.json';
             print (f'-------------- opening file:{fn}')
             with open(fn, 'r') as file:
                 data = json.load(file)
@@ -41,7 +43,7 @@ def load_thresholds_to_odb(station,thresholds):
             # {'channel': 84, 'type': 'hv', 'threshold': 414, 'gain': 370}
                     ich = d['channel']
 # enable all channels
-                    client.odb_set(panel_odb_path+f'/on_off[{ich}]',1)
+                    client.odb_set(panel_odb_path+f'/ch_mask[{ich}]',1)
                     client.odb_set(panel_odb_path+f'/gain_{d["type"]}[{ich}]',d["gain"]);
                     client.odb_set(panel_odb_path+f'/threshold_{d["type"]}[{ich}]',d["threshold"]);
 #    print(data)
@@ -53,4 +55,4 @@ def load_thresholds_to_odb(station,thresholds):
 if __name__ == "__main__":
 
 #    test1()
-    load_thresholds_to_odb(station=0,thresholds='thresholds-15-mV')
+    load_thresholds_to_odb(station=0)

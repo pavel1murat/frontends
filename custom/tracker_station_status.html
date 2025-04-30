@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
    <meta charset="UTF-8">
-   <title>Tracker Panels</title>
    <link rel="stylesheet" href="midas.css">
    <link rel="stylesheet" href="tracker_style.css">
    <script src="controls.js"></script>
    <script src="midas.js"></script>
    <script src="mhttpd.js"></script>
    <script src="filesrw.js"></script>
+    <link   rel="stylesheet" href="mu2edaq.css">
+
+    <title>Tracker AAAA</title>
 
    <script>
      function load_values(path, statusCell) {
@@ -43,12 +45,173 @@
        });
      }
 
-     function createPanelsTable() {
+//-----------------------------------------------------------------------------
+// main function
+//-----------------------------------------------------------------------------
+     function createPage() {
        const urlParams    = new URLSearchParams(window.location.search);
        const stationIndex = urlParams.get('station') || '0';  // Default to Station_00
        const planeIndex   = urlParams.get('plane'  ) || '0';  // Default to Plane_00
        const npanels      = 6; // Number of panels
-       const table        = document.querySelector(".mtable");
+
+
+     const com_table     = document.getElementById('station_commands');
+
+        com_table.innerHTML = `
+        <thead>
+          <tr>
+            <td colspan=15> <div class="mtableheader">Tracker Control Commands </div></td>
+          </tr>
+        </thead>
+
+        <tbody>                                                                        
+           <tr>
+             <td> <div class="tab"> Station 0</div> </td>
+             <td> <div class="tab"> plane 25 </div> </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel00" onclick="choose_dtc_id(event,'panel00')">MN261</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel01" onclick="choose_dtc_id(event,'panel01')">MN248</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel02" onclick="choose_dtc_id(event,'panel02')">MN224</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel03" onclick="choose_dtc_id(event,'panel03')">MN262</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel04" onclick="choose_dtc_id(event,'panel04')">MN273</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel05" onclick="choose_dtc_id(event,'panel05')">MN276</button>
+            </td>
+             <td> <div class="tab"> plane 21 </div> </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel06" onclick="choose_dtc_id(event,'panel06')">MN253</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel07" onclick="choose_dtc_id(event,'panel07')">MN101</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel08" onclick="choose_dtc_id(event,'panel08')">MN219</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel09" onclick="choose_dtc_id(event,'panel09')">MN213</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel10" onclick="choose_dtc_id(event,'panel10')">MN235</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel11" onclick="choose_dtc_id(event,'panel11')">MN247</button>
+              </div>
+            </td>
+          </tr>
+<!-
+ Station 2-
+-->
+           <tr>
+             <td> <div class="tab"> Station 1</div> </td>
+             <td> <div class="tab"> plane X1 </div> </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel00" onclick="choose_dtc_id(event,'panel00')">MN261</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel01" onclick="choose_dtc_id(event,'panel01')">MN248</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel02" onclick="choose_dtc_id(event,'panel02')">MN224</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel03" onclick="choose_dtc_id(event,'panel03')">MN262</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel04" onclick="choose_dtc_id(event,'panel04')">MN273</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel05" onclick="choose_dtc_id(event,'panel05')">MN276</button>
+            </td>
+             <td> <div class="tab"> plane Y1 </div> </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel06" onclick="choose_dtc_id(event,'panel06')">MN253</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel07" onclick="choose_dtc_id(event,'panel07')">MN101</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel08" onclick="choose_dtc_id(event,'panel08')">MN219</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel09" onclick="choose_dtc_id(event,'panel09')">MN213</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel10" onclick="choose_dtc_id(event,'panel10')">MN235</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel11" onclick="choose_dtc_id(event,'panel11')">MN247</button>
+              </div>
+            </td>
+          </tr>
+<!-
+ Station 2-
+-->
+           <tr>
+             <td> <div class="tab"> Station 2</div> </td>
+             <td> <div class="tab"> plane X2 </div> </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel00" onclick="choose_dtc_id(event,'panel00')">MN261</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel01" onclick="choose_dtc_id(event,'panel01')">MN248</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel02" onclick="choose_dtc_id(event,'panel02')">MN224</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel03" onclick="choose_dtc_id(event,'panel03')">MN262</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel04" onclick="choose_dtc_id(event,'panel04')">MN273</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel05" onclick="choose_dtc_id(event,'panel05')">MN276</button>
+            </td>
+             <td> <div class="tab"> plane Y2 </div> </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel06" onclick="choose_dtc_id(event,'panel06')">MN253</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel07" onclick="choose_dtc_id(event,'panel07')">MN101</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel08" onclick="choose_dtc_id(event,'panel08')">MN219</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel09" onclick="choose_dtc_id(event,'panel09')">MN213</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel10" onclick="choose_dtc_id(event,'panel10')">MN235</button>
+            </td>
+            <td> <div class="tab">
+                <button class="tablinks" id="panel11" onclick="choose_dtc_id(event,'panel11')">MN247</button>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td colspan=15>
+              <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
+              <input type=button value='load bad channels' onClick='dtc_command("load_bad_channels")'>
+              <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>
+            </td>
+          </tr>
+       </tbody>`;
+
+
+
+
+//       const table = document.querySelector(".mtable");
+       const table = document.getElementById('planes_table');
 
        // Set the table title dynamically
        const title = document.querySelector("#table-title");
@@ -106,19 +269,31 @@
        window.location.href = `tracker_panel_status.html?station=${is}&plane=${iplane}&panel=${ipanel}`;
      }
 
-     document.addEventListener("DOMContentLoaded", createPanelsTable);
+     document.addEventListener("DOMContentLoaded", createPage);
    </script>
 </head>
+
+<!--- ---------------------------------------------------------------------------
+    BODY: tables
+----------------------------------------------------------------------------- -->   
 
 <body class="mcss" onload="mhttpd_init('Tracker Planes');">
    <div id="mheader"></div>
    <div id="msidenav"></div>
+
+   
    <div id="mmain">
+
+     <table class="mtable" id="station_commands">  <!-- Table content is generated dynamically -->
+     </table>
+     
       <h1 id="table-title">Planes</h1>
-      <table class="mtable">
+      <table class="mtable" id="planes_table">
          <!-- Table content is generated dynamically -->
       </table>
    </div>
+
+
 </body>
 </html>
 
