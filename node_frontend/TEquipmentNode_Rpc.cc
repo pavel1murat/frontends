@@ -37,7 +37,17 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 
   std::stringstream ss;
 
-  TLOG(TLVL_DEBUG) << "RPC cmd:" << cmd << " args:" << args;
+  HNDLE hDB;
+  cm_get_experiment_database(&hDB, NULL);
+
+  OdbInterface* odb_i      = OdbInterface::Instance(hDB);
+  HNDLE         h_run_conf = odb_i->GetActiveRunConfigHandle();
+  std::string   conf_name  = odb_i->GetRunConfigName(h_run_conf);
+
+  std::string conf_path("/Mu2e/RunConfigurations/");
+  conf_path += conf_name;
+
+  TLOG(TLVL_DEBUG) << "RPC cmd:" << cmd << " args:" << args << " conf_name:" << conf_name;
 //-----------------------------------------------------------------------------
 // in principle, string could contain a list of parameters to be parsed
 // so far : only PCIE address
@@ -79,7 +89,8 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
 // for control_ROC_read, it would make sense to have a separate page
 //-----------------------------------------------------------------------------
-    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
+//    midas::odb conf(conf_name); 
+    midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
 
     trkdaq::ControlRoc_Read_Input_t0 par;
     // parameters should be taken from ODB - where from?
@@ -94,26 +105,52 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 
     // this is how we get the panel name
 
-    if (o["UsePanelMask"] < 0) {
+    int use_panel_channel_mask = o["UsePanelChannelMask"];
+    
+    ss << "UsePanelChannelMask:" <<  use_panel_channel_mask << std::endl;
+
+    if (use_panel_channel_mask != 0) {
 //-----------------------------------------------------------------------------
 // use straw mask defined for the panels, save the masks in the command ODB record
 // the missing part - need to know the node name. But that is the local host name,
 // the one the frontend is running on
+// _read mask: 6 ushort's
 //-----------------------------------------------------------------------------
-      std::string  panel_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
-                                            _host_label.data(),pcie_addr,roc);
-      midas::odb   odb_panel(panel_path);
-      
-      for (int i=0; i<96; i++) {
-        int on_off = odb_panel["on_off"];
+      std::string  panel_path = std::format("/Mu2e/RunConfigurations/{:s}/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
+                                            conf_name.data(),_host_label.data(),pcie_addr,roc);
+
+      // std::string panel_path = "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1/Link0/DetectorElement";
+      HNDLE h_panel;
+      int status = db_find_key(hDB, 0, panel_path.data() , &h_panel);
+      // ss << "h_panel:" <<  h_panel << " status:" << status << std::endl;
+
+      HNDLE h_chmask;
+      status = db_find_key(hDB, h_panel, "ch_mask" , &h_chmask);
+      // ss << "h_chmask:" <<  h_chmask << " status:" << status << std::endl;
+
+      int ch_mask[100];
+      int  nbytes = 100*4;
+                      
+      status = db_get_data(hDB, h_chmask, ch_mask, &nbytes, TID_INT32);
+      // ss << "nbytes:" <<  nbytes << " status:" << status << std::endl;
+    
+      // midas::odb   odb_panel(panel_path);
+      for (int i=0; i<96; ++i) {
+      //   int on_off = odb_panel["ch_mask"][i];
+        int on_off = ch_mask[i];
         int iw = i / 16;
         int ib = i % 16;
         if (ib == 0) {
           par.ch_mask[iw] = 0;
         }
+        // ss << "ch_mask["<<i<<"]:" << ch_mask[i] << " iw:" << iw << " ib:" << ib << std::endl;; 
         par.ch_mask[iw] |= on_off << ib;
       }
-      for (int i=0; i<6; i++) o["ch_mask"][i] = par.ch_mask[i];
+      
+      for (int i=0; i<6; i++) {
+        ss << "i:" << i << " par.ch_mask[i]:0x" << std::hex << par.ch_mask[i] << std::endl;
+        // o["ch_mask"][i] = par.ch_mask[i];
+      }
     }
     else {
 //-----------------------------------------------------------------------------
@@ -122,6 +159,8 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       for (int i=0; i<6; i++) par.ch_mask[i] = o["ch_mask"][i];
     }
         
+    // for (int i=0; i<6; i++) par.ch_mask[i] = o["ch_mask"][i];
+    
     par.enable_pulser   = o["enable_pulser"];   // -p 1
     par.marker_clock    = o["marker_clock" ];   // -m 3 (for data taking) , 0: for noise
     par.mode            = o["mode"         ];   // 
@@ -347,7 +386,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_rates";
     
-    int timeout_ms(150);
+    // int timeout_ms(150);
     try {
       midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_rates");
 
@@ -356,12 +395,60 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     
       par.num_lookback = o["num_lookback"];    //
       par.num_samples  = o["num_samples" ];    //
-      for (int i=0; i<6; i++) par.chan_mask[i] = o["chan_mask"][i];
+      int  print_level = o["PrintLevel"  ];
+
+      if (o["UsePanelChannelMask"] != 0) {
+//-----------------------------------------------------------------------------
+// use straw mask defined for the panels, save the masks in the command ODB record
+// the missing part - need to know the node name. But that is the local host name,
+// the one the frontend is running on
+// _read mask: 6 ushort's
+//-----------------------------------------------------------------------------
+        std::string  panel_path = std::format("/Mu2e/RunConfigurations/{:s}/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
+                                              conf_name.data(),_host_label.data(),pcie_addr,roc);
+
+        HNDLE h_panel;
+        int status = db_find_key(hDB, 0, panel_path.data() , &h_panel);
+        // ss << "h_panel:" <<  h_panel << " status:" << status << std::endl;
+        
+        HNDLE h_chmask;
+        status = db_find_key(hDB, h_panel, "ch_mask" , &h_chmask);
+        ss << "h_chmask:" <<  h_chmask << " status:" << status << std::endl;
+
+        int ch_mask[100];
+        int  nbytes = 100*4;
+                      
+        status = db_get_data(hDB, h_chmask, ch_mask, &nbytes, TID_INT32);
+        // ss << "nbytes:" <<  nbytes << " status:" << status << std::endl;
+    
+        // midas::odb   odb_panel(panel_path);
+        for (int i=0; i<96; ++i) {
+          //   int on_off = odb_panel["ch_mask"][i];
+          int on_off = ch_mask[i];
+          int iw = i / 16;
+          int ib = i % 16;
+          if (ib == 0) {
+            par.ch_mask[iw] = 0;
+          }
+          // ss << "ch_mask["<<i<<"]:" << ch_mask[i] << " iw:" << iw << " ib:" << ib << std::endl;; 
+          par.ch_mask[iw] |= on_off << ib;
+        }
       
+        for (int i=0; i<6; i++) {
+          // ss << "i:" << i << " par.ch_mask[i]:0x" << std::hex << par.ch_mask[i] << std::endl;
+          // o["ch_mask"][i] = par.ch_mask[i];
+        }
+        dtc_i->ControlRoc_Rates(roc,print_level,&par,ss);
+      }
+      else {
+//-----------------------------------------------------------------------------
+// use masks stored in the command ODB record
+//-----------------------------------------------------------------------------
+        for (int i=0; i<6; i++) par.ch_mask[i] = o["ch_mask"][i];
+        dtc_i->ControlRoc_Rates(roc,print_level,&par,ss);
+      }
+
       printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
-      
-      int  print_level = o["PrintLevel"];
-      dtc_i->ControlRoc_Rates(roc,print_level,&par,ss);
     }
     catch(...) {
       ss << "ERROR : coudn't execute ControlRoc_rates ... BAIL OUT" << std::endl;

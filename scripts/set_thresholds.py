@@ -2,7 +2,7 @@
 
 import  midas,TRACE
 import  midas.client
-import  os, psycopg2
+import  os, socket, psycopg2
 import  json
 import  logging;
 
@@ -11,18 +11,18 @@ logger = logging.getLogger('midas')
 #------------------------------------------------------------------------------
 # plane : 25 : plane_25
 #         21 : plane_21
-# example : set thresholds(21,'MN101')
+# example : set_thresholds(21,'MN101')
 #           set thresholds(25,'MN262')
 #------------------------------------------------------------------------------
-def load_thresholds_to_odb(station):
+def set_thresholds(station,thresholds):
     
     logger.info("Initializing : test2_set_thresholds")
-
-    client = midas.client.MidasClient("set_thresholds", "mu2edaq09", "test_025", None)
+    host = socket.gethostname().split('.')[0]
+    client = midas.client.MidasClient("set_thresholds", host, "test_025", None)
 #------------------------------------------------------------------------------
 # ODB address: 
 #------------------------------------------------------------------------------
-    station_path = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{station:02d}' #/Plane_0{ipl}/Panel_0{link[panel_name]}'
+    station_path = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{station:02d}'
     print(station_path);
     # loop over the planes
     for plane in range(0,2):
@@ -33,7 +33,7 @@ def load_thresholds_to_odb(station):
 #------------------------------------------------------------------------------
 # read input file
 #------------------------------------------------------------------------------
-            fn = f'config/tracker/station_00/thresholds/{panel_name}.json';
+            fn = f'config/tracker/station_{station:02d}/{thresholds}/{panel_name}.json';
             print (f'-------------- opening file:{fn}')
             with open(fn, 'r') as file:
                 data = json.load(file)
@@ -55,4 +55,4 @@ def load_thresholds_to_odb(station):
 if __name__ == "__main__":
 
 #    test1()
-    load_thresholds_to_odb(station=0)
+    load_thresholds_to_odb(station=0,thresholds='thresholds-15-mV')

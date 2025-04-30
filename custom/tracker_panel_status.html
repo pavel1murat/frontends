@@ -37,7 +37,7 @@
           table.innerHTML = `<thead>
                     <tr>
                         <th>Channel       </th>
-                        <th>On/Off        </th>
+                        <th>Mask          </th>
                         <th>Thr  HV       </th>
                         <th>Thr  HV meas  </th>
                         <th>Thr  CAL      </th>
@@ -58,7 +58,7 @@
               
               row.innerHTML = `
                     <td style="background-color: #d6eaff; font-weight: bold; text-align: center;">${i}</td>
-                    <td class="modbvalue" align="center" data-odb-path="${PATH}/on_off[${i}]"></td>
+                    <td class="modbvalue" align="center" data-odb-path="${PATH}/ch_mask[${i}]" data-odb-editable="1" ></td>
                     <td class="modbvalue" align="center" data-odb-path="${PATH}/threshold_hv[${i}]"></td>
                     <td> </fd>
                     <td class="modbvalue" align="center" data-odb-path="${PATH}/threshold_cal[${i}]"></td>
