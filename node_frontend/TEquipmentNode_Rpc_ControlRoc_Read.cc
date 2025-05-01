@@ -1,0 +1,100 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+/////////////////////////////////////////////////////////////////////////////
+#include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
+#include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
+
+#include "node_frontend/TEquipmentNode.hh"
+#include "utils/OdbInterface.hh"
+#include "utils/utils.hh"
+#include "nlohmann/json.hpp"
+#include "odbxx.h"
+
+
+int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName) {
+  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
+
+  trkdaq::ControlRoc_Read_Input_t0 par;
+  // parameters should be taken from ODB - where from?
+
+  par.adc_mode        = o["adc_mode"     ];   // -a
+  par.tdc_mode        = o["tdc_mode"     ];   // -t 
+  par.num_lookback    = o["num_lookback" ];   // -l 
+  
+  par.num_samples     = o["num_samples"  ];   // -s
+  par.num_triggers[0] = o["num_triggers"][0]; // -T 10
+  par.num_triggers[1] = o["num_triggers"][1]; //
+
+
+  // this is how we get the panel name
+
+  int use_panel_channel_mask = o["UsePanelChannelMask"];
+  int print_level            = o["PrintLevel"];
+    
+  Stream << "UsePanelChannelMask:" <<  use_panel_channel_mask << std::endl;
+
+  if (use_panel_channel_mask != 0) {
+//-----------------------------------------------------------------------------
+// use straw mask defined for the panels, save the masks in the command ODB record
+// the missing part - need to know the node name. But that is the local host name,
+// the one the frontend is running on
+// _read mask: 6 ushort's
+//-----------------------------------------------------------------------------
+    std::string  panel_path = std::format("/Mu2e/RunConfigurations/{:s}/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
+                                          ConfName,_host_label.data(),PcieAddr,Link);
+    HNDLE h_panel;
+    int status = db_find_key(hDB, 0, panel_path.data() , &h_panel);
+    Stream << "panel_path:" << panel_path << " h_panel:" <<  h_panel << " status:" << status << std::endl;
+    
+    HNDLE h_chmask;
+    status = db_find_key(hDB, h_panel, "ch_mask" , &h_chmask);
+    // Stream << "h_chmask:" <<  h_chmask << " status:" << status << std::endl;
+    
+    int ch_mask[100];
+    int  nbytes = 100*4;
+    
+    status = db_get_data(hDB, h_chmask, ch_mask, &nbytes, TID_INT32);
+    // Stream << "nbytes:" <<  nbytes << " status:" << status << std::endl;
+    
+    // midas::odb   odb_panel(panel_path);
+    for (int i=0; i<96; ++i) {
+      //   int on_off = odb_panel["ch_mask"][i];
+      int on_off = ch_mask[i];
+      int iw = i / 16;
+      int ib = i % 16;
+      if (ib == 0) {
+        par.ch_mask[iw] = 0;
+      }
+      // Stream << "ch_mask["<<i<<"]:" << ch_mask[i] << " iw:" << iw << " ib:" << ib << std::endl;; 
+      par.ch_mask[iw] |= on_off << ib;
+    }
+    
+    for (int i=0; i<6; i++) {
+      Stream << "par.ch_mask[" << i << "]:" << std::hex << par.ch_mask[i] << std::endl;
+    }
+  }
+  else {
+//-----------------------------------------------------------------------------
+// use masks stored in the command ODB record
+//-----------------------------------------------------------------------------
+    for (int i=0; i<6; i++) par.ch_mask[i] = o["ch_mask"][i];
+  }
+        
+  // for (int i=0; i<6; i++) par.ch_mask[i] = o["ch_mask"][i];
+    
+  par.enable_pulser   = o["enable_pulser"];   // -p 1
+  par.marker_clock    = o["marker_clock" ];   // -m 3 (for data taking) , 0: for noise
+  par.mode            = o["mode"         ];   // 
+  par.clock           = o["clock"        ];   //
+  
+  try {
+//-----------------------------------------------------------------------------
+// ControlRoc_Read handles roc=-1 internally
+//-----------------------------------------------------------------------------
+    Dtc_i->ControlRoc_Read(&par,Link,print_level,Stream);
+  }
+  catch(...) {
+    Stream << "ERROR : coudn't execute ControlRoc_Read ... BAIL OUT" << std::endl;
+  }
+  return 0;
+}
