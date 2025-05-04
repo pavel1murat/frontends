@@ -5,9 +5,14 @@
   fermi 0.23: remotes/origin/v0.23.0-fermi
   spack 0.23: tags/v0.23.0
 - do not use spack v1.0
-- for more info, see https://github.com/Mu2e/daq-operations/wiki/Getting-Started-With-Spack
-- assuming top="your working area"
-- cd to the top/spack-repos
+- the installation script takes two parameters:
+#+begin_src
+  curl https://raw.githubusercontent.com/pavel1murat/frontends/refs/heads/main/scripts/install_daq.sh
+  source install_daq.sh <dir_name> <env_name>
+#+end_src
+
+[[file:./install_daq.sh]]
+  
 #+begin_src
 mkdir pasha_404
 cd pasha_404
@@ -35,7 +40,7 @@ popd
 #------------------------------------------------------------------------------
 # now fix the recipes:                          
 #------------------------------------------------------------------------------
-#  artdaq-spack/packages/art-suite
+#  artdaq-spack/packages/art-suite (@s132)
 
 #        depends_on("libxml2@2.9")
         depends_on("libxml2")
@@ -53,48 +58,45 @@ spack compiler find                # add GCC to the list of compilers
 #------------------------------------------------------------------------------
 spack add py-psycopg2              # python interface to postgresql
 spack add emacs+X # the rest is for spack 1.0 ... %gcc@13.1.0 gui=x11
-#------------------------------------------------------------------------------
-# art packages
-#------------------------------------------------------------------------------
-spack add     artdaq-core-mu2e@develop
-spack develop artdaq-core-mu2e@develop
-spack add     Offline@develop
-spack develop Offline@develop
 
 spack add elog@2024-09-25
-spack add midas@2025-04-25+sqlite
+                                     # there is a midas link problem with +postgres investigate
+# spack add midas@2025-04-25+sqlite  #  +postgresql - link problems with postgres
+spack add     midas@2025-05-03+sqlite
+spack develop midas@2025-05-03+sqlite
 spack concretize -f                          # success
 spack install
 #------------------------------------------------------------------------------
-# artdaq 
-#------------------------------------------------------------------------------
-spack add artdaq@develop
-#------------------------------------------------------------------------------
+# artdaq may be needed by artdaq-core-mu2e-develop, choose one with minimal dependencies
 # development packages
 # otsdaq-mu2e-tracker/2025 has the build of FEInterfaces, the only part which depends on otsdaq, disabled
-# there is a midas link problem with +postgres investigate
 #------------------------------------------------------------------------------
-  spack add mu2e-pcie-utils@develop
+spack add     artdaq@develop
+spack add     artdaq-core-mu2e@develop
+spack develop artdaq-core-mu2e@develop
+# 2025-05-04: for now, don't forget merge the fix with the added accessor ...
+pushd $env_name/artdaq-core-mu2e ; git merge origin/pasha/ewtag  ; popd ;
 
-  spack add tfm@main
-  spack add frontends@main
+spack add     mu2e-pcie-utils@develop
+spack develop mu2e-pcie-utils@develop
 
-  spack develop midas@2025-04-25+sqlite #  +postgresql - link problems with postgres
+spack add     Offline@develop
+spack develop Offline@develop
 
-  spack add     mu2e-pcie-utils@develop
-  spack develop mu2e-pcie-utils@develop
+spack add     otsdaq-mu2e-tracker@develop
+spack develop otsdaq-mu2e-tracker@develop
+pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2025       ; popd ;
 
-  spack add     otsdaq-mu2e-tracker@develop
-  spack develop otsdaq-mu2e-tracker@develop
-  pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2025       ; popd ;
+spack add     tfm@main
+spack develop tfm@main
 
-  spack develop tfm@main
-  spack develop frontends@main
+spack add     frontends@main
+spack develop frontends@main
 
 #  pushd $env_name/otsdaq-mu2e-stm     ; git fetch --all; git checkout stm_develop; popd ;
 
-  spack concretize -f
-  spack install
+spack concretize -f
+spack install
 #+end_src
 
 * ROOT interface to mu2e-pcie-utils    validated <2025-04-17 Thu>            
