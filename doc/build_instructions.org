@@ -6,8 +6,9 @@
   spack 0.23: tags/v0.23.0
 - do not use spack v1.0
 - the installation script takes two parameters:
+  the created subrirectory name and the name of the created spack environment
 #+begin_src
-  curl https://raw.githubusercontent.com/pavel1murat/frontends/refs/heads/main/scripts/install_daq.sh
+  curl -o install_daq.sh  https://raw.githubusercontent.com/pavel1murat/frontends/refs/heads/main/scripts/install_daq.sh
   source install_daq.sh <dir_name> <env_name>
 #+end_src
 
