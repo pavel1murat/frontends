@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 # remote_node - the name of the pi - has to be present
+# currently: trackerpi11, trackerpi12
 
 remote_node=$1
     verbose=0; if [ ".$2" != "." ] ; then verbose=$2 ; fi

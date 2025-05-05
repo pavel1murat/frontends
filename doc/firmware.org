@@ -102,7 +102,7 @@ echo
 program_both_DTCs.sh:42 |        ===> Done with mu2edaq22.fnal.gov programming bitfile and PCIe reset!
 echo
 #+end_src
-* resetting the PCIE card:
+* resetting the PCIE card:                                                   
 #+begin_src
 root@mu2edaq09:/home/mu2etrk/test_stand/pasha_029>lspci | grep Xilinx
 04:00.0 Communication controller: Xilinx Corporation Device 7042

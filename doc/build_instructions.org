@@ -11,7 +11,7 @@
   source install_daq.sh <dir_name> <env_name>
 #+end_src
 
-[[file:./install_daq.sh]]
+[[file:../scripts/install_daq.sh]]
   
 #+begin_src
 mkdir pasha_404

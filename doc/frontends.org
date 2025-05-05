@@ -59,9 +59,34 @@ test_025     /home/mu2etrk/test_stand/experiments/test_025  mu2etrk
   if path is defined, check experimentally where to copy
 - mlogger " configure '/Logger/Data dir'
 - elog: configure '/Elog/URL', '/Elog/External Elog'
+- start mhttpd
 #+begin_src
 mhttpd -D
 echo $$
+#+end_src
+** configure custom web pages                                                
+#+begin_src
+mu2etrk@mu2edaq09:~/test_stand/daquser_001>odbedit
+[local:test_025:S]/>ls Custom
+Path                            /home/mu2etrk/test_stand/daquser_001/v001/frontends/custom
+mu2e                            mu2e_status.html
+Tracker                         tracker_status.html
+Calorimeter                     calorimeter_status.html
+CRV                             crv_status.html
+EXM                             exm_status.html
+STM                             stm_status.html
+DAQ                             daq_status.html
+#+end_src
+** configure sequencer                                                       
+- not clear whether the State/Path is absolute or relative to the experiment
+#+begin_src
+[local:test_025:S]/>ls Sequencer/State
+New File                        n
+Path                            /home/mu2etrk/test_stand/experiments/test_025/userfiles/sequencer/
+Filename                        get_next_run_number.msl
+SFilename                       
+Next Filename 
+... 
 #+end_src
 ** configure postgres                                                        
 - make sure you have $MU2E_DAQ_DIR/config/runinfodb.json with the PG configuration 
@@ -129,7 +154,7 @@ cp $SPACK_ENV/frontends/scripts/rootlogon.C $MU2E_DAQ_DIR/.
 *** SetRunplan
 *** LaunchRunplan
 *** ConfigureForTimingChain
-* DQM
+* DQM                                                                        
 - DQM jobs are started by the file:../conf/mu2e_config_fe.py
 - ARTDAQ env vars need to be set for that
 * [[file:dtc.org][DTC]]
@@ -141,7 +166,7 @@ cp $SPACK_ENV/frontends/scripts/rootlogon.C $MU2E_DAQ_DIR/.
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=37376&filename=20220922_DAQNodes.pdf][mu2e-37376]] : DAQ node configuration in the DAQ room                        
 * [[file:ots.org][ots]]                                                                        
 * [[file:trace.org][TRACE]]
-* troubleshooting  
+* troubleshooting                                                            
 ** TFM frontend doesn't start up                                             
 - start it interactively, check that the PG DB connection is established
 - if not, run (replace 'xxx' with your account)

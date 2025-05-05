@@ -77,6 +77,6 @@ async function fetch_url(url, divId) {
 // mode: js
 // tab-width: 8
 // c-basic-offset: 2
-// js-indent-level: 0
+// js-indent-level: 2
 // indent-tabs-mode: nil
 // End:
