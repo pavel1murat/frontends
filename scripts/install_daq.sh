@@ -18,6 +18,11 @@ spack env create   $env_name
 spack env activate $env_name
 ln -s spack/var/spack/environments/$env_name
 #------------------------------------------------------------------------------
+# interfaces to mu2e_pcie_utils
+#------------------------------------------------------------------------------
+export   BUILD_ROOT_INTERFACE=1
+export BUILD_PYTHON_INTERFACE=0           # not yet ready
+#------------------------------------------------------------------------------
 # repositories
 #------------------------------------------------------------------------------
 mkdir spack-repos
@@ -86,3 +91,27 @@ spack develop frontends@main
 export SPACK_VIEW=$SPACK_ENV/.spack-env/view
 spack concretize -f
 spack install
+#------------------------------------------------------------------------------
+# configuration (this part is incomplete, it includes only the script copy part,
+# but not the configuration of mhttpd and ODB
+#------------------------------------------------------------------------------
+cp $env_name/frontends/scripts/setup_daq.sh .
+cp $env_name/frontends/scripts/rootlogon.C  .
+cp $env_name/frontends/scripts/.rootrc      .
+
+mkdir -p config/scripts
+
+for s in cleanup_partition      \
+         get_next_run_number.py \
+         start_node_frontend.sh \
+         start_rpi_frontend.py  ; do
+    cp $env_name/frontends/scripts/$s config/scripts/.
+done
+
+mkdir    config/midas
+cp $env_name/frontends/scripts/test_025.exptab  config/midas/.
+
+mkdir    config/dtc_gui
+node=`hostname -s`
+cp $env_name/otsdaq-mu2e-tracker/scripts/${node}_pcie0.C  config/scripts/dtc_gui/.
+cp $env_name/otsdaq-mu2e-tracker/scripts/${node}_pcie1.C  config/scripts/dtc_gui/.
