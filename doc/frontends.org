@@ -89,7 +89,8 @@ Next Filename
 ... 
 #+end_src
 ** configure postgres                                                        
-- make sure you have $MU2E_DAQ_DIR/config/runinfodb.json with the PG configuration 
+- make sure you have $MU2E_DAQ_DIR/config/runinfodb.json with the PG configuration
+  if needed, copy it from another work area
 - outside the EC cluster 
 #+begin_src
 - ssh -f -KX -N -L 5434:daq14:5434 -J mu2etrk@daq-gateway mu2etrk@daq14
@@ -101,7 +102,9 @@ cp $SPACK_ENV/frontends/scripts/.rootrc     $MU2E_DAQ_DIR/.
 cp $SPACK_ENV/frontends/scripts/rootlogon.C $MU2E_DAQ_DIR/.
 #+end_src
 ** configure ELOG                                                            
-   file:elog.org::/configuration/
+- make sure $MU2E_DAQ_DIR/config/elog.json file is present, copy it from another
+  work area, if needed
+file:elog.org::/configuration/
 * ARTDAQ                                                                     
 ** artdaq repo: https://github.com/art-daq/artdaq
 ** mu2e-45544: artdaq intro by Eric:                                         

@@ -26,7 +26,7 @@
 
 //-----------------------------------------------------------------------------
       function dtc_command(cmd) {
-        let msg = { "client_name":g_hostname, "cmd":cmd, "max_reply_length":10000,
+        let msg = { "client_name":g_hostname, "cmd":cmd, "max_reply_length":20000,
                     "args":'{"pcie":'+g_pcie.toString()+',"roc":'+g_roc.toString()+'}'};
         mjsonrpc_call("jrpc",msg).then(function(rpc1) {
           let s = rpc1.result.reply
@@ -87,6 +87,20 @@
         const table     = document.getElementById('cmd_params');
         table.innerHTML = '';
         odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_pulser_off',0);
+      }
+      
+//-----------------------------------------------------------------------------
+      function dtc_load_parameters_control_roc_read_ddr() {
+        const table     = document.getElementById('cmd_params');
+        table.innerHTML = '';
+        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_read_ddr',0);
+      }
+      
+//-----------------------------------------------------------------------------
+      function dtc_load_parameters_control_roc_set_thresholds() {
+        const table     = document.getElementById('cmd_params');
+        table.innerHTML = '';
+        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_set_thresholds',0);
       }
       
 //-----------------------------------------------------------------------------      

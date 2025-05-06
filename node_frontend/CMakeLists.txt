@@ -37,6 +37,8 @@ cet_make_exec(NAME      node_frontend
                         TEquipmentNode_Rpc.cc
                         TEquipmentNode_Rpc_ControlRoc_Read.cc
                         TEquipmentNode_Rpc_ControlRoc_Rates.cc
+                        TEquipmentNode_Rpc_ControlRoc_ReadDDR.cc
+                        TEquipmentNode_Rpc_ControlRoc_SetThresholds.cc
               LIBRARIES frontends_utils
                         otsdaq-mu2e-tracker::Ui
                         mu2e-pcie-utils::DTCInterface

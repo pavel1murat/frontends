@@ -47,7 +47,8 @@ body {font-family: Arial;}
 ------------------------------------------------------------------------------ */
 #myDIV {
     padding   : 10px;
-    height    : 870px;
+/*    height    : 870px; */
+    height    : 950px;
     width     : 60% ; /* 600px; */
     overflow  : auto;
     background: #bdb;

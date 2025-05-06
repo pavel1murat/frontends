@@ -33,8 +33,8 @@
 
 
       const com_table       = document.getElementById('station_commands');
-      const com_table_title = document.querySelector("#table-title");
-      com_table_title.textContent = `Station ${stationIndex}`;
+//      const com_table_title = document.querySelector("#table-title");
+//      com_table_title.textContent = `Station ${stationIndex}`;
 
       const station_path   = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stationIndex.padStart(2,'0')}`;
       
@@ -45,10 +45,23 @@
           </tr>
         </thead>
         <tbody></tbody>`;
-    
+      
       const com_table_tbody = com_table.querySelector("tbody");
+//-----------------------------------------------------------------------------
+// first row - commands
+//-----------------------------------------------------------------------------
+      const r1  = document.createElement("tr");
+      const c2  = document.createElement("td");
+      c2.innerHTML = `
+               <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
+               <input type=button value='load channel map'  onClick='dtc_command("load_channels_map")'>
+               <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>`;
+    
+      c2.colSpan = 5;
+      r1.appendChild(c2);
+      com_table_tbody.appendChild(r1);
 
-      for (let i=0; i<4; i++) {
+      for (let i=0; i<18; i++) {
         const row       = document.createElement("tr");
         
         const cell = document.createElement("td");
@@ -81,18 +94,6 @@
         }
         com_table_tbody.appendChild(row);
       }
-
-      const r1  = document.createElement("tr");
-      const c2  = document.createElement("td");
-      c2.innerHTML = `
-               <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
-               <input type=button value='load bad channels' onClick='dtc_command("load_bad_channels")'>
-               <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>
-      `;
-      c2.colSpan = 5;
-      r1.appendChild(c2);
-      com_table_tbody.appendChild(r1);
-
     }
 
     document.addEventListener("DOMContentLoaded", createPage);
@@ -110,7 +111,7 @@
    
    <div id="mmain">
 
-     <h1 id="table-title">Planes</h1>
+     <h1 id="table-title"></h1>
      <table class="mtable" id="station_commands">  <!-- Table content is generated dynamically -->
      </table>
      

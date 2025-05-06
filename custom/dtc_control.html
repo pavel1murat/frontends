@@ -9,6 +9,7 @@
     <script src="mhttpd.js"></script>
     <script src="filesrw.js"></script>
     <script src="odbbrowser.js"></script>
+
     <link   rel="stylesheet" href="mu2edaq.css">
     <script src="dtc_commands.js"></script>
     
@@ -24,7 +25,7 @@
         const pcie      = urlParams.get('pcie') || '0'   ;  //
 
         let title       = document.getElementById('table-title');
-        title.innerHTML = '&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
+        title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
 //-----------------------------------------------------------------------------
 //  create DTC commands table
 //-----------------------------------------------------------------------------
@@ -33,7 +34,7 @@
         dtc_com_table.innerHTML = `
         <thead>
           <tr>
-            <td colspan=2> <div class="mtableheader">DTC Control Commands </div></td>
+            <td colspan=2> <div class="mtableheader">${g_hostname} DTC Control Commands </div></td>
             <td colspan=3>
               <div class="tab">
                 <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">PCIE:0</button>
@@ -146,6 +147,13 @@
                   <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
                 </div>
               </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='read_ddr'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_read_ddr()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_read_ddr")'   > Run             </div>
+                </div>
+              </div>
             </td>
             <td> <div> Register </div> </td>
             <td> <div> Value    </div> </td>
@@ -185,12 +193,19 @@
         <!--  --------------------------------------------  -->
         <tr>
           <td colspan=4>
+            <div class="dropup">
+            </div>
             <input type=button value='read ILP'           onClick='dtc_command("read_ilp")'>
             <input type=button value='get key'            onClick='dtc_command("get_key")'>
             <input type=button value='find alignment'     onClick='dtc_command("dtc_control_roc_find_alignment")'>
             <input type=button value='measure thresholds' onClick='dtc_command("dtc_control_roc_measure_thresholds")'>
-            <input type=button value='set thresholds'     onClick='dtc_command("dtc_control_roc_set_thresholds")'>
-              
+            <div class="dropup">
+              <input type=button class="dropbtn" value='set_thresholds'>
+              <div class="dropup-content">
+                <div onClick='dtc_load_parameters_control_roc_set_thresholds()'> Load Parameters </div>
+                <div onClick='dtc_command("dtc_control_roc_set_thresholds")'   > Run             </div>
+              </div>
+            </div>
           </td>
         </tr>
         </tbody>
@@ -260,7 +275,7 @@
     Local Variables:
     tab-width: 8
     c-basic-offset: 2
-    js-indent-level: 0
+    js-indent-level: 2
     indent-tabs-mode: nil
     End:
   -->
