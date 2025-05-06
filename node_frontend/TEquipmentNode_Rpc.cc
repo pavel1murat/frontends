@@ -69,13 +69,15 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr
                    << " DTC[0]:" << fDtc_i[0]
                    << " DTC[1]:" << fDtc_i[1] ;
-  
+//-----------------------------------------------------------------------------
+// a single place to make sure that the pointer to the DTC is OK
+//-----------------------------------------------------------------------------
   trkdaq::DtcInterface* dtc_i(nullptr);
   try {
     dtc_i = dynamic_cast<trkdaq::DtcInterface*>(fDtc_i[pcie_addr]);
   }
   catch(...) {
-    TLOG(TLVL_ERROR) << "cant initialize the DTC";
+    TLOG(TLVL_ERROR) << "can\'t initialize the DTC";
   }
   
   if (dtc_i == nullptr) {
@@ -84,12 +86,19 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     TLOG(TLVL_ERROR) << response << args;
     return TMFeErrorMessage(response+args);
   }
-  
+
   if (strcmp(cmd,"dtc_control_roc_read") == 0) {
 //-----------------------------------------------------------------------------
 // for control_ROC_read, it would make sense to have a separate page
 //-----------------------------------------------------------------------------
     Rpc_ControlRoc_Read(pcie_addr,roc,dtc_i,ss,conf_name.data());
+  }
+  else if (strcmp(cmd,"dtc_control_roc_read_ddr") == 0) {
+    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_read_ddr");
+    Rpc_ControlRoc_ReadDDR(dtc_i,roc,ss);
+  }
+  else if (strcmp(cmd,"dtc_control_roc_set_thresholds") == 0) {
+    Rpc_ControlRoc_SetThresholds(pcie_addr,roc,dtc_i,ss,conf_name.data());
   }
   else if (strcmp(cmd,"dtc_control_roc_digi_rw") == 0) {
 //-----------------------------------------------------------------------------
@@ -301,6 +310,14 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_rates";
     
      Rpc_ControlRoc_Rates(pcie_addr,roc,dtc_i,ss,conf_name.data());
+  }
+  else if (strcmp(cmd,"dtc_control_roc_set_thresholds") == 0) {
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_set_thresholds";
+    
+     Rpc_ControlRoc_SetThresholds(pcie_addr,roc,dtc_i,ss,conf_name.data());
   }
   else if (strcmp(cmd,"read_ilp") == 0) {
 //-----------------------------------------------------------------------------
