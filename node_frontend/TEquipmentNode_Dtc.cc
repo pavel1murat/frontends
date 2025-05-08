@@ -155,7 +155,6 @@ TMFeResult TEquipmentNode::InitDtc() {
 //-----------------------------------------------------------------------------
 // don't reset ROCs on enabled links
 //-----------------------------------------------------------------------------
-      // dtc_i->ResetLinks();
       fDtc_i[pcie_addr]   = dtc_i;
     }
   }
@@ -198,9 +197,7 @@ void TEquipmentNode::InitDtcVarNames() {
     }
        
     sprintf(dirname,"Names dtc%i",idtc);
-    // if (not midas::odb::exists(node_path+"/Settings/"+dirname)) {
     odb_settings[dirname] = dtc_var_names;
-    // }
 //-----------------------------------------------------------------------------
 // non-history DTC registers
 //-----------------------------------------------------------------------------
@@ -221,7 +218,7 @@ void TEquipmentNode::InitDtcVarNames() {
 //-----------------------------------------------------------------------------
 // loop over the ROCs and create names for each of them
 //-----------------------------------------------------------------------------
-    if(!fDtc_i[idtc]->IsCrv()) { // no CRV
+    if (not fDtc_i[idtc]->IsCrv()) { // no CRV
       for (int ilink=0; ilink<6; ilink++) { 
      
         std::vector<std::string> roc_var_names;
@@ -232,8 +229,6 @@ void TEquipmentNode::InitDtcVarNames() {
       
         sprintf(dirname,"Names rc%i%i",idtc,ilink);
         if (not midas::odb::exists(settings_path+"/"+dirname)) {
-          // midas::odb o = {dirname,{"a"}};
-          // o.connect(settings_path);
           odb_settings[dirname] = roc_var_names;
         }
 //-----------------------------------------------------------------------------
@@ -250,11 +245,9 @@ void TEquipmentNode::InitDtcVarNames() {
         sprintf(roc_subdir,"%s/DTC%i/ROC%i",node_path.data(),idtc,ilink);
         midas::odb odb_roc = {{"RegName",{"a","b"}},{"RegData",{1u,2u}}};
         odb_roc.connect(roc_subdir);
-        // odb_roc["RegName"].resize(roc_var_names.size());;
         odb_roc["RegName"] = roc_var_names;
       
         std::vector<uint16_t> roc_reg_data(roc_var_names.size());
-        // odb_roc["RegData"].resize(roc_reg_data.size());
         odb_roc["RegData"] = roc_reg_data;
       }
     } else { // CRV
@@ -388,8 +381,10 @@ void TEquipmentNode::ReadDtcMetrics() {
                 // TODO
                 }
               }
-
-              if (_monitorRocSPI) {
+//-----------------------------------------------------------------------------
+// SPI
+//-----------------------------------------------------------------------------
+              if (_monitorSPI) {
                 TLOG(TLVL_DEBUG+1) << "saving ROC:" << ilink << " SPI data";
               
                 struct trkdaq::TrkSpiData_t   spi;
@@ -415,6 +410,36 @@ void TEquipmentNode::ReadDtcMetrics() {
                 }
                 else {
                   TLOG(TLVL_ERROR) << "failed to read SPI, DTC:" << idtc << " ROC:" << ilink;
+//-----------------------------------------------------------------------------
+// set ROC status to -1
+//-----------------------------------------------------------------------------
+                // TODO
+                }
+              }
+//-----------------------------------------------------------------------------
+// ROC rates
+// for now, assume that the clock has been set to internal ,
+// need to find the right place to set marker_clock to 0 (and may be recover in the end),
+// will do it right later 
+//-----------------------------------------------------------------------------
+              if (_monitorRates) {
+                TLOG(TLVL_DEBUG+1) << "saving panel:" << ilink << " rates";
+
+                int print_level = 0;
+                std::vector<uint16_t> rates;
+                trkdaq::ControlRoc_Rates_t* par(nullptr); // defaults are OK
+                int rc = trkdtc_i->ControlRoc_Rates(ilink,&rates,print_level,par);
+                if (rc == 0) {
+                  char buf[16];
+                  sprintf(buf,"rr%i%i",idtc,ilink);
+              
+                  midas::odb vars(node_path+"/Variables");
+                  vars[buf] = rates;
+                
+                  TLOG(TLVL_DEBUG+1) << "ROC:" << ilink << " saved rates, nw:" << rates.size();
+                }
+                else {
+                  TLOG(TLVL_ERROR) << "failed to read rates DTC:" << idtc << " ROC:" << ilink;
 //-----------------------------------------------------------------------------
 // set ROC status to -1
 //-----------------------------------------------------------------------------

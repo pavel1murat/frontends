@@ -62,6 +62,8 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"   ,&_monitorDtc   );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq",&_monitorArtdaq);
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI"   ,&_monitorSPI);
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates" ,&_monitorRates );
 
   TLOG(TLVL_DEBUG) << "active_run_conf:"  << active_run_conf 
                    << " public_subnet:"   << public_subnet
@@ -70,7 +72,9 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
                    << " _host_label:"     << _host_label
                    << std::endl
                    << "_monitorDtc:"      << _monitorDtc
-                   << " _monitorArtdaq:"  << _monitorArtdaq;
+                   << "_monitorSPI:"      << _monitorSPI
+                   << " _monitorArtdaq:"  << _monitorArtdaq
+                   << " _monitorRates:"   << _monitorRates;
   EqSetStatus("Started...", "white");
   fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
@@ -178,11 +182,13 @@ void TEquipmentNode::HandlePeriodic() {
 
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"         ,&_monitorDtc         );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocSPI"      ,&_monitorRocSPI      );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI"         ,&_monitorSPI      );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates"       ,&_monitorRates       );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
   
   TLOG(TLVL_DEBUG+1) << "_monitorDtc:"                      << _monitorDtc
-                     << " _monitorRocSPI:"                  << _monitorRocSPI
+                     << " _monitorSPI:"                     << _monitorSPI
+                     << " _monitorRates:"                   << _monitorRates
                      << " _monitorRocRegisters:"            << _monitorRocRegisters
                      << " _monitorArtdaq:"                  << _monitorArtdaq
                      << " TMFE::Instance()->fStateRunning:" << TMFE::Instance()->fStateRunning; 
