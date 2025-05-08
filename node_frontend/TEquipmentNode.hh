@@ -59,8 +59,9 @@ public:
   xmlrpc_env                     _env;
   int                            _monitorDtc;
   int                            _monitorArtdaq;
-  int                            _monitorRocSPI;
+  int                            _monitorSPI;
   int                            _monitorRocRegisters;
+  int                            _monitorRates;
   OdbInterface*                  _odb_i;
 //-----------------------------------------------------------------------------
 // threads
