@@ -13,6 +13,18 @@ OdbInterface::OdbInterface(HNDLE h_DB) {
 
 
 //-----------------------------------------------------------------------------
+// will become the default
+//-----------------------------------------------------------------------------
+OdbInterface* OdbInterface::Instance() {
+  if (_instance == nullptr) {
+    HNDLE hDB;
+    cm_get_experiment_database(&hDB, NULL);
+    _instance = new OdbInterface(hDB);
+  }
+  return _instance;
+}
+
+//-----------------------------------------------------------------------------
 OdbInterface* OdbInterface::Instance(HNDLE Hdb) {
   if (_instance == nullptr) {
     _instance = new OdbInterface(Hdb);
@@ -22,7 +34,6 @@ OdbInterface* OdbInterface::Instance(HNDLE Hdb) {
   }
   return _instance;
 }
-
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetString(HNDLE hDir, const char* Key) {

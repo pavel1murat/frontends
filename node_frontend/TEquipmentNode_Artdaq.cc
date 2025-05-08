@@ -67,10 +67,11 @@ TMFeResult TEquipmentNode::InitArtdaq() {
 //-----------------------------------------------------------------------------
 // read ARTDAQ configuration from ODB
 //-----------------------------------------------------------------------------
+  HNDLE hdb           = _odb_i->GetDbHandle();
   HNDLE h_artdaq_conf = _odb_i->GetHostArtdaqConfHandle(_h_active_run_conf,_host_label);
   HNDLE h_component;
   KEY   component;
-  for (int i=0; db_enum_key(hDB, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+  for (int i=0; db_enum_key(hdb, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
 //-----------------------------------------------------------------------------
 // use the component label 
 // component names:
@@ -79,7 +80,7 @@ TMFeResult TEquipmentNode::InitArtdaq() {
 //                   dlxx - data loggers
 //                   dsxx - dispatchers
 //-----------------------------------------------------------------------------
-    db_get_key(hDB, h_component, &component);
+    db_get_key(hdb, h_component, &component);
     TLOG(TLVL_DEBUG) << "i:" << i
                      << " component.name:" << component.name
                      << " component.type:" << component.type;

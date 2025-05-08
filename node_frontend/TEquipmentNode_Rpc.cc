@@ -37,10 +37,11 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 
   std::stringstream ss;
 
-  HNDLE hDB;
-  cm_get_experiment_database(&hDB, NULL);
+  // HNDLE hDB;
+  // cm_get_experiment_database(&hDB, NULL);
+  //  OdbInterface* odb_i      = OdbInterface::Instance(hDB);
 
-  OdbInterface* odb_i      = OdbInterface::Instance(hDB);
+  OdbInterface* odb_i      = OdbInterface::Instance();
   HNDLE         h_run_conf = odb_i->GetActiveRunConfigHandle();
   std::string   conf_name  = odb_i->GetRunConfigName(h_run_conf);
 
@@ -70,6 +71,13 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
                    << " DTC[0]:" << fDtc_i[0]
                    << " DTC[1]:" << fDtc_i[1] ;
 //-----------------------------------------------------------------------------
+// start forming response
+//-----------------------------------------------------------------------------
+  response  = "cmd:";
+  response += cmd;
+  response += " args:";
+  response += args;
+//-----------------------------------------------------------------------------
 // a single place to make sure that the pointer to the DTC is OK
 //-----------------------------------------------------------------------------
   trkdaq::DtcInterface* dtc_i(nullptr);
@@ -81,29 +89,33 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   }
   
   if (dtc_i == nullptr) {
-    ss << "DTC" << pcie_addr << " is not enabled";
-    response = ss.str();
-    TLOG(TLVL_ERROR) << response << args;
-    return TMFeErrorMessage(response+args);
+    ss << " DTC" << pcie_addr << " is not enabled";
+    response += ss.str();
+    TLOG(TLVL_ERROR) << response;
+    return TMFeErrorMessage(response);
   }
 
   if (strcmp(cmd,"dtc_control_roc_read") == 0) {
 //-----------------------------------------------------------------------------
 // for control_ROC_read, it would make sense to have a separate page
 //-----------------------------------------------------------------------------
+    ss << std::endl;
     Rpc_ControlRoc_Read(pcie_addr,roc,dtc_i,ss,conf_name.data());
   }
   else if (strcmp(cmd,"dtc_control_roc_read_ddr") == 0) {
+    ss << std::endl;
     midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_read_ddr");
     Rpc_ControlRoc_ReadDDR(dtc_i,roc,ss);
   }
   else if (strcmp(cmd,"dtc_control_roc_set_thresholds") == 0) {
-    Rpc_ControlRoc_SetThresholds(pcie_addr,roc,dtc_i,ss,conf_name.data());
+    ss << std::endl;
+    // for now Rpc_ControlRoc_SetThresholds(pcie_addr,roc,dtc_i,ss,conf_name.data());
   }
   else if (strcmp(cmd,"dtc_control_roc_digi_rw") == 0) {
 //-----------------------------------------------------------------------------
 // for control_ROC_read, it would make sense to have a separate page
 //-----------------------------------------------------------------------------
+    ss << std::endl;
     midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_digi_rw");
 
     trkdaq::ControlRoc_DigiRW_Input_t  par;
@@ -166,6 +178,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     catch (...) { ss << "ERROR : coudn't init readout DTC:" << pcie_addr; }
   }
   else if (strcmp(cmd,"dtc_print_status") == 0) {
+    ss << std::endl;
     try         { dtc_i->PrintStatus(ss); }
     catch (...) { ss << "ERROR : coudn't print status of the DTC ... BAIL OUT" << std::endl; }
   }
@@ -176,17 +189,19 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     catch (...) { ss << "ERROR : coudn't update DTC non-hist registers... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"dtc_print_roc_status") == 0) {
+    ss << std::endl;
     try         { dtc_i->PrintRocStatus(1,-1,ss); }
     catch (...) { ss << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"dtc_control_roc_find_alignment") == 0) {
-    try         { dtc_i->FindAlignments(1,(0x1<<4*roc),ss); }
-    catch (...) { ss << "ERROR : coudn't execute FindAlignments ... BAIL OUT" << std::endl; }
+    try         { dtc_i->FindAlignments(1,roc,ss); }
+    catch (...) { ss << "ERROR : coudn't execute FindAlignments for link:" << roc << " ... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"get_key") == 0) {
 //-----------------------------------------------------------------------------
 // get key data
 //-----------------------------------------------------------------------------
+    ss << std::endl;
     try         {
       std::vector<uint16_t> data;
       dtc_i->ControlRoc_GetKey(data,roc,2,ss);
@@ -197,6 +212,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
 // get ROC ID
 //-----------------------------------------------------------------------------
+    ss << std::endl;
     try         {
       std::string roc_id = dtc_i->GetRocID(roc);
       ss << "roc_id:" << roc_id;
@@ -207,6 +223,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
 // get ROC design info
 //-----------------------------------------------------------------------------
+    ss << std::endl;
     try         {
       std::string design_info = dtc_i->GetRocDesignInfo(roc);
       ss << "roc_design_info:" << design_info;
@@ -217,6 +234,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
 // get ROC firmware git commit
 //-----------------------------------------------------------------------------
+    ss << std::endl;
     try         {
       std::string git_commit = dtc_i->GetRocFwGitCommit(roc);
       ss << "git_commit:" << git_commit;
@@ -227,6 +245,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
 // measure thresholds
 //-----------------------------------------------------------------------------
+    ss << std::endl;
     // fMfe->Yield(20);
     try         {
       int rmin(roc), rmax(roc+1);
@@ -262,7 +281,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       o["Value"]   = val;
       ss << " -- read_roc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
     }
-    catch (...) { ss << "ERROR : coudn't read ROC register ... BAIL OUT" << std::endl; }
+    catch (...) { ss << "ERROR : coudn't read ROC register ... BAIL OUT"; }
   }
   else if (strcmp(cmd,"dtc_control_roc_pulser_on") == 0) {
 //-----------------------------------------------------------------------------
@@ -307,6 +326,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
 // 
 //-----------------------------------------------------------------------------
+    ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_rates";
     
      Rpc_ControlRoc_Rates(pcie_addr,roc,dtc_i,ss,conf_name.data());
@@ -317,12 +337,21 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_set_thresholds";
     
-     Rpc_ControlRoc_SetThresholds(pcie_addr,roc,dtc_i,ss,conf_name.data());
+    // for now   Rpc_ControlRoc_SetThresholds(pcie_addr,roc,dtc_i,ss,conf_name.data());
+
+    // if (fSetThrContext.fTp != nullptr) {
+    //   TLOG(TLVL_DEBUG) << Form("delete previous thread\n");
+    //   fSetThrContext.fTp->Kill() ;
+    //   delete fSetThrContext.fTp ;
+    // }
+    // fSetThrContext.fTp = new TThread("set_thresholds",SetThresholds_Thread, this);
+    // fSetThrContext.fTp->Run();
   }
   else if (strcmp(cmd,"read_ilp") == 0) {
 //-----------------------------------------------------------------------------
 // read ILP
 //-----------------------------------------------------------------------------
+    ss << std::endl;
     try         {
       std::vector<uint16_t>   data;
       dtc_i->ControlRoc_ReadIlp(data,roc,2,ss);
@@ -333,6 +362,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
 // get formatted SPI output for a given ROC
 //-----------------------------------------------------------------------------
+    ss << std::endl;
     try         {
       std::vector<uint16_t>   data;
       dtc_i->ControlRoc_ReadSpi(data,roc,2,ss);
@@ -352,6 +382,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     catch (...) { ss << "ERROR : coudn't write ROC register ... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"print_roc_status") == 0) {
+    ss << std::endl;
     try         {
       dtc_i->PrintRocStatus(1,1<<4*roc,ss);
       ss << " -- print_roc_status : emoe";
@@ -371,11 +402,6 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     TLOG(TLVL_ERROR) << ss.str();
   }
 
-  response  = "cmd:";
-  response += cmd;
-  response += " args:";
-  response += args;
-  response += ";\n";
   response += ss.str();
 
   TLOG(TLVL_DEBUG) << "response:" << response;

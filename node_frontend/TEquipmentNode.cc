@@ -35,9 +35,9 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 //-----------------------------------------------------------------------------
 // cache the ODB handle, as need to loop over the keys in InitArtdaq
 //-----------------------------------------------------------------------------
-  cm_get_experiment_database(&hDB, NULL);
+//  cm_get_experiment_database(&hDB, NULL);
 
-  _odb_i                      = OdbInterface::Instance(hDB);
+  _odb_i                      = OdbInterface::Instance();
   _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
   std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
   std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);

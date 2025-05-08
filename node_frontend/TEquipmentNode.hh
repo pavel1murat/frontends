@@ -62,7 +62,26 @@ public:
   int                            _monitorRocSPI;
   int                            _monitorRocRegisters;
   OdbInterface*                  _odb_i;
-
+//-----------------------------------------------------------------------------
+// threads
+//-----------------------------------------------------------------------------
+  struct ThreadContext_t {
+    std::thread             fTp;               // thread
+    TEquipmentNode*         fEqNode;
+    int                     fPcieAddr;
+    int                     fLink;
+    mu2edaq::DtcInterface*  fDtc_i;            // pass it to the thread to avoid re-initializations
+    std::ostream*           Stream;
+    int                     fRunning;          // status: 0=stopped 1=running
+    int                     fStop;             // end marker
+    int                     fCmd;              // command
+    int                     fPrintLevel;
+  };
+  
+  ThreadContext_t           fSetThrContext;
+//-----------------------------------------------------------------------------
+// functions
+//-----------------------------------------------------------------------------
   TEquipmentNode(const char* eqname, const char* eqfilename);
 
   virtual TMFeResult HandleInit         (const std::vector<std::string>& args);
@@ -83,7 +102,9 @@ public:
 
   int                Rpc_ControlRoc_Rates        (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
   int                Rpc_ControlRoc_Read         (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-  int                Rpc_ControlRoc_SetThresholds(int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  
+  static void        SetThresholds_Thread(void* Context);
+  //int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
 
   int                Rpc_ControlRoc_ReadDDR      (trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream);
 
