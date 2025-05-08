@@ -61,7 +61,7 @@
       r1.appendChild(c2);
       com_table_tbody.appendChild(r1);
 
-      for (let i=0; i<18; i++) {
+      for (let i=0; i<2; i++) {
         const row       = document.createElement("tr");
         
         const cell = document.createElement("td");
@@ -75,19 +75,21 @@
         
           // now - panels
           for (let ip=0; ip<6; ip++) {
-            const c1 = document.createElement("td");
+            const panel_odb_path = station_path+`/Plane_${k.toString().padStart(2,'0')}`+`/Panel_${ip.toString().padStart(2,'0')}`;
+            
+            const c1     = document.createElement("td");
             c1.className = "status-cell";
-            c1.innerHTML = `<button onclick="redirectToPanels('${i}','${k}', '${ip}')">panel ${ip}</button>`;
+
+            c1.innerHTML = `<button onclick="redirectToPanels('${i}','${k}', '${ip}')"><div class="modbvalue" data-odb-path="${panel_odb_path}"></div></button>`;
             
             // Load initial values and set up polling for updates
          
-            const path     = station_path+`/Plane_${k.toString().padStart(2,'0')}`+`/Panel_${ip.toString().padStart(2,'0')}`;
 
             // Initial load
-            set_colors(path,c1);
+            set_colors(panel_odb_path,c1);
 
             // Poll for updates
-            setInterval(() => {set_colors(path,c1);},2000);
+            setInterval(() => {set_colors(panel_odb_path,c1);},2000);
 
             row.appendChild(c1);
           }

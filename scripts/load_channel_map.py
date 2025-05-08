@@ -1,5 +1,16 @@
 #!/usr/bin/env python
-
+#------------------------------------------------------------------------------
+# PM: load channel map to ODB
+# all channels except those specified in the file named
+#
+#  $MU2E_DAQ_DIR/config/tracker/station_00/channel_map/channel_map.json
+#
+# are presumed good. The present file format:
+#[
+#    {"name": "MN224", "channel": 0,"status":0},
+#    {"name": "MN224", "channel":90,"status":0}
+#]
+#------------------------------------------------------------------------------
 import  midas,TRACE
 import  midas.client
 import  os, psycopg2, socket

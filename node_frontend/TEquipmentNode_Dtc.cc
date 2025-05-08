@@ -21,11 +21,13 @@ TMFeResult TEquipmentNode::InitDtc() {
 
   TLOG(TLVL_DEBUG) << "--- START";
 
-  for (int i=0; db_enum_key(hDB,_h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
+  HNDLE hdb = _odb_i->GetDbHandle();
+
+  for (int i=0; db_enum_key(hdb,_h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
 //-----------------------------------------------------------------------------
 // skip 'Artdaq' folder
 //-----------------------------------------------------------------------------
-    db_get_key(hDB,h_subkey,&subkey);
+    db_get_key(hdb,h_subkey,&subkey);
     
     TLOG(TLVL_DEBUG) << "subkey.name:" << subkey.name;
     

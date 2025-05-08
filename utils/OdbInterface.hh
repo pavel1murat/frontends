@@ -16,12 +16,16 @@ private:
 public:
 
   static OdbInterface*  Instance      (HNDLE h_DB);
+                                        // transitioning from one to another
+  static OdbInterface*  Instance      ();
 
   std::string GetOutputDir();
 
   int         GetEnabled              (HNDLE h_Conf); //
   int         GetStatus               (HNDLE h_Conf); //
 
+  HNDLE       GetDbHandle() { return _hDB; }
+  
   HNDLE       GetActiveRunConfigHandle();
   std::string GetRunConfigName        (HNDLE h_RunConf);
   HNDLE       GetRunConfigHandle      (std::string& RunConf);
