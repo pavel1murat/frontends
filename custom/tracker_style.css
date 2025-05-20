@@ -38,7 +38,7 @@ h1 {
 }
 
 .mtable th {
-    background-color: #007bff;
+    background-color: #0055ff;
     color: white;
 }
 .mtable tr:hover {
@@ -48,7 +48,7 @@ h1 {
 /* Buttons styling */
 .mtable td button {
     padding: 8px 12px;
-    background-color: #007bff;
+    background-color: #66ff;
     color: white;
     border: none;
     border-radius: 4px;

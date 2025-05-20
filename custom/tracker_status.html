@@ -79,8 +79,8 @@
             
             const c1     = document.createElement("td");
             c1.className = "status-cell";
-
-            c1.innerHTML = `<button onclick="redirectToPanels('${i}','${k}', '${ip}')"><div class="modbvalue" data-odb-path="${panel_odb_path}"></div></button>`;
+            txt = `<div class="modbvalue" data-odb-path="${panel_odb_path}/Name">`
+            c1.innerHTML = `<button onclick="redirectToPanels('${i}','${k}', '${ip}')">${txt}</button></div>`;
             
             // Load initial values and set up polling for updates
          
