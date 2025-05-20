@@ -364,8 +364,21 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
     ss << std::endl;
     try         {
-      std::vector<uint16_t>   data;
-      dtc_i->ControlRoc_ReadSpi(data,roc,2,ss);
+      if (roc != -1) {
+        std::vector<uint16_t>   data;
+        dtc_i->ControlRoc_ReadSpi(data,roc,2,ss);
+      }
+      else {
+        // need formatted printout for all ROCs
+        trkdaq::TrkSpiData_t spi[6];
+        for (int i=0; i<6; i++) {
+          if (dtc_i->LinkEnabled(i)) {
+            dtc_i->ControlRoc_ReadSpi_1(&spi[i],i,0,ss);
+          }
+        }
+        // now - printing
+        dtc_i->PrintSpiAll(spi,ss);
+      }
     }
     catch (...) { ss << "ERROR : coudn't read SPI ... BAIL OUT" << std::endl; }
   }
