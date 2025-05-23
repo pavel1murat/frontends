@@ -19,6 +19,7 @@ public:
                                         // transitioning from one to another
   static OdbInterface*  Instance      ();
 
+  std::string GetConfigDir();
   std::string GetOutputDir();
 
   int         GetEnabled              (HNDLE h_Conf); //

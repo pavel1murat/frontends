@@ -30,6 +30,10 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 
   int  print_level = o["PrintLevel"  ];
 
+  for (int i=0; i<6; i++) {
+    rates  [i].reserve(96);
+    ch_mask[i].reserve(96);
+  }
 
   int lnk1(Link), lnk2(Link+1);
   if (Link == -1) {
@@ -39,7 +43,8 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
   
   TLOG(TLVL_INFO) << "--- 002";
   
-  for (int lnk=lnk1; lnk<lnk2; ++lnk) { 
+  for (int lnk=lnk1; lnk<lnk2; ++lnk) {
+    if (Dtc_i->LinkEnabled(lnk) == 0) continue ;
     
     if (o["UsePanelChannelMask"] == 0) {
 //-----------------------------------------------------------------------------

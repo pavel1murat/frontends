@@ -67,19 +67,23 @@ public:
 // threads
 //-----------------------------------------------------------------------------
   struct ThreadContext_t {
-    std::thread             fTp;               // thread
-    TEquipmentNode*         fEqNode;
-    int                     fPcieAddr;
-    int                     fLink;
-    mu2edaq::DtcInterface*  fDtc_i;            // pass it to the thread to avoid re-initializations
-    std::ostream*           Stream;
-    int                     fRunning;          // status: 0=stopped 1=running
-    int                     fStop;             // end marker
-    int                     fCmd;              // command
-    int                     fPrintLevel;
+    int                             fPcieAddr;
+    int                             fLink;
+    int                             fRunning;          // status: 0=stopped 1=running
+    int                             fStop;             // end marker
+    int                             fCmd;              // command
+    int                             fPrintLevel;
+
+    ThreadContext_t() {}
+    
+    ThreadContext_t(int PcieAddr, int Link) {
+      fPcieAddr = PcieAddr;
+      fLink     = Link;
+    }
   };
   
-  ThreadContext_t           fSetThrContext;
+  ThreadContext_t                   fSetThrContext;
+  std::stringstream                 fSSthr;
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -97,17 +101,22 @@ public:
   
   TMFeResult         InitDtc                ();
   void               InitDtcVarNames        ();
+  void               LoadThresholds         (ThreadContext_t& Context, std::ostream& Stream);   // load thresholds to ODB
+
   void               ReadDtcMetrics         ();
+
   // to be able to call it interactively
   void               ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i);
 
   int                Rpc_ControlRoc_Rates        (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
   int                Rpc_ControlRoc_Read         (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-  
-  static void        SetThresholds_Thread(void* Context);
-  //int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-
   int                Rpc_ControlRoc_ReadDDR      (trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream);
+
+                                        // called via a thread
+
+  static void        SetThresholds    (ThreadContext_t& Context,
+                                       TEquipmentNode& Node,
+                                       std::ostream& Stream );
 
   TMFeResult         InitArtdaq             ();
   void               InitArtdaqVarNames     ();

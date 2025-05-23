@@ -28,12 +28,12 @@ cet_set_compiler_flags(
 # build common library
 #------------------------------------------------------------------------------
 cet_make_library(LIBRARY_NAME frontends::utils
-                 SOURCE       db_runinfo.cc mu2e_sc.cc
-                              # mu2e_sc_new.cc
-                              get_xmlrpc_url.cc utils.cc
-                              get_host_name.cc
-                              MidasInterface.cc
-                              OdbInterface.cc
+                 SOURCE
+                 db_runinfo.cc mu2e_sc.cc
+                 get_xmlrpc_url.cc utils.cc
+                 get_host_name.cc
+                 MidasInterface.cc
+                 OdbInterface.cc
                  LIBRARIES PUBLIC 
                  midas
                  tracelib

@@ -427,7 +427,7 @@ void TEquipmentNode::ReadDtcMetrics() {
 
                 int print_level = 0;
                 std::vector<uint16_t> rates;
-                trkdaq::ControlRoc_Rates_t* par(nullptr); // defaults are OK
+                trkdaq::ControlRoc_Rates_t* par(nullptr); // defaults are OK - read all channels
                 int rc = trkdtc_i->ControlRoc_Rates(ilink,&rates,print_level,par);
                 if (rc == 0) {
                   char buf[16];
