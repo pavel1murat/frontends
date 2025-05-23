@@ -16,6 +16,13 @@ logger = logging.getLogger('midas')
 import TRACE;
 TRACE_NAME = "runinfodb";
 
+HALT   = 0  #                        // RUNNING --> HALTED  (abort   )
+STOP   = 1  #                        // RUNNING --> STOPPED (stop    )
+ERROR  = 2  #                        // ERROR               (not sure)
+PAUSE  = 3  #                        // RUNNING --> PAUSED  (pause   )
+RESUME = 4  #                        // PAUSED  --> RUNNING (resume  )
+START  = 5  #                        // STOPPED --> RUNNING (start   )
+
 class RuninfoDB:
 #------------------------------------------------------------------------------
     def __init__(self, config_file ="config/runinfodb.json", midas_client = None):
@@ -92,7 +99,9 @@ class RuninfoDB:
 
 #---v--------------------------------------------------------------------------
     def execute_query(self, query):
+        TRACE.TRACE(8,f"query:{query}",TRACE_NAME)
         self.cur.execute(query)
+        TRACE.TRACE(8,"before commit",TRACE_NAME)
         self.conn.commit()
         TRACE.TRACE(8, self.cur.statusmessage,TRACE_NAME)
         return
@@ -110,13 +119,15 @@ class RuninfoDB:
 # Run Control transition cause: 0:start 1:end
 #---v--------------------------------------------------------------------------
     def register_transition(run_number, transition_type, cause_type):
-
+ 
+        TRACE.TRACE(8,f"-- register_transition START",TRACE_NAME)
         query = (f"INSERT INTO {self.schema()}.run_transition"
                  f"(run_number,transition_type,cause_type,transition_time)"
                  f" VALUES ({run_number},{transition_type},{cause_type},CURRENT_TIMESTAMP);"
              )
-
+        TRACE.TRACE(8,f"query:{query}",TRACE_NAME)
         self.execute_query(query)
+        TRACE.TRACE(8,f"-- register_transition END",TRACE_NAME)
         return
 
 #-------^---------------------------------------------------------------------
@@ -171,15 +182,16 @@ class RuninfoDB:
         row        = self.cur.fetchone()
         # print(row)
         run_number = int(row[0])
+        TRACE.TRACE(8,f'run_number:{run_number}',TRACE_NAME)
         # print("run_number ",run_number)
 
-        run_info_conditions = "unknown"
-        query = (f"INSERT INTO {self.schema()}.run_condition(condition,commit_time)  VALUES ("
-                 f" '{run_info_conditions}',CURRENT_TIMESTAMP);"
-                 )
-        self.execute_query(query)
-        query = f"select max(condition_id) from {self.schema()}.run_condition;"
-        self.execute_query(query)
+#        run_info_conditions = "unknown"
+#        query = (f"INSERT INTO {self.schema()}.run_condition(condition,commit_time)  VALUES ("
+#                 f" '{run_info_conditions}',CURRENT_TIMESTAMP);"
+#                 )
+#        self.execute_query(query)
+#        query = f"select max(condition_id) from {self.schema()}.run_condition;"
+#        self.execute_query(query)
         # print("condition id = ",condition_id)
 #------------------------------------------------------------------------------
 # P.M. hopefully, these are going away
@@ -255,8 +267,14 @@ def test1():
     
     # Call next_run_number
     try:
-        next_run = runinfo_db.next_run_number(store_in_odb=True)
-        # print(f"Next run number:{next_run}")
+#        next_run = runinfo_db.next_run_number(store_in_odb=True)
+        next_run = runinfo_db.next_run_number(store_in_odb=False)
+
+        print(f'Next run number:{next_run}')
+        
+        runinfo_db.register_transition(next_run,runinfo.START,0);
+        runinfo_db.register_transition(next_run,runinfo.START,1);
+        
     except Exception as e:
         TRACE.TRACE(4,"ERROR",TRACE_NAME) # print(f"Error occurred: {e}")
               

@@ -35,11 +35,7 @@ namespace ns {
 TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::string& response) {
   fMfe->Msg(MINFO, "HandleRpc", "RPC cmd [%s], args [%s]", cmd, args);
 
-  std::stringstream ss;
-
-  // HNDLE hDB;
-  // cm_get_experiment_database(&hDB, NULL);
-  //  OdbInterface* odb_i      = OdbInterface::Instance(hDB);
+  std::stringstream& ss = fSSthr;
 
   OdbInterface* odb_i      = OdbInterface::Instance();
   HNDLE         h_run_conf = odb_i->GetActiveRunConfigHandle();
@@ -67,7 +63,10 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     return TMFeErrorMessage(msg+args);
   }
 
+  std::string dtc_odb_path = conf_path + std::format("/DAQ/Nodes/{:s}/DTC{:d}",_host_label.data(),pcie_addr);
+                                                     
   TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr
+                   << " dtc_odb_path:" << dtc_odb_path
                    << " DTC[0]:" << fDtc_i[0]
                    << " DTC[1]:" << fDtc_i[1] ;
 //-----------------------------------------------------------------------------
@@ -108,8 +107,17 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     Rpc_ControlRoc_ReadDDR(dtc_i,roc,ss);
   }
   else if (strcmp(cmd,"dtc_control_roc_set_thresholds") == 0) {
-    ss << std::endl;
-    // for now Rpc_ControlRoc_SetThresholds(pcie_addr,roc,dtc_i,ss,conf_name.data());
+    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_set_thresholds";
+    // ss << std::endl;
+    fSetThrContext.fPcieAddr = pcie_addr;
+    fSetThrContext.fLink     = roc;
+
+    std::thread set_thr_thread(SetThresholds,
+                               std::ref(fSetThrContext),
+                               std::ref(*this),
+                               std::ref(ss)
+                               );
+    set_thr_thread.detach();
   }
   else if (strcmp(cmd,"dtc_control_roc_digi_rw") == 0) {
 //-----------------------------------------------------------------------------
@@ -149,7 +157,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       o["Value"] = val;
       ss << " -- read_dtc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
     }
-    catch (...) { ss << "ERROR : dtc_read_register ... BAIL OUT" << std::endl; }
+    catch (...) { ss << " ERROR : dtc_read_register ... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"dtc_write_register") == 0) {
     try {
@@ -194,8 +202,9 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     catch (...) { ss << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"dtc_control_roc_find_alignment") == 0) {
+    if (roc == -1)  ss << std::endl;
     try         { dtc_i->FindAlignments(1,roc,ss); }
-    catch (...) { ss << "ERROR : coudn't execute FindAlignments for link:" << roc << " ... BAIL OUT" << std::endl; }
+    catch (...) { ss << " -- ERROR : coudn't execute FindAlignments for link:" << roc << " ... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"get_key") == 0) {
 //-----------------------------------------------------------------------------
@@ -266,7 +275,13 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
         }
       }
     }
-    catch (...) { ss << "ERROR : coudn't execute MeasureThresholds ... BAIL OUT" << std::endl; }
+    catch (...) { ss << " -- ERROR : coudn't execute MeasureThresholds ... BAIL OUT" << std::endl; }
+  }
+  else if (strcmp(cmd,"dtc_control_roc_load_thresholds") == 0) {
+    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_load_thresholds";
+    if (roc == -1) ss << std::endl;
+    ThreadContext_t cxt(pcie_addr,roc);
+    LoadThresholds(cxt,ss);             // this is fast, synchronous
   }
   else if (strcmp(cmd,"read_roc_register") == 0) {
 //-----------------------------------------------------------------------------
@@ -281,7 +296,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       o["Value"]   = val;
       ss << " -- read_roc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
     }
-    catch (...) { ss << "ERROR : coudn't read ROC register ... BAIL OUT"; }
+    catch (...) { ss << " -- ERROR : coudn't read ROC register ... BAIL OUT"; }
   }
   else if (strcmp(cmd,"dtc_control_roc_pulser_on") == 0) {
 //-----------------------------------------------------------------------------
@@ -301,7 +316,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       dtc_i->ControlRoc_PulserOn(roc,first_channel_mask,duty_cycle,pulser_delay,print_level,ss);
     }
     catch(...) {
-      ss << "ERROR : coudn't execute ControlRoc_PulserON ... BAIL OUT" << std::endl;
+      ss << " -- ERROR : coudn't execute ControlRoc_PulserON ... BAIL OUT" << std::endl;
     }
   }
   else if (strcmp(cmd,"dtc_control_roc_pulser_off") == 0) {
@@ -330,22 +345,6 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_rates";
     
      Rpc_ControlRoc_Rates(pcie_addr,roc,dtc_i,ss,conf_name.data());
-  }
-  else if (strcmp(cmd,"dtc_control_roc_set_thresholds") == 0) {
-//-----------------------------------------------------------------------------
-// 
-//-----------------------------------------------------------------------------
-    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_set_thresholds";
-    
-    // for now   Rpc_ControlRoc_SetThresholds(pcie_addr,roc,dtc_i,ss,conf_name.data());
-
-    // if (fSetThrContext.fTp != nullptr) {
-    //   TLOG(TLVL_DEBUG) << Form("delete previous thread\n");
-    //   fSetThrContext.fTp->Kill() ;
-    //   delete fSetThrContext.fTp ;
-    // }
-    // fSetThrContext.fTp = new TThread("set_thresholds",SetThresholds_Thread, this);
-    // fSetThrContext.fTp->Run();
   }
   else if (strcmp(cmd,"read_ilp") == 0) {
 //-----------------------------------------------------------------------------
@@ -418,6 +417,8 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   response += ss.str();
 
   TLOG(TLVL_DEBUG) << "response:" << response;
+
+  ss.str("");
 
   return TMFeOk();
 }

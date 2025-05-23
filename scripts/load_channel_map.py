@@ -80,8 +80,8 @@ def load_channel_map(station):
                 print(f'res:{res}')
     
                 for r in res:
-                    ich = r['channel']
-                    status = r['status'] ; # normally - zero
+                    ich         = r['channel']
+                    status      = r['status' ] ; # normally - zero
                     chmask[ich] = status;
     
                 # print('chmask:',chmask);

@@ -2,6 +2,7 @@
 
 #include "TRACE/trace.h"
 #include "OdbInterface.hh"
+#include "utils/utils.hh"
 #include <format>
 
 OdbInterface* OdbInterface::_instance(nullptr);
@@ -502,8 +503,17 @@ int OdbInterface::GetOnSpill(HNDLE h_RunConf) {
 }
 
 //-----------------------------------------------------------------------------
+// need to substitute the env vars
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetConfigDir() {
+  std::string s = GetString(0,"Mu2e/ConfigDir");
+  return expand_env_vars(s);
+}
+
+//-----------------------------------------------------------------------------
 std::string OdbInterface::GetOutputDir() {
-  return GetString(0,"Mu2e/OutputDir");
+  std::string s = GetString(0,"Mu2e/OutputDir");
+  return expand_env_vars(s);
 }
 
 //-----------------------------------------------------------------------------

@@ -13,7 +13,7 @@
   
 .column {
   float: left;
-  width: 37%;
+  width: 45%;
   padding: 2px;
 }
 
@@ -46,18 +46,17 @@ body {font-family: Arial;}
   output window
 ------------------------------------------------------------------------------ */
 #myDIV {
-    padding   : 10px;
-/*    height    : 870px; */
-    height    : 950px;
-    width     : 60% ; /* 600px; */
+    padding   :  5px;
+    height    : 980px;
+    width     : 53% ; /* 600px; */
     overflow  : auto;
     background: #bdb;
 }
 
 #roctabs {
     padding   : 10px;
-    height    : 380px;
-    width     : 60% ; /* 600px; */
+    height    : 440px;
+    width     : 600px; /*60% ;*/ /* 600px; */
     overflow  : auto;
     background: #bdb;
 }

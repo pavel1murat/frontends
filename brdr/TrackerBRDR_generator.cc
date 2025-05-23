@@ -25,7 +25,6 @@
 #include "fhiclcpp/fwd.h"
 
 #include "dtcInterfaceLib/DTC.h"
-// #include "dtcInterfaceLib/DTCSoftwareCFO.h"
 
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
@@ -213,7 +212,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   , _artdaqLabel       (ps.get<std::string>             ("artdaqLabel"                     ))
   , _lastReportTime    (std::chrono::steady_clock::now())
   , _fragment_ids      (ps.get<std::vector<uint16_t>>   ("fragment_ids"       , std::vector<uint16_t>()))  // 
-  , _sFragmentType     (ps.get<std::string>             ("fragmentType"       ,       "TRK"))  // 
+  , _sFragmentType     (ps.get<std::string>             ("fragmentType"       ,    "DTCEVT"))  // 
   , _debugLevel        (ps.get<int>                     ("debugLevel"         ,           0))
   , _nEventsDbg        (ps.get<size_t>                  ("nEventsDbg"         ,         100))
   , _readData          (ps.get<int>                     ("readData"           ,           1))  // 
@@ -483,11 +482,12 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
   try {
 //------------------------------------------------------------------------------
 // sz: 1 (or 0, if nothing has been read out)
+//     so far, get a single (DTC) subevent
 //-----------------------------------------------------------------------------
       subevents = _dtc->GetSubEventData(event_tag,match_ts);
       int sz    = subevents.size();
       TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
-                         << " event:" << ev_counter() 
+                         << " event:" << ev_counter()
                          << " read:" << sz
                          << " DTC blocks" << std::endl;
       if (sz > 0) {
@@ -503,34 +503,38 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
 //-----------------------------------------------------------------------------
 // each subevent (a block of data corresponding to a single DTC) becomes an artdaq fragment
 //-----------------------------------------------------------------------------
-      for (int i=0; i<sz; i++) {
+      for (int i=0; i<sz; i++) {                       // and so far sz = 1
         DTC_SubEvent* ev     = subevents[i].get();
         int           nb     = ev->GetSubEventByteCount();
         uint64_t      ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
 
-        TStamp = ew_tag;  // hack
+        TStamp = ew_tag;  // hack ?? may be not
         
         TLOG(TLVL_DEBUG+1) << "label:"      << _artdaqLabel
                            << " dtc_block:" << i
                            << " nbytes:" << nb << std::endl;
         nbytes += nb;
         if (nb > 0) {
-          artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], _fragmentType, TStamp);
-
-          frag->resizeBytes(nb);
+          artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::DTCEVT, TStamp);
+          int event_size = nb+sizeof(DTCLib::DTC_EventHeader);
+          frag->resizeBytes(event_size);
       
-          void* afd  = frag->dataBegin();
+          DTCLib::DTC_EventHeader* hdr = (DTCLib::DTC_EventHeader*) frag->dataBegin();
+          hdr->inclusive_event_byte_count = event_size;
+          hdr->num_dtcs       = 1;
+          hdr->event_tag_low  = (TStamp      ) & 0xFFFFFFFF;
+          hdr->event_tag_high = (TStamp >> 32) & 0x0000FFFF;
 
+          void* afd  = (void*) (hdr+1);
           memcpy(afd,ev->GetRawBufferPointer(),nb);
 
-          validateFragment(afd);
+          validateFragment(afd);        // skip validation of the header
 //-----------------------------------------------------------------------------
-// I suspect that 'emplace_back', for some reason, may be invalidating 'afd',
-// sp change the order
+// now copy the fragment
 //-----------------------------------------------------------------------------
           Frags.emplace_back(frag);
 //-----------------------------------------------------------------------------
-// this essentially is it, now - diagnostics 
+// this is essentially it, now - diagnostics 
 //-----------------------------------------------------------------------------
           uint64_t ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
 

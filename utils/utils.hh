@@ -17,12 +17,13 @@ namespace FrontendsGlobals {
   extern DEVICE_DRIVER* _driver;
 };
 
+std::string expand_env_vars    (const std::string& String);
+
 //-----------------------------------------------------------------------------
 // hostname is defined by a subnet, i.e. 192.168.1.107 and nslookup 
 //-----------------------------------------------------------------------------
 std::string get_full_host_name (const char* Subnet);
 std::string get_short_host_name(const char* Subnet);
-
 //-----------------------------------------------------------------------------
 // for a given artdaq node and a component name, return XMLRPC url
 //-----------------------------------------------------------------------------

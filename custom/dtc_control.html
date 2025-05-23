@@ -34,11 +34,22 @@
         dtc_com_table.innerHTML = `
         <thead>
           <tr>
-            <td colspan=2> <div class="mtableheader">${g_hostname} DTC Control Commands </div></td>
-            <td colspan=3>
+            <td> <div class="mtableheader">${g_hostname} DTC Control Commands </div></td>
+            <td>
               <div class="tab">
                 <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">PCIE:0</button>
                 <button class="tablinks" id="dtc1" onclick="choose_dtc_id(event,'dtc1')">PCIE:1</button>
+              </div>
+            </td>
+            <td colspan=4>
+              <div class="tab">
+                <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
+                <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
+                <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
+                <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
+                <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
+                <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
+                <button class="roctabs"  id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
               </div>
             </td>
           </tr>
@@ -98,15 +109,8 @@
         <tbody>
           <tr>
             <td> <div class="mtableheader" colspan=2> control_ROC commands </div> </td> 
-            <td colspan=3>
+            <td colspan=5>
             <div class="tab">
-            <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
-            <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
-            <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
-            <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
-            <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
-            <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
-            <button class="roctabs" id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
             </div>
             </td>
           </tr>
@@ -154,12 +158,27 @@
                   <div onClick='dtc_command("dtc_control_roc_read_ddr")'   > Run             </div>
                 </div>
               </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='set_thresholds'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_set_thresholds()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_set_thresholds")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='load_thresholds'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_load_thresholds()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_load_thresholds")'   > Run             </div>
+                </div>
+              </div>
+            </td>
             </td>
             <td> <div> Register </div> </td>
             <td> <div> Value    </div> </td>
           </tr>
 
-        <!--  --------------------------------------------  -->
+<!--  --------------------------------------------  -->
         <tr>
           <td>
             <input type=button value='reset ROC'        onClick='dtc_command("reset_roc")'>
@@ -199,13 +218,6 @@
             <input type=button value='get key'            onClick='dtc_command("get_key")'>
             <input type=button value='find alignment'     onClick='dtc_command("dtc_control_roc_find_alignment")'>
             <input type=button value='measure thresholds' onClick='dtc_command("dtc_control_roc_measure_thresholds")'>
-            <div class="dropup">
-              <input type=button class="dropbtn" value='set_thresholds'>
-              <div class="dropup-content">
-                <div onClick='dtc_load_parameters_control_roc_set_thresholds()'> Load Parameters </div>
-                <div onClick='dtc_command("dtc_control_roc_set_thresholds")'   > Run             </div>
-              </div>
-            </div>
           </td>
         </tr>
         </tbody>
@@ -254,18 +266,6 @@
 
       </div>
 
-<!-- ---------------- row 2: DTC commands and ROC commands ----------------  -->
-
-<!--      
-      <div class="row">
-        <div class="column">
-        </div>
-
-        <div class="column">
-        </div>
-
-      </div>
--->     
     </div>
 
   </body>
