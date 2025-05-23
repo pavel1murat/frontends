@@ -1,5 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
 // PM
+// this has to be done differently - via a loop over the stations/planes/panes
+// of active configuration
+// and the command itself has to be a tracker initialization command
 /////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <fstream>
