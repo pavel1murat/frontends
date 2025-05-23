@@ -316,10 +316,11 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   _dtc_i = trkdaq::DtcInterface::Instance(_pcieAddr,_linkMask,skip_init);
   _dtc   = _dtc_i->Dtc();
 //-----------------------------------------------------------------------------
-// print status of the DTC and ROC registers
+// print status of the DTC registers
+// don't touch DCS ! 
 //-----------------------------------------------------------------------------
   _dtc_i->PrintStatus();
-  _dtc_i->PrintRocStatus();
+  //  _dtc_i->PrintRocStatus();
 //-----------------------------------------------------------------------------
 // finally, initialize the environment for the XML-RPC messaging client
 // use ARTDAQ port numbering convention
@@ -352,10 +353,11 @@ int mu2e::TrackerBRDR::message(const std::string& MsgType, const std::string& Ms
 //-----------------------------------------------------------------------------
 mu2e::TrackerBRDR::~TrackerBRDR() {
 //-----------------------------------------------------------------------------
-// print status of the DTC and ROC registers
+// print status of the DTC registers in the end of the run,
+// but don't try DCS - the DTC PCIE driver is claimed to be a uniclient facility....
 //-----------------------------------------------------------------------------
   _dtc_i->PrintStatus();
-  _dtc_i->PrintRocStatus();
+  //   _dtc_i->PrintRocStatus();
 } 
 
 //-----------------------------------------------------------------------------
