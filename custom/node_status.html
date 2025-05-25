@@ -113,8 +113,8 @@
       const urlParams = new URLSearchParams(window.location.search);
       g_hostname      = urlParams.get('hostname') || 'none';  // 
       
-      let title       = document.getElementById('table-title');
-      title.innerHTML = '&nbsp;&nbsp;&nbsp;'+g_hostname+' status page';
+//      let title       = document.getElementById('table-title');
+//      title.innerHTML = '&nbsp;&nbsp;&nbsp;'+g_hostname+' status page';
 //-----------------------------------------------------------------------------
 //  fill ARTDAQ commands table
 //-----------------------------------------------------------------------------
@@ -123,16 +123,14 @@
       artdaq_table.innerHTML = `
       <tbody>
         <tr>
-          <td> <div class="mtableheader" colspan=2> ARTDAQ processes </div> </td> 
+          <td> <div class="mtableheader" colspan=2> ${g_hostname} ARTDAQ processes </div> </td> 
           <td colspan=3>
           <div class="tab">
-          <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
-          <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
-          <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
-          <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
-          <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
-          <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
-          <button class="roctabs" id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
+          <button class="roctabs" id='br01' onclick="choose_roc_id(event,'br01')">BR01</button>
+          <button class="roctabs" id='br02' onclick="choose_roc_id(event,'br02')">BR02</button>
+          <button class="roctabs" id='eb01' onclick="choose_roc_id(event,'eb01')">EB01</button>
+          <button class="roctabs" id='dl01' onclick="choose_roc_id(event,'dl01')">DL01</button>
+          <button class="roctabs" id='ds01' onclick="choose_roc_id(event,'ds01')">DS01</button>
           </div>
           </td>
         </tr>
@@ -300,7 +298,7 @@
 <!-- ---------------- row 1: ----------------  -->
       
       <div class="row">
-        <h3 id="table-title">Node name... </h3>
+     <!--   <h3 id="table-title">Node name... </h3>  -->
         
         <div class="column"> <!-- column gets pushed to the left -->
 
