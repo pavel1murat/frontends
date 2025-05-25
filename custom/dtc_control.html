@@ -183,6 +183,10 @@
           <td>
             <input type=button value='reset ROC'        onClick='dtc_command("reset_roc")'>
             <input type=button value='read SPI'         onClick='dtc_command("read_spi")'>
+            <input type=button value='read ILP'         onClick='dtc_command("read_ilp")'>
+            <input type=button value='get key'          onClick='dtc_command("get_key")'>
+            <input type=button value='find alignment'   onClick='dtc_command("dtc_control_roc_find_alignment")'>
+            <input type=button value='measure thresholds' onClick='dtc_command("dtc_control_roc_measure_thresholds")'>
           </td>
           <td>
             <input type=button value='write ROC register' onClick='dtc_command("write_roc_register")'>
@@ -209,17 +213,14 @@
             <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Value" data-format="%x"></div>
           </td>
         </tr>
-        <!--  --------------------------------------------  -->
+        <!---------------------------------------------- this row is temporarily commented out
         <tr>
           <td colspan=4>
             <div class="dropup">
             </div>
-            <input type=button value='read ILP'           onClick='dtc_command("read_ilp")'>
-            <input type=button value='get key'            onClick='dtc_command("get_key")'>
-            <input type=button value='find alignment'     onClick='dtc_command("dtc_control_roc_find_alignment")'>
-            <input type=button value='measure thresholds' onClick='dtc_command("dtc_control_roc_measure_thresholds")'>
           </td>
         </tr>
+          --------------------------------------------  -->
         </tbody>
         `;      
 //-----------------------------------------------------------------------------

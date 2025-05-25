@@ -70,8 +70,34 @@ HNDLE OdbInterface::GetHandle(HNDLE hConf, const char* Key) {
 }
 
 //-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetHandle(HNDLE hConf, const std::string& Key) {
+  HNDLE h(0);
+  
+  if (db_find_key(_hDB, hConf, Key.data(), &h) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "no handle for hConf:Key:" << hConf << ":" << Key;
+  }
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " h:" << h;
+  return h;
+}
+
+//-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetHandle(HNDLE hDB, HNDLE hConf, const char* Key) {
   return GetHandle(hConf,Key);
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetKey(HNDLE hConf, KEY* Key) {
+  return db_get_key(_hDB,hConf,Key);
+}
+
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetParent(HNDLE hConf) {
+  HNDLE h_parent(0);
+  if (db_get_parent(_hDB,hConf,&h_parent) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "no parent for hConf:" << hConf;
+  }
+  TLOG(TLVL_DEBUG+1) << "hConfe:" << hConf << " h_parent:" << h_parent;
+  return h_parent;
 }
 
 //-----------------------------------------------------------------------------
@@ -545,7 +571,7 @@ int OdbInterface::SetStatus(HNDLE hElement, int Status) {
 //-----------------------------------------------------------------------------
 int OdbInterface::SetRocID(HNDLE hLink, std::string& RocID) {
   int rc(0);
-  HNDLE h = GetHandle(hLink,"RocDeviceSerial");
+  HNDLE h = GetHandle(hLink,"DetectorElement/RocDeviceSerial");
   if (db_set_data(_hDB,h,(void*) RocID.data(),strlen(RocID.data())+1,1,TID_STRING) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "failed to set ROC ID:" << RocID;
     rc = -1;
@@ -556,7 +582,7 @@ int OdbInterface::SetRocID(HNDLE hLink, std::string& RocID) {
 //-----------------------------------------------------------------------------
 int OdbInterface::SetRocDesignInfo(HNDLE hLink, std::string& DesignInfo) {
   int rc(0);
-  HNDLE h = GetHandle(hLink,"RocDesignInfo");
+  HNDLE h = GetHandle(hLink,"DetectorElement/RocDesignInfo");
   if (db_set_data(_hDB,h,(void*) DesignInfo.data(),strlen(DesignInfo.data())+1,1,TID_STRING) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "failed to set design info:" << DesignInfo;
     rc = -1;
@@ -567,7 +593,7 @@ int OdbInterface::SetRocDesignInfo(HNDLE hLink, std::string& DesignInfo) {
 //-----------------------------------------------------------------------------
 int OdbInterface::SetRocFwGitCommit(HNDLE hLink, std::string& Commit) {
   int rc(0);
-  HNDLE h = GetHandle(hLink,"RocGitCommit");
+  HNDLE h = GetHandle(hLink,"DetectorElement/RocGitCommit");
   if (db_set_data(_hDB,h,(void*) Commit.data(),strlen(Commit.data())+1,1,TID_STRING) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "failed to set git commit:" << Commit;
     rc = -1;

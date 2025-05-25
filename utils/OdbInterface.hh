@@ -97,8 +97,12 @@ public:
 // "generic" accessors, first - "new style", then "old style"
 // slowly getting rid of the old style, need the transition to be transparent
 //-----------------------------------------------------------------------------
+  HNDLE       GetHandle           (HNDLE hConf, const std::string& Key);
+  
   HNDLE       GetHandle           (HNDLE hConf, const char* Key);
   int         GetInteger          (HNDLE hConf, const char* Key, int*      Data);
+  int         GetKey              (HNDLE hConf, KEY* Key);
+  HNDLE       GetParent           (HNDLE hConf);
   int         GetUInt32           (HNDLE hConf, const char* Key, uint32_t* Data);
   std::string GetString           (HNDLE hConf, const char* Key);
 

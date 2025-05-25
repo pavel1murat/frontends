@@ -1,0 +1,157 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Sat May 3 17:22:36 2025 +0200 - midas-2025-01-a-192-gdb1819ac-dirty on branch HEAD",
+  "/filename" : "Commands.json",
+  "/ODB path" : "/Mu2e/Commands",
+
+  "Tracker" : {
+    "DTC" : {
+      "control_ROC_digi_rw" : {
+        "rw/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195330 },
+        "rw" : "0x0001",
+        "hvcal/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195330 },
+        "hvcal" : "0x0003",
+        "address/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195330 },
+        "address" : "0x0044",
+        "data/key" : { "type" : 4, "num_values" : 2, "access_mode" : 7, "last_written" : 1748195330 },
+        "data" : [ "0x0001", "0x0000" ]
+      },
+      "control_ROC_pulser_off" : {
+        "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "PrintLevel" : 2
+      },
+      "control_ROC_pulser_on" : {
+        "FirstChannelMask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "FirstChannelMask" : 128,
+        "DutyCycle/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "DutyCycle" : 10,
+        "PulserDelay/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "PulserDelay" : 1000,
+        "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "PrintLevel" : 2
+      },
+      "control_ROC_rates" : {
+        "UsePanelChannelMask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "UsePanelChannelMask" : 1,
+        "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "PrintLevel" : 4,
+        "#------------------------ 1/key" : { "type" : 12, "item_size" : 35, "access_mode" : 7, "last_written" : 1748195330 },
+        "#------------------------ 1" : "----------------------------------",
+        "num_lookback/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "num_lookback" : 100,
+        "num_samples/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "num_samples" : 10,
+        "ch_mask/key" : { "type" : 4, "num_values" : 6, "access_mode" : 7, "last_written" : 1748195330 },
+        "ch_mask" : [ "0xfffc", "0xffff", "0xffff", "0xffff", "0xffff", "0xffff" ]
+      },
+      "control_ROC_read" : {
+        "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "PrintLevel" : 3,
+        "UsePanelChannelMask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195330 },
+        "UsePanelChannelMask" : 1,
+        "# -- comment ----/key" : { "type" : 12, "item_size" : 47, "access_mode" : 7, "last_written" : 1748195330 },
+        "# -- comment ----" : "--------  default: digi checkerboard (-a4 -p1)",
+        "adc_mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195330 },
+        "adc_mode" : "0x0000",
+        "tdc_mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195330 },
+        "tdc_mode" : "0x0000",
+        "num_lookback/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195330 },
+        "num_lookback" : "0x0000",
+        "num_triggers/key" : { "type" : 4, "num_values" : 2, "access_mode" : 7, "last_written" : 1748195331 },
+        "num_triggers" : [ "0x000a", "0x0000" ],
+        "ch_mask/key" : { "type" : 4, "num_values" : 6, "access_mode" : 7, "last_written" : 1748195331 },
+        "ch_mask" : [ "0xffff", "0xffff", "0xffff", "0xffff", "0xffff", "0xffff" ],
+        "num_samples/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195331 },
+        "num_samples" : "0x0001",
+        "enable_pulser/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195331 },
+        "enable_pulser" : "0x0000",
+        "max_total_delay/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195331 },
+        "max_total_delay" : "0x0000",
+        "# -----/key" : { "type" : 12, "item_size" : 53, "access_mode" : 7, "last_written" : 1748195331 },
+        "# -----" : "marker_clock:  3, when running,  0 when no EWMs",
+        "marker_clock/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195331 },
+        "marker_clock" : "0x0003",
+        "mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195331 },
+        "mode" : "0x0000",
+        "clock/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195331 },
+        "clock" : "0x0063"
+      },
+      "read_register" : {
+        "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1748195331 },
+        "Register" : "0x00009140",
+        "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1748195331 },
+        "Value" : "0x0000007f"
+      },
+      "read_roc_register" : {
+        "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195331 },
+        "Register" : "0x0000",
+        "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195331 },
+        "Value" : "0x1234"
+      },
+      "write_register" : {
+        "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1748195331 },
+        "Register" : "0x000091a8",
+        "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1748195331 },
+        "Value" : "0x00000200"
+      },
+      "write_roc_register" : {
+        "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195331 },
+        "Register" : "0x0000",
+        "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1748195331 },
+        "Value" : "0x0000"
+      },
+      "control_ROC_read_ddr" : {
+        "BlockNumber/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+        "BlockNumber" : 1,
+        "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+        "PrintLevel" : 2
+      },
+      "control_ROC_set_thresholds" : {
+        "#-----/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748195331 },
+        "#-----" : "if 0, only print the thresholds",
+        "Doit/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+        "Doit" : 1,
+        "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+        "PrintLevel" : 0
+      },
+      "control_ROC_load_thresholds" : {
+        "#  ------------/key" : { "type" : 12, "item_size" : 46, "access_mode" : 7, "last_written" : 1748195331 },
+        "#  ------------" : "load thresholds from an external file to ODB ",
+        "#-----/key" : { "type" : 12, "item_size" : 34, "access_mode" : 7, "last_written" : 1748195331 },
+        "#-----" : "Doit=0: only print the thresholds",
+        "Doit/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+        "Doit" : 0,
+        "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+        "PrintLevel" : 0
+      }
+    }
+  },
+  "Global" : {
+    "# ------ command names: ---/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748195331 },
+    "# ------ command names: ---" : "configure, generate_fcl",
+    "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748195331 },
+    "Name" : "",
+    "Parameters/key" : { "type" : 12, "item_size" : 64, "access_mode" : 7, "last_written" : 1748195331 },
+    "Parameters" : "12 2 45",
+    "#-1 -------------------/key" : { "type" : 12, "item_size" : 46, "access_mode" : 7, "last_written" : 1748195331 },
+    "#-1 -------------------" : "------------- modified by the caller --------",
+    "Locked/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+    "Locked" : 0,
+    "Doit/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1748195331 },
+    "Doit" : 0,
+    "ResultChecked/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+    "ResultChecked" : 0,
+    "#0 -------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748195331 },
+    "#0 -------------------" : "--- modified by the callee",
+    "State/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+    "State" : 0,
+    "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+    "Status" : 0
+  },
+  "Configure" : {
+    "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+    "Run" : 1,
+    "Finished/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195331 },
+    "Finished" : 1
+  }
+}

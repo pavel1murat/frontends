@@ -80,27 +80,20 @@ class PeriodicEquipment(midas.frontend.EquipmentBase):
         # This is just a variable we'll use to keep track of how long it's
         # been since we last sent an event to midas.
         self.prescale_count = 0
+
+        self.config_path    = "/Mu2e/ActiveRunConfiguration";
+        self.subsystem_path = self.config_path+'/Tracker' 
+
+        self.config_name    = self.client.odb_get(self.config_path+"/Name")
+        self.partition_id   = self.client.odb_get(self.config_path+'/DAQ/PartitionID')
+
         
         # Set the status that appears on the midas status page.
         self.set_status("Initialized")
         
+        
     def readout_func(self):
-        """
-        In this periodic equipment, this function will be called periodically.
-        It should return a `midas.event.Event` or None.
-        """
-        if self.prescale_count == self.settings["Prescale factor"]:
-            event = midas.event.Event()
-            data = [1,2,3,4,5,6,7,8]
-            
-            event.create_bank("MYBK", midas.TID_INT, data)
-            event.create_bank("BNK2", midas.TID_BOOL, [True, False])
-            
-            self.prescale_count = 0
-            return event
-        else:
-            self.prescale_count += 1
-            return None
+        return None
 
     def settings_changed_func(self):
         """
@@ -147,7 +140,7 @@ class TrackerConfigFrontend(midas.frontend.FrontendBase):
 #        self.client.set_transition_sequence(midas.TR_START, 700)
 #        self.client.set_transition_sequence(midas.TR_STOP , 700)
 
-        self.client.odb_watch("/Mu2e/Commands/Configure/Tracker/Run", self.process_command)
+        self.client.odb_watch(self.config_path+'/Tracker/Command/Run', self.process_command)
         TRACE.TRACE(TLVL_DEBUG,f'constructor END',TRACE_NAME)
         print("constructor end");
 
@@ -157,9 +150,6 @@ class TrackerConfigFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
     def begin_of_run(self, run_number):
 
-        config_name  = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
-        partition_id = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
-
         self.set_all_equipment_status("Running", "greenLight")
         self.client.msg("CONFIG_FE: run number %d started" % run_number)
         return
@@ -167,9 +157,6 @@ class TrackerConfigFrontend(midas.frontend.FrontendBase):
         
     def end_of_run(self, run_number):
 
-        config_name  = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
-        partition_id = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
-        
         self.set_all_equipment_status("Okay", "greenLight")
         self.client.msg("CONFIG_FE: end of run number %d" % run_number)
         return
@@ -181,7 +168,7 @@ class TrackerConfigFrontend(midas.frontend.FrontendBase):
         
         n_active_stations = 0;
         for station in range(0,17):
-            path_station = '/Mu2e/ActiveRunConfiguration/Tracker/Station_%02i'%station;
+            path_station = self.config_path+f'/Tracker/Station_{station:%02i}';
 #------------------------------------------------------------------------------
 # need to intialize the DTCs, send message to the frontend
 #------------------------------------------------------------------------------
@@ -198,7 +185,7 @@ class TrackerConfigFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 # define the command
 #------------------------------------------------------------------------------
-                    cmd_path = '/Mu2e/ActiveRunConfiguration/DAQ/Nodes/'+nodename+'/Frontend/Command';
+                    cmd_path = self.config_path+'/DAQ/Nodes/'+nodename+'/Frontend/Command';
                     self.client.odb_set(cmd_path+'/Locked'       ,1)
                     self.client.odb_set(cmd_path+'/Name'         ,'configure')
                     self.client.odb_set(cmd_path+'/Status'       ,1);            # undefined ??
@@ -216,9 +203,8 @@ class TrackerConfigFrontend(midas.frontend.FrontendBase):
         TRACE.TRACE(TLVL_DEBUG,f'-- END, configure sent to n_active_stations:{n_active_stations}')
         
         return
-    
 #---v--------------------------------------------------------------------------
-# Process command
+# Process command: execution gets here when Tracker/Command/Run is set to 1
 #------------------------------------------------------------------------------
     def process_command(self, client, path, new_value):
         """
@@ -228,29 +214,29 @@ class TrackerConfigFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 # a sanity check: return of the whole tracker is disabled
 #------------------------------------------------------------------------------
-        subsystem_path = '/Mu2e/ActiveConfiguration/Tracker' 
-        enabled        = self.client.odb_get(subsystem_path+'/Enabled');
+        enabled        = self.client.odb_get(self.subsystem_path+'/Enabled');
         if (enabled == 0):
             TRACE.TRACE(TLVL_WARNING,f'Tracker is not enabled, bail out');
             self.client.odb_set(subsystem_path+'Status',0)
             return;
 
-        subsystem_cmd_path = subsystem_path+'/Command'
-        subsystem_doit     = self.client.odb_get(cmd_path+'/Doit')
-        if (subsystem_doit != 1):
+        subsystem_cmd_path = self.subsystem_path+'/Command'
+        cmd_name           = self.client.odb_get(cmd_path+'/Name')
+        cmd_run            = self.client.odb_get(cmd_path+'/Run')
+        if (cmd_run != 1):
 #-------^----------------------------------------------------------------------
 # likely, self-resetting the request
 #------------------------------------------------------------------------------
-            TRACE.TRACE(TLVL_DEBUG,f'Tracker/Command/Doit:{subsystem_doit}');
+            TRACE.TRACE(TLVL_DEBUG,f'WARNING: Tracker/Command/Run:{cmd_name}/Run:{cmd_run}');
             return
 
         self.client.odb_set(subsystem_cmd_path+'/Status',1)     # undefined
         self.client.odb_set(subsystem_cmd_path+'/State' ,1)     # command being executed
         
-        cmd_name = self.client.odb_get(subsystem_cmd_path+'/Name');
-        
-        if (cmd_name.upper() == 'CONFIGURE'):
+        if   (cmd_name.upper() == 'CONFIGURE'):
             cmd_configure()
+        elif (cmd_name.upper() == 'PULSER_ON'):
+            cmd_pulser_on();
 #------------------------------------------------------------------------------
 # for all global commands, wait is a common step (timeout should be a parameter, not a constant)
 #-------v----------------------------------------------------------------------
@@ -261,14 +247,14 @@ class TrackerConfigFrontend(midas.frontend.FrontendBase):
             TRACE.TRACE(TLVL_DEBUG,f'-- wait iteration:{i}')
             nleft = 0;
             for station in range(0,17):
-                path_station = '/Mu2e/ActiveRunConfiguration/Tracker/Station_%02i'%station;
-                enabled      = self.client.odb_get(path_station+'/Enabled');
+                station_path = self.subsystem_path+'/Station_%02i'%station;
+                enabled      = self.client.odb_get(station_path+'/Enabled');
                 if (enabled == 0):  continue
                 
                 pp       = self.client.odb_get_link_destination(path_plane+'/DTC').split('/');
                 nodename = pp[len(pp)-2];
 
-                cmd_path = '/Mu2e/ActiveRunConfiguration/DAQ/Nodes/'+nodename+'/Frontend/Command';
+                cmd_path = self.config_path+'/DAQ/Nodes/'+nodename+'/Frontend/Command';
                 doit     = self.client.odb_get(cmd_path+'/Doit');
                 if (doit == 1):
                     # not finished...
