@@ -18,8 +18,9 @@ public:
   std::string                    _host_label;      // on public network, for ODB
   OdbInterface*                  _odb_i;
   int                            _run;
-  std::string                    _config_path;     // "/Mu2e/ActiveRunConfiguration"
-  std::string                    _subsystem_path;  // "/Mu2e/ActiveRunConfiguration/Tracker"
+  std::string                    _ac_path;         // "/Mu2e/ActiveRunConfiguration" (active config path)
+  std::string                    _ss_ac_path;      // "/Mu2e/ActiveRunConfiguration/Tracker"
+  std::string                    _ss_cmd_path;     // "/Mu2e/Commands/Tracker"
 //-----------------------------------------------------------------------------
 // threads
 //-----------------------------------------------------------------------------

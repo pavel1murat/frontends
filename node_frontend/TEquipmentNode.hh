@@ -63,6 +63,8 @@ public:
   int                            _monitorRocRegisters;
   int                            _monitorRates;
   OdbInterface*                  _odb_i;
+  int                            _run_dtc0_command; // RPC
+  int                            _run_dtc1_command;
 //-----------------------------------------------------------------------------
 // threads
 //-----------------------------------------------------------------------------
@@ -117,6 +119,10 @@ public:
   static void        SetThresholds    (ThreadContext_t& Context,
                                        TEquipmentNode& Node,
                                        std::ostream& Stream );
+  
+                                        // ODB-based RPC command handler
+  
+  static void        ProcessCommand(int hDB, int hKey, void* Info);
 
   TMFeResult         InitArtdaq             ();
   void               InitArtdaqVarNames     ();
