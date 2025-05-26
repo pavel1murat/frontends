@@ -49,7 +49,7 @@ void TEquipmentNode::LoadThresholds(ThreadContext_t&   Context,
 //-----------------------------------------------------------------------------
   std::string config_dir = _odb_i->GetConfigDir();
     
-  midas::odb o_tracker("/Mu2e/ActiveRunConfiguration/Tracker");
+  midas::odb o_tracker("/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration");
   std::string thresholds_dir = o_tracker["ThresholdsDir"];
 
   std::string  dtc_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}",
@@ -71,14 +71,17 @@ void TEquipmentNode::LoadThresholds(ThreadContext_t&   Context,
 
       midas::odb o_panel(panel_path);
       std::string panel_name = o_panel["Name"];
+      int mnid = atoi(panel_name.substr(2).data());
+      int sdir = (mnid/10)*10;
 
-      TLOG(TLVL_DEBUG) << "-- check 1.3 panel_name:" << panel_name;
+      TLOG(TLVL_DEBUG) << "-- check 1.3 panel_name:" << panel_name << " sdir:" << sdir;
 
-      std::string panel_map_path = std::format("/Mu2e/ActiveRunConfiguration/Tracker/PanelMap/{:s}",panel_name.data());
+      std::string panel_data_path = std::format("/Mu2e/Subsystems/Tracker/PanelMap/{:03d}/{:s}/Panel",
+                                               sdir,panel_name.data());
 
-      TLOG(TLVL_DEBUG) << "-- check 1.35 panel_map_path:" << panel_map_path;
-      midas::odb o_panel_map(panel_map_path);
-      int station = o_panel_map["Station"];
+      TLOG(TLVL_DEBUG) << "-- check 1.35 panel_data_path:" << panel_data_path;
+      midas::odb o_panel_data(panel_data_path);
+      int station = o_panel_data["Station"];
 
       TLOG(TLVL_DEBUG) << "-- check 1.4 station:" << station;
       
