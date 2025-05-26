@@ -80,6 +80,20 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 
   InitDtc();
   InitArtdaq();
+//-----------------------------------------------------------------------------
+// hotlinks - start from one function handling both DTCs
+//-----------------------------------------------------------------------------
+  HNDLE hdb       = _odb_i->GetDbHandle();
+  HNDLE h_dtc0    = _odb_i->GetHandle(0,std::format("/Mu2e/Commands/Frontends/{:s}/DTC0/Run",_host_label.data()));
+
+  if (db_open_record(hdb,h_dtc0,&_run_dtc0_command,sizeof(int32_t), MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+    cm_msg(MERROR, __func__,"cannot open hotlink in ODB");
+  }
+
+  HNDLE h_dtc1   = _odb_i->GetHandle(0,std::format("/Mu2e/Commands/Frontends/{:s}/DTC1/Run",_host_label.data()));
+  if (db_open_record(hdb,h_dtc1,&_run_dtc1_command,sizeof(int32_t), MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+    cm_msg(MERROR, __func__,"cannot open hotlink in ODB");
+  }
   
   return TMFeOk();
 }
@@ -178,7 +192,7 @@ TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
 //-----------------------------------------------------------------------------
 void TEquipmentNode::HandlePeriodic() {
 
-  TLOG(TLVL_DEBUG+1) << "--- START";
+  TLOG(TLVL_DEBUG+1) << "-- START";
 
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"         ,&_monitorDtc         );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
@@ -201,7 +215,68 @@ void TEquipmentNode::HandlePeriodic() {
     ReadArtdaqMetrics();
   }
   
-  TLOG(TLVL_DEBUG+1) << "--- END";
+  TLOG(TLVL_DEBUG+1) << "-- END";
 
   EqSetStatus(Form("OK"),"#00FF00");
 }
+
+//-----------------------------------------------------------------------------
+void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  OdbInterface* odb_i = OdbInterface::Instance();
+
+  KEY k;
+  odb_i->GetKey(hKey,&k);
+
+  HNDLE h_dtc = odb_i->GetParent(hKey);
+  KEY dtc;
+  odb_i->GetKey(h_dtc,&dtc);
+
+  int pcie_addr(0);
+  if (dtc.name[3] == '1') pcie_addr = 1;
+
+  HNDLE h_frontend = odb_i->GetParent(h_dtc);
+  KEY frontend;
+  odb_i->GetKey(h_frontend,&frontend);
+  
+  TLOG(TLVL_DEBUG) << "k.name:" << k.name
+                   << " dtc.name:" << dtc.name
+                   << " pcie_addr:" << pcie_addr
+                   << " frontend.name:" << frontend.name;
+
+  midas::odb o_cmd(std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name));
+  std::string dtc_cmd = o_cmd["Name"];
+  
+  TLOG(TLVL_DEBUG) << "dtc_cmd:" << dtc_cmd;
+//-----------------------------------------------------------------------------
+// should be already defined at this point
+//-----------------------------------------------------------------------------
+  trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(pcie_addr);
+
+  if (dtc_cmd == "pulser_on") {
+//-----------------------------------------------------------------------------
+// execute pulser_on command , no printout
+// so far assume link != -1, but we do want to use -1 (all)
+//------------------------------------------------------------------------------
+    int link               = o_cmd["pulser_on"]["link"];
+    int first_channel_mask = o_cmd["pulser_on"]["first_channel_mask"];
+    int duty_factor        = o_cmd["pulser_on"]["duty_factor"       ];
+    int pulser_delay       = o_cmd["pulser_on"]["pulser_delay"      ];
+
+    TLOG(TLVL_DEBUG) << "link:" << link
+                     << " first_channel_mask:" << first_channel_mask
+                     << " duty_factor:" << duty_factor
+                     << " pulser_delay:" << pulser_delay;
+    try {
+      dtc_i->ControlRoc_PulserOn(link,first_channel_mask,duty_factor,pulser_delay);
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserON ... BAIL OUT";
+    }
+    
+  }
+  
+  TLOG(TLVL_DEBUG) << "-- END";
+}
+
