@@ -163,7 +163,7 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
       if (o_station["Enabled"] == 0) continue;
       for (int pln=0; pln<2; ++pln) {
         std::string plane_path = std::format("{:s}/Plane_{:02d}",station_path.data(),pln);
-        TLOG(TLVL_DEBUG) << "          process plane:" << pln << " plane_pah:" << plane_path;
+        TLOG(TLVL_DEBUG) << "          process plane:" << pln << " plane_path:" << plane_path;
         midas::odb o_plane(plane_path);
         if (o_plane["Enabled"] == 0) continue;
         for (int pnl=0; pnl<6; ++pnl) {
@@ -177,7 +177,7 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
           std::string name = o_panel["Name"];
           int mnid = atoi(name.substr(2).data());
-          int sdir = (mnid/100)*100;
+          int sdir = (mnid/10)*10;
           std::string panel_map_path = std::format("/Mu2e/Subsystems/Tracker/PanelMap/{:03d}/{:s}",sdir,name.data());
 
           std::string dtc_path       = std::format("{:s}/DTC",panel_map_path.data());
@@ -235,13 +235,13 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // wait till DTC comes back 
 //-----------------------------------------------------------------------------
-          ss_sleep(3000);
+          ss_sleep(100);
           int finished = 1; // simulate .... 0;
           int wait_time(0);
           while ((finished == 0) and (wait_time < 10000)) {
-            ss_sleep(500);
+            ss_sleep(100);
             finished = o_dtc_cmd["Finished"];
-            wait_time += 500;
+            wait_time += 100;
           }
 
           if (finished == 0) {
@@ -259,7 +259,7 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   else {
   }
                                         // just playing
-  ss_sleep(1000);
+  ss_sleep(100);
   o_tracker_cmd["Finished"] = 1;
   TLOG(TLVL_DEBUG) << "--- END"; 
 

@@ -154,7 +154,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         self.client.set_transition_sequence(midas.TR_START, 700)
         self.client.set_transition_sequence(midas.TR_STOP , 700)
 
-        self.client.odb_watch("/Mu2e/Commands/Global/Doit", self.process_command)
+        self.client.odb_watch("/Mu2e/Commands/Global/Run", self.process_command)
         TRACE.TRACE(TRACE.TLVL_DEBUG,f'constructor END',TRACE_NAME)
         print("constructor end");
 
@@ -308,7 +308,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 # for the moment, don't process parameters
 #---------------v--------------------------------------------------------------
                 cmd_path       = subsystem_path+'/Command';
-                subsystem_doit = self.client.odb_get(cmd_path+'/Doit');
+                subsystem_doit = self.client.odb_get(cmd_path+'/Run');
                 if (subsystem_doit != 0):
 #------------------------------------------------------------------------------
 # subsystem didn't complete the previous command - trouble
@@ -320,7 +320,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 # subsystem didn't complete the previous command - trouble
 #---------------v--------------------------------------------------------------
                 self.client.odb_get(cmd_path+'/Name',cmd_name);
-                self.client.odb_get(cmd_path+'/Doit',1);
+                self.client.odb_get(cmd_path+'/Run',1);
                 status_path = cmd_path+'/Status'
                 status      = self.client.odb_get(status_path)
                 if (status == CMD_STATUS_IN_PROGRESS):
@@ -328,7 +328,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                     continue;
                 self.client.odb_set(cmd_path+"/Locked"       ,1);
                 self.client.odb_set(cmd_path+"/ResultChecked",0) ; # undefined ?
-                self.client.odb_set(cmd_path+"/Doit"         ,1)
+                self.client.odb_set(cmd_path+"/Run"         ,1)
 #---------------^--------------------------------------------------------------
 # all configuration commands passed on to the frontends,
 # wait for 30 sec, monitor results every second 
@@ -344,13 +344,13 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                 TRACE.TRACE(TRACE.TLVL_DEBUG,f'checking subsystem:{subsystem} enabled:{enabled}')
                 if (key[1].type == midas.TID_KEY):              # subsystem
                     subsystem = key[1].name.decode("utf-8");
-                    subsystem_path = '/Mu2e/ActiveRunConfiguration/'+subsystem;
+                    subsystem_path = '/Mu2e/Commands/'+subsystem;
                     enabled   = self.client.odb_get(subssytem_path+"/Enabled")
                     TRACE.TRACE(TRACE.TLVL_DEBUG,f'checking subsystem:{subsystem} enabled:{enabled}')
                     if ( enabled == 0): continue;
 
-                    cmd_path       = subsystem_path+'/Command';
-                    doit       = self.client.odb_get(cmd_path+"/Doit");
+                    cmd_path       = subsystem_path;
+                    doit       = self.client.odb_get(cmd_path+"/Run");
                     if (doit == 1):
                         # the command is still being executed
                         TRACE.TRACE(TRACE.TLVL_DEBUG,f'subsystem:{subsystem} is still being configured')
@@ -376,10 +376,10 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         TRACE.TRACE(TRACE.TLVL_DEBUG,f'nleft:{nleft} nfailed:{nfailed}')
         if (nleft == 0) and (nfailed == 0):
             # configure finished successfully
-            self.client.odb_set("/Mu2e/Command/Status",CMD_STATUS_FINISHED_OK)
+            self.client.odb_set("/Mu2e/Commands/Global/Status",CMD_STATUS_FINISHED_OK)
         else:
             TRACE.TRACE(TRACE.TLVL_ERROR,f'nleft:{nleft} nfailed:{nfailed}')
-            self.client.odb_set("/Mu2e/Command/Status",-nleft-nfailed)
+            self.client.odb_set("/Mu2e/Commands/Global/Status",-nleft-nfailed)
 #------------------------------------------------------------------------------
 # and mark command execution as finished, done
 #-------v----------------------------------------------------------------------
@@ -399,7 +399,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         callback : configure the detector, set 'Configure' back to zero when done
         """
         TRACE.TRACE(TLVL_DEBUG,f'path:{path}',TRACE_NAME);
-        doit = self.client.odb_get("/Mu2e/Command/Doit")
+        doit = self.client.odb_get("/Mu2e/Commands/Global/Run")
 
                     #        TLOG(TLVL_INFO) << "Process Command:" << key.name << "Value:" << run
 #        << " Parameters: "    << params   << " Status:" << status;
