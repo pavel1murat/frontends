@@ -1418,7 +1418,7 @@
           "AutogenDRP" : 1,
           "# --- comment_#0/key" : { "type" : 12, "item_size" : 47, "access_mode" : 7, "last_written" : 1748195326 },
           "# --- comment_#0" : "--------- ROC readout mode: 0:patterns 1:digis",
-          "LinkMask/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1748195396 },
+          "LinkMask/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1748227219 },
           "LinkMask" : "0x00000110",
           "JAMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
           "JAMode" : 16,
@@ -1444,7 +1444,9 @@
             "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
             "Enabled" : 0,
             "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
-            "Status" : 0
+            "Status" : 0,
+            "Panel_00" : {
+            }
           },
           "Subsystem/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748195326 },
           "Subsystem" : "Tracker",
@@ -1452,7 +1454,7 @@
           "#--- configuration element" : "----------------------------",
           "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
           "Enabled" : 1,
-          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
+          "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748227293 },
           "Status" : 0,
           "Link1" : {
             "DetectorElement/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_01/Panel_01", "access_mode" : 7, "last_written" : 1748195326 },
@@ -1462,7 +1464,9 @@
             "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
             "Enabled" : 1,
             "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
-            "Status" : 0
+            "Status" : 0,
+            "Panel_01" : {
+            }
           },
           "Link2" : {
             "DetectorElement/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_01/Panel_00", "access_mode" : 7, "last_written" : 1748195326 },
@@ -1472,7 +1476,9 @@
             "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
             "Enabled" : 1,
             "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
-            "Status" : 0
+            "Status" : 0,
+            "Panel_00" : {
+            }
           },
           "Link3" : {
             "DetectorElement/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_01/Panel_03", "access_mode" : 7, "last_written" : 1748195326 },
@@ -1482,7 +1488,9 @@
             "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
             "Enabled" : 0,
             "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
-            "Status" : 0
+            "Status" : 0,
+            "Panel_03" : {
+            }
           },
           "Link4" : {
             "DetectorElement/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_01/Panel_04", "access_mode" : 7, "last_written" : 1748195326 },
@@ -1492,7 +1500,9 @@
             "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
             "Enabled" : 0,
             "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
-            "Status" : 0
+            "Status" : 0,
+            "Panel_04" : {
+            }
           },
           "Link5" : {
             "DetectorElement/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_01/Panel_05", "access_mode" : 7, "last_written" : 1748195326 },
@@ -1502,7 +1512,9 @@
             "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
             "Enabled" : 0,
             "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
-            "Status" : 0
+            "Status" : 0,
+            "Panel_05" : {
+            }
           }
         },
         "Artdaq" : {
@@ -1655,18 +1667,18 @@
         "#-------- 0" : "----------------------- configurable elemnt",
         "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
         "Enabled" : 1,
-        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
+        "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748207121 },
         "Status" : 0,
         "Frontend" : {
           "HandleBeginRun/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
           "HandleBeginRun" : 1,
           "Monitor" : {
-            "Artdaq/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
-            "Artdaq" : 1,
-            "DTC/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
+            "Artdaq/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748224540 },
+            "Artdaq" : 0,
+            "DTC/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748224549 },
             "DTC" : 1,
-            "RocSPI/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
-            "RocSPI" : 1,
+            "RocSPI/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748224554 },
+            "RocSPI" : 0,
             "RocRegisters/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
             "RocRegisters" : 0,
             "Rates/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
@@ -1924,8 +1936,8 @@
           "# ---------------------" : "---------------------------------",
           "# comment : Status:/key" : { "type" : 12, "item_size" : 59, "access_mode" : 7, "last_written" : 1748195326 },
           "# comment : Status:" : "0: undefined 1:being configured 2: configured -1: in error",
-          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
-          "Enabled" : 1,
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748210687 },
+          "Enabled" : 0,
           "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195326 },
           "Status" : 0
         },
@@ -2048,8 +2060,8 @@
           "# ---------------------" : "---------------------------------",
           "# comment : Status:/key" : { "type" : 12, "item_size" : 59, "access_mode" : 7, "last_written" : 1748195327 },
           "# comment : Status:" : "0: undefined 1:being configured 2: configured -1: in error",
-          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
-          "Enabled" : 1,
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748211758 },
+          "Enabled" : 0,
           "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
           "Status" : 0
         },
@@ -2088,8 +2100,8 @@
           "# ---------------------" : "---------------------------------",
           "# comment : Status:/key" : { "type" : 12, "item_size" : 59, "access_mode" : 7, "last_written" : 1748195327 },
           "# comment : Status:" : "0: undefined 1:being configured 2: configured -1: in error",
-          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
-          "Enabled" : 1,
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748211769 },
+          "Enabled" : 0,
           "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
           "Status" : 0
         },
@@ -2128,8 +2140,8 @@
           "# ---------------------" : "---------------------------------",
           "# comment : Status:/key" : { "type" : 12, "item_size" : 59, "access_mode" : 7, "last_written" : 1748195327 },
           "# comment : Status:" : "0: undefined 1:being configured 2: configured -1: in error",
-          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
-          "Enabled" : 1,
+          "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748211778 },
+          "Enabled" : 0,
           "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
           "Status" : 0
         }
@@ -2164,11 +2176,11 @@
           "Panel" : 0,
           "# ------------------------ 3/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748195327 },
           "# ------------------------ 3" : "",
-          "RocDeviceSerial/key" : { "type" : 12, "item_size" : 35, "access_mode" : 7, "last_written" : 1748195396 },
+          "RocDeviceSerial/key" : { "type" : 12, "item_size" : 35, "access_mode" : 7, "last_written" : 1748227219 },
           "RocDeviceSerial" : "'4defe1b3be5bd4020653ff699f5ce567'",
-          "RocDesignInfo/key" : { "type" : 12, "item_size" : 11, "access_mode" : 7, "last_written" : 1748195396 },
+          "RocDesignInfo/key" : { "type" : 12, "item_size" : 11, "access_mode" : 7, "last_written" : 1748227219 },
           "RocDesignInfo" : "READ_ERROR",
-          "RocGitCommit/key" : { "type" : 12, "item_size" : 14, "access_mode" : 7, "last_written" : 1748195396 },
+          "RocGitCommit/key" : { "type" : 12, "item_size" : 14, "access_mode" : 7, "last_written" : 1748227219 },
           "RocGitCommit" : "READ_DISABLED",
           "# ---------------------/key" : { "type" : 12, "item_size" : 34, "access_mode" : 7, "last_written" : 1748195327 },
           "# ---------------------" : "---------------------------------",
@@ -2179,8 +2191,8 @@
           "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
           "Status" : 0
         },
-        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
-        "Enabled" : 1,
+        "Enabled/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748211706 },
+        "Enabled" : 0,
         "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
         "Status" : 0,
         "Panel_01" : {
@@ -2208,11 +2220,11 @@
           "Panel" : 1,
           "# ------------------------ 3/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748195327 },
           "# ------------------------ 3" : "",
-          "RocDeviceSerial/key" : { "type" : 12, "item_size" : 35, "access_mode" : 7, "last_written" : 1748195396 },
+          "RocDeviceSerial/key" : { "type" : 12, "item_size" : 35, "access_mode" : 7, "last_written" : 1748227219 },
           "RocDeviceSerial" : "'2581e89e32c49092801dac9defcefb02'",
-          "RocDesignInfo/key" : { "type" : 12, "item_size" : 11, "access_mode" : 7, "last_written" : 1748195396 },
+          "RocDesignInfo/key" : { "type" : 12, "item_size" : 11, "access_mode" : 7, "last_written" : 1748227219 },
           "RocDesignInfo" : "READ_ERROR",
-          "RocGitCommit/key" : { "type" : 12, "item_size" : 14, "access_mode" : 7, "last_written" : 1748195396 },
+          "RocGitCommit/key" : { "type" : 12, "item_size" : 14, "access_mode" : 7, "last_written" : 1748227219 },
           "RocGitCommit" : "READ_DISABLED",
           "# ---------------------/key" : { "type" : 12, "item_size" : 34, "access_mode" : 7, "last_written" : 1748195327 },
           "# ---------------------" : "---------------------------------",
@@ -2560,7 +2572,9 @@
         "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
         "Status" : 0,
         "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748195327 },
-        "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0"
+        "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0",
+        "DTC0" : {
+        }
       },
       "Plane_01" : {
         "# ---------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748195327 },
@@ -2776,20 +2790,22 @@
     "Status/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
     "Status" : 0,
     "Command" : {
-      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748195327 },
-      "Name" : "PulserOn",
-      "Run/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1748195327 },
+      "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748220226 },
+      "Name" : "pulser_on",
+      "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748220233 },
       "Run" : 0,
-      "Finished/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
+      "Finished/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748220233 },
       "Finished" : 1,
       "pulser_on" : {
-        "first_channel_mask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
-        "first_channel_mask" : 1,
-        "duty_cycle/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
+        "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+        "link" : 0,
+        "first_channel_mask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748219766 },
+        "first_channel_mask" : 128,
+        "duty_cycle/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748219585 },
         "duty_cycle" : 10,
-        "pulser_delay/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
+        "pulser_delay/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748219585 },
         "pulser_delay" : 1000,
-        "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748195327 },
+        "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748219585 },
         "print_level" : 0
       }
     },

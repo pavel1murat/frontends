@@ -5,22 +5,27 @@ ODBGET "/Mu2e/ActiveRunConfiguration/UseRunInfoDB" , use_rundb
 RUNDESCRIPTION "pulse injection run"
 PARAM runs, "aaaaa", 8
 
-ODBSET "/Mu2e/ActiveRunConfiguration/Tracker/Command/pulser_on/pulser_delay", 1000
-ODBSET "/Mu2e/ActiveRunConfiguration/Tracker/Command/pulser_on/duty_cycle"  ,   10
-ODBSET "/Mu2e/ActiveRunConfiguration/Tracker/Command/pulser_on/print_level" ,    0
-
 first_channel_mask = 1
 
 LOOP i, $runs
    
-   ODBSET "/Mu2e/ActiveRunConfiguration/Tracker/Command/pulser_on/first_channel_mask",  $first_channel_mask
+   msg "configure step $i, first_chanenl_mask=$first_channel_mask"
    
-   odbset            "/Mu2e/ActiveRunConfiguration/Tracker/Command/Name"    , "PulserOn", 0
-   odbset            "/Mu2e/ActiveRunConfiguration/Tracker/Command/FInished", 0 , 0
-   odbset            "/Mu2e/ActiveRunConfiguration/Tracker/Command/Run"     , 1 , 1
-   wait   ODBValue , "/Mu2e/ActiveRunConfiguration/Tracker/Command/Finished", > , 0
-   odbset            "/Mu2e/ActiveRunConfiguration/Tracker/Command/Run"     , 0 , 0
+   comment "define command name and its parameters"
+   
+   odbset "/Mu2e/Commands/Tracker/Name"    , "control_roc_pulser_on"
 
+   ODBSET "/Mu2e/Commands/Tracker/control_roc_pulser_on/first_channel_mask",  $first_channel_mask
+   ODBSET "/Mu2e/Commands/Tracker/control_roc_pulser_on/pulser_delay", 1000
+   ODBSET "/Mu2e/Commands/Tracker/control_roc_pulser_on/duty_factor" ,   10
+   ODBSET "/Mu2e/Commands/Tracker/control_roc_pulser_on/print_level" ,    0
+   
+   comment "execute command"
+   
+   odbset            "/Mu2e/Commands/Tracker/Finished", 0 , 0
+   odbset            "/Mu2e/Commands/Tracker/Run"     , 1 , 1
+   wait   ODBValue , "/Mu2e/Commands/Tracker/Finished", > , 0
+   odbset            "/Mu2e/Commands/Tracker/Run"     , 0 , 0
 
    comment "configuration finished, proceed with the data taking"
    
@@ -28,14 +33,13 @@ LOOP i, $runs
       script get_next_run_number.py
    ENDIF
 
-  msg "beginning of the start transition: $i"
+  msg "step $i: beginning of the start transition"
   TRANSITION START
-  msg "end  of the start transition : $i"
-  comment "now take data for 10 seconds"
+  msg "step $i: end  of the start transition, take data for 10 sec"
   WAIT Seconds, 10
-  msg "beginning of the STOP transition $i"
+  msg "step $i: beginning of the STOP transition"
   TRANSITION STOP
-  msg "end of the stop transition $i"
-  wait seconds, 10
+  msg "step $i: end of the stop transition"
+  wait seconds, 5
   first_channel_mask = $first_channel_mask*2
 ENDLOOP
