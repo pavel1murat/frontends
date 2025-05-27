@@ -72,10 +72,11 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 //-----------------------------------------------------------------------------
       std::string  panel_path = std::format("/Mu2e/RunConfigurations/{:s}/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
                                             ConfName,_host_label.data(),PcieAddr,lnk);
-
-      if (print_level&0x8) Stream << "panel_path:" << panel_path << std::endl;
-
       midas::odb   odb_panel(panel_path);
+      std::string  panel_name = odb_panel["Name"];
+
+      if (print_level&0x8) Stream << "panel_path:" << panel_path << " panel_name:" << panel_name << std::endl;
+
       for (int i=0; i<96; ++i) {
         // int on_off = ch_mask_odb[i];
         int on_off = odb_panel["ch_mask"][i];
