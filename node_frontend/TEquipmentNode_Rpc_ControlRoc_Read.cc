@@ -14,7 +14,7 @@
 int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i,
                                         std::ostream& Stream, const char* ConfName) {
   
-  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
+  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_read");
 
   trkdaq::ControlRoc_Read_Input_t0 par;
 
@@ -29,10 +29,10 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
 
   // this is how we get the panel name
 
-  int use_panel_channel_mask = o["UsePanelChannelMask"];
-  int print_level            = o["PrintLevel"];
+  int use_panel_channel_mask = o["use_panel_channel_mask"];
+  int print_level            = o["print_level"];
     
-  Stream << "UsePanelChannelMask:" <<  use_panel_channel_mask << std::endl;
+  Stream << "use_panel_channel_mask:" <<  use_panel_channel_mask << std::endl;
 
   int lnk1(Link), lnk2(Link+1);
   if (Link == -1) {
@@ -56,20 +56,6 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
 //-----------------------------------------------------------------------------
       std::string  panel_path = std::format("/Mu2e/RunConfigurations/{:s}/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
                                             ConfName,_host_label.data(),PcieAddr,lnk);
-    //   HNDLE h_panel;
-    //   int status = db_find_key(hDB, 0, panel_path.data() , &h_panel);
-    //   Stream << "panel_path:" << panel_path << " h_panel:" <<  h_panel << " status:" << status << std::endl;
-    
-    //   HNDLE h_chmask;
-    //   status = db_find_key(hDB, h_panel, "ch_mask" , &h_chmask);
-    // // Stream << "h_chmask:" <<  h_chmask << " status:" << status << std::endl;
-    
-    //   int ch_mask[100];
-    //   int  nbytes = 100*4;
-    
-    //   status = db_get_data(hDB, h_chmask, ch_mask, &nbytes, TID_INT32);
-    //   // Stream << "nbytes:" <<  nbytes << " status:" << status << std::endl;
-    
       midas::odb   odb_panel(panel_path);
       for (int i=0; i<96; ++i) {
         int on_off = odb_panel["ch_mask"][i];
@@ -82,9 +68,13 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
         // Stream << "ch_mask["<<i<<"]:" << ch_mask[i] << " iw:" << iw << " ib:" << ib << std::endl;; 
         par.ch_mask[iw] |= on_off << ib;
       }
-    
-      for (int i=0; i<6; i++) {
-        Stream << "par.ch_mask[" << i << "]:" << std::hex << par.ch_mask[i] << std::endl;
+
+      if (print_level > 0) {
+        Stream << "par.ch_mask:";
+        for (int i=0; i<6; i++) {
+          Stream << " " << std::hex << par.ch_mask[i];
+        }
+        Stream << std::endl;
       }
     }
         

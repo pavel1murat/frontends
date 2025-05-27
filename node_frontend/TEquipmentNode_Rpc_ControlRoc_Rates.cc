@@ -28,7 +28,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
   par.num_lookback = o["num_lookback"];    //
   par.num_samples  = o["num_samples" ];    //
 
-  int  print_level = o["PrintLevel"  ];
+  int  print_level = o["print_level"  ];
 
   for (int i=0; i<6; i++) {
     rates  [i].reserve(96);
@@ -73,7 +73,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
       std::string  panel_path = std::format("/Mu2e/RunConfigurations/{:s}/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
                                             ConfName,_host_label.data(),PcieAddr,lnk);
 
-      Stream << "panel_path:" << panel_path << std::endl;
+      if (print_level&0x8) Stream << "panel_path:" << panel_path << std::endl;
 
       midas::odb   odb_panel(panel_path);
       for (int i=0; i<96; ++i) {
@@ -97,8 +97,12 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 //-----------------------------------------------------------------------------
 // print the mask
 //-----------------------------------------------------------------------------
-    for (int iw=0; iw<6; iw++) {
-      Stream << "iw:" << iw << " par.ch_mask[iw]:0x" << std::hex << par.ch_mask[iw] << std::endl;
+    if (print_level&0x8) {
+      Stream << "par.ch_mask:";
+      for (int iw=0; iw<6; iw++) {
+        Stream << " " << std::hex << par.ch_mask[iw];
+      }
+      Stream << std::endl;
     }
 
     try {
@@ -107,6 +111,10 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 // assume that, with the exception of the clock_mode, which we flip, the ODB has the right set
 // of parameters stored
 //-----------------------------------------------------------------------------
+      if (print_level & 0x8) {
+        Stream <<  std::format("dtc_i->fLinkMask: 0x%04x",Dtc_i->fLinkMask) << std::endl;
+      }
+
       midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
 
       trkdaq::ControlRoc_Read_Input_t0 pread;
@@ -131,14 +139,12 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
       Dtc_i->ControlRoc_Read(&pread,lnk,print_level,Stream);
       Dtc_i->ControlRoc_Rates(lnk,&rates[lnk],print_level,&par,Stream);
 
-      pread.marker_clock    = o["marker_clock" ];   // recover
+      pread.marker_clock    = o["marker_clock" ];   // recover marker_clock mode
       Dtc_i->ControlRoc_Read(&pread,lnk,print_level,Stream);
 
       if (print_level & 0x2) { // detailed printout, one ROC only
         Dtc_i->PrintRatesSingleRoc(&rates[lnk],&ch_mask[lnk],Stream);
       }
-    
-      printf("dtc_i->fLinkMask: 0x%04x\n",Dtc_i->fLinkMask);
     }
     catch(...) {
       Stream << "ERROR : coudn't execute ControlRoc_rates for link:" << lnk << "... BAIL OUT";
