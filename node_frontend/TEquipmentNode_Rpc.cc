@@ -303,20 +303,27 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 // turn pulser ON - lik is passed explicitly
 //-----------------------------------------------------------------------------
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_pulser_on";
-    
-    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on");
+    std::string parameter_path("/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on");
 
-    int first_channel_mask = o["first_channel_mask"];    //
-    int duty_cycle         = o["duty_cycle"        ];    //
-    int pulser_delay       = o["pulser_delay"      ];    //
-    int print_level        = o["printl_level"      ];
+    int first_channel_mask, duty_cycle, pulser_delay, print_level;
+    try {
+      midas::odb o(parameter_path);
+
+      first_channel_mask = o["first_channel_mask"];    //
+      duty_cycle         = o["duty_cycle"        ];    //
+      pulser_delay       = o["pulser_delay"      ];    //
+      print_level        = o["print_level"       ];
+    }
+    catch(...) {
+      ss << " -- ERROR : coudn't read parameters from " << parameter_path << " ... BAIL OUT" << std::endl;
+    }
 
     TLOG(TLVL_DEBUG) << "trying to call ControlRoc_PulserOn, roc:" << roc;
     try {
       dtc_i->ControlRoc_PulserOn(roc,first_channel_mask,duty_cycle,pulser_delay,print_level,ss);
     }
     catch(...) {
-      ss << " -- ERROR : coudn't execute ControlRoc_PulserON ... BAIL OUT" << std::endl;
+      ss << " -- ERROR : coudn\'t execute ControlRoc_PulserOn ... BAIL OUT" << std::endl;
     }
   }
   else if (strcmp(cmd,"dtc_control_roc_pulser_off") == 0) {
