@@ -62,6 +62,7 @@
               <input type=button value='print status'     onClick='dtc_command("dtc_print_status")'>
               <input type=button value='print ROC status' onClick='dtc_command("dtc_print_roc_status")'>
               <input type=button value='load parameters'  onClick='dtc_load_parameters()'>
+              <input type=button value='clear output'     onClick='dtc_clear_output()'>
             </td>
            <td> Register </td>
            <td> Value    </td>
@@ -138,17 +139,17 @@
                 </div>
               </div>
               <div class="dropup">
-                <input type=button class="dropbtn" value='rates'>
-                <div class="dropup-content">
-                  <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
-                  <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
-                </div>
-              </div>
-              <div class="dropup">
                 <input type=button class="dropbtn" value='pulser_off'>
                 <div class="dropup-content">
                   <div onClick='dtc_load_parameters_control_roc_pulser_off()'> Load Parameters </div>
                   <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='rates'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
                 </div>
               </div>
               <div class="dropup">

@@ -72,10 +72,12 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
       data[i+96*1] = (uint16_t) o["gain_hv"      ][i];
       data[i+96*2] = (uint16_t) o["threshold_cal"][i];
       data[i+96*3] = (uint16_t) o["threshold_hv" ][i];
+
+      int ch_mask = o["ch_mask"][i];
       
       if (print_level > 1) {
-        Stream << std::format("{:3d} {:3d} {:3d} {:3d} {:3d}\n",
-                              i,data[i],data[i+96*1],data[i+96*2],data[i+96*3]);
+        Stream << std::format("{:3d} {:3d} {:5d} {:5d} {:5d} {:5d}\n",
+                              i,ch_mask,data[i],data[i+96*1],data[i+96*2],data[i+96*3]);
       }
     }
       

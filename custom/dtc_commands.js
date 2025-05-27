@@ -26,7 +26,7 @@
 
 //-----------------------------------------------------------------------------
       function dtc_command(cmd) {
-        let msg = { "client_name":g_hostname, "cmd":cmd, "max_reply_length":20000,
+        let msg = { "client_name":g_hostname, "cmd":cmd, "max_reply_length":100000,
                     "args":'{"pcie":'+g_pcie.toString()+',"roc":'+g_roc.toString()+'}'};
         mjsonrpc_call("jrpc",msg).then(function(rpc1) {
           let s = rpc1.result.reply
@@ -37,9 +37,12 @@
           el.innerHTML += y;
           el.style.fontFamily = 'monospace';
           // el.scrollIntoView();
+          const sel = (el || document.body);
+          sel.scrollTop = sel.scrollHeight;
           const scrollToBottom = (id) => {
             el.scrollTop = el.scrollHeight;
           }
+          el.classList.toggle('force-redraw');
 
         }).catch(function(error){
           mjsonrpc_error_alert(error);
@@ -55,10 +58,19 @@
       }
 
 //-----------------------------------------------------------------------------
+// clear output window
+//-----------------------------------------------------------------------------
+      function dtc_clear_output() {
+        const el = document.getElementById("content");
+        el.innerHTML = '';
+        el.classList.toggle('force-redraw');
+      }
+
+//-----------------------------------------------------------------------------
       function dtc_load_parameters_control_roc_read() {
         const table     = document.getElementById('cmd_params');
         table.innerHTML = '';
-        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_read',0);
+        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_read',0);
       }
       
 //-----------------------------------------------------------------------------
@@ -72,14 +84,7 @@
       function dtc_load_parameters_control_roc_pulser_on() {
         const table     = document.getElementById('cmd_params');
         table.innerHTML = '';
-        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_pulser_on',0);
-      }
-      
-//-----------------------------------------------------------------------------
-      function dtc_load_parameters_control_roc_rates() {
-        const table     = document.getElementById('cmd_params');
-        table.innerHTML = '';
-        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_rates',0);
+        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on',0);
       }
       
 //-----------------------------------------------------------------------------
@@ -87,6 +92,13 @@
         const table     = document.getElementById('cmd_params');
         table.innerHTML = '';
         odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_pulser_off',0);
+      }
+      
+//-----------------------------------------------------------------------------
+      function dtc_load_parameters_control_roc_rates() {
+        const table     = document.getElementById('cmd_params');
+        table.innerHTML = '';
+        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_rates',0);
       }
       
 //-----------------------------------------------------------------------------
@@ -138,3 +150,11 @@
         if (g_roc == 6) {g_roc = -1};
         console.log('g_roc=',g_roc);
       }
+
+//    emacs
+//    Local Variables:
+//    tab-width: 8
+//    c-basic-offset: 2
+//    js-indent-level: 2
+//    indent-tabs-mode: nil
+//    End:

@@ -121,7 +121,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   }
   else if (strcmp(cmd,"dtc_control_roc_digi_rw") == 0) {
 //-----------------------------------------------------------------------------
-// for control_ROC_read, it would make sense to have a separate page
+// for control_ROC_digi_rw, it would make sense to have a separate page
 //-----------------------------------------------------------------------------
     ss << std::endl;
     midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_digi_rw");
@@ -130,14 +130,14 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     trkdaq::ControlRoc_DigiRW_Output_t pout;
     // parameters should be taken from ODB - where from?
 
-    par.rw         = o["rw"     ];    //
-    par.hvcal      = o["hvcal"  ];    //
-    par.address    = o["address"];    //
-    par.data[0]    = o["data"   ][0]; //
-    par.data[1]    = o["data"   ][1]; //
+    par.rw           = o["rw"     ];    //
+    par.hvcal        = o["hvcal"  ];    //
+    par.address      = o["address"];    //
+    par.data[0]      = o["data"   ][0]; //
+    par.data[1]      = o["data"   ][1]; //
+    int  print_level = o["print_level"];
       
     printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
-    int  print_level(3);
     try {
       dtc_i->ControlRoc_DigiRW(&par,&pout,roc,print_level,ss);
     }
@@ -300,16 +300,16 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   }
   else if (strcmp(cmd,"dtc_control_roc_pulser_on") == 0) {
 //-----------------------------------------------------------------------------
-// turn pulser ON
+// turn pulser ON - lik is passed explicitly
 //-----------------------------------------------------------------------------
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_pulser_on";
     
-    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_pulser_on");
+    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on");
 
-    int first_channel_mask = o["FirstChannelMask" ];    //
-    int duty_cycle         = o["DutyCycle"        ];    //
-    int pulser_delay       = o["PulserDelay"      ];    //
-    int print_level        = o["PrintLevel"       ];
+    int first_channel_mask = o["first_channel_mask"];    //
+    int duty_cycle         = o["duty_cycle"        ];    //
+    int pulser_delay       = o["pulser_delay"      ];    //
+    int print_level        = o["printl_level"      ];
 
     TLOG(TLVL_DEBUG) << "trying to call ControlRoc_PulserOn, roc:" << roc;
     try {

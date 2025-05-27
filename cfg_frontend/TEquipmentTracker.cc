@@ -145,7 +145,8 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   int nstations = o_tracker_config["NStations"];
 
   midas::odb o_tracker_cmd("/Mu2e/Commands/Tracker");
-  std::string tracker_cmd = o_tracker_cmd["Name"];
+  std::string tracker_cmd        = o_tracker_cmd["Name"];
+  std::string cmd_parameter_path = o_tracker_cmd["ParameterPath"];
 
   TLOG(TLVL_DEBUG) << "tracker_cmd:" << tracker_cmd << " nstations:" << nstations << std::endl;;
 
@@ -218,13 +219,14 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
                            << " pulser_delay:" << pulser_delay
                            << " print_level:" << print_level;
 
-          o_dtc_cmd["Name"] = "pulser_on";
+          o_dtc_cmd["Name"         ] = "pulser_on";
+          o_dtc_cmd["ParameterPath"] = cmd_parameter_path;
           
-          o_dtc_cmd["pulser_on"]["link"              ] = link;
-          o_dtc_cmd["pulser_on"]["first_channel_mask"] = mask;
-          o_dtc_cmd["pulser_on"]["duty_factor"       ] = duty_factor;
-          o_dtc_cmd["pulser_on"]["pulser_delay"      ] = pulser_delay;
-          o_dtc_cmd["pulser_on"]["print_level"       ] = print_level;
+          // o_dtc_cmd["pulser_on"]["link"              ] = link;
+          // o_dtc_cmd["pulser_on"]["first_channel_mask"] = mask;
+          // o_dtc_cmd["pulser_on"]["duty_factor"       ] = duty_factor;
+          // o_dtc_cmd["pulser_on"]["pulser_delay"      ] = pulser_delay;
+          // o_dtc_cmd["pulser_on"]["print_level"       ] = print_level;
 //-----------------------------------------------------------------------------
 // finally, execute the command. THe loop is executed fast, so need to wait
 // for the DTC's to report that they are finished
