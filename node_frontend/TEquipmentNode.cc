@@ -245,24 +245,33 @@ void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
                    << " pcie_addr:" << pcie_addr
                    << " frontend.name:" << frontend.name;
 
-  midas::odb o_cmd(std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name));
-  std::string dtc_cmd = o_cmd["Name"];
-  
-  TLOG(TLVL_DEBUG) << "dtc_cmd:" << dtc_cmd;
+  std::string dtc_cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
+  midas::odb o_dtc_cmd(dtc_cmd_buf_path);
+
+  std::string dtc_cmd        = o_dtc_cmd["Name"];
+  std::string parameter_path = o_dtc_cmd["ParameterPath"];
+//-----------------------------------------------------------------------------
+// this is address of the parameter record
+//-----------------------------------------------------------------------------
+  parameter_path += "/";
+  parameter_path += dtc_cmd;
+  TLOG(TLVL_DEBUG) << "dtc_cmd:" << dtc_cmd << " parameter_path:" << parameter_path;
+  midas::odb o_par(parameter_path);
+  TLOG(TLVL_DEBUG) << "-- parameters found";
 //-----------------------------------------------------------------------------
 // should be already defined at this point
 //-----------------------------------------------------------------------------
   trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(pcie_addr);
 
-  if (dtc_cmd == "pulser_on") {
+  if (dtc_cmd == "control_roc_pulser_on") {
 //-----------------------------------------------------------------------------
 // execute pulser_on command , no printout
 // so far assume link != -1, but we do want to use -1 (all)
 //------------------------------------------------------------------------------
-    int link               = o_cmd["pulser_on"]["link"];
-    int first_channel_mask = o_cmd["pulser_on"]["first_channel_mask"];
-    int duty_factor        = o_cmd["pulser_on"]["duty_factor"       ];
-    int pulser_delay       = o_cmd["pulser_on"]["pulser_delay"      ];
+    int link               = o_par["link"];
+    int first_channel_mask = o_par["first_channel_mask"];
+    int duty_factor        = o_par["duty_factor"       ];
+    int pulser_delay       = o_par["pulser_delay"      ];
 
     TLOG(TLVL_DEBUG) << "link:" << link
                      << " first_channel_mask:" << first_channel_mask
@@ -270,11 +279,11 @@ void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
                      << " pulser_delay:" << pulser_delay;
     try {
       dtc_i->ControlRoc_PulserOn(link,first_channel_mask,duty_factor,pulser_delay);
+      o_dtc_cmd["Finished"] = 1;
     }
     catch(...) {
       TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserON ... BAIL OUT";
     }
-    
   }
   
   TLOG(TLVL_DEBUG) << "-- END";

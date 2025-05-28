@@ -148,7 +148,9 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   std::string tracker_cmd        = o_tracker_cmd["Name"];
   std::string cmd_parameter_path = o_tracker_cmd["ParameterPath"];
 
-  TLOG(TLVL_DEBUG) << "tracker_cmd:" << tracker_cmd << " nstations:" << nstations << std::endl;;
+  TLOG(TLVL_DEBUG) << "tracker_cmd:" << tracker_cmd
+                   << " cmd_parameter_path:" << cmd_parameter_path
+                   << " nstations:" << nstations << std::endl;
 
   if (tracker_cmd == "control_roc_pulser_on") {
 //-----------------------------------------------------------------------------
@@ -190,36 +192,35 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
                                         // key.name is the frontend name ! 
           KEY node_fe;
           odb_i->GetKey(h_parent,&node_fe);
-          TLOG(TLVL_DEBUG) << " node_fe.name:" << (char*) node_fe.name;
+          // TLOG(TLVL_DEBUG) << " node_fe.name:" << (char*) node_fe.name;
 
           midas::odb o_dtc (panel_map_path+"/DTC");
 
           int pcie_addr = o_dtc  ["PcieAddress"];
-          int link      = o_panel["Link"];
 
           TLOG(TLVL_DEBUG) << "node_fe.name:" << (char*) node_fe.name
-                           << " pcie_addr:" << pcie_addr
-                           << " link:" << link;
+                           << " pcie_addr:" << pcie_addr;
 
-          midas::odb o_trk_cmd("/Mu2e/Commands/Tracker/control_roc_pulser_on");
+          midas::odb o_trk_cmd("/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on");
 
           std::string dtc_cmd_path = std::format("/Mu2e/Commands/Frontends/{:s}/DTC{:d}",
                                                  node_fe.name,pcie_addr);
-
           midas::odb o_dtc_cmd(dtc_cmd_path);
           
+          int link         = o_trk_cmd["link"              ];
           int mask         = o_trk_cmd["first_channel_mask"];
-          int duty_factor  = o_trk_cmd["duty_factor"       ];
+          int duty_cycle   = o_trk_cmd["duty_cycle"        ];
           int pulser_delay = o_trk_cmd["pulser_delay"      ];
           int print_level  = o_trk_cmd["print_level"       ];
 
           TLOG(TLVL_DEBUG) << "dtc_cmd_path:" << dtc_cmd_path
+                           << " link:" << link
                            << " mask:" << mask
-                           << " duty_factor:" << duty_factor
+                           << " duty_cycle:" << duty_cycle
                            << " pulser_delay:" << pulser_delay
                            << " print_level:" << print_level;
 
-          o_dtc_cmd["Name"         ] = "pulser_on";
+          o_dtc_cmd["Name"         ] = "control_roc_pulser_on";
           o_dtc_cmd["ParameterPath"] = cmd_parameter_path;
           
           // o_dtc_cmd["pulser_on"]["link"              ] = link;
@@ -238,7 +239,7 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 // wait till DTC comes back 
 //-----------------------------------------------------------------------------
           ss_sleep(100);
-          int finished = 1; // simulate .... 0;
+          int finished = 0; // simulate .... 0;
           int wait_time(0);
           while ((finished == 0) and (wait_time < 10000)) {
             ss_sleep(100);
