@@ -5,20 +5,24 @@ ODBGET "/Mu2e/ActiveRunConfiguration/UseRunInfoDB" , use_rundb
 RUNDESCRIPTION "pulse injection run"
 PARAM runs, "aaaaa", 8
 
-first_channel_mask = 1
+run_duration       = 10
+first_channel_mask =  1
+
+comment "set tracker command and the path to find parameters, do it once"
+
+odbset "/Mu2e/Commands/Tracker/Name"         , "control_roc_pulser_on"
+odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/DTC"
 
 LOOP i, $runs
    
    msg "configure step $i, first_chanenl_mask=$first_channel_mask"
    
    comment "define command name and its parameters"
-   
-   odbset "/Mu2e/Commands/Tracker/Name"    , "control_roc_pulser_on"
 
-   ODBSET "/Mu2e/Commands/Tracker/control_roc_pulser_on/first_channel_mask",  $first_channel_mask
-   ODBSET "/Mu2e/Commands/Tracker/control_roc_pulser_on/pulser_delay", 1000
-   ODBSET "/Mu2e/Commands/Tracker/control_roc_pulser_on/duty_factor" ,   10
-   ODBSET "/Mu2e/Commands/Tracker/control_roc_pulser_on/print_level" ,    0
+   ODBSET "/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on/first_channel_mask",  $first_channel_mask
+   ODBSET "/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on/pulser_delay", 1000
+   ODBSET "/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on/duty_cycle"  ,   10
+   ODBSET "/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on/print_level" ,    0
    
    comment "execute command"
    
@@ -35,8 +39,8 @@ LOOP i, $runs
 
   msg "step $i: beginning of the start transition"
   TRANSITION START
-  msg "step $i: end  of the start transition, take data for 10 sec"
-  WAIT Seconds, 10
+  msg "step $i: end  of the start transition, take data for $run_duration sec"
+  WAIT Seconds, $run_duration
   msg "step $i: beginning of the STOP transition"
   TRANSITION STOP
   msg "step $i: end of the stop transition"
