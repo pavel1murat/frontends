@@ -13,7 +13,7 @@
   
 .column {
   float: left;
-  width: 45%;
+  width: 47%;
   padding: 2px;
 }
 
@@ -47,8 +47,8 @@ body {font-family: Arial;}
 ------------------------------------------------------------------------------ */
 #myDIV {
     padding   :  5px;
-    height    : 980px;
-    width     : 53% ; /* 600px; */
+    height    : 1050px ; /*980px;*/
+    width     : 51% ; /* 600px; */
     overflow  : auto;
     background: #bdb;
 }
