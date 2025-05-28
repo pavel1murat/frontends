@@ -15,7 +15,11 @@
           "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748266155 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0",
           "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_03", "access_mode" : 7, "last_written" : 1748268579 },
-          "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_03"
+          "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_03",
+          "DTC0" : {
+          },
+          "Panel_03" : {
+          }
         },
         "MN262" : {
           "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748266167 },
@@ -25,6 +29,10 @@
         }
       },
       "200" : {
+        "MN213" : {
+          "DTC" : {
+          }
+        }
       },
       "210" : {
         "MN213" : {
@@ -203,6 +211,10 @@
       "004" : {
         "MN400" : {
         }
+      },
+      "MN261" : {
+      },
+      "260MN261" : {
       }
     },
     "ReadoutConfigurations" : {
@@ -248,7 +260,11 @@
           "pulser_delay" : 1000,
           "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
           "print_level" : 0
-        }
+        },
+        "#------------------- 0/key" : { "type" : 12, "item_size" : 51, "access_mode" : 7, "last_written" : 1748276007 },
+        "#------------------- 0" : "------------------------------ for interactive use",
+        "ThresholdsDir/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748275990 },
+        "ThresholdsDir" : "thresholds-10-mV"
       }
     }
   }
