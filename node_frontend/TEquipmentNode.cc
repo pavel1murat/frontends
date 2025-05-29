@@ -270,15 +270,15 @@ void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
 //------------------------------------------------------------------------------
     int link               = o_par["link"];
     int first_channel_mask = o_par["first_channel_mask"];
-    int duty_factor        = o_par["duty_factor"       ];
+    int duty_cycle         = o_par["duty_cycle"        ];
     int pulser_delay       = o_par["pulser_delay"      ];
 
     TLOG(TLVL_DEBUG) << "link:" << link
                      << " first_channel_mask:" << first_channel_mask
-                     << " duty_factor:" << duty_factor
+                     << " duty_cycle:" << duty_cycle
                      << " pulser_delay:" << pulser_delay;
     try {
-      dtc_i->ControlRoc_PulserOn(link,first_channel_mask,duty_factor,pulser_delay);
+      dtc_i->ControlRoc_PulserOn(link,first_channel_mask,duty_cycle,pulser_delay);
       o_dtc_cmd["Finished"] = 1;
     }
     catch(...) {
