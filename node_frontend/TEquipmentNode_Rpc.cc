@@ -217,38 +217,50 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     }
     catch (...) { ss << "ERROR : coudn't execute ControlRoc_GetKey ... BAIL OUT" << std::endl; }
   }
-  else if (strcmp(cmd,"get_roc_id") == 0) {
-//-----------------------------------------------------------------------------
-// get ROC ID
-//-----------------------------------------------------------------------------
-    ss << std::endl;
-    try         {
-      std::string roc_id = dtc_i->GetRocID(roc);
-      ss << "roc_id:" << roc_id;
-    }
-    catch (...) { ss << "ERROR : coudn't execute GetRocID ... BAIL OUT" << std::endl; }
-  }
   else if (strcmp(cmd,"get_roc_design_info") == 0) {
 //-----------------------------------------------------------------------------
-// get ROC design info
+// get ROC design info - print output of 3 separate commands together
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    try         {
-      std::string design_info = dtc_i->GetRocDesignInfo(roc);
-      ss << "roc_design_info:" << design_info;
+    int rmin(roc), rmax(roc+1);
+    if (roc == -1) {
+      rmin = 0;
+      rmax = 6;
     }
-    catch (...) { ss << "ERROR : coudn't execute GetRocDesignInfo ... BAIL OUT" << std::endl; }
-  }
-  else if (strcmp(cmd,"get_roc_fw_git_commit") == 0) {
-//-----------------------------------------------------------------------------
-// get ROC firmware git commit
-//-----------------------------------------------------------------------------
-    ss << std::endl;
-    try         {
-      std::string git_commit = dtc_i->GetRocFwGitCommit(roc);
-      ss << "git_commit:" << git_commit;
+      
+    TLOG(TLVL_INFO) << "-------------- rmin, rmax:" << rmin << " " << rmax;
+
+    for (int i=rmin; i<rmax; ++i) {
+      ss << "----- link:" << i ;
+      if (dtc_i->LinkEnabled(i) == 0) {
+        ss << " disabled, continue" << std::endl;
+      }
+      // ROC ID
+      try         {
+        std::string roc_id = dtc_i->GetRocID(i);
+        ss << std::endl;
+        ss << "roc_id         :" << roc_id << std::endl;
+      }
+      catch (...) {
+        ss << "ERROR : coudn't execute GetRocID ... BAIL OUT" << std::endl;
+      }
+      // design info 
+      try         {
+        std::string design_info = dtc_i->GetRocDesignInfo(i);
+        ss << "roc_design_info:" << design_info << std::endl;
+      }
+      catch (...) {
+        ss << "ERROR : coudn't execute GetRocDesignInfo ... BAIL OUT" << std::endl;
+      }
+      // git commit
+      try {
+        std::string git_commit = dtc_i->GetRocFwGitCommit(i);
+        ss << "git_commit     :" << "'"  << git_commit << "'" << std::endl;
+      }
+      catch (...) {
+        ss << "ERROR : coudn't execute GetRocFwGitCommit ... BAIL OUT" << std::endl;
+      }
     }
-    catch (...) { ss << "ERROR : coudn't execute GetRocFwGitCommit ... BAIL OUT" << std::endl; }
   }
   else if (strcmp(cmd,"dtc_control_roc_measure_thresholds") == 0) {
 //-----------------------------------------------------------------------------
