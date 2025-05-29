@@ -19,7 +19,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
   std::vector<uint16_t> rates  [6];   // 6 ROCs max
   std::vector<int>      ch_mask[6];
 
-  TLOG(TLVL_INFO) << "--- START";
+  TLOG(TLVL_DEBUG) << "--- START";
   
   midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_rates");
     
@@ -41,7 +41,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
     lnk2 = 6;
   }
   
-  TLOG(TLVL_INFO) << "--- 002";
+  TLOG(TLVL_DEBUG) << "--- 002 lnk1:" << lnk1 << " lnk2:" << lnk2;
   
   for (int lnk=lnk1; lnk<lnk2; ++lnk) {
     if (Dtc_i->LinkEnabled(lnk) == 0) continue ;
@@ -137,10 +137,25 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
       pread.mode            = o["mode"         ];   // 
       pread.clock           = o["clock"        ];   //
 
+      if (print_level & 0x8) {
+        Stream <<  "--- running control_roc_read marker_clock:" << pread.marker_clock
+               << " enable_pulser:" << pread.enable_pulser << std::endl;
+      }
+
       Dtc_i->ControlRoc_Read(&pread,lnk,print_level,Stream);
+
+      
+      if (print_level & 0x8) Stream <<  "--- running control_roc_rates" << std::endl;
+
       Dtc_i->ControlRoc_Rates(lnk,&rates[lnk],print_level,&par,Stream);
 
       pread.marker_clock    = o["marker_clock" ];   // recover marker_clock mode
+
+      if (print_level & 0x8) {
+        Stream <<  "--- running control_roc_read marker_clock:" << pread.marker_clock
+               << " enable_pulser:" << pread.enable_pulser << std::endl;
+      }
+
       Dtc_i->ControlRoc_Read(&pread,lnk,print_level,Stream);
 
       if (print_level & 0x2) { // detailed printout, one ROC only
@@ -159,6 +174,6 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
     Dtc_i->PrintRatesAllRocs(rates,ch_mask,Stream);
   }
   
-  TLOG(TLVL_INFO) << "--- END";
+  TLOG(TLVL_DEBUG) << "--- END";
   return 0;
 }
