@@ -32,7 +32,7 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
   int use_panel_channel_mask = o["use_panel_channel_mask"];
   int print_level            = o["print_level"];
     
-  Stream << "use_panel_channel_mask:" <<  use_panel_channel_mask << std::endl;
+  // Stream << "use_panel_channel_mask:" <<  use_panel_channel_mask << std::endl;
 
   int lnk1(Link), lnk2(Link+1);
   if (Link == -1) {
@@ -41,6 +41,13 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
   }
 
   for (int lnk=lnk1; lnk<lnk2; ++lnk) {
+    Stream << "----------------- link:" << lnk;
+    if (Dtc_i->LinkEnabled(lnk) == 0) {
+      if (print_level != 0) {
+        Stream << " is disabled" << std::endl;
+        continue;
+      }
+    }
     if (use_panel_channel_mask == 0) {
 //-----------------------------------------------------------------------------
 // use masks stored in the command ODB record
@@ -59,7 +66,6 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
       midas::odb   odb_panel(panel_path);
       for (int i=0; i<96; ++i) {
         int on_off = odb_panel["ch_mask"][i];
-        // int on_off = ch_mask[i];
         int iw = i / 16;
         int ib = i % 16;
         if (ib == 0) {
@@ -69,27 +75,26 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
         par.ch_mask[iw] |= on_off << ib;
       }
 
-      if (print_level > 0) {
+      if (print_level & 0x4) {
         Stream << "par.ch_mask:";
         for (int i=0; i<6; i++) {
           Stream << " " << std::hex << par.ch_mask[i];
         }
-        Stream << std::endl;
+        // Stream << std::endl;
       }
     }
         
-  // for (int i=0; i<6; i++) par.ch_mask[i] = o["ch_mask"][i];
-    
     par.enable_pulser   = o["enable_pulser"];   // -p 1
-    par.marker_clock    = o["marker_clock" ];   // -m 3 (for data taking) , 0: for noise
-    par.mode            = o["mode"         ];   // 
-    par.clock           = o["clock"        ];   //
+    par.marker_clock    = o["marker_clock" ];   // -m 3: data taking (ext clock), -m 0: rates (int clock)
+    par.mode            = o["mode"         ];   // not used ?
+    par.clock           = o["clock"        ];   // 
   
     try {
 //-----------------------------------------------------------------------------
 // ControlRoc_Read handles roc=-1 internally
 //-----------------------------------------------------------------------------
       Dtc_i->ControlRoc_Read(&par,lnk,print_level,Stream);
+      Stream << " SUCCESS" << std::endl;
     }
     catch(...) {
       Stream << "ERROR : coudn't execute ControlRoc_Read for link:" << lnk << " ... BAIL OUT" << std::endl;
