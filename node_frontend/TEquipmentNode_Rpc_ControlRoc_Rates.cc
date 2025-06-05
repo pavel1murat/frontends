@@ -12,7 +12,9 @@
 
 #include "TRACE/tracemf.h"
 
-
+//-----------------------------------------------------------------------------
+// takes parameters frpm ODB
+//-----------------------------------------------------------------------------
 int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName) {
   // int timeout_ms(150);
 
@@ -21,14 +23,14 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 
   TLOG(TLVL_DEBUG) << "--- START";
   
-  midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_rates");
+  midas::odb o_cmd("/Mu2e/Commands/Tracker/DTC/control_ROC_rates");
     
-  trkdaq::ControlRoc_Rates_t  par;
+  trkdaq::ControlRoc_Rates_t  prates;
     
-  par.num_lookback = o["num_lookback"];    //
-  par.num_samples  = o["num_samples" ];    //
+  prates.num_lookback = o_cmd["num_lookback"];    //
+  prates.num_samples  = o_cmd["num_samples" ];    //
 
-  int  print_level = o["print_level"  ];
+  int  print_level = o_cmd["print_level" ];
 
   for (int i=0; i<6; i++) {
     rates  [i].reserve(96);
@@ -46,14 +48,14 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
   for (int lnk=lnk1; lnk<lnk2; ++lnk) {
     if (Dtc_i->LinkEnabled(lnk) == 0) continue ;
     
-    if (o["UsePanelChannelMask"] == 0) {
+    if (o_cmd["UsePanelChannelMask"] == 0) {
 //-----------------------------------------------------------------------------
 // use masks stored in the command ODB record
 // '6' below is a random coincidence
 //-----------------------------------------------------------------------------
       for (int iw=0; iw<6; ++iw) {
-        uint16_t w = o["ch_mask"][iw];
-        par.ch_mask[iw] = w;
+        uint16_t w = o_cmd["ch_mask"][iw];
+        prates.ch_mask[iw] = w;
 
         for (int k=0; k<16; ++k) {
           // int loc = iw*16+k;
@@ -83,16 +85,16 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
         int iw = i / 16;
         int ib = i % 16;
         if (ib == 0) {
-          par.ch_mask[iw] = 0;
+          prates.ch_mask[iw] = 0;
         }
-        par.ch_mask[iw] |= (on_off << ib);
+        prates.ch_mask[iw] |= (on_off << ib);
         // Stream << "ch_mask["<<i<<"]:" << on_off << " iw:" << iw << " ib:" << ib << std::endl;
 
         ch_mask[lnk].push_back(on_off);
       }
-                                        // update panel mask
+                                        // update RATES command channel mask in ODB
       for (int iw=0; iw<6; iw++) {
-        o["ch_mask"][iw] = par.ch_mask[iw];
+        o_cmd["ch_mask"][iw] = prates.ch_mask[iw];
       }
     }
 //-----------------------------------------------------------------------------
@@ -101,7 +103,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
     if (print_level&0x8) {
       Stream << "par.ch_mask:";
       for (int iw=0; iw<6; iw++) {
-        Stream << " " << std::hex << par.ch_mask[iw];
+        Stream << " " << std::hex << prates.ch_mask[iw];
       }
       Stream << std::endl;
     }
@@ -116,26 +118,29 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
         Stream <<  std::format("dtc_i->fLinkMask: 0x%04x",Dtc_i->fLinkMask) << std::endl;
       }
 
-      midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
+      midas::odb o_read_cmd   ("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
 
       trkdaq::ControlRoc_Read_Input_t0 pread;
 
-      pread.adc_mode        = o["adc_mode"     ];   // -a
-      pread.tdc_mode        = o["tdc_mode"     ];   // -t 
-      pread.num_lookback    = o["num_lookback" ];   // -l 
+      pread.adc_mode        = o_read_cmd["adc_mode"     ];   // -a
+      pread.tdc_mode        = o_read_cmd["tdc_mode"     ];   // -t 
+      pread.num_lookback    = o_read_cmd["num_lookback" ];   // -l 
   
-      pread.num_samples     = o["num_samples"  ];   // -s
-      pread.num_triggers[0] = o["num_triggers"][0]; // -T 10
-      pread.num_triggers[1] = o["num_triggers"][1]; //
+      pread.num_samples     = o_read_cmd["num_samples"  ];   // -s
+      pread.num_triggers[0] = o_read_cmd["num_triggers"][0]; // -T 10
+      pread.num_triggers[1] = o_read_cmd["num_triggers"][1]; //
 
       // the mask is the same
 
-      for (int iw=0; iw<6; iw++) pread.ch_mask[iw] = par.ch_mask[iw];
-      
-      pread.enable_pulser   = o["enable_pulser"];   // -p 1
-      pread.marker_clock    = 0;                    // to read the rates 
-      pread.mode            = o["mode"         ];   // 
-      pread.clock           = o["clock"        ];   //
+      for (int iw=0; iw<6; iw++) pread.ch_mask[iw] = prates.ch_mask[iw];
+//-----------------------------------------------------------------------------
+// this is a tricky place: rely on that the READ command ODB record
+// stores the -p value used during the data taking
+//-----------------------------------------------------------------------------
+      pread.enable_pulser   = o_read_cmd["enable_pulser"];   // -p 1
+      pread.marker_clock    = 0;                             // to read the rates, enable internal clock
+      pread.mode            = o_read_cmd["mode"         ];   // 
+      pread.clock           = o_read_cmd["clock"        ];   //
 
       if (print_level & 0x8) {
         Stream <<  "--- running control_roc_read marker_clock:" << pread.marker_clock
@@ -147,9 +152,9 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
       
       if (print_level & 0x8) Stream <<  "--- running control_roc_rates" << std::endl;
 
-      Dtc_i->ControlRoc_Rates(lnk,&rates[lnk],print_level,&par,Stream);
+      Dtc_i->ControlRoc_Rates(lnk,&rates[lnk],print_level,&prates,&Stream);
 
-      pread.marker_clock    = o["marker_clock" ];   // recover marker_clock mode
+      pread.marker_clock    = o_read_cmd["marker_clock" ];   // recover marker_clock mode
 
       if (print_level & 0x8) {
         Stream <<  "--- running control_roc_read marker_clock:" << pread.marker_clock

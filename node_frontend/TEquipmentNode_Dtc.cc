@@ -4,6 +4,7 @@
 #include "node_frontend/TEquipmentNode.hh"
 #include "utils/utils.hh"
 
+#include "midas.h"
 #include "odbxx.h"
 
 #include "TRACE/tracemf.h"
@@ -303,6 +304,10 @@ void TEquipmentNode::ReadDtcMetrics() {
   //  double t  = TMFE::GetTime();
   // midas::odb::set_debug(true);
 
+  midas::odb o_runinfo("/Runinfo");
+  int running_state          = o_runinfo["State"];
+  int transition_in_progress = o_runinfo["Transition in progress"];
+
   std::string node_path = "/Equipment/"+TMFeEquipment::fEqName;
   
   for (int idtc=0; idtc<2; idtc++) {
@@ -422,13 +427,54 @@ void TEquipmentNode::ReadDtcMetrics() {
 // need to find the right place to set marker_clock to 0 (and may be recover in the end),
 // will do it right later 
 //-----------------------------------------------------------------------------
-              if (_monitorRates) {
-                TLOG(TLVL_DEBUG+1) << "saving panel:" << ilink << " rates";
+              if (_monitorRates and (transition_in_progress == 0) and (running_state != STATE_RUNNING)) {
+                TLOG(TLVL_DEBUG+1) << "MONITOR RATES link:" << ilink;
+//-----------------------------------------------------------------------------
+// for monitoring, want to read ALL channels.
+// 1. run read command enabling the internal clock and setting the read mask to read all channels
+// 2. run rates command with all channels enabled
+// 3. run read command restoring the clock marker (source of the clock) and the read mask
+//    which someone may rely on
+//-----------------------------------------------------------------------------
+                midas::odb o_read_cmd   ("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
 
-                int print_level = 0;
+                trkdaq::ControlRoc_Read_Input_t0 pread;                // ch_mask is set to all oxffff
+                                                                       // save the read comamnd ch_mask
+                uint16_t saved_ch_mask[6];
+                for (int i=0; i<6; ++i) saved_ch_mask[i] = o_read_cmd["ch_mask"][i];
+
+                pread.adc_mode        = o_read_cmd["adc_mode"     ];   // -a
+                pread.tdc_mode        = o_read_cmd["tdc_mode"     ];   // -t 
+                pread.num_lookback    = o_read_cmd["num_lookback" ];   // -l 
+                
+                pread.num_samples     = o_read_cmd["num_samples"  ];   // -s
+                pread.num_triggers[0] = o_read_cmd["num_triggers"][0]; // -T 10
+                pread.num_triggers[1] = o_read_cmd["num_triggers"][1]; //
+//-----------------------------------------------------------------------------
+// this is a tricky place: rely on that the READ command ODB record
+// stores the -p value used during the data taking
+//-----------------------------------------------------------------------------
+                pread.enable_pulser   = o_read_cmd["enable_pulser"];   // -p 1
+                pread.marker_clock    = 0;                             // to read the rates, enable internal clock
+                pread.mode            = o_read_cmd["mode"         ];   // 
+                pread.clock           = o_read_cmd["clock"        ];   //
+
+                int print_level       = 0;
+
+                trkdtc_i->ControlRoc_Read(&pread,ilink,print_level);
+               
                 std::vector<uint16_t> rates;
                 trkdaq::ControlRoc_Rates_t* par(nullptr); // defaults are OK - read all channels
-                int rc = trkdtc_i->ControlRoc_Rates(ilink,&rates,print_level,par);
+                int rc = trkdtc_i->ControlRoc_Rates(ilink,&rates,print_level,par,nullptr);
+//-----------------------------------------------------------------------------
+// and restore the READ command mask and the clock
+//-----------------------------------------------------------------------------
+                pread.marker_clock    = o_read_cmd["marker_clock" ];   // restore the marker_clock mode
+                for (int i=0; i<6; ++i) pread.ch_mask[i] = saved_ch_mask[i];
+                trkdtc_i->ControlRoc_Read(&pread,ilink,print_level);
+//-----------------------------------------------------------------------------
+// pritn diagnostics
+//-----------------------------------------------------------------------------
                 if (rc == 0) {
                   char buf[16];
                   sprintf(buf,"rr%i%i",idtc,ilink);
@@ -436,7 +482,7 @@ void TEquipmentNode::ReadDtcMetrics() {
                   midas::odb vars(node_path+"/Variables");
                   vars[buf] = rates;
                 
-                  TLOG(TLVL_DEBUG+1) << "ROC:" << ilink << " saved rates, nw:" << rates.size();
+                  TLOG(TLVL_DEBUG+1) << "ROC:" << ilink << " saved rates to \"" << node_path+"/Variables[" << buf << "\"], nw:" << rates.size();
                 }
                 else {
                   TLOG(TLVL_ERROR) << "failed to read rates DTC:" << idtc << " ROC:" << ilink;
