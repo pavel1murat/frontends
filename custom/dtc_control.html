@@ -58,6 +58,13 @@
           <tr>
             <td colspan=2>
               <input type=button value='load parameters'  onClick='dtc_load_parameters()'>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='init readout'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_init_readout()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_init_readout")'   > Run             </div>
+                </div>
+              </div>
               <input type=button value='soft reset'       onClick='dtc_command("dtc_soft_reset")'>
               <input type=button value='hard reset'       onClick='dtc_command("dtc_hard_reset")'>
               <input type=button value='print status'     onClick='dtc_command("dtc_print_status")'>
@@ -70,7 +77,6 @@
           <!----------------- DTC print status, print ROC status , write reg   -->
           <tr>
             <td>
-              <input type=button value='Init Readout'        onClick='dtc_command("dtc_init_readout")'>
               <input type=button value='CFO launch run plan' onClick='cfo_command("cfo_launch_run_plan")'>
               <input type=button value='read subevents'      onClick='dtc_command("dtc_read_subevents")'>
             </td>

@@ -180,8 +180,12 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   }
   else if (strcmp(cmd,"dtc_init_readout") == 0) {
     try         {
-      dtc_i->InitReadout();
-      ss << "DTC:" << pcie_addr << " init readout OK";
+      midas::odb o("/Mu2e/Commands/Tracker/DTC/init_readout");
+      uint32_t emulate_cfo      = o["emulate_cfo"     ];
+      uint32_t roc_readout_mode = o["roc_readout_mode"];
+      dtc_i->InitReadout(emulate_cfo,roc_readout_mode);
+      ss << "DTC:" << pcie_addr << " emulate_cfo:" << emulate_cfo
+         << " roc_readout_mode:" << roc_readout_mode << " init readout OK";
     }
     catch (...) { ss << "ERROR : coudn't init readout DTC:" << pcie_addr; }
   }
