@@ -21,6 +21,8 @@ public:
   std::string                    _ac_path;         // "/Mu2e/ActiveRunConfiguration" (active config path)
   std::string                    _ss_ac_path;      // "/Mu2e/ActiveRunConfiguration/Tracker"
   std::string                    _ss_cmd_path;     // "/Mu2e/Commands/Tracker"
+  int                            _first_station;
+  int                            _last_station;
 //-----------------------------------------------------------------------------
 // threads
 //-----------------------------------------------------------------------------
@@ -39,7 +41,9 @@ public:
       fLink     = Link;
     }
   };
-  
+
+
+  static TEquipmentTracker*         fg_EqTracker;
   ThreadContext_t                   fContext;
 //-----------------------------------------------------------------------------
 // functions
@@ -57,6 +61,10 @@ public:
   virtual TMFeResult HandleStartAbortRun(int RunNumber);
   
   static  void       ProcessCommand(int hDB, int hKey, void* Info);
+
+  static  void       ProcessCommand_PulserOn        (const std::string& CmdParameterPath);
+  static  void       ProcessCommand_PanelPrintStatus(const std::string& CmdParameterPath);
+  static  void       ProcessCommand_ResetOutput();
 
 
 };

@@ -35,6 +35,15 @@ function set_colors(path, statusCell) {
 }
 
 //-----------------------------------------------------------------------------
+// clear output window
+//-----------------------------------------------------------------------------
+function clear_window(element_id) {
+  const el = document.getElementById(element_id);
+  el.innerHTML = '';
+  el.classList.toggle('force-redraw');
+}
+
+//-----------------------------------------------------------------------------
 // redirects browser to the DTC control page
 // may need to decide which particular DTC type
 //-----------------------------------------------------------------------------
@@ -77,6 +86,6 @@ async function fetch_url(url, divId) {
 // mode: js
 // tab-width: 8
 // c-basic-offset: 2
-// js-indent-level: 2
+// js-indent-level: 0
 // indent-tabs-mode: nil
 // End:

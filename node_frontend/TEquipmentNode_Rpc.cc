@@ -106,19 +106,6 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_read_ddr");
     Rpc_ControlRoc_ReadDDR(dtc_i,roc,ss);
   }
-  else if (strcmp(cmd,"dtc_control_roc_set_thresholds") == 0) {
-    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_set_thresholds";
-    // ss << std::endl;
-    fSetThrContext.fPcieAddr = pcie_addr;
-    fSetThrContext.fLink     = roc;
-
-    std::thread set_thr_thread(SetThresholds,
-                               std::ref(fSetThrContext),
-                               std::ref(*this),
-                               std::ref(ss)
-                               );
-    set_thr_thread.detach();
-  }
   else if (strcmp(cmd,"dtc_control_roc_digi_rw") == 0) {
 //-----------------------------------------------------------------------------
 // for control_ROC_digi_rw, it would make sense to have a separate page
@@ -270,34 +257,35 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
 // measure thresholds
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    // fMfe->Yield(20);
-    try         {
-      int rmin(roc), rmax(roc+1);
-      if (roc == -1) {
-        rmin = 0;
-        rmax = 6;
-      }
-      
-      TLOG(TLVL_INFO) << "-------------- rmin, rmax:" << rmin << " " << rmax;
-        
-      for (int i=rmin; i<rmax; i++) {
-        if (dtc_i->LinkEnabled(i)) {
-          TLOG(TLVL_INFO) << " -- link:" << i << " enabled";
-          dtc_i->ControlRoc_MeasureThresholds(i,2,ss);
-        }
-        else {
-          ss << "Link:" << i << " is disabled" << std::endl;
-        }
-      }
-    }
-    catch (...) { ss << " -- ERROR : coudn't execute MeasureThresholds ... BAIL OUT" << std::endl; }
+    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_measure_thresholds";
+    if (roc == -1) ss << std::endl;
+    ThreadContext_t cxt(pcie_addr,roc,2);
+    MeasureThresholds(cxt,ss);
   }
   else if (strcmp(cmd,"dtc_control_roc_load_thresholds") == 0) {
+//-----------------------------------------------------------------------------
+// load thresholds
+//-----------------------------------------------------------------------------
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_load_thresholds";
     if (roc == -1) ss << std::endl;
     ThreadContext_t cxt(pcie_addr,roc);
     LoadThresholds(cxt,ss);             // this is fast, synchronous
+  }
+  else if (strcmp(cmd,"dtc_control_roc_set_thresholds") == 0) {
+//-----------------------------------------------------------------------------
+// set thresholds
+//-----------------------------------------------------------------------------
+    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_set_thresholds";
+    // ss << std::endl;
+    fSetThrContext.fPcieAddr = pcie_addr;
+    fSetThrContext.fLink     = roc;
+
+    std::thread set_thr_thread(SetThresholds,
+                               std::ref(fSetThrContext),
+                               std::ref(*this),
+                               std::ref(ss)
+                               );
+    set_thr_thread.detach();
   }
   else if (strcmp(cmd,"read_roc_register") == 0) {
 //-----------------------------------------------------------------------------

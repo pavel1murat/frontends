@@ -78,10 +78,8 @@ public:
 
     ThreadContext_t() {}
     
-    ThreadContext_t(int PcieAddr, int Link) {
-      fPcieAddr = PcieAddr;
-      fLink     = Link;
-    }
+    ThreadContext_t(int PcieAddr, int Link, int PrintLevel = 0): 
+      fPcieAddr (PcieAddr), fLink(Link), fPrintLevel(PrintLevel) {}
   };
   
   ThreadContext_t                   fSetThrContext;
@@ -101,18 +99,19 @@ public:
   virtual TMFeResult HandleResumeRun    (int RunNumber);
   virtual TMFeResult HandleStartAbortRun(int RunNumber);
   
-  TMFeResult         InitDtc                ();
-  void               InitDtcVarNames        ();
-  void               LoadThresholds         (ThreadContext_t& Context, std::ostream& Stream);   // load thresholds to ODB
+  TMFeResult         InitDtc               ();
+  void               InitDtcVarNames       ();
+  void               LoadThresholds        (ThreadContext_t& Context, std::ostream& Stream);   // load thresholds from disk to ODB
+  int                MeasureThresholds     (ThreadContext_t& Context, std::ostream& Stream);
 
-  void               ReadDtcMetrics         ();
+  void               ReadDtcMetrics        ();
 
   // to be able to call it interactively
   void               ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i);
 
-  int                Rpc_ControlRoc_Rates        (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-  int                Rpc_ControlRoc_Read         (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-  int                Rpc_ControlRoc_ReadDDR      (trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream);
+  int                Rpc_ControlRoc_Rates  (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  int                Rpc_ControlRoc_Read   (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  int                Rpc_ControlRoc_ReadDDR(trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream);
 
                                         // called via a thread
 
