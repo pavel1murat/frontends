@@ -1,47 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
+  <head>
     <meta charset="UTF-8">
     <link   rel="stylesheet" href="midas.css">
+    <link id="favicon" rel="shortcut icon" type="image/png" href="favicon.png" />
     <script src="controls.js"></script>
     <script src="midas.js"></script>
     <script src="mhttpd.js"></script>
     <script src="filesrw.js"></script>
     <script src="odbbrowser.js"></script>
-
+  
     <link   rel="stylesheet" href="mu2edaq.css">
-    <script src="dtc_commands.js"></script>
+    <script src="mu2edaq.js"></script>
+    <script src="trk_commands.js"></script>
     
-    <title>DTC</title>
+    <title>StationPage</title>
     
     <script>
 //-----------------------------------------------------------------------------
 // main function: createTable
 //-----------------------------------------------------------------------------
       function createTable() {
-        const urlParams = new URLSearchParams(window.location.search);
-        g_hostname      = urlParams.get('hostname') || 'none';  // 
-        const pcie      = urlParams.get('pcie') || '0'   ;  //
-
-        let title       = document.getElementById('table-title');
-        title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
+        const urlParams  = new URLSearchParams(window.location.search);
+        g_hostname = urlParams.get('hostname') || 'none';  // 
+        g_station  = urlParams.get("station" ) || "0";     // defined in trk_commands.js
+        g_plane    = urlParams.get("plane"   ) || "0";
+        g_panel    = urlParams.get("panel"   ) || "0";
+        
+        const g_plane1     = 2*g_station;
+        const g_plane2     = 2*g_station+1;
+        
+        let title        = document.getElementById('table-title');
+        title.innerHTML  = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
 //-----------------------------------------------------------------------------
 //  create DTC commands table
 //-----------------------------------------------------------------------------
-        const dtc_com_table     = document.getElementById('dtc_commands');
+        const station_com_table     = document.getElementById('station_commands');
 
-        dtc_com_table.innerHTML = `
+        station_com_table.innerHTML = `
         <thead>
           <tr>
-            <td> <div class="mtableheader">${g_hostname} DTC Control Commands </div></td>
+            <td> <div class="mtableheader">station ${g_station}/plane ${g_plane}/panel ${g_panel} Controls  </div></td>
             <td>
               <div class="tab">
-                <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">PCIE:0</button>
-                <button class="tablinks" id="dtc1" onclick="choose_dtc_id(event,'dtc1')">PCIE:1</button>
+                <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">plane:${g_plane1}</button>
+                <button class="tablinks" id="dtc1" onclick="choose_dtc_id(event,'dtc1')">plane:${g_plane2}</button>
               </div>
             </td>
-            <td colspan=4>
+            <td colspan=3>
               <div class="tab">
                 <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
                 <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
@@ -49,7 +56,7 @@
                 <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
                 <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
                 <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
-                <button class="roctabs"  id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
+                <button class="roctabs" id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
               </div>
             </td>
           </tr>
@@ -57,66 +64,32 @@
         <tbody>                                                                        
           <tr>
             <td colspan=2>
-              <input type=button value='load parameters'  onClick='dtc_load_parameters()'>
+              <input type=button value='load parameters'  onClick='trk_station_load_parameters(g_station)'>
               <div class="dropup">
                 <input type=button class="dropbtn" value='init readout'>
                 <div class="dropup-content">
                   <div onClick='dtc_load_parameters_init_readout()'> Load Parameters </div>
-                  <div onClick='dtc_command("dtc_init_readout")'   > Run             </div>
+                  <div onClick='trk_command_set_odb("trk_init_readout")'   > Run             </div>
                 </div>
               </div>
-              <input type=button value='soft reset'       onClick='dtc_command("dtc_soft_reset")'>
-              <input type=button value='hard reset'       onClick='dtc_command("dtc_hard_reset")'>
-              <input type=button value='print status'     onClick='dtc_command("dtc_print_status")'>
-              <input type=button value='print ROC status' onClick='dtc_command("dtc_print_roc_status")'>
-              <input type=button value='clear output'     onClick='dtc_clear_output()'>
-            </td>
-           <td> Register </td>
-           <td> Value    </td>
-          </tr>
-          <!----------------- DTC print status, print ROC status , write reg   -->
-          <tr>
-            <td>
-              <input type=button value='CFO launch run plan' onClick='cfo_command("cfo_launch_run_plan")'>
-              <input type=button value='read subevents'      onClick='dtc_command("dtc_read_subevents")'>
-            </td>
-            <td>
-              <input type=button value='write register'   onClick='dtc_command("dtc_write_register")'>
-            </td>
-            <td>
-              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Register" data-odb-editable="1" data-format="%x"></div>
-            </td>
-            <td>
-              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Value"    data-odb-editable="1" data-format="%x"></div>
-            </td>
-          </tr>
-          <tr>
-            <td>
-            </td>
-            <td>
-              <input type=button value='read &nbsp register'    onClick='dtc_command("dtc_read_register")'>
-            </td>
-            <td>
-              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Register" data-odb-editable="1" data-format="%x"></div>
-            </td>
-            <td>
-              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Value" data-format="%x"></div>
+              <input type=button value='print status' onClick='trk_command_set_odb("trk_station_print_status")'>
+              <input type=button value='clear output' onClick='trk_clear_window("output_window")'>
             </td>
           </tr>
         </tbody>
          `;
         
-        const com_tbody = dtc_com_table.querySelector("tbody");
+        const com_tbody = station_com_table.querySelector("tbody");
 //-----------------------------------------------------------------------------
-//  create ROC commands table
+//  create panel commands table
 //-----------------------------------------------------------------------------
-        const roc_com_table     = document.getElementById('roc_commands');
+        const panel_com_table     = document.getElementById('panel_commands');
 
-        roc_com_table.innerHTML = `
+        panel_com_table.innerHTML = `
         <tbody>
           <tr>
-            <td> <div class="mtableheader" colspan=2> control_ROC commands </div> </td> 
-            <td colspan=5>
+            <td> <div class="mtableheader" colspan=2> Panel commands </div> </td> 
+            <td colspan=4>
             <div class="tab">
             </div>
             </td>
@@ -181,45 +154,20 @@
               </div>
             </td>
             </td>
-            <td> <div> Register </div> </td>
-            <td> <div> Value    </div> </td>
           </tr>
 
 <!--  --------------------------------------------  -->
         <tr>
           <td>
-            <input type=button value='reset ROC'        onClick='dtc_command("reset_roc")'>
-            <input type=button value='read SPI'         onClick='dtc_command("read_spi")'>
-            <input type=button value='read ILP'         onClick='dtc_command("read_ilp")'>
-            <input type=button value='get key'          onClick='dtc_command("get_key")'>
-            <input type=button value='find alignment'   onClick='dtc_command("dtc_control_roc_find_alignment")'>
-            <input type=button value='measure thresholds' onClick='dtc_command("dtc_control_roc_measure_thresholds")'>
-            <input type=button value='get design info'  onClick='dtc_command("get_roc_design_info")'>
-          </td>
-          <td>
-            <input type=button value='write ROC register' onClick='dtc_command("write_roc_register")'>
-          </td>
-          <td>
-            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
-          </td>
-          <td>
-            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Value" data-odb-editable="1"  data-format="%x"></div>
+            <input type=button value='load parameters'    onClick='trk_panel_load_parameters(g_station,g_plane,g_panel)'>
+            <input type=button value='cycle LV'           onClick='trk_command_set_odb("cycle_lv")'>
+            <input type=button value='measure thresholds' onClick='trk_command_set_odb("trk_measure_thresholds")'>
+            <input type=button value='print status'       onClick='trk_command_set_odb("trk_panel_print_status")'>
           </td>
         </tr>
 <!--  --------------------------------------------  -->
         <tr>
           <td colspan>
-<!--
-            <input type=button value='get ID'           onClick='dtc_command("get_roc_id")'>
-            <input type=button value='get GIT commit'   onClick='dtc_command("get_roc_fw_git_commit")'>
--->
-          </td>
-          <td><input type=button value='read ROC register' onClick='dtc_command("read_roc_register")'></td>
-          <td>
-            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
-          </td>
-          <td>
-            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Value" data-format="%x"></div>
           </td>
         </tr>
         <!---------------------------------------------- this row is temporarily commented out
@@ -239,53 +187,128 @@
       
       document.addEventListener("DOMContentLoaded", createTable);
       // choose_roc_id('DOMContentLoaded','roc0')
-    </script>
+      </script>
   </head>
   <!--
       it seems to be convenient to have the large scale topology defined in HTML
       and use javascript to fill internal details
     -->
-  <body class="mcss" onload="mhttpd_init('dtc_control');">
+  <body class="mcss" onload="mhttpd_init('trk_control');show_facilities(); msg_load();">
     <div id="mheader"></div>
     <div id="msidenav"></div>
     <div id="mmain">
-
-<!-- ---------------- row 1: DTC registers - are they needed?  and the output field ----------------  -->
+    
+      <!-- ---------------- are they needed? and the output field ----------------  -->
       
       <div class="row">
-        <h2 id="table-title">DTC </h2>
+        <h2 id="table-title">Panel </h2>
         
         <div class="column"> <!-- gets pushed to the left -->
-
-          <table class="mtable" id="dtc_commands">  <!-- Table content is generated dynamically -->
+          
+          <table class="mtable" id="station_commands">  <!-- Table content is generated dynamically -->
           </table>
           
-          <table class="mtable" id="roc_commands">  <!-- Table content is generated dynamically -->
+          <table class="mtable" id="panel_commands">  <!-- Table content is generated dynamically -->
           </table>
           
           <table class="mtable" id="cmd_params">    <!-- Table content is generated dynamically -->
           </table>
           
         </div>
+        
+        <!--    ------------------------- this is the output window  -->
+        <table style="width: 52%;">
+          <tr>
+            <td id="navigationFacilitiesButtons"></td>
+          </tr>
+        </table>
+        
+        <table class="mtable" id="messageTable" style="width: 52%;">
+          <tr>
+            <td class="select">
+              <label for="nameFilter">Filter: </label>
 
-<!--    ------------------------- this is the output window  -->
-        <div id="myDIV">
-          <div id="content"> 
-          </div>
+              <input type="text" id="nameFilter" placeholder="Program Name" title="Please enter a program name">
+              
+              <select id="typeFilter" title="Please select a message type">
+                <option value="">- all -</option>
+                <option>INFO</option>
+                <option>ERROR</option>
+                <option>USER</option>
+                <option>LOG</option>
+                <option>TALK</option>
+              </select>
+              
+              <input type="text" id="timeFilter" placeholder="Time (hh:mm:ss)" title="Please select a time to search">
+              <input type="text" id="textFilter" placeholder="Search Text" title="Please enter some search text">
+
+              <select id="timeRangeFilter" title="We will search the file from the current time into the past">
+                <option>24 h</option>
+                <option>48 h</option>
+                <option>72 h</option>
+                <option>7 d</option>
+                <option>30 d</option>
+              </select>
+              <button class="mbutton" id="filterBtn">Filter</button>
+              
+              <select id="recentsDropdown">
+                <option value="">Select a recent filter</option>
+              </select>
+
+            </td>
+          </tr>
+
+          <tr>
+            <td class="select">
+              <div class="mmessagebox mfont" id="messageFrame"><h1 class="mtableheader"> Messages</h1></div>
+            </td>
+          </tr>
+          
+        </table>
+        
+        <div id="loadingOverlay"
+             style="  display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    <!--
+                    height: 100%;
+                    -->
+                    height: 600px;
+                    background-color: rgba(128, 128, 128, 0.8);
+                    color: white;
+                    font-size: 24px;
+                    align-items: center;
+                    justify-content: center;
+                  z-index: 1000;">
+          Searching messages... Mouse Click to stop.
         </div>
-
+      
       </div>
 
-    </div>
+      
+      <div id="dlgError" class="dlgFrame">
+        <div class="dlgTitlebar">Error message</div>
+        <div class="dlgPanel">
+          <div id="dlgErrorText">Dialog Contents</div>
+          <br />
+          <button class="dlgButton" onClick="dlgHide('dlgError')">Close</button>
+        </div>
+      </div>
 
+      <script src="messages.js"></script>
+
+    </div>
   </body>
 </html>
+
 <!--
     emacs
     Local Variables:
     tab-width: 8
     c-basic-offset: 2
-    js-indent-level: 2
+    js-indent-level: 0
     indent-tabs-mode: nil
     End:
   -->

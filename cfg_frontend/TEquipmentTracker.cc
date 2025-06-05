@@ -175,13 +175,13 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
           midas::odb o_panel(panel_path);
           if (o_panel["Enabled"] == 0) continue;
 //-----------------------------------------------------------------------------
-// pulser_on for this panel: copy parameters to the DTC record
+// pulser_on for this panel: pass parameters to the DTC 
 // need to figure the node name, DTC ID, and the link
 //-----------------------------------------------------------------------------
-          std::string name = o_panel["Name"];
-          int mnid = atoi(name.substr(2).data());
+          std::string panel_name = o_panel["Name"];
+          int mnid = atoi(panel_name.substr(2).data());
           int sdir = (mnid/10)*10;
-          std::string panel_map_path = std::format("/Mu2e/Subsystems/Tracker/PanelMap/{:03d}/{:s}",sdir,name.data());
+          std::string panel_map_path = std::format("/Mu2e/Subsystems/Tracker/PanelMap/{:03d}/{:s}",sdir,panel_name.data());
 
           std::string dtc_path       = std::format("{:s}/DTC",panel_map_path.data());
 
@@ -189,10 +189,9 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
           HNDLE h_dtc    = odb_i->GetHandle(0,dtc_path.data());
           HNDLE h_parent = odb_i->GetParent(h_dtc);
           
-                                        // key.name is the frontend name ! 
+                                        // node_fe.name is the node frontend name ! 
           KEY node_fe;
           odb_i->GetKey(h_parent,&node_fe);
-          // TLOG(TLVL_DEBUG) << " node_fe.name:" << (char*) node_fe.name;
 
           midas::odb o_dtc (panel_map_path+"/DTC");
 
@@ -222,12 +221,6 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 
           o_dtc_cmd["Name"         ] = "control_roc_pulser_on";
           o_dtc_cmd["ParameterPath"] = cmd_parameter_path;
-          
-          // o_dtc_cmd["pulser_on"]["link"              ] = link;
-          // o_dtc_cmd["pulser_on"]["first_channel_mask"] = mask;
-          // o_dtc_cmd["pulser_on"]["duty_factor"       ] = duty_factor;
-          // o_dtc_cmd["pulser_on"]["pulser_delay"      ] = pulser_delay;
-          // o_dtc_cmd["pulser_on"]["print_level"       ] = print_level;
 //-----------------------------------------------------------------------------
 // finally, execute the command. THe loop is executed fast, so need to wait
 // for the DTC's to report that they are finished

@@ -67,6 +67,13 @@
       }
 
 //-----------------------------------------------------------------------------
+      function dtc_load_parameters_init_readout() {
+        const table     = document.getElementById('cmd_params');
+        table.innerHTML = '';
+        odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/init_readout',0);
+      }
+      
+//-----------------------------------------------------------------------------
       function dtc_load_parameters_control_roc_read() {
         const table     = document.getElementById('cmd_params');
         table.innerHTML = '';
