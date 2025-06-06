@@ -1,0 +1,30 @@
+LIBRARY trk_control_roc_library
+
+comment "------------------------------------------------------------------"
+comment "$1:first_channel_mask $2:pulser_delay $3:duty_cycle $4:print_level"
+comment "------------------------------------------------------------------"
+
+SUBROUTINE trk_control_roc_pulser_on
+
+  comment "define command and its parameters"
+  
+  odbset "/Mu2e/Commands/Tracker/Name"         , "control_roc_pulser_on"
+  odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/DTC"
+
+  ODBSUBDIR /Mu2e/Commands/Tracker/DTC/control_roc_pulser_on
+    ODBSET /first_channel_mask, $1
+    ODBSET /pulser_delay      , $2
+    ODBSET /duty_cycle        , $3
+    ODBSET /print_level       , $4
+  ENDODBSUBDIR
+
+  comment "set command to be executed"
+   
+  odbset            "/Mu2e/Commands/Tracker/Finished", 0 , 0
+  odbset            "/Mu2e/Commands/Tracker/Run"     , 1 , 1
+
+  comment "wait until execution is finished"
+  
+  wait   ODBValue , "/Mu2e/Commands/Tracker/Finished", > , 0
+  odbset            "/Mu2e/Commands/Tracker/Run"     , 0 , 0
+ENDSUBROUTINE
