@@ -167,8 +167,8 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
                                         // just playing
   ss_sleep(100);
-  o_tracker_cmd["Run"     ] = 0;
   o_tracker_cmd["Finished"] = 1;
+  //  o_tracker_cmd["Run"     ] = 0;
   
   TLOG(TLVL_DEBUG) << "--- END"; 
 }
