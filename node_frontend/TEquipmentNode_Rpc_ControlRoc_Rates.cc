@@ -19,7 +19,9 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
   // int timeout_ms(150);
 
   std::vector<uint16_t> rates  [6];   // 6 ROCs max
-  std::vector<int>      ch_mask[6];
+  std::vector<int>      ch_mask[6];   // used for printing only
+
+  uint16_t              rates_ch_mask[6]; // cached masks from the RATES command ODB record
 
   TLOG(TLVL_DEBUG) << "--- START";
   
@@ -55,7 +57,8 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 //-----------------------------------------------------------------------------
       for (int iw=0; iw<6; ++iw) {
         uint16_t w = o_cmd["ch_mask"][iw];
-        prates.ch_mask[iw] = w;
+        // prates.ch_mask[iw] = w;
+        rates_ch_mask [iw] = w;         // cache it here 
 
         for (int k=0; k<16; ++k) {
           // int loc = iw*16+k;
@@ -67,7 +70,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
     }
     else {
 //-----------------------------------------------------------------------------
-// use straw mask defined for the panels, save the masks in the command ODB record
+// use straw mask defined by the panel // save the masks in the command ODB record <=== what do I need it for ??? probably this is not needed!
 // the missing part - need to know the node name. But that is the local host name,
 // the one the frontend is running on
 // _read mask: 6 ushort's
@@ -85,17 +88,17 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
         int iw = i / 16;
         int ib = i % 16;
         if (ib == 0) {
-          prates.ch_mask[iw] = 0;
+          rates_ch_mask[iw] = 0;
         }
-        prates.ch_mask[iw] |= (on_off << ib);
+        rates_ch_mask[iw] |= (on_off << ib);
         // Stream << "ch_mask["<<i<<"]:" << on_off << " iw:" << iw << " ib:" << ib << std::endl;
 
         ch_mask[lnk].push_back(on_off);
       }
                                         // update RATES command channel mask in ODB
-      for (int iw=0; iw<6; iw++) {
-        o_cmd["ch_mask"][iw] = prates.ch_mask[iw];
-      }
+      // for (int iw=0; iw<6; iw++) {
+      //   o_cmd["ch_mask"][iw] = prates.ch_mask[iw];
+      // }
     }
 //-----------------------------------------------------------------------------
 // print the mask
@@ -103,7 +106,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
     if (print_level&0x8) {
       Stream << "par.ch_mask:";
       for (int iw=0; iw<6; iw++) {
-        Stream << " " << std::hex << prates.ch_mask[iw];
+        Stream << " " << std::hex << rates_ch_mask[iw];
       }
       Stream << std::endl;
     }
@@ -129,10 +132,12 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
       pread.num_samples     = o_read_cmd["num_samples"  ];   // -s
       pread.num_triggers[0] = o_read_cmd["num_triggers"][0]; // -T 10
       pread.num_triggers[1] = o_read_cmd["num_triggers"][1]; //
-
-      // the mask is the same
-
-      for (int iw=0; iw<6; iw++) pread.ch_mask[iw] = prates.ch_mask[iw];
+//-----------------------------------------------------------------------------
+// when reading RATES, always read all channels, no matter what the current settings are
+// and the reasonable settings could be 1) ALL CHANNELS 2) a channel mask is defined by the panel
+// rely on the RATES command to have that setting right - defined by the panel
+//-----------------------------------------------------------------------------
+      for (int iw=0; iw<6; iw++) pread.ch_mask[iw] = 0XFFFF; // prates.ch_mask[iw];
 //-----------------------------------------------------------------------------
 // this is a tricky place: rely on that the READ command ODB record
 // stores the -p value used during the data taking
@@ -148,9 +153,10 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
       }
 
       Dtc_i->ControlRoc_Read(&pread,lnk,print_level,Stream);
-
       
       if (print_level & 0x8) Stream <<  "--- running control_roc_rates" << std::endl;
+
+      for (int iw=0; iw<6; iw++) prates.ch_mask[iw] = 0XFFFF; // want to read all channels, RATES doesn't change any masks
 
       Dtc_i->ControlRoc_Rates(lnk,&rates[lnk],print_level,&prates,&Stream);
 
@@ -160,7 +166,11 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
         Stream <<  "--- running control_roc_read marker_clock:" << pread.marker_clock
                << " enable_pulser:" << pread.enable_pulser << std::endl;
       }
-
+//-----------------------------------------------------------------------------
+// restore the channel mask relying on the RATES command parameters to define it right:
+// either all channels are enabled, or the channel mask is defined by the panel
+//-----------------------------------------------------------------------------
+      for (int iw=0; iw<6; iw++) pread.ch_mask[iw] = rates_ch_mask[iw];
       Dtc_i->ControlRoc_Read(&pread,lnk,print_level,Stream);
 
       if (print_level & 0x2) { // detailed printout, one ROC only

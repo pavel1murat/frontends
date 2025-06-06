@@ -45,15 +45,26 @@ function trk_command_set_odb(cmd) {
   
   var paths=["/Mu2e/Commands/Tracker/Name",
              "/Mu2e/Commands/Tracker/ParameterPath",
-             "/Mu2e/Commands/Tracekr/Finished",
-             "/Mu2e/Commands/Tracker/Run"];
+             "/Mu2e/Commands/Tracker/Finished"];
   
-  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker/TRK",0,1]).then(function(rpc) {
+  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker/TRK",0]).then(function(rpc) {
     result=rpc.result;	      
     // document.getElementById("wstatus").innerHTML = 'Write status '+rpc.result.status
 
     // somewhere need to wait till command completes
 
+    var paths=["/Mu2e/Commands/Tracker/Run"];
+  
+    mjsonrpc_db_paste(paths, [1]).then(function(rpc) {
+      result=rpc.result;	      
+      // document.getElementById("wstatus").innerHTML = 'Write status '+rpc.result.status
+      
+      // somewhere need to wait till command completes
+
+    }).catch(function(error) {
+      mjsonrpc_error_alert(error);
+    });
+    
   }).catch(function(error) {
     mjsonrpc_error_alert(error);
   });
@@ -147,6 +158,6 @@ function trk_load_parameters_init_readout() {
 //    Local Variables:
 //    tab-width: 8
 //    c-basic-offset: 2
-//    js-indent-level: 0
+//    js-indent-level: 2
 //    indent-tabs-mode: nil
 //    End:
