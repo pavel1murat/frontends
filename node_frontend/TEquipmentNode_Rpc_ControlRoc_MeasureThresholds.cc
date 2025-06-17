@@ -22,9 +22,7 @@ int TEquipmentNode::MeasureThresholds(ThreadContext_t& Context, std::ostream& St
   TLOG(TLVL_DEBUG) << "-- START";
   midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_measure_thresholds");
   
-  TLOG(TLVL_DEBUG) << "-- checkpoint 0.1";
-
-  TLOG(TLVL_DEBUG) << "-- checkpoint 0.2 Context.fLink:" << Context.fLink
+  TLOG(TLVL_DEBUG) << "- checkpoint 0.1 Context.fLink:" << Context.fLink
                    << " Context.fPcieAddr:" << Context.fPcieAddr
                    << " Context.fPrintLevel:" << Context.fPrintLevel;
 
@@ -35,7 +33,7 @@ int TEquipmentNode::MeasureThresholds(ThreadContext_t& Context, std::ostream& St
     lnk2 = 6;
   }
 
-  TLOG(TLVL_INFO) << "-------------- lnk2, lnk2:" << lnk1 << " " << lnk2;
+  TLOG(TLVL_DEBUG) << "-------------- lnk2, lnk2:" << lnk1 << " " << lnk2;
 
   std::vector<float> thr;
 
@@ -47,7 +45,7 @@ int TEquipmentNode::MeasureThresholds(ThreadContext_t& Context, std::ostream& St
       continue;
     }
     
-    TLOG(TLVL_INFO) << " -- link:" << lnk << " enabled";
+    TLOG(TLVL_DEBUG) << " -- link:" << lnk << " enabled";
 //-----------------------------------------------------------------------------
 // exceptions are handled in the called function
 //-----------------------------------------------------------------------------

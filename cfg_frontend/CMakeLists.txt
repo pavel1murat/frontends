@@ -27,6 +27,7 @@ cet_set_compiler_flags(
 cet_make_exec(NAME      trk_cfg_frontend
               SOURCE    trk_cfg_frontend.cc TEquipmentTracker.cc
               TEquipmentTracker_ProcessCommand_PulserOn.cc
+              TEquipmentTracker_ProcessCommand_PulserOff.cc
               TEquipmentTracker_ProcessCommand_PanelPrintStatus.cc
               TEquipmentTracker_ProcessCommand_ResetOutput.cc
               LIBRARIES

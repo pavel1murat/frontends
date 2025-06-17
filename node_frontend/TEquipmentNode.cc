@@ -247,14 +247,20 @@ void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
 
   std::string dtc_cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
   midas::odb o_dtc_cmd(dtc_cmd_buf_path);
+                                        // should 0 or 1
+  if (o_dtc_cmd["Run"] == 0) {
+    TLOG(TLVL_DEBUG) << "self inflicted, return";
+    return;
+  }
 
   std::string dtc_cmd        = o_dtc_cmd["Name"];
-  std::string parameter_path = o_dtc_cmd["ParameterPath"];
+  std::string parameter_path = dtc_cmd_buf_path+std::format("/{:s}",dtc_cmd.data());
 //-----------------------------------------------------------------------------
+// 
 // this is address of the parameter record
 //-----------------------------------------------------------------------------
-  parameter_path += "/";
-  parameter_path += dtc_cmd;
+  // parameter_path += "/";
+  // parameter_path += dtc_cmd;
   TLOG(TLVL_DEBUG) << "dtc_cmd:" << dtc_cmd << " parameter_path:" << parameter_path;
   midas::odb o_par(parameter_path);
   TLOG(TLVL_DEBUG) << "-- parameters found";
@@ -268,7 +274,7 @@ void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
 // execute pulser_on command , no printout
 // so far assume link != -1, but we do want to use -1 (all)
 //------------------------------------------------------------------------------
-    int link               = o_par["link"];
+    int link               = o_par["link"              ];
     int first_channel_mask = o_par["first_channel_mask"];
     int duty_cycle         = o_par["duty_cycle"        ];
     int pulser_delay       = o_par["pulser_delay"      ];
