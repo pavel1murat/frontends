@@ -26,3 +26,5 @@ LOOP i, $runs
   
   first_channel_mask = first_channel_mask*2;
 ENDLOOP
+
+call trk_control_roc_pulser_off, 0

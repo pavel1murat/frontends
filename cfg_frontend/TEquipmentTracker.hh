@@ -63,6 +63,7 @@ public:
   static  void       ProcessCommand(int hDB, int hKey, void* Info);
 
   static  void       ProcessCommand_PulserOn        (const std::string& CmdParameterPath);
+  static  void       ProcessCommand_PulserOff       (const std::string& CmdParameterPath);
   static  void       ProcessCommand_PanelPrintStatus(const std::string& CmdParameterPath);
   static  void       ProcessCommand_ResetOutput();
 

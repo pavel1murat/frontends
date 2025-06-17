@@ -144,7 +144,8 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 
   midas::odb o_tracker_cmd("/Mu2e/Commands/Tracker");
   if (o_tracker_cmd["Run"] == 0) {
-    TLOG(TLVL_DEBUG) << "self inflicted, return"; 
+    TLOG(TLVL_DEBUG) << "self inflicted, return";
+    return;
   }
 
   std::string tracker_config_path = "/Mu2e/ActiveRunConfiguration/Tracker";
@@ -158,7 +159,8 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "tracker_cmd:" << tracker_cmd
                    << " cmd_parameter_path:" << cmd_parameter_path;
 
-  if      (tracker_cmd == "control_roc_pulser_on" ) ProcessCommand_PulserOn(cmd_parameter_path);
+  if      (tracker_cmd == "control_roc_pulser_on" ) ProcessCommand_PulserOn (cmd_parameter_path);
+  else if (tracker_cmd == "control_roc_pulser_off") ProcessCommand_PulserOff(cmd_parameter_path);
   else if (tracker_cmd == "trk_panel_print_status") ProcessCommand_PanelPrintStatus(cmd_parameter_path);
   else if (tracker_cmd == "trk_reset_output"      ) ProcessCommand_ResetOutput();
 

@@ -44,7 +44,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   std::string conf_path("/Mu2e/RunConfigurations/");
   conf_path += conf_name;
 
-  TLOG(TLVL_DEBUG) << "RPC cmd:" << cmd << " args:" << args << " conf_name:" << conf_name;
+  TLOG(TLVL_DEBUG) << "-- START: RPC cmd:" << cmd << " args:" << args << " conf_name:" << conf_name;
 //-----------------------------------------------------------------------------
 // in principle, string could contain a list of parameters to be parsed
 // so far : only PCIE address
@@ -335,10 +335,9 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 // turn pulser OFF
 //-----------------------------------------------------------------------------
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_pulser_off";
-    
     midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_pulser_off");
 
-    int print_level        = o["PrintLevel"       ];
+    int print_level        = o["print_level"];
 
     TLOG(TLVL_DEBUG) << "trying to call ControlRoc_PulserOff, roc:" << roc;
     try {
@@ -427,7 +426,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 
   response += ss.str();
 
-  TLOG(TLVL_DEBUG) << "response:" << response;
+  TLOG(TLVL_DEBUG) << "-- END: response:" << response;
 
   ss.str("");
 

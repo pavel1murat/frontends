@@ -1,9 +1,8 @@
 LIBRARY trk_control_roc_library
 
 comment "------------------------------------------------------------------"
-comment "$1:first_channel_mask $2:pulser_delay $3:duty_cycle $4:print_level"
+comment "$1:link $2:first_channel_mask $3:pulser_delay $4:duty_cycle $5:print_level"
 comment "------------------------------------------------------------------"
-
 SUBROUTINE trk_control_roc_pulser_on
 
   comment "define command and its parameters"
@@ -12,10 +11,37 @@ SUBROUTINE trk_control_roc_pulser_on
   odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/DTC"
 
   ODBSUBDIR /Mu2e/Commands/Tracker/DTC/control_roc_pulser_on
-    ODBSET /first_channel_mask, $1
-    ODBSET /pulser_delay      , $2
-    ODBSET /duty_cycle        , $3
-    ODBSET /print_level       , $4
+    ODBSET link              , $1
+    ODBSET first_channel_mask, $2
+    ODBSET pulser_delay      , $3
+    ODBSET duty_cycle        , $4
+    ODBSET print_level       , $5
+  ENDODBSUBDIR
+
+  comment "set command to be executed"
+   
+  odbset            "/Mu2e/Commands/Tracker/Finished", 0 , 0
+  odbset            "/Mu2e/Commands/Tracker/Run"     , 1 , 1
+
+  comment "wait until execution is finished"
+  
+  wait   ODBValue , "/Mu2e/Commands/Tracker/Finished", > , 0
+  odbset            "/Mu2e/Commands/Tracker/Run"     , 0 , 0
+ENDSUBROUTINE
+
+comment "------------------------------------------------------------------"
+comment " call trk_control_roc_pulser_off, $link, $print_level"
+comment "------------------------------------------------------------------"
+SUBROUTINE trk_control_roc_pulser_off
+
+  comment "define command and its parameters"
+  
+  odbset "/Mu2e/Commands/Tracker/Name"         , "control_roc_pulser_off"
+  odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/DTC"
+
+  ODBSUBDIR /Mu2e/Commands/Tracker/DTC/control_roc_pulser_off
+    ODBSET link              , $1
+    ODBSET print_level       , $2
   ENDODBSUBDIR
 
   comment "set command to be executed"

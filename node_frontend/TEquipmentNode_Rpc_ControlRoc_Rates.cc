@@ -32,7 +32,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
   prates.num_lookback = o_cmd["num_lookback"];    //
   prates.num_samples  = o_cmd["num_samples" ];    //
 
-  int  print_level = o_cmd["print_level" ];
+  int  print_level    = o_cmd["print_level" ];
 
   for (int i=0; i<6; i++) {
     rates  [i].reserve(96);

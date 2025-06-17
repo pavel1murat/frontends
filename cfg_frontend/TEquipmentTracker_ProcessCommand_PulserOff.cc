@@ -9,13 +9,12 @@
 #include "utils/utils.hh"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEquipmentTracker_ProcessCommand"
+// #define  TRACE_NAME "TEquipmentTracker_ProcessCommand_PulserOff"
 
 //-----------------------------------------------------------------------------
-// a tracker command is executed for all panels
-// to process all DTC's in parallel, need each DTC to have a command buffer
-//-----------------------------------------------------------------------------
-void TEquipmentTracker::ProcessCommand_PulserOn(const std::string& CmdParameterPath) {
+void TEquipmentTracker::ProcessCommand_PulserOff(const std::string& CmdParameterPath) {
+  std::string  cmd("control_roc_pulser_off");
+                  
   TLOG(TLVL_DEBUG) << "--- START"; 
 
   OdbInterface* odb_i = OdbInterface::Instance();
@@ -26,7 +25,7 @@ void TEquipmentTracker::ProcessCommand_PulserOn(const std::string& CmdParameterP
   int last_station  = o_tracker_config["LastStation" ];
 
   TLOG(TLVL_DEBUG) << " CmdParameterPath:" << CmdParameterPath;
-//-----------------------------------------------------------------------------
+
 // loop over all active ROCs and execute 'PULSER_ON'
 // it woudl make sense, at initialization stage, to build a list of DTCs assosiated
 // with the tracker and execute all DTC commands in a loop over the DTCs, rather than
@@ -42,11 +41,8 @@ void TEquipmentTracker::ProcessCommand_PulserOn(const std::string& CmdParameterP
       TLOG(TLVL_DEBUG) << "          process plane:" << pln << " plane_path:" << plane_path;
       midas::odb o_plane(plane_path);
       if (o_plane["Enabled"] == 0) continue;
-//-----------------------------------------------------------------------------
-// at this point, instead of looping over the panels, need to find the DTC
-// and pass parameters to it with link=-1
-//-----------------------------------------------------------------------------
-      std::string dtc_path       = std::format("{:s}/DTC",plane_path.data());
+
+      std::string dtc_path = std::format("{:s}/DTC",plane_path.data());
       midas::odb  o_dtc (dtc_path);
 
       int pcie_addr = o_dtc  ["PcieAddress"];
@@ -62,35 +58,27 @@ void TEquipmentTracker::ProcessCommand_PulserOn(const std::string& CmdParameterP
       TLOG(TLVL_DEBUG) << "node_fe.name:" << (char*) node_fe.name
                        << " pcie_addr:" << pcie_addr;
 
-      
-      midas::odb o_trk_cmd("/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on");
+      std::string trk_cmd_path = "/Mu2e/Commands/Tracker/DTC/"+cmd;
+      midas::odb o_trk_cmd(trk_cmd_path);
 
       int link          = o_trk_cmd["link"              ];  // should be -1;
-      int first_ch_mask = o_trk_cmd["first_channel_mask"];
-      int duty_cycle    = o_trk_cmd["duty_cycle"        ];
-      int pulser_delay  = o_trk_cmd["pulser_delay"      ];
       int print_level   = o_trk_cmd["print_level"       ];
 
       std::string dtc_cmd_path           = std::format("/Mu2e/Commands/Frontends/{:s}/DTC{:d}",
                                                          node_fe.name,pcie_addr);
-      std::string dtc_cmd_parameter_path = dtc_cmd_path+"/control_roc_pulser_on";
+
+      std::string dtc_cmd_parameter_path = dtc_cmd_path+"/"+cmd;
 
       TLOG(TLVL_DEBUG) << "dtc_cmd_path:" << dtc_cmd_path
                        << " link:" << link
-                       << " first_channel_mask:" << first_ch_mask
-                       << " duty_cycle:" << duty_cycle
-                       << " pulser_delay:" << pulser_delay
                        << " print_level:" << print_level;
 
       midas::odb o_dtc_cmd(dtc_cmd_path);
-      o_dtc_cmd["Name"         ] = "control_roc_pulser_on";
+      o_dtc_cmd["Name"         ] = "control_roc_pulser_off";
       o_dtc_cmd["ParameterPath"] = dtc_cmd_parameter_path;        // in principle, shouldn't need that
       
       midas::odb o_dtc_cmd_parameter_path(dtc_cmd_parameter_path);
       o_dtc_cmd_parameter_path["link"              ] = -1;
-      o_dtc_cmd_parameter_path["first_channel_mask"] = first_ch_mask;
-      o_dtc_cmd_parameter_path["duty_cycle"        ] = duty_cycle;
-      o_dtc_cmd_parameter_path["pulser_delay"      ] = pulser_delay;
       o_dtc_cmd_parameter_path["print_level"       ] = print_level;
 //-----------------------------------------------------------------------------
 // finally, execute the command. THe loop is executed fast, so need to wait
@@ -100,10 +88,10 @@ void TEquipmentTracker::ProcessCommand_PulserOn(const std::string& CmdParameterP
       o_dtc_cmd["Finished" ] = 0;
       o_dtc_cmd["Run"      ] = 1;
 //-----------------------------------------------------------------------------
-// wait till DTC comes back 
+// and wait till DTC comes back 
 //-----------------------------------------------------------------------------
       ss_sleep(100);
-      int finished = 0; // simulate .... 0;
+      int finished = 0;                                         // simulate .... 0;
       int wait_time(0);
       while ((finished == 0) and (wait_time < 10000)) {
         ss_sleep(100);
@@ -121,5 +109,4 @@ void TEquipmentTracker::ProcessCommand_PulserOn(const std::string& CmdParameterP
     }
   }
   TLOG(TLVL_DEBUG) << "--- END"; 
-
 }
