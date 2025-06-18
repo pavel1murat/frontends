@@ -1,8 +1,10 @@
 LIBRARY trk_control_roc_library
 
-comment "------------------------------------------------------------------"
-comment "$1:link $2:first_channel_mask $3:pulser_delay $4:duty_cycle $5:print_level"
-comment "------------------------------------------------------------------"
+comment "-------------------------------------------------------------------------------------------------"
+comment " to be executed for all enabled DTC links"
+comment " call trk_control_roc_pulser_off,  $first_channel_mask,  $pulser_delay, $duty_cycle, $print_level"
+comment "-------------------------------------------------------------------------------------------------"
+
 SUBROUTINE trk_control_roc_pulser_on
 
   comment "define command and its parameters"
@@ -11,11 +13,11 @@ SUBROUTINE trk_control_roc_pulser_on
   odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/DTC"
 
   ODBSUBDIR /Mu2e/Commands/Tracker/DTC/control_roc_pulser_on
-    ODBSET link              , $1
-    ODBSET first_channel_mask, $2
-    ODBSET pulser_delay      , $3
-    ODBSET duty_cycle        , $4
-    ODBSET print_level       , $5
+    ODBSET link              , -1
+    ODBSET first_channel_mask, $1
+    ODBSET pulser_delay      , $2
+    ODBSET duty_cycle        , $3
+    ODBSET print_level       , $4
   ENDODBSUBDIR
 
   comment "set command to be executed"
@@ -30,7 +32,8 @@ SUBROUTINE trk_control_roc_pulser_on
 ENDSUBROUTINE
 
 comment "------------------------------------------------------------------"
-comment " call trk_control_roc_pulser_off, $link, $print_level"
+comment " to be executed for all enabled  DTC links"
+comment " call trk_control_roc_pulser_off, $print_level"
 comment "------------------------------------------------------------------"
 SUBROUTINE trk_control_roc_pulser_off
 
@@ -40,8 +43,8 @@ SUBROUTINE trk_control_roc_pulser_off
   odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/DTC"
 
   ODBSUBDIR /Mu2e/Commands/Tracker/DTC/control_roc_pulser_off
-    ODBSET link              , $1
-    ODBSET print_level       , $2
+    ODBSET link              , -1
+    ODBSET print_level       , $1
   ENDODBSUBDIR
 
   comment "set command to be executed"
