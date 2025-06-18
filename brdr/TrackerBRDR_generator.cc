@@ -496,7 +496,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
         _tstamp  += 1;
       }
       else {
-                                        // ERROR
+                                        // ERROR: size = 0
         cm_msg(MERROR, _artdaqLabel.data(),Form("event: %10li subevents.size():%i",ev_counter(),sz));
         TLOG(TLVL_ERROR) << "event:" << ev_counter() << " subevents.size():" << sz;
         rc = 0;
@@ -564,15 +564,15 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
                          << " nbytes:" << nbytes;
     }
     catch (...) {
-      TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << "ERROR reading data";
+      TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " ERROR reading data, EXCEPTION THROWN";
     }
   
   int print_event = (ev_counter() % _printFreq) == 0;
   if (print_event) {
-    TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
+    TLOG(TLVL_DEBUG+1) << "-- END: label:" << _artdaqLabel
                        << " event:" << ev_counter()
                        << " readSuccess:"  << readSuccess
-                       << " timeout:" << timeout << " nbytes:" << nbytes;
+                       << " timeout:" << timeout << " nbytes:" << nbytes << " rc:" << rc;
   }
 
   return rc;
@@ -584,7 +584,7 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
 // read data
 //-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel << " start";
+  TLOG(TLVL_DEBUG+1) << "-- START: label:" << _artdaqLabel;
   _dtc->GetDevice()->ResetDeviceTime();
 //-----------------------------------------------------------------------------
 // a hack : reduce the PMT logfile size 
@@ -614,7 +614,7 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
     Frags.emplace_back(f1);
   }
 
-  TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel << " buffers released, end";
+  TLOG(TLVL_DEBUG+1) << "-- END: label:" << _artdaqLabel << " buffers released";
   return true;
 }
 
