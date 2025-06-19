@@ -24,6 +24,8 @@ TMFeResult TEquipmentNode::InitDtc() {
 
   HNDLE hdb = _odb_i->GetDbHandle();
 
+  uint32_t required_dtc_fw_version = _odb_i->GetDtcFwVersion(_h_active_run_conf);
+                                                        
   for (int i=0; db_enum_key(hdb,_h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
 //-----------------------------------------------------------------------------
 // skip 'Artdaq' folder
@@ -54,8 +56,20 @@ TMFeResult TEquipmentNode::InitDtc() {
         // dtc_i = crvdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
         dtc_i = mu2edaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
         dtc_i->fIsCrv = 1;
-      } else {
+      }
+      else {
         dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
+      }
+//-----------------------------------------------------------------------------
+// start from checking the DTC FW verion and comparing it to the required one -
+// defined in ODB
+//-----------------------------------------------------------------------------
+      uint32_t dtc_fw_version    = dtc_i->ReadRegister(0x9004);
+      if (dtc_fw_version != required_dtc_fw_version) {
+        TLOG(TLVL_ERROR) << "dtc_fw_version:" << std::hex << dtc_fw_version
+                         << " is different from required version:" << required_dtc_fw_version
+                         << " BAIL OUT";
+        return TMFeErrorMessage(std::format("wrong DTC FW version:{:x}",dtc_fw_version));
       }
 
       dtc_i->fLinkMask       = link_mask;
@@ -72,6 +86,8 @@ TMFeResult TEquipmentNode::InitDtc() {
       dtc_i->fJAMode         = _odb_i->GetJAMode           (h_subkey);
 
       TLOG(TLVL_DEBUG) << "is_crv:"            << dtc_i->fIsCrv
+                       << " dtc_fw_version:0x" << std::hex << dtc_fw_version
+                       << " _readout_mode:"    << std::dec << dtc_i->fRocReadoutMode
                        << " roc_readout_mode:" << dtc_i->fRocReadoutMode
                        << " sample_edge_mode:" << dtc_i->fSampleEdgeMode
                        << " event_mode:"       << dtc_i->fEventMode
