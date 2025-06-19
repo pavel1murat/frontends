@@ -228,6 +228,24 @@ int OdbInterface::GetCfoEventMode(HNDLE hCFO) {
 // 'SkipDtcInit' flag is defined in ODB at "$run_conf/DAQ/SkipDtcInit",
 // the policy is assumed to be the same for all DTCs in the configuration
 //-----------------------------------------------------------------------------
+uint32_t OdbInterface::GetDtcFwVersion(HNDLE h_RunConf) {
+  const char* key{"DAQ/DtcFwVersion"};
+  
+  uint32_t  data(0);
+  int   sz = sizeof(data);
+  if (db_get_value(_hDB, h_RunConf, key, &data, &sz, TID_UINT32, FALSE) == DB_SUCCESS) {
+    return data;
+  }
+  else {
+    TLOG(TLVL_ERROR) << "cant retrieve key:" << key << ", return -1";
+    return -1;
+  }
+}
+
+//-----------------------------------------------------------------------------
+// 'SkipDtcInit' flag is defined in ODB at "$run_conf/DAQ/SkipDtcInit",
+// the policy is assumed to be the same for all DTCs in the configuration
+//-----------------------------------------------------------------------------
 int OdbInterface::GetSkipDtcInit(HNDLE h_RunConf) {
   const char* key{"DAQ/SkipDtcInit"};
   
@@ -372,7 +390,7 @@ int OdbInterface::GetDtcSampleEdgeMode(HNDLE hDTC) {
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetIsCrv(HNDLE hDTC) {
-const char* key {"IsCrv"};
+  const char* key {"IsCrv"};
   INT   data(0);       // if not found, set to false
   int   sz = sizeof(data);
   if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {

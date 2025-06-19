@@ -26,12 +26,12 @@ public:
   int         GetStatus               (HNDLE h_Conf); //
 
   HNDLE       GetDbHandle() { return _hDB; }
-  
+//-----------------------------------------------------------------------------  
+// parameters of teh active run configuration
+//-----------------------------------------------------------------------------  
   HNDLE       GetActiveRunConfigHandle();
   std::string GetRunConfigName        (HNDLE h_RunConf);
   HNDLE       GetRunConfigHandle      (std::string& RunConf);
-
-  //  int         GetArtdaqPartition      ();
 
   int         GetPartitionID          (HNDLE h_RunConf); //
   int         GetEventMode            (HNDLE h_RunConf); //
@@ -44,8 +44,7 @@ public:
   HNDLE       GetHostArtdaqConfHandle (HNDLE h_RunConf, const std::string& Host);
 
   int         GetSkipDtcInit          (HNDLE h_RunConf);
-
-
+  uint32_t    GetDtcFwVersion         (HNDLE h_RunConf);
 //-----------------------------------------------------------------------------
 // CFO supports up to 8 timing chains, so dimension of NDTCs array should be at least 8
 // NDTCs[i] : number of DTCs in i-th timing chain
