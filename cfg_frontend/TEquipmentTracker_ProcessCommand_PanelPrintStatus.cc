@@ -27,7 +27,7 @@ void TEquipmentTracker::ProcessCommand_PanelPrintStatus(const std::string& CmdPa
 //-----------------------------------------------------------------------------
   midas::odb o_params(CmdParameterPath);
 
-  int mnid = o_params["panel_print_status"]["mnid"];
+  int mnid = o_params["mnid"];
 
   int sdir = (mnid/10)*10;
   std::string panel_path = std::format("/Mu2e/Subsystems/Tracker/PanelMap/{:03d}/MN{:03d}/Panel",sdir,mnid);
@@ -37,7 +37,7 @@ void TEquipmentTracker::ProcessCommand_PanelPrintStatus(const std::string& CmdPa
   midas::odb o_panel(panel_path);
 
   std::ofstream output_file;
-  output_file.open("/home/mu2etrk/test_stand/experiments/test_025/junk.log",std::ios::app);
+  output_file.open("/home/mu2etrk/test_stand/experiments/test_025/tracker.log",std::ios::app);
 
   std::vector<std::string> vs;
 
@@ -64,7 +64,7 @@ void TEquipmentTracker::ProcessCommand_PanelPrintStatus(const std::string& CmdPa
 
   output_file.close();
                                         // just playing
-  //  cm_msg1(MINFO, "junk","eklmn","-----------DONE printing");
+  //  cm_msg1(MINFO, "tracker","eklmn","-----------DONE printing");
 
   ss_sleep(100);
 

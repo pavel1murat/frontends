@@ -26,6 +26,12 @@ void TEquipmentTracker::ProcessCommand_PulserOff(const std::string& CmdParameter
 
   TLOG(TLVL_DEBUG) << " CmdParameterPath:" << CmdParameterPath;
 
+  //  std::string trk_cmd_path = "/Mu2e/Commands/Tracker/DTC/"+cmd;
+  midas::odb o_trk_cmd(CmdParameterPath);
+
+  int link          = o_trk_cmd["link"              ];  // should be -1;
+  int print_level   = o_trk_cmd["print_level"       ];
+//-----------------------------------------------------------------------------
 // loop over all active ROCs and execute 'PULSER_ON'
 // it woudl make sense, at initialization stage, to build a list of DTCs assosiated
 // with the tracker and execute all DTC commands in a loop over the DTCs, rather than
@@ -57,12 +63,6 @@ void TEquipmentTracker::ProcessCommand_PulserOff(const std::string& CmdParameter
       
       TLOG(TLVL_DEBUG) << "node_fe.name:" << (char*) node_fe.name
                        << " pcie_addr:" << pcie_addr;
-
-      std::string trk_cmd_path = "/Mu2e/Commands/Tracker/DTC/"+cmd;
-      midas::odb o_trk_cmd(trk_cmd_path);
-
-      int link          = o_trk_cmd["link"              ];  // should be -1;
-      int print_level   = o_trk_cmd["print_level"       ];
 
       std::string dtc_cmd_path           = std::format("/Mu2e/Commands/Frontends/{:s}/DTC{:d}",
                                                          node_fe.name,pcie_addr);

@@ -19,7 +19,7 @@ void TEquipmentTracker::ProcessCommand_ResetOutput() {
   TLOG(TLVL_DEBUG) << "--- START"; 
 
   std::ofstream output_file;
-  output_file.open("/home/mu2etrk/test_stand/experiments/test_025/junk.log",std::ofstream::trunc);
+  output_file.open("/home/mu2etrk/test_stand/experiments/test_025/tracker.log",std::ofstream::trunc);
   output_file.close();
                                         // just playing
   ss_sleep(100);

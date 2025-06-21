@@ -5,6 +5,7 @@ let g_hostname = 'undefined';
 let g_station  = 0;
 let g_plane    = 0;
 let g_panel    = 0;
+let g_mnid     = 0;
 
 //-----------------------------------------------------------------------------
 function sleep(ms) {
@@ -36,6 +37,55 @@ function displayFile(filePath, elementId) {
   return result;
 }
 
+//-----------------------------------------------------------------------------      
+function trk_choose_station_id(evt, station_id) {
+  var i, tabs;
+  tabs = document.getElementsByClassName("trk_station_tab");
+  for (i=0; i<tabs.length; i++) {
+    tabs[i].className = tabs[i].className.replace(" active", "");
+  }
+  elid = 'trk_station_'+station_id;
+  document.getElementById(elid).style.display = "block";
+  evt.currentTarget.className += " active";
+
+  g_station = parseInt(station_id);
+  console.log('g_station=',g_station);
+}
+
+//-----------------------------------------------------------------------------      
+function trk_choose_plane_id(evt, plane_id) {
+  var i, tabs;
+  tabs = document.getElementsByClassName("trk_plane_tab");
+  for (i=0; i<tabs.length; i++) {
+    tabs[i].className = tabs[i].className.replace(" active", "");
+  }
+
+  elid = 'trk_plane_'+plane_id;
+  document.getElementById(elid).style.display = "block";
+  evt.currentTarget.className += " active";
+  
+  g_plane = parseInt(plane_id);
+
+  console.log('g_plane=',g_plane);
+}
+
+//-----------------------------------------------------------------------------      
+function trk_choose_panel_id(evt, panel_id) {
+  var i, tabs;
+  tabs = document.getElementsByClassName("trk_panel_tab");
+  for (i=0; i<tabs.length; i++) {
+    tabs[i].className = tabs[i].className.replace(" active", "");
+  }
+  
+  elid = panel_id;
+  document.getElementById(elid).style.display = "block";
+  evt.currentTarget.className += " active";
+  
+  g_mnid = parseInt(panel_id.substring(2));
+
+  console.log('g_panel=',g_mnid);
+}
+
 //-----------------------------------------------------------------------------
 // and this one updates ODB
 // the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
@@ -45,9 +95,12 @@ function trk_command_set_odb(cmd) {
   
   var paths=["/Mu2e/Commands/Tracker/Name",
              "/Mu2e/Commands/Tracker/ParameterPath",
-             "/Mu2e/Commands/Tracker/Finished"];
+             "/Mu2e/Commands/Tracker/Finished",
+             "/Mu2e/Commands/Tracker/TRK/"+cmd+"/mnid",
+            ];
   
-  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker/TRK",0]).then(function(rpc) {
+  
+  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker/TRK",0,g_mnid]).then(function(rpc) {
     result=rpc.result;	      
     // document.getElementById("wstatus").innerHTML = 'Write status '+rpc.result.status
 
@@ -87,7 +140,7 @@ function trk_command_set_odb(cmd) {
     done = finished;
     };
   
-  displayFile('junk.log', 'output_window');
+  displayFile('tracker.log', 'output_window');
 }
 
 //-----------------------------------------------------------------------------

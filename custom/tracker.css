@@ -1,11 +1,5 @@
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f5f5f5;
-}
 
 #mmain {
     margin: 18px;
@@ -67,4 +61,13 @@ h1 {
     font-weight: nom0al;  #########bold#;
     padding: 0px;
 }
+
+#trk_station_tabs {
+    padding   : 10px;
+    height    : 440px;
+    width     : 600px; /*60% ;*/ /* 600px; */
+    overflow  : auto;
+    background: #bdb;
+}
+
 </style>

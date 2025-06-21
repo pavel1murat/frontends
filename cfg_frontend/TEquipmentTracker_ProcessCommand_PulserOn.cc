@@ -26,6 +26,15 @@ void TEquipmentTracker::ProcessCommand_PulserOn(const std::string& CmdParameterP
   int last_station  = o_tracker_config["LastStation" ];
 
   TLOG(TLVL_DEBUG) << " CmdParameterPath:" << CmdParameterPath;
+
+  //      midas::odb o_trk_cmd("/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on");
+  midas::odb o_trk_cmd(CmdParameterPath);
+
+  int link          = o_trk_cmd["link"              ];  // should be -1, same for all DTCs
+  int first_ch_mask = o_trk_cmd["first_channel_mask"];
+  int duty_cycle    = o_trk_cmd["duty_cycle"        ];
+  int pulser_delay  = o_trk_cmd["pulser_delay"      ];
+  int print_level   = o_trk_cmd["print_level"       ];
 //-----------------------------------------------------------------------------
 // loop over all active ROCs and execute 'PULSER_ON'
 // it woudl make sense, at initialization stage, to build a list of DTCs assosiated
@@ -54,22 +63,12 @@ void TEquipmentTracker::ProcessCommand_PulserOn(const std::string& CmdParameterP
       TLOG(TLVL_DEBUG) << " dtc_path:" << dtc_path;
       HNDLE h_dtc    = odb_i->GetHandle(0,dtc_path.data());
       HNDLE h_parent = odb_i->GetParent(h_dtc);
-      
                                         // node_fe.name is the node frontend name ! 
       KEY node_fe;
       odb_i->GetKey(h_parent,&node_fe);
       
       TLOG(TLVL_DEBUG) << "node_fe.name:" << (char*) node_fe.name
                        << " pcie_addr:" << pcie_addr;
-
-      
-      midas::odb o_trk_cmd("/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on");
-
-      int link          = o_trk_cmd["link"              ];  // should be -1;
-      int first_ch_mask = o_trk_cmd["first_channel_mask"];
-      int duty_cycle    = o_trk_cmd["duty_cycle"        ];
-      int pulser_delay  = o_trk_cmd["pulser_delay"      ];
-      int print_level   = o_trk_cmd["print_level"       ];
 
       std::string dtc_cmd_path           = std::format("/Mu2e/Commands/Frontends/{:s}/DTC{:d}",
                                                          node_fe.name,pcie_addr);

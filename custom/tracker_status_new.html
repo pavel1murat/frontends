@@ -88,7 +88,8 @@
         
             // now - panels
             for (let ip=0; ip<6; ip++) {
-              const panel_odb_path = station_path+`/Plane_${k.toString().padStart(2,'0')}`+`/Panel_${ip.toString().padStart(2,'0')}`;
+              const s_path = `${tracker_path}/Station_${i.toString().padStart(2,'0')}`;
+              const panel_odb_path = s_path+`/Plane_${k.toString().padStart(2,'0')}`+`/Panel_${ip.toString().padStart(2,'0')}`;
             
               const c1     = document.createElement("td");
               c1.className = "status-cell";
