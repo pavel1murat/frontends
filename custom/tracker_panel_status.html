@@ -1,150 +1,342 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Details</title>
-    <link rel="stylesheet" href="midas.css">
-    <link type="text/css" rel="stylesheet" href="tracker.css">
 
+  <head>
+    <meta charset="UTF-8">
+    <link   rel="stylesheet" href="midas.css">
+    <link id="favicon" rel="shortcut icon" type="image/png" href="favicon.png" />
     <script src="controls.js"></script>
     <script src="midas.js"></script>
     <script src="mhttpd.js"></script>
     <script src="filesrw.js"></script>
-
+    <script src="odbbrowser.js"></script>
+  
+    <link   rel="stylesheet" href="mu2edaq.css">
+<!--
+    <link   rel="stylesheet" href="tracker.css">
+-->    
+    <script src="mu2edaq.js"></script>
+    <script src="trk_commands.js"></script>
+    
+    <title>StationPage</title>
+    
     <script>
-      var updatePeriod = 0; // 10000; // in msec
-      let PATH = "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_00";
+//-----------------------------------------------------------------------------
+// main function: createTable
+//-----------------------------------------------------------------------------
+      function createTable() {
+        const urlParams  = new URLSearchParams(window.location.search);
+        g_hostname = urlParams.get('hostname') || 'none';  // 
+        g_station  = urlParams.get("station" ) || "0";     // defined in trk_commands.js
+        g_plane    = urlParams.get("plane"   ) || "0";
+        g_panel    = urlParams.get("panel"   ) || "0";
+        g_mnid     = urlParams.get("mnid"    ) || "0";
+        
+        const tracker_path  = `/Mu2e/ActiveRunConfiguration/Tracker`;
+      
+        const g_plane1   = 2*g_station;
+        const g_plane2   = 2*g_station+1;
+        
+        let title        = document.getElementById('table-title');
+        title.innerHTML  = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
+//-----------------------------------------------------------------------------
+//  create DTC commands table
+//-----------------------------------------------------------------------------
+        const station_cmd_table     = document.getElementById('station_commands');
 
-      function setPathFromUrl() {
-          const urlParams = new URLSearchParams(window.location.search);
-          const station   = urlParams.get("station") || "0";
-          const plane     = urlParams.get("plane"  ) || "0";
-          const panel     = urlParams.get("panel"  ) || "0";
+        station_cmd_table.innerHTML = `
+        <thead>
+          <tr>
+            <td colspan=9> <div class="mtableheader">MN${g_mnid} (${g_station}:${g_plane}:${g_panel}) Controls </div></td>
+          </tr>
+          <tr>
+           <td>station:</td> <td colspan=4> <div class="tab" id="trk_station_tabs"></div></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="tab">
+                <button class="trk_plane_tab" id="trk_plane_0" onclick="trk_choose_plane_id(event,'${g_plane1}')">plane:${g_plane1}</button>
+              </div>
+            </td>
+            <td colspan> <div class="tab" id="trk_panel_tabs_0"></div></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="tab">
+                <button class="trk_plane_tab" id="trk_plane_1" onclick="trk_choose_plane_id(event,'${g_plane2}')">plane:${g_plane2}</button>
+              </div>
+            </td>
+            <td colspan> <div class="tab" id="trk_panel_tabs_1"></div></td>
+          </tr>
+        </thead>
+        <tbody>                                                                        
+          <tr>
+            <td colspan=2>
+              <input type=button value='load parameters'  onClick='trk_station_load_parameters(g_station)'>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='init readout'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_init_readout()'> Load Parameters </div>
+                  <div onClick='trk_command_set_odb("trk_init_readout")'   > Run             </div>
+                </div>
+              </div>
+              <input type=button value='print status' onClick='trk_command_set_odb("trk_station_print_status")'>
+              <input type=button value='clear output' onClick='trk_clear_window("output_window")'>
+            </td>
+          </tr>
+        </tbody>
+         `;
+      
+        const div_station_tabs = document.getElementById("trk_station_tabs");
+        for (let is=0; is<18; is++) {
+          let iss = is.toString().padStart(2,'0');
+          div_station_tabs.innerHTML += `<button class="trk_station_tab" id='trk_station_${is}' onclick="trk_choose_station_id(event,'${is}')">${iss}</button>`
+        };
+        
+        const station_path  = tracker_path+'/Station_'+g_station.padStart(2,'0');
 
-          PATH = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${station.padStart(2, '0')}/Plane_${plane.padStart(2, '0')}/Panel_${panel.padStart(2, '0')}`;
+        for (let pln=0; pln<2; pln++) {
+          const div_panel_tabs = document.getElementById("trk_panel_tabs_"+pln.toString());
+          for (let ip=0; ip<6; ip++) {
+            // find out the panel MNID
+            const panel_odb_path = station_path+'/Plane_'+pln.toString().padStart(2,'0')+'/Panel_'+ip.toString().padStart(2,'0');
+            const mnid_path      = panel_odb_path+`/Name`;
+            mjsonrpc_db_get_values([mnid_path]).then( function (rpc) {
+              panel_name = rpc.result.data[0];
+              mnid = parseInt(panel_name.substring(2));
+              div_panel_tabs.innerHTML += `<button class="trk_panel_tab" id='MN${mnid}' onclick="trk_choose_panel_id(event,'MN${mnid}')">MN${mnid}</button>`
+            });
+          };
+        };
+//-----------------------------------------------------------------------------
+//  create panel commands table
+//-----------------------------------------------------------------------------
+        const panel_cmd_table     = document.getElementById('panel_commands');
+
+        panel_cmd_table.innerHTML = `
+        <tbody>
+          <tr>
+            <td> <div class="mtableheader" colspan=2> Panel commands </div> </td> 
+            <td colspan=4>
+            <div class="tab">
+            </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan=2>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='read'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_read()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='digi_rw'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_digi_rw()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='pulser_on'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_pulser_on()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_pulser_on")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='pulser_off'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_pulser_off()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='rates'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='read_ddr'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_read_ddr()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_read_ddr")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='set_thresholds'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_set_thresholds()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_set_thresholds")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='load_thresholds'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_load_thresholds()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_load_thresholds")'   > Run             </div>
+                </div>
+              </div>
+            </td>
+            </td>
+          </tr>
+
+<!--  --------------------------------------------  -->
+        <tr>
+          <td>
+            <input type=button value='load parameters'    onClick='trk_panel_load_parameters(g_station,g_plane,g_panel)'>
+            <input type=button value='cycle LV'           onClick='trk_command_set_odb("cycle_lv")'>
+            <input type=button value='measure thresholds' onClick='trk_command_set_odb("trk_measure_thresholds")'>
+            <input type=button value='print status'       onClick='trk_command_set_odb("trk_panel_print_status")'>
+          </td>
+        </tr>
+<!--  --------------------------------------------  -->
+        <tr>
+          <td colspan>
+          </td>
+        </tr>
+        <!---------------------------------------------- this row is temporarily commented out
+        <tr>
+          <td colspan=4>
+            <div class="dropup">
+            </div>
+          </td>
+        </tr>
+          --------------------------------------------  -->
+        </tbody>
+        `;      
+//-----------------------------------------------------------------------------
+//  end
+//-----------------------------------------------------------------------------
       }
-
-      function setTableTitle() {
-          const title       = document.getElementById("TableName");
-          const stIndex     = PATH.indexOf("Station");
-          db_get_value(PATH+'/Name', rpc => {
-              document.getElementById("TableName").textContent = `${PATH.slice(stIndex)} : ` + JSON.stringify(rpc['result']['data']);
-          });
-      }
-
-      function prepareTable() {
-          const table = document.getElementById("MVtable");
-          table.innerHTML = `<thead>
-                    <tr>
-                        <th>Channel       </th>
-                        <th>Mask          </th>
-                        <th>Thr  HV       </th>
-                        <th>Thr  HV meas  </th>
-                        <th>Thr  CAL      </th>
-                        <th>Thr  CAL meas </th>
-                        <th>Gain HV       </th>
-                        <th>Gain CAL      </th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            `;
-      }
-
-      function fillTable() {
-          const tbody = document.getElementById("MVtable").querySelector("tbody");
-          
-          for (let i = 0; i < 96; i++) {
-              const row = document.createElement("tr");
-              
-              row.innerHTML = `
-                    <td style="background-color: #d6eaff; font-weight: bold; text-align: center;">${i}</td>
-                    <td class="modbvalue" align="center" data-odb-path="${PATH}/ch_mask[${i}]" data-odb-editable="1" ></td>
-                    <td class="modbvalue" align="center" data-odb-path="${PATH}/threshold_hv[${i}]"></td>
-                    <td class="modbvalue" align="center" data-odb-path="${PATH}/thr_hv_mv[${i}]"></td>
-                    <td class="modbvalue" align="center" data-odb-path="${PATH}/threshold_cal[${i}]"></td>
-                    <td class="modbvalue" align="center" data-odb-path="${PATH}/thr_cal_mv[${i}]"></td>
-                    <td class="modbvalue" align="center" data-odb-path="${PATH}/gain_hv[${i}]"></td>
-                    <td class="modbvalue" align="center" data-odb-path="${PATH}/gain_cal[${i}]"></td>
-                `;
-              tbody.appendChild(row);
-          }
-      }
-
-      function initializePage() {
-            try {
-                if (typeof mhttpd_init === 'function' && !window.midasInitialized) {
-                    mhttpd_init('Details Page');
-                    window.midasInitialized = true; // Prevent duplicate calls
-                }
-                setPathFromUrl();
-                setTableTitle();
-                prepareTable();
-                fillTable();
-            } catch (error) {
-                console.error('Error initializing page:', error);
-            }
-        }
-
-      document.addEventListener("DOMContentLoaded", initializePage);
-    </script>
-<!-- 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-        }
-
-        #mmain {
-            margin: 20px;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .mtable {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 18px;
-            margin: 0 auto;
-        }
-
-        .mtable th, .mtable td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .mtable th {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .mtable tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        .mtable tr:hover {
-            background-color: #f1f1f1;
-        }
-    </style>
-    --> 
-</head>
-
-<body class="mcss" onload="initializePage();">
-    <div id="mheader"></div> <!-- MIDAS Header -->
-    <div id="msidenav"></div> <!-- MIDAS Sidebar -->
+      
+      document.addEventListener("DOMContentLoaded", createTable);
+      // choose_roc_id('DOMContentLoaded','roc0')
+      </script>
+  </head>
+  <!--
+      it seems to be convenient to have the large scale topology defined in HTML
+      and use javascript to fill internal details
+    -->
+  <body class="mcss" onload="mhttpd_init('trk_control');show_facilities(); msg_load();">
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
     <div id="mmain">
-        <h1 id="TableName">Details</h1>
-        <table class="mtable" id="MVtable" cellpadding="5"></table>
+    
+      <!-- ---------------- are they needed? and the output field ----------------  -->
+      
+      <div class="row">
+        <h2 id="table-title">Panel </h2>
+        
+        <div class="column"> <!-- gets pushed to the left -->
+          
+          <table class="mtable" id="station_commands">  <!-- Table content is generated dynamically -->
+          </table>
+          
+          <table class="mtable" id="panel_commands">  <!-- Table content is generated dynamically -->
+          </table>
+          
+          <table class="mtable" id="cmd_params">    <!-- Table content is generated dynamically -->
+          </table>
+          
+        </div>
+        
+        <div class="column"; style="width:52%"> <!-- gets pushed to the left -->
+          <!--    ------------------------- this is the output window  -->
+          <table >
+            <tr>
+              <td id="navigationFacilitiesButtons"></td>
+            </tr>
+          </table>
+        
+          <table class="mtable" id="messageTable" ">
+            <tr>
+              <td class="select">
+                <label for="nameFilter">Filter: </label>
+
+                <input type="text" id="nameFilter" placeholder="Program Name" title="Please enter a program name">
+              
+                <select id="typeFilter" title="Please select a message type">
+                  <option value="">- all -</option>
+                  <option>INFO</option>
+                  <option>ERROR</option>
+                  <option>USER</option>
+                  <option>LOG</option>
+                  <option>TALK</option>
+                </select>
+              
+                <input type="text" id="timeFilter" placeholder="Time (hh:mm:ss)" title="Please select a time to search">
+                <input type="text" id="textFilter" placeholder="Search Text" title="Please enter some search text">
+
+                <select id="timeRangeFilter" title="We will search the file from the current time into the past">
+                  <option>24 h</option>
+                  <option>48 h</option>
+                  <option>72 h</option>
+                  <option>7 d</option>
+                  <option>30 d</option>
+                </select>
+                <button class="mbutton" id="filterBtn">Filter</button>
+              
+                <select id="recentsDropdown">
+                  <option value="">Select a recent filter</option>
+                </select>
+
+              </td>
+            </tr>
+
+            <tr>
+              <td class="select">
+                <div class="mmessagebox mfont" id="messageFrame"><h1 class="mtableheader"> Messages</h1></div>
+              </td>
+            </tr>
+          </table>
+          
+          <div id="loadingOverlay"
+               style="  display: none;
+                      position: fixed;
+                      top: 0;
+                      left: 0;
+                      width: 100%;
+                      <!--
+                      height: 100%;
+                      -->
+                      height: 600px;
+                      background-color: rgba(128, 128, 128, 0.8);
+                      color: white;
+                      font-size: 24px;
+                      align-items: center;
+                      justify-content: center;
+                      z-index: 1000;">
+            Searching messages... Mouse Click to stop.
+          </div>
+          
+        </div>
+        
+        <div id="dlgError" class="dlgFrame">
+          <div class="dlgTitlebar">Error message</div>
+          <div class="dlgPanel">
+            <div id="dlgErrorText">Dialog Contents</div>
+            <br />
+            <button class="dlgButton" onClick="dlgHide('dlgError')">Close</button>
+          </div>
+        </div>
+        
+        <script src="messages.js"></script>
+
+      </div>
     </div>
-</body>
+  </body>
 </html>
+
+<!--
+    emacs
+    Local Variables:
+    tab-width: 8
+    c-basic-offset: 2
+    js-indent-level: 2
+    indent-tabs-mode: nil
+    End:
+  -->

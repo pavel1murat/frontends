@@ -12,13 +12,14 @@
   <script src="filesrw.js"></script>
   
   <script src="mu2edaq.js"></script>
+  <script src="trk_commands.js"></script>
   
   <title>Tracker Status</title>
 
   <script>
 
-    function redirectToPanels(is, iplane, ipanel) {
-      window.location.href = `tracker_panel_status.html?station=${is}&plane=${iplane}&panel=${ipanel}`;
+    function redirectToPanels(is, iplane, ipanel, mnid) {
+      window.location.href = `tracker_panel_status.html?station=${is}&plane=${iplane}&panel=${ipanel}&mnid=${mnid}`;
     }
 
 //-----------------------------------------------------------------------------
@@ -76,34 +77,47 @@
         for (let i=first_station; i<last_station+1; i++) {
           const row       = document.createElement("tr");
         
-          const cell = document.createElement("td");
+          const s_path = `${tracker_path}/Station_${i.toString().padStart(2,'0')}`;
+          const cell   = document.createElement("td");
           cell.innerHTML = `<b>Station ${i}</b>`;
+          set_colors(s_path,cell);
           row.appendChild(cell);
 
+          const plane_cell_done = new Array(2);
           for (let k=0; k<2; k++) { 
-            const pln = document.createElement("td");
-            pln.innerHTML = `<b>plane ${k}</b>`;
-            row.appendChild(pln);
+//            const pln     = document.createElement("td");
+//            pln.innerHTML = `<b>plane ${k}</b>`;
+//            row.appendChild(pln);
+            plane_cell_done[k] = 0;
         
             // now - panels
             for (let ip=0; ip<6; ip++) {
-              const panel_odb_path = station_path+`/Plane_${k.toString().padStart(2,'0')}`+`/Panel_${ip.toString().padStart(2,'0')}`;
+//              if (plane_cell_done[k] == 0) {
+//                const pln = document.createElement("td");
+//                pln.innerHTML = `<b>plane ${k}</b>`;
+//                row.appendChild(pln);
+//                plane_cell_done[k] = 1;
+//              }
+              const panel_odb_path = s_path+`/Plane_${k.toString().padStart(2,'0')}`+`/Panel_${ip.toString().padStart(2,'0')}`;
             
               const c1     = document.createElement("td");
               c1.className = "status-cell";
-              txt = `<div class="modbvalue" data-odb-path="${panel_odb_path}/Name">`
-              c1.innerHTML = `<button onclick="redirectToPanels('${i}','${k}', '${ip}')">${txt}</button></div>`;
+              const mnid_path = panel_odb_path+`/Name`;
+              mjsonrpc_db_get_values([mnid_path]).then(function (rpc) {
+                panel_name = rpc.result.data[0];
+                mnid = parseInt(panel_name.substring(2));
+                c1.innerHTML = `<button onclick="redirectToPanels('${i}','${k}', '${ip}', '${mnid}')"> ${panel_name} </button></div>`;
             
-              // Load initial values and set up polling for updates
-         
+                // Load initial values and set up polling for updates
 
-              // Initial load
-              set_colors(panel_odb_path,c1);
+                // Initial load
+                set_colors(panel_odb_path,c1);
 
               // Poll for updates
-              setInterval(() => {set_colors(panel_odb_path,c1);},2000);
+                setInterval(() => {set_colors(panel_odb_path,c1);},2000);
 
-              row.appendChild(c1);
+                row.appendChild(c1);
+              });
             }
           }
           com_table_tbody.appendChild(row);

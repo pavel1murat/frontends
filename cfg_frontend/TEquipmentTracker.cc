@@ -155,6 +155,7 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 
   std::string tracker_cmd        = o_tracker_cmd["Name"];
   std::string cmd_parameter_path = o_tracker_cmd["ParameterPath"];
+  cmd_parameter_path            += "/"+tracker_cmd;
 
   TLOG(TLVL_DEBUG) << "tracker_cmd:" << tracker_cmd
                    << " cmd_parameter_path:" << cmd_parameter_path;
