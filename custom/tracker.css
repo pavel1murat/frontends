@@ -27,15 +27,15 @@ h1 {
     padding: 6px;
     text-align: center;
 }
-
+/*
 .mtable th {
     background-color: #007bff;
     color: white;
 }
-
 .mtable tr:nth-child(even) {
     background-color: #f9f9f9;
 }
+*/
 
 .mtable tr:hover {
     background-color: #f1f1f1;

@@ -30,20 +30,21 @@ h1 {
     margin: 0 auto;
 }
 
-.mtable th,
-.mtable td {
-    border: 1px solid #ddd;
+.mtable th, .mtable td {
+    border: 1px solid #aaa;
     padding: 12px;
     text-align: center;
 }
-
+/*
 .mtable th {
     background-color: #0055ff;
     color: white;
 }
+
 .mtable tr:hover {
     background-color:   #F6C492;
 }
+*/
 
 /* Buttons styling */
 .mtable td button {

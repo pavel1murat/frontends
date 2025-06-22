@@ -162,7 +162,7 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 
   if      (tracker_cmd == "control_roc_pulser_on" ) ProcessCommand_PulserOn (cmd_parameter_path);
   else if (tracker_cmd == "control_roc_pulser_off") ProcessCommand_PulserOff(cmd_parameter_path);
-  else if (tracker_cmd == "trk_panel_print_status") ProcessCommand_PanelPrintStatus(cmd_parameter_path);
+  else if (tracker_cmd == "panel_print_status"    ) ProcessCommand_PanelPrintStatus(cmd_parameter_path);
   else if (tracker_cmd == "trk_reset_output"      ) ProcessCommand_ResetOutput();
 
 //-----------------------------------------------------------------------------

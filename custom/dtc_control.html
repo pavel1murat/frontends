@@ -56,7 +56,7 @@
         </thead>
         <tbody>                                                                        
           <tr>
-            <td colspan=2>
+            <td colspan=3>
               <input type=button value='load parameters'  onClick='dtc_load_parameters()'>
               <div class="dropup">
                 <input type=button class="dropbtn" value='init readout'>
@@ -65,23 +65,25 @@
                   <div onClick='dtc_command("dtc_init_readout")'   > Run             </div>
                 </div>
               </div>
-              <input type=button value='soft reset'       onClick='dtc_command("dtc_soft_reset")'>
-              <input type=button value='hard reset'       onClick='dtc_command("dtc_hard_reset")'>
               <input type=button value='print status'     onClick='dtc_command("dtc_print_status")'>
               <input type=button value='print ROC status' onClick='dtc_command("dtc_print_roc_status")'>
               <input type=button value='clear output'     onClick='dtc_clear_output()'>
             </td>
-           <td> Register </td>
-           <td> Value    </td>
+            <td></td>
+            <td> Register </td>
+            <td> Value    </td>
           </tr>
           <!----------------- DTC print status, print ROC status , write reg   -->
           <tr>
-            <td>
+            <td colspan=2>
               <input type=button value='CFO launch run plan' onClick='cfo_command("cfo_launch_run_plan")'>
               <input type=button value='read subevents'      onClick='dtc_command("dtc_read_subevents")'>
+              <input type=button value='soft reset'          onClick='dtc_command("dtc_soft_reset")'>
+              <input type=button value='hard reset'          onClick='dtc_command("dtc_hard_reset")'>
             </td>
+            <td></td>
             <td>
-              <input type=button value='write register'   onClick='dtc_command("dtc_write_register")'>
+              <input type=button value='write DTC register'  onClick='dtc_command("dtc_write_register")'>
             </td>
             <td>
               <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Register" data-odb-editable="1" data-format="%x"></div>
@@ -91,10 +93,10 @@
             </td>
           </tr>
           <tr>
+            <td colspan=2></td>
+            <td></td>
             <td>
-            </td>
-            <td>
-              <input type=button value='read &nbsp register'    onClick='dtc_command("dtc_read_register")'>
+              <input type=button value='read &nbsp DTC register'    onClick='dtc_command("dtc_read_register")'>
             </td>
             <td>
               <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Register" data-odb-editable="1" data-format="%x"></div>
@@ -115,11 +117,8 @@
         roc_com_table.innerHTML = `
         <tbody>
           <tr>
-            <td> <div class="mtableheader" colspan=2> control_ROC commands </div> </td> 
-            <td colspan=5>
-            <div class="tab">
-            </div>
-            </td>
+            <td> <div class="mtableheader"> control_ROC commands </div> </td>
+            <td colspan=3></td>
           </tr>
           <tr>
             <td colspan=2>
@@ -194,7 +193,6 @@
             <input type=button value='get key'          onClick='dtc_command("get_key")'>
             <input type=button value='find alignment'   onClick='dtc_command("dtc_control_roc_find_alignment")'>
             <input type=button value='measure thresholds' onClick='dtc_command("dtc_control_roc_measure_thresholds")'>
-            <input type=button value='get design info'  onClick='dtc_command("get_roc_design_info")'>
           </td>
           <td>
             <input type=button value='write ROC register' onClick='dtc_command("write_roc_register")'>
@@ -209,12 +207,13 @@
 <!--  --------------------------------------------  -->
         <tr>
           <td colspan>
+            <input type=button value='get design info'  onClick='dtc_command("get_roc_design_info")'>
 <!--
             <input type=button value='get ID'           onClick='dtc_command("get_roc_id")'>
             <input type=button value='get GIT commit'   onClick='dtc_command("get_roc_fw_git_commit")'>
 -->
           </td>
-          <td><input type=button value='read ROC register' onClick='dtc_command("read_roc_register")'></td>
+          <td><input type=button value='read &nbsp ROC register' onClick='dtc_command("read_roc_register")'></td>
           <td>
             <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
           </td>

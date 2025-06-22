@@ -82,6 +82,7 @@ class PeriodicEquipment(midas.frontend.EquipmentBase):
         
         # Set the status that appears on the midas status page.
         self.set_status("Initialized")
+        self.cmd_top_path = "/Mu2e/Commands/Global"
 
 
 #------------------------------------------------------------------------------
@@ -154,7 +155,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         self.client.set_transition_sequence(midas.TR_START, 700)
         self.client.set_transition_sequence(midas.TR_STOP , 700)
 
-        self.client.odb_watch("/Mu2e/Commands/Global/Run", self.process_command)
+        self.client.odb_watch(self.cmd_top_path+"/Run", self.process_command)
         TRACE.TRACE(TRACE.TLVL_DEBUG,f'constructor END',TRACE_NAME)
         print("constructor end");
 
@@ -312,33 +313,70 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 # also may want to check if status allowed issuing a new command
 # for the moment, don't process parameters
 #---------------v--------------------------------------------------------------
-                cmd_path       = subsystem_path+'/Command';
-                subsystem_doit = self.client.odb_get(cmd_path+'/Run');
-                if (subsystem_doit != 0):
+                subsystem_cmd_path = '/Mu2e/Commands/'+subsystem;
+                subsystem_finished = self.client.odb_get(subsystem_cmd_path+'/Finished');
+                if (subsystem_finished != 1):
 #------------------------------------------------------------------------------
-# subsystem didn't complete the previous command - trouble
+# subsystem didn't complete the previous command, ignore it and continue with other subsystems
 #---------------v--------------------------------------------------------------
-                    prev_cmd = self.client.odb_get(cmd_path+'/Name');
+                    prev_cmd = self.client.odb_get(subsystem_cmd_path+'/Name');
                     TRACE.ERROR(f'subsystem:{subsystem} didnt complete previous command:{prev_cmd}')
-                    return
+                    continue
 #------------------------------------------------------------------------------
-# subsystem didn't complete the previous command - trouble
+# subsystem did complete the previous command, proceed
 #---------------v--------------------------------------------------------------
-                self.client.odb_get(cmd_path+'/Name',cmd_name);
-                self.client.odb_get(cmd_path+'/Run',1);
-                status_path = cmd_path+'/Status'
-                status      = self.client.odb_get(status_path)
-                if (status == CMD_STATUS_IN_PROGRESS):
-                    TRACE.ERROR("configure is already executed for subsystem="+subsystem)
-                    continue;
-                self.client.odb_set(cmd_path+"/Locked"       ,1);
-                self.client.odb_set(cmd_path+"/ResultChecked",0) ; # undefined ?
-                self.client.odb_set(cmd_path+"/Run"         ,1)
+                self.client.odb_set(subsystem_cmd_path+'/Name'         ,cmd_name);
+                self.client.odb_set(subsystem_cmd_path+'/ParameterPath',cmd_parameter_path);
+                self.client.odb_set(subsystem_cmd_path+'/Finished'     ,       0);
+                self.client.odb_set(subsystem_cmd_path+'/Run'          ,       1);
 #---------------^--------------------------------------------------------------
-# all configuration commands passed on to the frontends,
-# wait for 30 sec, monitor results every second 
+# return, wait part is common for all commands
+#------------------------------------------------------------------------------
+        return
+
+#-------v-----------------------------------------------------------------------
+# process_command is called when odb['/Mu2e/Commands/Global/Run'] is set to 1.
+# before that:
+#
+# odb['/Mu2e/Commands/Global/Name'         ] : should be set to the command name
+# odb['/Mu2e/Commands/Global/ParameterPath'] : path in ODB to the parameter record of this command
+# odb['/Mu2e/Commands/Global/Finished'     ] : 0, will be set to 1 by the frontend when the command is executed
+# odb['/Mu2e/Commands/Global/ReturnCode'   ] : 0, will be set by the frontend when the command is executed
+#
+# the caller chould be first checking for Finished != 0 
+#---v--------------------------------------------------------------------------
+    def process_command(self, client, path, new_value):
+        """
+        callback : configure the detector
+        """
+        TRACE.TRACE(TLVL_DEBUG,f'path:{path}',TRACE_NAME);
+        run = self.client.odb_get(self.top_cmd_path+'/Run')
+# supposed to be 1, set by the caller
+        if (run != 1):
+#-------^----------------------------------------------------------------------
+# likely, self-resetting the request
+#------------------------------------------------------------------------------
+            TRACE.TRACE(TRACE.TLVL_ERROR,f'/Mu2e/Command/Doit:{doit}, BAIL OUT',TRACE_NAME);
+            return
+#-----------^------------------------------------------------------------------
+# otherwise, loop over all subdetectors in /Mu2e/ActiveConfig and pass the Configure
+# command to subsystems
 #-------v----------------------------------------------------------------------
-        TRACE.TRACE(TRACE.TLVL_DEBUG,'-- all config commands passed on, wait for completion')
+        cmd_name       = self.client.odb_get("/Mu2e/Commands/Global/Name")
+        parameter_path = self.client.odb_get("/Mu2e/Commands/Global/ParameterPath")
+
+        if (cmd_name.upper() == 'CONFIGURE'):
+            process_configure();
+
+#------------------------------------------------------------------------------
+# the command passed to the subsystems, wait for 30 sec, monitor results every second
+# the wait part is common, the timeout might be different though...
+#-------v----------------------------------------------------------------------
+        TRACE.TRACE(TRACE.TLVL_DEBUG,'-- the command passed on, wait for completion')
+        hkey    = self.client._odb_get_hkey("/Mu2e/ActiveRunConfiguration");
+        subkeys = self.client._odb_enum_key(hkey);
+
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'subkeys:{subkeys}')
         nfailed = 0;
         nleft   = 0;
         for i in range(0,30):
@@ -349,29 +387,29 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                 TRACE.TRACE(TRACE.TLVL_DEBUG,f'checking subsystem:{subsystem} enabled:{enabled}')
                 if (key[1].type == midas.TID_KEY):              # subsystem
                     subsystem = key[1].name.decode("utf-8");
-                    subsystem_path = '/Mu2e/Commands/'+subsystem;
-                    enabled   = self.client.odb_get(subssytem_path+"/Enabled")
+                    subsystem_path     = '/Mu2e/ActiveRunConfiguration/'+subsystem;
+                    subsystem_cmd_path = '/Mu2e/Commands/'+subsystem;
+                    enabled            = self.client.odb_get(subsystem_path+'/Enabled')
                     TRACE.TRACE(TRACE.TLVL_DEBUG,f'checking subsystem:{subsystem} enabled:{enabled}')
                     if ( enabled == 0): continue;
 
-                    cmd_path       = subsystem_path;
-                    doit       = self.client.odb_get(cmd_path+"/Run");
-                    if (doit == 1):
+                    finished = self.client.odb_get(cmd_path+"/Finished");
+                    if (finished == 0):
                         # the command is still being executed
-                        TRACE.TRACE(TRACE.TLVL_DEBUG,f'subsystem:{subsystem} is still being configured')
+                        TRACE.TRACE(TRACE.TLVL_DEBUG,f'subsystem:{subsystem} is still executing the command')
                         nleft += 1
                         continue
                     else:
-                        # apparently the command has finished, check status
-                        result_checked = self.client.odb_get(cmd_path+"/ResultChecked");
-                        if (result_checked == 0):
+                        # the command has finished, check status
+                        return_code = self.client.odb_get(subsystem_cmd_path+"/ReturnCode");
+                        if (return_code == 0):
                             result_checked = 1
                             status         = self.client.odb_get(cmd_path+"/Status")
                             TRACE.TRACE(TRACE.TLVL_DEBUG,f'subsystem:{subsystem} configured, status:{status}')
                             if (status < 0):
                                 nfailed += 1
 #------------------------------------------------------------------------------
-# check the number of not-finished configure processes
+# check the number of not-finished configure processes and set their status to -1
 #-----------v------------------------------------------------------------------
             TRACE.TRACE(TRACE.TLVL_DEBUG,f'end of iteration:{i} nleft:{nleft} nfailed:{nfailed}')
             if (nleft == 0) : break;
@@ -379,56 +417,23 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 # wait period finished, check status
 #-------v----------------------------------------------------------------------
         TRACE.TRACE(TRACE.TLVL_DEBUG,f'nleft:{nleft} nfailed:{nfailed}')
+        rc = 0;
         if (nleft == 0) and (nfailed == 0):
-            # configure finished successfully
-            self.client.odb_set("/Mu2e/Commands/Global/Status",CMD_STATUS_FINISHED_OK)
+#------------------------------------------------------------------------------
+# all subsystems successfully executed the command
+#------------------------------------------------------------------------------
+            self.client.odb_set(self.cmd_top_path+'/ReturnCode',0)
         else:
+            rc = -nleft-nfailed;
             TRACE.TRACE(TRACE.TLVL_ERROR,f'nleft:{nleft} nfailed:{nfailed}')
-            self.client.odb_set("/Mu2e/Commands/Global/Status",-nleft-nfailed)
+            self.client.odb_set(self.cmd_top_path+'/ReturnCode',-nleft-nfailed)
 #------------------------------------------------------------------------------
 # and mark command execution as finished, done
 #-------v----------------------------------------------------------------------
-        self.client.odb_set('/Mu2e/Command/State'        ,0)
-        self.client.odb_set('/Mu2e/Command/ResultChecked',1)
-        self.client.odb_set('/Mu2e/Command/Doit'         ,0)
+        self.client.odb_set(self.cmd_top_path+'/Finished'     ,1 )
+        self.client.odb_set(self.cmd_top_path+'/ReturnCode'   ,rc)
         TRACE.TRACE(TRACE.TLVL_DEBUG,"FINISHED")
-        return
-
-#-------v-----------------------------------------------------------------------
-# process_command is called when odb['/Mu2e/Command/Doit'] = 1
-# in the end, it should set is back to zero
-# a caller chould be first checking id Doit == 0 
-#---v--------------------------------------------------------------------------
-    def process_command(self, client, path, new_value):
-        """
-        callback : configure the detector, set 'Configure' back to zero when done
-        """
-        TRACE.TRACE(TLVL_DEBUG,f'path:{path}',TRACE_NAME);
-        doit = self.client.odb_get("/Mu2e/Commands/Global/Run")
-
-                    #        TLOG(TLVL_INFO) << "Process Command:" << key.name << "Value:" << run
-#        << " Parameters: "    << params   << " Status:" << status;
-
-        if (doit != 1):
-#-------^----------------------------------------------------------------------
-# likely, self-resetting the request
-#------------------------------------------------------------------------------
             
-            TRACE.TRACE(TRACE.TLVL_ERROR,f'/Mu2e/Command/Doit:{doit}, BAIL OUT',TRACE_NAME);
-            return
-#-----------^------------------------------------------------------------------
-# otherwise, loop over all subdetectors in /Mu2e/ActiveConfig and pass the Configure
-# command to subsystems
-#-------v----------------------------------------------------------------------
-        cmd_name = self.client.odb_get("/Mu2e/Command/Name")
-        params   = self.client.odb_get("/Mu2e/Command/Parameters")
-#------------------------------------------------------------------------------
-# mark command as being executed
-#------------------------------------------------------------------------------
-        self.client.odb_set("/Mu2e/Command/Status",CMD_STATUS_IN_PROGRESS)
-
-        if (cmd_name.upper() == 'CONFIGURE'):
-            process_configure();
         return
 
 if __name__ == "__main__":

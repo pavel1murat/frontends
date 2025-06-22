@@ -18,34 +18,63 @@
       function loadPage() {
         const urlParams    = new URLSearchParams(window.location.search);
 //-----------------------------------------------------------------------------
-// CFO status table
+// CFO and TFM status table
 //-----------------------------------------------------------------------------
-        const cfo_status_table = document.getElementById("cfo_status_table");
-        cfo_status_table.innerHTML = 'CFO status table: to be added <br>';
-        const r1 = document.createElement("tr");
-        cfo_status_table.appendChild(r1);
+        const tfm_status_table = document.getElementById("tfm_status_table");
+        tfm_status_table.innerHTML =
+        `<thead>
+          <tr> <td colspan=2> <div class="mtableheader">CFO and TFM status </div> </td> </tr>
+        </thead>`;
+
+        const tfm_r1 = document.createElement("tr");
+
+        // TFM cell
+        const tfm_odb_path = `/Mu2e/ActiveRunConfiguration/DAQ/Tfm`;
+        const tfm_cell = document.createElement("td");
+        tfm_cell.innerHTML = `<button onclick="tfm_control()">TFM</button>`;
+        tfm_cell.colSpan = 1;
+        set_colors(tfm_odb_path,tfm_cell);
+        // Poll for updates
+        setInterval(() => {set_colors(tfm_odb_path,tfm_cell);},2000);
         
+        tfm_r1.appendChild(tfm_cell);
+
+        const cfo_path   = `/Mu2e/ActiveRunConfiguration/DAQ/CFO`;
+        const tfm_cell_2 = document.createElement("td");
+        tfm_cell_2.colSpan = 1;
+        tfm_cell_2.innerHTML = `<button onclick="cfo_status()">CFO</button>`;
+        setInterval(() => {set_colors(cfo_path,tfm_cell_2);},2000);
+        
+        tfm_r1.appendChild(tfm_cell_2);
+        
+        tfm_status_table.appendChild(tfm_r1);
 //-----------------------------------------------------------------------------
 // DAQ nodes table
 //-----------------------------------------------------------------------------
-        const table        = document.getElementById("daq_nodes");
+        const daq_nodes_table  = document.getElementById("daq_nodes_table");
       
       // Set the table title dynamically
         const title = document.querySelector("#table-title");
         title.textContent = `DAQ status`;
       
       // Clear existing table rows
-        table.innerHTML = `
+        daq_nodes_table.innerHTML = `
             <thead>
                <tr>
-                  <th> node </th>
-                  <th colspan="10">Processes</th>
+                  <th colspan="12"> <div class="mtableheader">DAQ nodes status</div></th>
                </tr>
             </thead>
             <tbody></tbody>
          `;
         
-        const tbody = table.querySelector("tbody");
+        const tbody = daq_nodes_table.querySelector("tbody");
+        tbody.innerHTML = `
+               <tr>
+                  <td> <div>node </div></td>
+                  <td colspan="2"><div>DTCs </div></td>
+                  <td colspan="8"><div>Processes</div></td>
+               </tr>`
+
         
         const nodes_path   = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes`;
         
@@ -55,6 +84,7 @@
           let keys    = Object.keys(nodesp);
           let values  = Object.values(nodesp);
           let entries = Object.entries(nodesp);
+
           nkeys = keys.length;
           for (let i = 1; i < nkeys; i+=2) {
 //-----------------------------------------------------------------------------
@@ -145,10 +175,10 @@
    <div id="mmain">
       <h1 id="table-title">DAQ nodes</h1>
 
-      <table class="mtable" id="cfo_status_table">  <!-- CFO status -->
+      <table class="mtable" id="tfm_status_table">  <!-- TFM status -->
       </table>
       
-      <table class="mtable" id="daq_nodes">   <!-- DAQ nodes -->
+      <table class="mtable" id="daq_nodes_table">   <!-- DAQ nodes -->
       </table>
    </div>
 </body>
