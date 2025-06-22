@@ -189,8 +189,8 @@
           <td>
             <input type=button value='load parameters'    onClick='trk_panel_load_parameters(g_station,g_plane,g_panel)'>
             <input type=button value='cycle LV'           onClick='trk_command_set_odb("cycle_lv")'>
-            <input type=button value='measure thresholds' onClick='trk_command_set_odb("trk_measure_thresholds")'>
-            <input type=button value='print status'       onClick='trk_command_set_odb("trk_panel_print_status")'>
+            <input type=button value='measure thresholds' onClick='trk_command_set_odb("measure_thresholds")'>
+            <input type=button value='print status'       onClick='trk_command_set_odb("panel_print_status")'>
           </td>
         </tr>
 <!--  --------------------------------------------  -->
@@ -241,7 +241,6 @@
           
           <table class="mtable" id="cmd_params">    <!-- Table content is generated dynamically -->
           </table>
-          
         </div>
         
         <div class="column"; style="width:52%"> <!-- gets pushed to the left -->

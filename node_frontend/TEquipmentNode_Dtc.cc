@@ -110,9 +110,9 @@ TMFeResult TEquipmentNode::InitDtc() {
           try {
             roc_id      = dtc_i->GetRocID         (i);
             TLOG(TLVL_DEBUG) << "roc_id:" << roc_id;
-            dtc_i->GetRocDesignInfo (i);
+            design_info = dtc_i->GetRocDesignInfo (i);
             TLOG(TLVL_DEBUG) << "design_info:" << design_info;
-            git_commit  = "READ_DISABLED" ; // dtc_i->GetRocFwGitCommit(i);
+            git_commit  = dtc_i->GetRocFwGitCommit(i);
             TLOG(TLVL_DEBUG) << "git_commit:" << git_commit;
           }
           catch(...) {

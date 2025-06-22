@@ -8,33 +8,10 @@ let g_panel    = 0;
 let g_mnid     = 0;
 
 //-----------------------------------------------------------------------------
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-
+// messages go to tracker.log
 //-----------------------------------------------------------------------------
-function displayFile(filePath, elementId) {
-//  // const fs = require('fs');
-//  try {
-//    const response = await fetch(filePath);
-//    if (!response.ok) {
-//      throw new Error(`HTTP error! status: ${response.status}`);
-//    }
-//    const text = await response.text();
-//    document.getElementById(elementId).textContent = text;
-//  } catch (error) {
-//    document.getElementById(elementId).textContent = 'Error: ' + error.message;
-  //  }
-
-  var result = null;
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", filePath, false);
-  xmlhttp.send();
-  if (xmlhttp.status==200) {
-    document.getElementById(elementId).textContent = xmlhttp.responseText;
-  }
-  return result;
+function trk_panel_control(is, iplane, ipanel, mnid) {
+    window.location.href = `trk_panel_control.html?station=${is}&plane=${iplane}&panel=${ipanel}&mnid=${mnid}&facility=tracker`;
 }
 
 //-----------------------------------------------------------------------------      
@@ -82,6 +59,32 @@ function trk_choose_panel_id(evt, panel_id) {
   evt.currentTarget.className += " active";
   
   g_mnid = parseInt(panel_id.substring(2));
+//-----------------------------------------------------------------------------
+// after that, need to redefine geo indices
+  //-----------------------------------------------------------------------------
+  var x1 = Number(panel_id.charAt(2))*100;
+  var x2 = x1.toString();
+  var x  = x2.padStart(3,'0');
+  var panel_path = '/Mu2e/Subsystems/Tracker/PanelMap/'+x+'/'+panel_id+'/Panel';
+  var paths=[panel_path+'/Station', panel_path+'/Plane', panel_path+'/Panel'];
+  let station = -1;
+  let plane   = -1;
+  let panel   = -1;
+  mjsonrpc_db_get_values(paths).then(function(rpc) {
+    station = rpc.result.data[0];
+    plane   = rpc.result.data[1];
+    panel   = rpc.result.data[2];
+
+//    trk_choose_station_id(evt,station)
+//    trk_choose_plane_id  (evt,plane  )
+    g_station = station;
+    g_plane   = plane;
+    g_panel   = panel;
+  }).catch(function(error) {
+    mjsonrpc_error_alert(error);
+  });
+
+  
 
   console.log('g_panel=',g_mnid);
 }
@@ -138,7 +141,7 @@ function trk_command_set_odb(cmd) {
       mjsonrpc_error_alert(error);
     });
     done = finished;
-    };
+  };
   
   displayFile('tracker.log', 'output_window');
 }
@@ -211,6 +214,6 @@ function trk_load_parameters_init_readout() {
 //    Local Variables:
 //    tab-width: 8
 //    c-basic-offset: 2
-//    js-indent-level: 2
+//    js-indent-level: 0
 //    indent-tabs-mode: nil
 //    End:

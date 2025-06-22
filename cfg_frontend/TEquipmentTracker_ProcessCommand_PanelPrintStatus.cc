@@ -35,7 +35,9 @@ void TEquipmentTracker::ProcessCommand_PanelPrintStatus(const std::string& CmdPa
   TLOG(TLVL_DEBUG) << " panel_path:" << panel_path;
 
   midas::odb o_panel(panel_path);
-
+//-----------------------------------------------------------------------------
+// the name should be constructed based on the experiment name
+//-----------------------------------------------------------------------------
   std::ofstream output_file;
   output_file.open("/home/mu2etrk/test_stand/experiments/test_025/tracker.log",std::ios::app);
 

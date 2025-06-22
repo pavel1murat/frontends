@@ -17,11 +17,6 @@
   <title>Tracker Status</title>
 
   <script>
-
-    function redirectToPanels(is, iplane, ipanel, mnid) {
-      window.location.href = `tracker_panel_status.html?station=${is}&plane=${iplane}&panel=${ipanel}&mnid=${mnid}`;
-    }
-
 //-----------------------------------------------------------------------------
 // main function
 //-----------------------------------------------------------------------------
@@ -106,7 +101,7 @@
               mjsonrpc_db_get_values([mnid_path]).then(function (rpc) {
                 panel_name = rpc.result.data[0];
                 mnid = parseInt(panel_name.substring(2));
-                c1.innerHTML = `<button onclick="redirectToPanels('${i}','${k}', '${ip}', '${mnid}')"> ${panel_name} </button></div>`;
+                c1.innerHTML = `<button onclick="trk_panel_control('${i}','${k}', '${ip}', '${mnid}')"> ${panel_name} </button></div>`;
             
                 // Load initial values and set up polling for updates
 

@@ -34,7 +34,7 @@ function choose_roc_id(evt, roc_id) {
 }
 
 //-----------------------------------------------------------------------------
-// CFO frontend : the name shoudl be fixed! 
+// CFO frontend : the name should be fixed! 
 //-----------------------------------------------------------------------------
 function cfo_command(cmd) {
   let msg = { "client_name":"cfo_emu_fe", "cmd":cmd, "args":'{}'};
