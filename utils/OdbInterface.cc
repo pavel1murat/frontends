@@ -115,6 +115,23 @@ int OdbInterface::GetUInt32(HNDLE hDir, const char* Key, uint32_t* Data) {
 }
 
 //-----------------------------------------------------------------------------
+int OdbInterface::GetInteger(HNDLE hDir, const char* Key) {
+  int rc(0), res;
+  int sz = sizeof(int);
+
+  rc = db_get_value(_hDB, hDir, Key, &res, &sz, TID_INT, FALSE);
+  if (rc != DB_SUCCESS) {
+    KEY dbkey;
+    db_get_key(_hDB,hDir,&dbkey);
+    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << dbkey.name << "(" << hDir << ")";
+    res = -9999;
+  }
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " value:" << res;
+
+  return res;
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetInteger(HNDLE hDir, const char* Key, int* Data) {
   int rc(0);
   int sz = sizeof(int); 
@@ -486,12 +503,12 @@ std::string OdbInterface::GetCfoRunPlan(HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetPcieAddress(HNDLE hDB, HNDLE hCFO) {
+int OdbInterface::GetPcieAddress(HNDLE hCard) {
   const char* key {"PCIEAddress"};
   INT   data(-1);
   int   sz = sizeof(data);
-  if (db_get_value(hDB, hCFO, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "no CFO PCIE address, return -1";
+  if (db_get_value(_hDB, hCard, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "no PCIE address, return -1";
   }
   return data;
 }
@@ -576,17 +593,6 @@ std::string OdbInterface::GetTfmHostName(HNDLE hRunConf) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::SetStatus(HNDLE hElement, int Status) {
-  int rc(0);
-  HNDLE h = GetHandle(hElement,"Status");
-  if (db_set_data(_hDB,h,(void*) &Status,sizeof(int),1,TID_INT32) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "failed to set status:" << Status;
-    rc = -1;
-  }
-  return rc;
-}
-
-//-----------------------------------------------------------------------------
 int OdbInterface::SetRocID(HNDLE hLink, std::string& RocID) {
   int rc(0);
   HNDLE h = GetHandle(hLink,"DetectorElement/RocDeviceSerial");
@@ -617,5 +623,60 @@ int OdbInterface::SetRocFwGitCommit(HNDLE hLink, std::string& Commit) {
     rc = -1;
   }
   return rc;
+}
+
+//-----------------------------------------------------------------------------
+// commands
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetCommandHandle(const std::string& Subsystem) {
+  std::string path = "/Mu2e/Commands/"+Subsystem;
+  return GetHandle(0,path);
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetCommand_Run(HNDLE h_Cmd) {
+  return GetInteger(h_Cmd,"Run");
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetCommand_Name(HNDLE h_Cmd) {
+  return GetString(h_Cmd,"Name");
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetCommand_ParameterPath(HNDLE h_Cmd) {
+  return GetString(h_Cmd,"ParameterPath");
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetCommand_Finished(HNDLE h_Cmd) {
+  return GetInteger(h_Cmd,"Finished");
+}
+
+//-----------------------------------------------------------------------------
+void OdbInterface::SetInteger(HNDLE hElement, const char* Key, int Value) {
+  HNDLE h = GetHandle(hElement,Key);
+  if (db_set_data(_hDB,h,(void*) &Value,sizeof(int),1,TID_INT32) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to set Key:" << Key << " to : " << Value;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void OdbInterface::SetString(HNDLE hElement, const char* Key, const std::string& Value) {
+  HNDLE h = GetHandle(hElement,Key);
+  
+  if (db_set_data(_hDB,h,(void*) Value.data(),Value.length()+1,1,TID_STRING) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to set Key:" << Key << " to : " << Value;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void OdbInterface::SetStatus(HNDLE hElement, int Status) {
+  SetInteger(hElement,"Status",Status);
+}
+
+//-----------------------------------------------------------------------------
+void OdbInterface::SetCommand_Finished(HNDLE h_Cmd, int Value) {
+  SetInteger(h_Cmd,"Finished",Value);
 }
 

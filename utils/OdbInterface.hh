@@ -79,7 +79,7 @@ public:
   int         GetIsCrv            (HNDLE h_Card);
   int         SetLinkMask         (HNDLE h_Card, int Mask);
 
-  int         GetPcieAddress      (HNDLE h_DB, HNDLE h_Card); // card: either CFO or DTC
+  int         GetPcieAddress      (HNDLE h_Card); // card: either CFO or DTC
 //-----------------------------------------------------------------------------
 // tracker ROC readout mode = 0: var length length ROC patterns
 //                            1: digi patterns
@@ -106,12 +106,19 @@ public:
   std::string GetString           (HNDLE hConf, const char* Key);
 
   HNDLE       GetHandle           (HNDLE hDB, HNDLE hConf, const char* Key);
+  
+  int         GetInteger          (HNDLE hConf, const char* Key); // returns result
   int         GetInteger          (HNDLE hDB, HNDLE hConf, const char* Key, int* Data);
+
   std::string GetString           (HNDLE hDB, HNDLE hConf, const char* Key);
+
+  void        SetInteger          (HNDLE hElement, const char* Key, int Value);
+  void        SetString           (HNDLE hElement, const char* Key, const std::string& Value);
+
 
   // set status of a given configuration element
   
-  int         SetStatus           (HNDLE hElement, int Status);
+  void        SetStatus           (HNDLE hElement, int Status);
 //-----------------------------------------------------------------------------
 // an element corresponding to a ROC (in case of the tracker - a panel) stores
 // expect hLink subdirectory to have the following keys:
@@ -120,6 +127,16 @@ public:
   int         SetRocID            (HNDLE hLink, std::string& RocID     );
   int         SetRocDesignInfo    (HNDLE hLink, std::string& DesignInfo);
   int         SetRocFwGitCommit   (HNDLE hLink, std::string& Commit    );
+//-----------------------------------------------------------------------------
+// commands
+//------------------------------------------------------------------------------
+  HNDLE       GetCommandHandle        (const std::string& Subsystem);
+  int         GetCommand_Run          (HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
+  std::string GetCommand_Name         (HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
+  std::string GetCommand_ParameterPath(HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
+  int         GetCommand_Finished     (HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
+
+  void        SetCommand_Finished     (HNDLE h_Cmd, int Val); // retrieve a hopefully fixed attribute
 };
 
 #endif

@@ -44,8 +44,10 @@ void TEquipmentTracker::ProcessCommand_PulserOn(const std::string& CmdParameterP
   for (int is=first_station; is<last_station+1; ++is) {
     std::string station_path = std::format("{:s}/Station_{:02d}",tracker_config_path.data(),is);
     TLOG(TLVL_DEBUG) << " process station:" << is << " station_path:" << station_path;
-    midas::odb o_station(station_path);
-    if (o_station["Enabled"] == 0) continue;
+    // midas::odb o_station(station_path);
+    // if (o_station["Enabled"] == 0) continue;
+    HNDLE h_station = odb_i->GetHandle(0,station_path.data());
+    if (odb_i->GetEnabled(h_station) == 0) continue;
     for (int pln=0; pln<2; ++pln) {
       std::string plane_path = std::format("{:s}/Plane_{:02d}",station_path.data(),pln);
       TLOG(TLVL_DEBUG) << "          process plane:" << pln << " plane_path:" << plane_path;

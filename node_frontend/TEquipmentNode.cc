@@ -259,9 +259,9 @@ void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
 // 
 // this is address of the parameter record
 //-----------------------------------------------------------------------------
-  // parameter_path += "/";
-  // parameter_path += dtc_cmd;
-  TLOG(TLVL_DEBUG) << "dtc_cmd:" << dtc_cmd << " parameter_path:" << parameter_path;
+  TLOG(TLVL_DEBUG) << "dtc_cmd:" << dtc_cmd;
+  TLOG(TLVL_DEBUG) << "parameter_path:" << parameter_path;
+
   midas::odb o_par(parameter_path);
   TLOG(TLVL_DEBUG) << "-- parameters found";
 //-----------------------------------------------------------------------------
@@ -285,12 +285,26 @@ void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
                      << " pulser_delay:" << pulser_delay;
     try {
       dtc_i->ControlRoc_PulserOn(link,first_channel_mask,duty_cycle,pulser_delay);
-      o_dtc_cmd["Finished"] = 1;
     }
     catch(...) {
       TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserON ... BAIL OUT";
     }
   }
+  else if (dtc_cmd == "control_roc_pulser_off") {
+    int link               = o_par["link"       ];
+    int print_level        = o_par["print_level"];
+
+    TLOG(TLVL_DEBUG) << "link:" << link
+                     << " print_level:" << print_level;
+    try {
+      dtc_i->ControlRoc_PulserOff(link,print_level);
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserOFF ... BAIL OUT";
+    }
+  }
+  
+  o_dtc_cmd["Finished"] = 1;
   
   TLOG(TLVL_DEBUG) << "-- END";
 }
