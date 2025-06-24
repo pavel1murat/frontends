@@ -142,19 +142,37 @@ void TEquipmentTracker::HandlePeriodic() {
 void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "--- START"; 
 
-  midas::odb o_tracker_cmd("/Mu2e/Commands/Tracker");
-  if (o_tracker_cmd["Run"] == 0) {
+  // midas::odb o_tracker_cmd("/Mu2e/Commands/Tracker");
+  // if (o_tracker_cmd["Run"] == 0) {
+  //   TLOG(TLVL_DEBUG) << "self inflicted, return";
+  //   return;
+  // }
+
+  OdbInterface* odb_i = OdbInterface::Instance();
+  
+  HNDLE h_tracker_cmd = odb_i->GetCommandHandle("Tracker"); // returns handle of '/Mu2e/Commands/Tracker'
+  if (odb_i->GetCommand_Run(h_tracker_cmd) == 0) {
     TLOG(TLVL_DEBUG) << "self inflicted, return";
     return;
   }
 
   std::string tracker_config_path = "/Mu2e/ActiveRunConfiguration/Tracker";
-  midas::odb o_tracker_config(tracker_config_path);
-  fg_EqTracker->_first_station = o_tracker_config["FirstStation"];
-  fg_EqTracker->_last_station  = o_tracker_config["LastStation" ];
 
-  std::string tracker_cmd        = o_tracker_cmd["Name"];
-  std::string cmd_parameter_path = o_tracker_cmd["ParameterPath"];
+  // midas::odb o_tracker_config(tracker_config_path);
+  // o_tracker_config["Status"]     = 1; // BUSY
+
+  HNDLE h_tracker_config  = odb_i->GetHandle(0,tracker_config_path);
+  odb_i->SetStatus(h_tracker_config,1);
+
+  fg_EqTracker->_first_station   = odb_i->GetInteger(h_tracker_config,"FirstStation"); // o_tracker_config["FirstStation"];
+  fg_EqTracker->_last_station    = odb_i->GetInteger(h_tracker_config,"LastStation" ); // o_tracker_config["LastStation" ];
+
+  // std::string tracker_cmd        = o_tracker_cmd["Name"];
+  // std::string cmd_parameter_path = o_tracker_cmd["ParameterPath"];
+
+  std::string tracker_cmd        = odb_i->GetCommand_Name         (h_tracker_cmd);
+  std::string cmd_parameter_path = odb_i->GetCommand_ParameterPath(h_tracker_cmd);
+
   cmd_parameter_path            += "/"+tracker_cmd;
 
   TLOG(TLVL_DEBUG) << "tracker_cmd:" << tracker_cmd
@@ -164,14 +182,11 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   else if (tracker_cmd == "control_roc_pulser_off") ProcessCommand_PulserOff(cmd_parameter_path);
   else if (tracker_cmd == "panel_print_status"    ) ProcessCommand_PanelPrintStatus(cmd_parameter_path);
   else if (tracker_cmd == "trk_reset_output"      ) ProcessCommand_ResetOutput();
-
 //-----------------------------------------------------------------------------
 // mark execution as completed
 //-----------------------------------------------------------------------------
-                                        // just playing
-  ss_sleep(100);
-  o_tracker_cmd["Finished"] = 1;
-  //  o_tracker_cmd["Run"     ] = 0;
-  
-  TLOG(TLVL_DEBUG) << "--- END"; 
+  odb_i->SetStatus(h_tracker_config,0); // o_tracker_config["Status"  ] = 0; // READY
+  odb_i->SetCommand_Finished(h_tracker_cmd,1);
+  int finished = odb_i->GetCommand_Finished(h_tracker_cmd);
+  TLOG(TLVL_DEBUG) << "--- END, o_tracker_cmd[\"Finished\"]:" << finished; 
 }
