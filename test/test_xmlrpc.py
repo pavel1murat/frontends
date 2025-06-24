@@ -14,7 +14,8 @@ import inspect
 class TestXmlrpc:
     
     def __init__(self):
-        self.port    = 21000;
+        self.host    = "mu2edaq22-ctrl";
+        self.port    = 21101;
         self.test    = 'undefined';
         self.verbose = 0;
         
@@ -34,7 +35,7 @@ class TestXmlrpc:
 
         try:
             optlist, args = getopt.getopt(sys.argv[1:], '',
-                     ['port=', 'test=', 'verbose=' ] )
+                     ['host=', 'port=', 'test=', 'verbose=' ] )
  
         except getopt.GetoptError:
             self.Print(name,0,'%s' % sys.argv)
@@ -45,11 +46,13 @@ class TestXmlrpc:
 
             # print('key,val = ',key,val)
 
-            if key == '--port':
+            if   (key == '--host'):
+                self.host = val
+            elif (key == '--port'):
                 self.port = val
-            if key == '--test':
+            elif (key == '--test'):
                 self.test = val
-            elif key == '--verbose':
+            elif (key == '--verbose'):
                 self.verbose = int(val)
 
         self.Print(name,1,'test      = %s' % self.test)
@@ -67,6 +70,14 @@ class TestXmlrpc:
         s = xmlrpc.client.ServerProxy('http://mu2edaq22-ctrl.fnal.gov:21000')
         # xmlrpc http://mu2edaq22-ctrl.fnal.gov:21000/RPC2 get_state daqint 
         print(s.get_state("daqint"))
+        a = 0;
+#       print(s.get_messages(a))
+
+#------------------------------------------------------------------------------
+    def test2(self):
+        s = xmlrpc.client.ServerProxy('http://mu2edaq22-ctrl.fnal.gov:21000')
+        # xmlrpc http://mu2edaq22-ctrl.fnal.gov:21000/RPC2 get_state daqint 
+        # print(s.get_state("daqint"))
         print(s.state())
         # s.alarm("emoe")
         a = 0;
@@ -75,10 +86,11 @@ class TestXmlrpc:
 #------------------------------------------------------------------------------
 # print statistics reported by a given artdaq process
 #------------------------------------------------------------------------------
-    def test2(self):
+    def test3(self):
         url = f'http://mu2edaq22-ctrl.fnal.gov:{self.port}'
-        s = xmlrpc.client.ServerProxy(url)
-        print(s.daq.report("stats"))
+        s   = xmlrpc.client.ServerProxy(url)
+        res = s.daq.report("stats");
+        print(res);
 
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
@@ -90,3 +102,5 @@ if __name__ == "__main__":
         x.test1()
     elif (x.test == "t2"):
         x.test2()
+    elif (x.test == "t3"):
+        x.test3()
