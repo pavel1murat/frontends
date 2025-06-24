@@ -126,6 +126,7 @@ public:
   TMFeResult         InitArtdaq             ();
   void               InitArtdaqVarNames     ();
   void               ReadArtdaqMetrics      ();
+  int                ReadBrMetrics_Old(const ArtdaqComponent_t* Ac);
   int                ReadBrMetrics          (const ArtdaqComponent_t* Ac);
   int                ReadDataReceiverMetrics(const ArtdaqComponent_t* Ac);
   int                ReadDsMetrics          (const ArtdaqComponent_t* Ac);

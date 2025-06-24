@@ -455,10 +455,10 @@ std::string executeCommandAndGetOutput(const std::string& command) {
 //-----------------------------------------------------------------------------
 int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
 
-  std::string command = std::format("python config/scripts/test_xmlrpc.py --test={:s} --host={:s} --port={:d}",
-                                    Test,Host,Port); // Example command to execute
+  // std::string command = std::format("python config/scripts/test_xmlrpc.py --test={:s} --host={:s} --port={:d}",
+  //                                   Test,Host,Port); // Example command to execute
 
-  std::string output  = executeCommandAndGetOutput(command);
+  // std::string output  = executeCommandAndGetOutput(command);
 
   
 
