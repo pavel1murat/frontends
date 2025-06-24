@@ -103,6 +103,7 @@ mkdir -p config/scripts
 
 for s in cleanup_partition      \
          get_next_run_number.py \
+         artdaq_xmlrpc.py       \
          start_node_frontend.sh \
          start_rpi_frontend.py  ; do
     cp $env_name/frontends/scripts/$s config/scripts/.

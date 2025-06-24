@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-# remote_node - the name of the pi - has to be present
+# remote_node - the name of the RPI - has to be present
 # currently: trackerpi11, trackerpi12
 
 remote_node=$1

@@ -29,7 +29,8 @@ cet_set_compiler_flags(
 #------------------------------------------------------------------------------
 cet_make_library(LIBRARY_NAME frontends::utils
                  SOURCE
-                 db_runinfo.cc mu2e_sc.cc
+                 db_runinfo.cc
+                 mu2e_sc.cc
                  get_xmlrpc_url.cc utils.cc
                  get_host_name.cc
                  MidasInterface.cc

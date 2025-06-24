@@ -36,7 +36,7 @@ class TestXmlrpc:
 
         try:
             optlist, args = getopt.getopt(sys.argv[1:], '',
-                     ['diag_level=', 'host=', 'port=', 'test=' ] )
+                     ['diag_level=', 'host=', 'port=', 'test=', 'url=' ] )
  
         except getopt.GetoptError:
             self.Print(name,0,'%s' % sys.argv)
@@ -205,7 +205,7 @@ class TestXmlrpc:
 #  Event counts: Run -- 141600 Total, 0 Incomplete.  Subrun -- 0 Total, 0 Incomplete. 
 #shm_nbb :50:1153440:50:0:0:0
 #---v--------------------------------------------------------------------------
-    def parse_eb_metrics(self):
+    def parse_dr_metrics(self):
         name   = 'parse_eb_metrics';
         s      = xmlrpc.client.ServerProxy(self.url)
         res    = s.daq.report("stats");
@@ -266,10 +266,10 @@ class TestXmlrpc:
             w       = lines[4].split();
             self.Print(name,1,f'line 5: w:{w}');
 
-            output += f', "nevt_tot_rn":{w[4]}'
-            output += f', "nevt_bad_rn":{w[6]}'
-            output += f', "nevt_tot_sr":{w[10]}'
-            output += f', "nevt_bad_sr":{w[12]}'
+            output += f', "nev_tot_rn":{w[4]}'
+            output += f', "nev_bad_rn":{w[6]}'
+            output += f', "nev_tot_sr":{w[10]}'
+            output += f', "nev_bad_sr":{w[12]}'
 #------------------------------------------------------------------------------
 #shm_nbb :50:1153440:50:0:0:0
 #-----------v------------------------------------------------------------------
@@ -304,5 +304,5 @@ if __name__ == "__main__":
         x.test3()
     elif (x.test == "parse_br_metrics"):
         x.parse_br_metrics()
-    elif (x.test == "parse_eb_metrics"):
-        x.parse_eb_metrics()
+    elif (x.test == "parse_dr_metrics"):
+        x.parse_dr_metrics()
