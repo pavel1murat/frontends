@@ -7,7 +7,6 @@
 #include <string>
 
 #include "midas.h"
-
 //-----------------------------------------------------------------------------
 // global variables - bad, but no way around without changing the interfaces
 // make the name ugly in hope to get rid of this 
@@ -28,5 +27,10 @@ std::string get_short_host_name(const char* Subnet);
 // for a given artdaq node and a component name, return XMLRPC url
 //-----------------------------------------------------------------------------
 int get_xmlrpc_url(HNDLE& hDB, HNDLE& hArtdaqNode, const char* Hostname, int Partition, const char* Component, std::string& Url);
+
+//-----------------------------------------------------------------------------
+// execute shell command and get its stdout printout
+//-----------------------------------------------------------------------------
+std::string popen_shell_command(const std::string& command);
 
 #endif

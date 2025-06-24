@@ -123,13 +123,12 @@ public:
   
   static void        ProcessCommand(int hDB, int hKey, void* Info);
 
-  TMFeResult         InitArtdaq             ();
-  void               InitArtdaqVarNames     ();
-  void               ReadArtdaqMetrics      ();
-  int                ReadBrMetrics_Old(const ArtdaqComponent_t* Ac);
-  int                ReadBrMetrics          (const ArtdaqComponent_t* Ac);
-  int                ReadDataReceiverMetrics(const ArtdaqComponent_t* Ac);
-  int                ReadDsMetrics          (const ArtdaqComponent_t* Ac);
+  TMFeResult         InitArtdaq        ();
+  void               InitArtdaqVarNames();
+  void               ReadArtdaqMetrics ();
+  int                ReadBrMetrics     (const ArtdaqComponent_t* Ac);
+  int                ReadDrMetrics     (const ArtdaqComponent_t* Ac);
+  int                ReadDsMetrics     (const ArtdaqComponent_t* Ac);
 
 };
 #endif
