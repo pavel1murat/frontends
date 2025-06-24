@@ -147,9 +147,9 @@ function trk_command_set_odb(cmd) {
 }
 
 //-----------------------------------------------------------------------------
-function trk_clear_window(element) {
+function trk_reset_output(element) {
 //  clear_window(element)
-  trk_command_set_odb("trk_reset_output")
+  trk_command_set_odb("reset_output")
 }
 
 //-----------------------------------------------------------------------------

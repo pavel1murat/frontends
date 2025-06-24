@@ -188,8 +188,281 @@ void TEquipmentNode::InitArtdaqVarNames() {
 }
 
 //-----------------------------------------------------------------------------
-int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
+int TEquipmentNode::ReadBrMetrics_Old(const ArtdaqComponent_t* Ac) {
   
+  // two words per process - N(segments/sec) and the data rate, MB/sec
+  int            rc(0);
+  xmlrpc_env     env;
+  xmlrpc_value*  resultP;
+  xmlrpc_client* clientP;
+  
+  BrMetrics_t    brm;
+  
+  const char* url = Ac->xmlrpc_url.data();
+  TLOG(TLVL_DEBUG+1) << "000: Url:" << url;
+
+  std::string res;
+  int         nf(-1);
+
+  try {
+    xmlrpc_env_init(&env);  // P.M. : use _env - it should be initialized - may be not ?
+
+    xmlrpc_client_create(&env, XMLRPC_CLIENT_NO_FLAGS, "read_br_metrics", "0.1", NULL,0,&clientP);
+    int timeout_ms(1000);
+    xmlrpc_client_event_loop_finish_timeout(clientP, timeout_ms);
+
+                               // "({s:i,s:i})",
+    xmlrpc_client_call2f(&env,clientP,url,"daq.report",&resultP, "(s)","stats");
+    if (env.fault_occurred) {
+      rc = env.fault_code;
+      TLOG(TLVL_ERROR) << "XML-RPC rc=" << env.fault_code << " output:" << env.fault_string;
+      // throw;
+      goto DONE_PARSING;
+    }
+//-----------------------------------------------------------------------------
+// XML-RPC call successful, see what came back
+//-----------------------------------------------------------------------------
+    const char* value;
+    size_t      length;
+    xmlrpc_read_string_lp(&env, resultP, &length, &value);
+    
+    res = value;
+    xmlrpc_DECREF   (resultP);
+//-----------------------------------------------------------------------------
+// parsing
+//-----------------------------------------------------------------------------
+    if (res.find("Failed") == 0) {
+                                        // RPC comm failed
+      rc = -1;
+      TLOG(TLVL_ERROR) << "002 ERROR: res=" << res;
+      // throw;
+      goto DONE_PARSING;
+    }
+//-----------------------------------------------------------------------------
+// parsing, normal output should contain 6 lines
+//-----------------------------------------------------------------------------
+    std::vector<std::string> lines;
+    boost::split(lines,res,boost::is_any_of("\n"));
+    int nlines = lines.size();
+    TLOG(TLVL_DEBUG+1) << "001: nlines:" << nlines;
+    if (nlines < 4+Ac->n_fragment_types) {
+      rc = -10-nlines;
+      TLOG(TLVL_ERROR) << "002 ERROR: nlines=" << nlines;
+      // throw;
+      goto DONE_PARSING;
+    }
+//-----------------------------------------------------------------------------
+// first line
+// 0:  br01 statistics:\n
+//-----------------------------------------------------------------------------
+    // boost::trim(lines[0]); 
+    // TLOG(TLVL_DEBUG+1) << "002: lines[0]:" << lines[0];
+
+    vector<string> words;                                // words of the lines[0]
+    // boost::split(words,lines[0],boost::is_any_of(" ,"));
+
+    // TLOG(TLVL_DEBUG+1) << "003: lines[0].words[4]:" << words[4] << " lines[0].words[10]:" << words[10];
+    // brs.runNumber = std::stoi(words[ 4]);
+    // brs.nFragTot  = std::stoi(words[10]);
+//-----------------------------------------------------------------------------
+// second line: 
+// 1:    Fragments read: 74828 fragments generated at 623.496 getNext calls/sec, fragment rate = 1246.99 fragments/sec, monitor window = 60.0068 sec, min::max read size = 2::2 fragments  Average times per fragment:  elapsed time = 0.00160386 sec\n
+//-----------------------------------------------------------------------------
+    boost::trim(lines[1]); 
+
+    words.clear();
+    boost::split(words,lines[1],boost::is_any_of(" "));
+
+    TLOG(TLVL_DEBUG+1) << "004: lines[1]:" << lines[1];
+    TLOG(TLVL_DEBUG+1) << "005: lines[1].nwords:" << words.size();
+
+    brm.nf_read      = std::stoi(words[ 2]);
+    brm.getNextRate  = std::stof(words[ 6]);
+    brm.fr_rate      = std::stof(words[12]);
+    brm.time_window  = std::stof(words[17]);
+    
+    vector<string> n1;
+    boost::split(n1,words[23],boost::is_any_of(":"));
+
+    TLOG(TLVL_DEBUG+1) << "006: lines[1],words[23]:" << words[23] << " n1.size():" << n1.size() << " n1[0]:" << n1[0] << " n1[2]:" << n1[2] ;
+    
+    brm.min_nf      = std::stoi(n1[ 0]);
+    brm.max_nf      = std::stoi(n1[ 2]);
+    TLOG(TLVL_DEBUG+1) << "007: brm.min_nf: " << brm.min_nf << " brm.max_nf: " << brm.max_nf << " words[32]: " << words[32];
+//-----------------------------------------------------------------------------
+// it looks that there are some TAB characters hidden
+//-----------------------------------------------------------------------------
+    TLOG(TLVL_DEBUG+1) << "008: words[32]: " << words[32] << " words[33]: " << words[33];
+    brm.elapsed_time = std::stof(words[33]);
+    TLOG(TLVL_DEBUG+1) << "009: brm.elapsed_time: " << brm.elapsed_time;
+//-----------------------------------------------------------------------------
+// third line
+// Fragment output statistics: 74827 fragments sent at 1246.97 fragments/sec, effective data rate = 0.584226 MB/sec, monitor window = 60.0068 sec, min::max event size = 0.000457764::0.000534058 MB\n
+//-----------------------------------------------------------------------------
+    boost::trim(lines[2]); 
+    TLOG(TLVL_DEBUG+1) << "010: lines[2]:" << lines[2];
+
+    words.clear();
+    boost::split(words,lines[2],boost::is_any_of(" "));
+
+    brm.nf_sent     = std::stof(words[ 3]);
+    brm.output_fr   = std::stof(words[ 7]);
+    brm.output_dr   = std::stof(words[13]);
+    brm.output_mw   = std::stof(words[18]);
+
+    vector<string> n2;
+    boost::split(n2,words[24],boost::is_any_of(":"));
+    brm.min_evt_size = std::stof(n2[ 0]);
+    brm.max_evt_size = std::stof(n2[ 2]);
+
+    TLOG(TLVL_DEBUG+1) << "011: lines[2].nwords:" << lines[2].size()
+                       << " words[3]:" << words[3] << " words[7]:" << words[7]
+                       << " n2[0]:" << n2[0] << " n2[2]:" << n2[2];
+//-----------------------------------------------------------------------------
+// line # 4
+//    Input wait time = 0.00156023 s/fragment, buffer wait time = 4.04943e-05 s/fragment, request wait time = 0.00075403 s/fragment, output wait time = 3.5861e-05 s/fragment\n
+//-----------------------------------------------------------------------------
+    boost::trim(lines[3]); 
+
+    words.clear();
+    boost::split(words,lines[3],boost::is_any_of(" "));
+    TLOG(TLVL_DEBUG+1) << "012: words[4]:" << words[4] << " words[10]:" << words[10] 
+                         << " words[16]:" << words[16]  << " words[22]:" << words[22];
+    brm.inp_wait_time = std::stof(words[ 4]);
+    brm.buf_wait_time = std::stof(words[10]);
+    brm.req_wait_time = std::stof(words[16]);
+    brm.out_wait_time = std::stof(words[22]);
+//-----------------------------------------------------------------------------
+// n fragments
+// 4: fragment_id:0 nfragments:0 nbytes:0 max_nf:1000 max_nb:1048576000
+//-----------------------------------------------------------------------------
+    nf = nlines-4;
+    if (nf > 5) nf = 5;
+
+    TLOG(TLVL_DEBUG+1) << "013: nf = " << nf;
+
+    for (int i=0; i<nf; i++) {
+      boost::trim(lines[4+i]); 
+
+      TLOG(TLVL_DEBUG+1) << "014: i=" << i << " lines[4+i]:" << lines[4+i];
+      words.clear();
+      boost::split(words,lines[4+i],boost::is_any_of(" "));
+//-----------------------------------------------------------------------------
+//
+//-----------------------------------------------------------------------------
+      TLOG(TLVL_DEBUG+1) << "015: words.size()" << words.size();
+      int nww = words.size();
+      for (int k=0; k<nww; k++) TLOG(TLVL_DEBUG+1) << "016: k:" << k << "words[k]:" << words[k];
+
+      try {
+        vector<string> num;
+        boost::split(num,words[0],boost::is_any_of(":"));
+        brm.fr_id [i] = std::stoi (num[ 1]);
+      
+        num.clear();
+        boost::split(num,words[1],boost::is_any_of(":"));
+        brm.nf_shm[i] = std::stoi (num[ 1]);
+
+        num.clear();
+        boost::split(num,words[2],boost::is_any_of(":"));
+        brm.nb_shm[i] = std::stoi(num[ 1]);
+      }
+      catch(...) {
+        TLOG(TLVL_ERROR) << "coudnt parse:" << lines[4+i];
+      }
+    }
+  }
+  catch (...) {
+    TLOG(TLVL_ERROR) << "res:" << res;
+  }
+//-----------------------------------------------------------------------------
+// done with parsing, copy to the Data
+//-----------------------------------------------------------------------------
+ DONE_PARSING:
+  char buf[1024];
+  
+  ComposeEvent(buf, sizeof(buf));
+  BkInit      (buf, sizeof(buf));
+  double* ptr = (double*) BkOpen(buf, Ac->name.data(), TID_DOUBLE);
+     
+  *ptr++ = brm.nf_read;        // 
+  *ptr++ = brm.getNextRate;
+  *ptr++ = brm.fr_rate;
+  *ptr++ = brm.time_window;
+  *ptr++ = brm.min_nf;
+  *ptr++ = brm.max_nf;
+  *ptr++ = brm.elapsed_time;
+  *ptr++ = brm.nf_sent;
+  *ptr++ = brm.output_fr;
+  *ptr++ = brm.output_dr;
+  *ptr++ = brm.output_mw;
+  *ptr++ = brm.min_evt_size;
+  *ptr++ = brm.max_evt_size;
+  *ptr++ = brm.inp_wait_time;
+  *ptr++ = brm.buf_wait_time;
+  *ptr++ = brm.req_wait_time;
+  *ptr++ = brm.out_wait_time;
+//-----------------------------------------------------------------------------
+// shared memory
+//-----------------------------------------------------------------------------
+  double* psave = ptr;
+  if (nf <= 5) {
+    for (int i=0; i<nf; i++) {
+      *ptr      = brm.fr_id [i];
+      *(ptr+5)  = brm.nf_shm[i];
+      *(ptr+10) = brm.nb_shm[i];
+      ptr++;
+    }
+  }
+  else {
+    TLOG(TLVL_ERROR) << "010: nf=" << nf;
+  }
+//-----------------------------------------------------------------------------
+// record has a fixed length !
+//-----------------------------------------------------------------------------
+  ptr = psave+15;
+  BkClose    (buf,ptr);
+  EqSendEvent(buf);
+//-----------------------------------------------------------------------------
+// for i=4, the last word filled is Data[29]
+//-----------------------------------------------------------------------------
+//  Data[30] = rc;
+
+  TLOG(TLVL_DEBUG+1) << "rc=" << rc;
+ 
+  return rc;
+}
+
+std::string executeCommandAndGetOutput(const std::string& command) {
+  char buffer[128];                         // Buffer to store command output
+  std::string result = "";                  // String to accumulate the entire output
+  FILE* pipe = popen(command.c_str(), "r"); // Open a pipe to the command
+  if (!pipe) {
+    return "Error: popen failed!";          // Handle error if pipe creation fails
+  }
+  try {
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+      result += buffer;                     // Append buffer content to the result string
+    }
+  } catch (...) {
+    pclose(pipe);                           // Ensure pipe is closed even if an exception occurs
+    throw;
+  }
+  pclose(pipe);                             // Close the pipe
+  return result;                            // Return the captured output
+}
+
+//-----------------------------------------------------------------------------
+int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
+
+  std::string command = std::format("python config/scripts/test_xmlrpc.py --test={:s} --host={:s} --port={:d}",
+                                    Test,Host,Port); // Example command to execute
+
+  std::string output  = executeCommandAndGetOutput(command);
+
+  
+
+
   // two words per process - N(segments/sec) and the data rate, MB/sec
   int            rc(0);
   xmlrpc_env     env;
