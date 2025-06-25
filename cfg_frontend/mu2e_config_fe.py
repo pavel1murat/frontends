@@ -158,7 +158,12 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         self.client.set_transition_sequence(midas.TR_STOP , 700)
 
         self.client.odb_watch(self.cmd_top_path+"/Run", self.process_command)
-        TRACE.TRACE(TRACE.TLVL_DEBUG,f'constru
+
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'constructor END',TRACE_NAME)
+        print("constructor end");
+
+#------------------------------------------------------------------------------
+#
 #------------------------------------------------------------------------------
     def start_dqm_processes(self,run_number):
         config_name         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
