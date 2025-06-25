@@ -17,12 +17,20 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
                                    std::ostream&      Stream ) {
 
   TLOG(TLVL_DEBUG) << "-- START";
-  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_set_thresholds");
+
+  OdbInterface* odb_i = OdbInterface::Instance();
+  
+  //  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_set_thresholds");
+
+  HNDLE h_cmd = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/control_ROC_set_thresholds");
   
   TLOG(TLVL_DEBUG) << "-- checkpoint 0.1";
 
-  int doit        = o["Doit"] ;
-  int print_level = o["PrintLevel"] ;
+  // int doit        = o["doit"] ;
+  // int print_level = o["print_level"] ;
+
+  int doit        = odb_i->GetInteger(h_cmd,"doit");
+  int print_level = odb_i->GetInteger(h_cmd,"print_level");
   
   TLOG(TLVL_DEBUG) << "-- checkpoint 0.2 Context.fLink:" << Context.fLink
                    << " Context.fPcieAddr:" << Context.fPcieAddr;
@@ -46,8 +54,11 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
 //-----------------------------------------------------------------------------
   std::string  dtc_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}",
                                       EqNode._host_label.data(),dtc_i->fPcieAddr);
-  midas::odb o_dtc(dtc_path);
-  o_dtc["Status"] = 1;
+  // midas::odb o_dtc(dtc_path);
+  // o_dtc["Status"] = 1;
+
+  HNDLE h_dtc = odb_i->GetHandle(0,dtc_path);
+  odb_i->SetStatus(h_dtc,1);
 
   TLOG(TLVL_DEBUG) << "-- check 1.1 dtc_path:" << dtc_path;
   for (int lnk=lnk1; lnk<lnk2; lnk++) {
@@ -57,9 +68,11 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
     }
     
     std::string  panel_path = std::format("{:s}/Link{:d}/DetectorElement",dtc_path.data(),lnk);
+    HNDLE h_panel = odb_i->GetHandle(0,panel_path);
     
-    TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path;
-    midas::odb o(panel_path);
+    TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path << " h_panel:" << h_panel;
+
+    // midas::odb o(panel_path);
 
     if (print_level > 1) {
       Stream << std::endl;
@@ -67,17 +80,25 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
       Stream << "---------------------------------" << std::endl;
     }
 
-    for (int i=0; i<96; i++) {
-      data[i     ] = (uint16_t) o["gain_cal"     ][i];
-      data[i+96*1] = (uint16_t) o["gain_hv"      ][i];
-      data[i+96*2] = (uint16_t) o["threshold_cal"][i];
-      data[i+96*3] = (uint16_t) o["threshold_hv" ][i];
+    int ch_mask[96], gain_cal[96], gain_hv[96], thr_cal[96], thr_hv[96];
 
-      int ch_mask = o["ch_mask"][i];
+    odb_i->GetArray(h_panel,"ch_mask"      ,TID_INT32,ch_mask ,96);
+    odb_i->GetArray(h_panel,"gain_cal"     ,TID_INT32,gain_cal,96);
+    odb_i->GetArray(h_panel,"gain_hv"      ,TID_INT32,gain_hv ,96);
+    odb_i->GetArray(h_panel,"threshold_cal",TID_INT32,thr_cal ,96);
+    odb_i->GetArray(h_panel,"threshold_hv" ,TID_INT32,thr_hv  ,96);
+
+    for (int i=0; i<96; i++) {
+      data[i     ] = (uint16_t) gain_cal[i];
+      data[i+96*1] = (uint16_t) gain_hv [i];
+      data[i+96*2] = (uint16_t) thr_cal [i];
+      data[i+96*3] = (uint16_t) thr_hv  [i];
+
+      // int ch_mask = o["ch_mask"][i];
       
       if (print_level > 1) {
         Stream << std::format("{:3d} {:3d} {:5d} {:5d} {:5d} {:5d}\n",
-                              i,ch_mask,data[i],data[i+96*1],data[i+96*2],data[i+96*3]);
+                              i,ch_mask[i],data[i],data[i+96*1],data[i+96*2],data[i+96*3]);
       }
     }
       
@@ -95,6 +116,7 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
     Stream << std::endl;
   }
   
-  o_dtc["Status"] = 0;
+  odb_i->SetStatus(h_dtc,0);
+  
   TLOG(TLVL_DEBUG) << "-- END";
 }

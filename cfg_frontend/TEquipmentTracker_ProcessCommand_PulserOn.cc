@@ -27,7 +27,6 @@ void TEquipmentTracker::ProcessCommand_PulserOn(const std::string& CmdParameterP
 
   TLOG(TLVL_DEBUG) << " CmdParameterPath:" << CmdParameterPath;
 
-  //      midas::odb o_trk_cmd("/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on");
   midas::odb o_trk_cmd(CmdParameterPath);
 
   int link          = o_trk_cmd["link"              ];  // should be -1, same for all DTCs

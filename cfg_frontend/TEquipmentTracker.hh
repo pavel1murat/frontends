@@ -42,7 +42,6 @@ public:
     }
   };
 
-
   static TEquipmentTracker*         fg_EqTracker;
   ThreadContext_t                   fContext;
 //-----------------------------------------------------------------------------
@@ -66,6 +65,7 @@ public:
   static  void       ProcessCommand_PulserOff       (const std::string& CmdParameterPath);
   static  void       ProcessCommand_PanelPrintStatus(const std::string& CmdParameterPath);
   static  void       ProcessCommand_ResetOutput();
+  static  TMFeResult ProcessCommand_ResetStationLV  (const std::string& CmdParameterPath);
 
 
 };

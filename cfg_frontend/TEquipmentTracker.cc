@@ -158,9 +158,6 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 
   std::string tracker_config_path = "/Mu2e/ActiveRunConfiguration/Tracker";
 
-  // midas::odb o_tracker_config(tracker_config_path);
-  // o_tracker_config["Status"]     = 1; // BUSY
-
   HNDLE h_tracker_config  = odb_i->GetHandle(0,tracker_config_path);
   odb_i->SetStatus(h_tracker_config,1);
 
@@ -182,11 +179,12 @@ void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   else if (tracker_cmd == "control_roc_pulser_off") ProcessCommand_PulserOff(cmd_parameter_path);
   else if (tracker_cmd == "panel_print_status"    ) ProcessCommand_PanelPrintStatus(cmd_parameter_path);
   else if (tracker_cmd == "reset_output"          ) ProcessCommand_ResetOutput();
+  else if (tracker_cmd == "reset_station_lv"      ) ProcessCommand_ResetStationLV(cmd_parameter_path);
 
 //-----------------------------------------------------------------------------
 // mark execution as completed
 //-----------------------------------------------------------------------------
-  odb_i->SetStatus(h_tracker_config,0); // o_tracker_config["Status"  ] = 0; // READY
+  odb_i->SetStatus(h_tracker_config,0);
   odb_i->SetCommand_Finished(h_tracker_cmd,1);
   int finished = odb_i->GetCommand_Finished(h_tracker_cmd);
   TLOG(TLVL_DEBUG) << "--- END, o_tracker_cmd[\"Finished\"]:" << finished; 

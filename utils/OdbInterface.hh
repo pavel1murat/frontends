@@ -105,6 +105,8 @@ public:
   int         GetUInt32           (HNDLE hConf, const char* Key, uint32_t* Data);
   std::string GetString           (HNDLE hConf, const char* Key);
 
+  int         GetArray            (HNDLE hConf, const char* Key, int DataType, void* Data, int NElements);
+
   HNDLE       GetHandle           (HNDLE hDB, HNDLE hConf, const char* Key);
   
   int         GetInteger          (HNDLE hConf, const char* Key); // returns result

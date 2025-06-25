@@ -273,19 +273,22 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   }
   else if (strcmp(cmd,"dtc_control_roc_set_thresholds") == 0) {
 //-----------------------------------------------------------------------------
-// set thresholds
+// set thresholds: use thread as the RPC times out
 //-----------------------------------------------------------------------------
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_set_thresholds";
     // ss << std::endl;
     fSetThrContext.fPcieAddr = pcie_addr;
     fSetThrContext.fLink     = roc;
 
+    // SetThresholds(fSetThrContext,*this,ss);
     std::thread set_thr_thread(SetThresholds,
                                std::ref(fSetThrContext),
                                std::ref(*this),
                                std::ref(ss)
                                );
     set_thr_thread.detach();
+    // add sleep to be able to print the output
+    ss_sleep(5000);
   }
   else if (strcmp(cmd,"read_roc_register") == 0) {
 //-----------------------------------------------------------------------------

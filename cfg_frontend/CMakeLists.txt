@@ -30,6 +30,7 @@ cet_make_exec(NAME      trk_cfg_frontend
               TEquipmentTracker_ProcessCommand_PulserOff.cc
               TEquipmentTracker_ProcessCommand_PanelPrintStatus.cc
               TEquipmentTracker_ProcessCommand_ResetOutput.cc
+              TEquipmentTracker_ProcessCommand_ResetStationLV.cc
               LIBRARIES
               frontends_utils
               midas
