@@ -63,7 +63,7 @@ public:
 TrackerCfgFrontend::TrackerCfgFrontend() : TMFrontend() {
 
   std::string hostname = get_short_host_name("");
-  fName  = "trk_cfq";
+  fName  = "trk_config";
   FeSetName(fName.data());
   
 // add eq to the list of equipment pieces, equipment stores backward pointer to the frontend

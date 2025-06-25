@@ -115,6 +115,31 @@ int OdbInterface::GetUInt32(HNDLE hDir, const char* Key, uint32_t* Data) {
 }
 
 //-----------------------------------------------------------------------------
+int OdbInterface::GetArray(HNDLE hDir, const char* Key, int DataType, void* Data, int NElements) {
+  int rc(0), sz(0);
+
+  if      (DataType == TID_INT32 ) sz= sizeof(int   );
+  else if (DataType == TID_UINT32) sz= sizeof(int   );
+  else if (DataType == TID_FLOAT ) sz= sizeof(float );
+  else if (DataType == TID_DOUBLE) sz= sizeof(double);
+  else {
+    TLOG(TLVL_ERROR) << "not yet implemented data type:" << DataType << " BAIL OUT";
+    return -1;
+  }
+  sz = sz*NElements;
+  HNDLE h = GetHandle(hDir,Key);
+  rc = db_get_data(_hDB, h, Data, &sz, DataType);
+  if (rc != DB_SUCCESS) {
+    KEY dbkey;
+    db_get_key(_hDB,hDir,&dbkey);
+    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << dbkey.name << "(" << hDir << ")";
+  }
+  TLOG(TLVL_DEBUG+1) << "--END: key:" << Key << " rc:" << rc;
+
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetInteger(HNDLE hDir, const char* Key) {
   int rc(0), res;
   int sz = sizeof(int);
