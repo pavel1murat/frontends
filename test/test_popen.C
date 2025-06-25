@@ -27,10 +27,14 @@ std::string executeCommandAndGetOutput(const std::string& command) {
 
 //-----------------------------------------------------------------------------
 // Host: "mu2edaq22-ctrl" or "mu2edaq09"
-std::string test_popen(const char* Test, const char* Host, int Port=21000, int DiagLevel=0) {
+std::string test_popen(const char* Job, const char* Dir, int DiagLevel=0) {
   
-  std::string command = std::format("python config/scripts/test_xmlrpc.py --test={:s} --host={:s} --port={:d} --diag_level={:d}",
-                                    Test,Host,Port,DiagLevel); // Example command to execute
+  // std::string command = std::format("python config/scripts/test_xmlrpc.py --test={:s} --host={:s} --port={:d} --diag_level={:d}",
+  //                                   Job,Host,Port,DiagLevel); // Example command to execute
+
+  std::string command = std::format("python config/scripts/monitor_host.py --job={} --dir={} --diag_level={}",
+                                    Job,Dir,DiagLevel); // Example command to execute
+
   std::string output  = executeCommandAndGetOutput(command);
   std::cout << "Command Output:\n" << output; //  << std::endl;
 

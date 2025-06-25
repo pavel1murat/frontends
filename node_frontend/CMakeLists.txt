@@ -33,6 +33,7 @@ cet_make_exec(NAME      node_frontend
               SOURCE    node_frontend.cc
                         TEquipmentNode.cc
                         TEquipmentNode_Artdaq.cc
+                        TEquipmentNode_Disk.cc
                         TEquipmentNode_Dtc.cc
                         TEquipmentNode_Rpc.cc
                         TEquipmentNode_Rpc_ControlRoc_Read.cc
