@@ -146,8 +146,8 @@ void TEquipmentNode::InitArtdaqVarNames() {
   char dirname[128], name[128];
 
   TLOG(TLVL_DEBUG) << "START";
-  const std::string node_path     = "/Equipment/"+TMFeEquipment::fEqName;
-  const std::string settings_path = node_path+"/Settings";
+  const std::string node_odb_path = "/Equipment/"+TMFeEquipment::fEqName;
+  const std::string settings_path = node_odb_path+"/Settings";
   midas::odb        odb_settings(settings_path);
 //-----------------------------------------------------------------------------
   int nac = _list_of_ac.size();

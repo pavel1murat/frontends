@@ -78,8 +78,9 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   EqSetStatus("Started...", "white");
   fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
-  InitDtc();
+  InitDtc   ();
   InitArtdaq();
+  InitDisk  ();
 //-----------------------------------------------------------------------------
 // hotlinks - start from one function handling both DTCs
 //-----------------------------------------------------------------------------
@@ -195,8 +196,9 @@ void TEquipmentNode::HandlePeriodic() {
   TLOG(TLVL_DEBUG+1) << "-- START";
 
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"         ,&_monitorDtc         );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Disk"        ,&_monitorDisk        );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI"         ,&_monitorSPI      );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI"         ,&_monitorSPI         );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates"       ,&_monitorRates       );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
   
@@ -205,16 +207,17 @@ void TEquipmentNode::HandlePeriodic() {
                      << " _monitorRates:"                   << _monitorRates
                      << " _monitorRocRegisters:"            << _monitorRocRegisters
                      << " _monitorArtdaq:"                  << _monitorArtdaq
+                     << " _monitorDisk:"                     << _monitorDisk
                      << " TMFE::Instance()->fStateRunning:" << TMFE::Instance()->fStateRunning; 
 
-  if (_monitorDtc) {
-    ReadDtcMetrics();
-  }
+  if (_monitorDtc) ReadDtcMetrics();
 
   if (_monitorArtdaq and TMFE::Instance()->fStateRunning) {
     ReadArtdaqMetrics();
   }
   
+  if (_monitorDisk) ReadDiskMetrics();
+
   TLOG(TLVL_DEBUG+1) << "-- END";
 
   EqSetStatus(Form("OK"),"#00FF00");

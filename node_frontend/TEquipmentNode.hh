@@ -58,6 +58,7 @@ public:
   std::string                    _host_label;      // on public network, for ODB
   xmlrpc_env                     _env;
   int                            _monitorDtc;
+  int                            _monitorDisk;
   int                            _monitorArtdaq;
   int                            _monitorSPI;
   int                            _monitorRocRegisters;
@@ -65,6 +66,9 @@ public:
   OdbInterface*                  _odb_i;
   int                            _run_dtc0_command; // RPC
   int                            _run_dtc1_command;
+
+  float                          _prev_ctime_sec;
+  float                          _prev_fsize_gb;
 //-----------------------------------------------------------------------------
 // threads
 //-----------------------------------------------------------------------------
@@ -130,5 +134,8 @@ public:
   int                ReadDrMetrics     (const ArtdaqComponent_t* Ac);
   int                ReadDsMetrics     (const ArtdaqComponent_t* Ac);
 
+  TMFeResult         InitDisk          ();
+  void               InitDiskVarNames  ();
+  int                ReadDiskMetrics   ();
 };
 #endif
