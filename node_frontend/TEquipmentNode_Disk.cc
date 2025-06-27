@@ -29,7 +29,7 @@ TMFeResult TEquipmentNode::InitDisk() {
   // HNDLE hdb           = _odb_i->GetDbHandle();
   // HNDLE h_artdaq_conf = _odb_i->GetHostArtdaqConfHandle(_h_active_run_conf,_host_label);
 
-  _prev_ctime_sec = 0.;
+  _prev_ctime_sec = std::time(nullptr);
   _prev_fsize_gb  = 0.;
 
   InitDiskVarNames();
@@ -79,14 +79,19 @@ int TEquipmentNode::ReadDiskMetrics() {
   
   std::string output  = popen_shell_command(cmd);
 
+  if (output[0] != '{') {
+    TLOG(TLVL_ERROR) << "wrong output:'" << output << "'";
+    return -1;
+  }
+
   TLOG(TLVL_DEBUG+1) << "output=" << output;
 
   json md = json::parse(output);  // 'md' : 'monitoring data'
 
   TLOG(TLVL_DEBUG+1) << "parsed json:" << md;
 
-  float ctime_sec = md["ctime_sec"  ];
-  float fsize_gb  = md["fsize_gb"   ];
+  std::time_t ctime_sec = std::time(nullptr); // md["ctime_sec"  ];
+  float       fsize_gb  = md["fsize_gb"   ];
   // MBytes/sec
   float rate_to_disk = (fsize_gb - _prev_fsize_gb)/(ctime_sec-_prev_ctime_sec+1.e-12)*1024;
 
