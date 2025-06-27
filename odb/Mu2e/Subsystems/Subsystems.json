@@ -12,19 +12,15 @@
       },
       "260" : {
         "MN261" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748266155 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_03", "access_mode" : 7, "last_written" : 1748268579 },
-          "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_03",
-          "DTC0" : {
-          },
-          "Panel_03" : {
-          }
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_03", "access_mode" : 7, "last_written" : 1748437185 },
+          "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_03"
         },
         "MN262" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748266167 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_05", "access_mode" : 7, "last_written" : 1748268705 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_05", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_05"
         }
       },
@@ -36,31 +32,31 @@
       },
       "210" : {
         "MN213" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748265872 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_00", "access_mode" : 7, "last_written" : 1748266958 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_00", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_00"
         },
         "MN219" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748265912 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_05", "access_mode" : 7, "last_written" : 1748267101 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_05", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_05"
         }
       },
       "220" : {
         "MN224" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748265984 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_00", "access_mode" : 7, "last_written" : 1748267744 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_00", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_00"
         }
       },
       "230" : {
         "MN235" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748266026 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_01", "access_mode" : 7, "last_written" : 1748267934 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_01", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_01"
         }
       },
@@ -68,37 +64,37 @@
       },
       "240" : {
         "MN247" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748266078 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_02", "access_mode" : 7, "last_written" : 1748268065 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_02", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_02"
         },
         "MN248" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748266104 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_04", "access_mode" : 7, "last_written" : 1748269207 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_04", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_04"
         }
       },
       "250" : {
         "MN253" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748266134 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_04", "access_mode" : 7, "last_written" : 1748268467 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_04", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_00/Panel_04"
         }
       },
       "270" : {
         "MN273" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748266199 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_01", "access_mode" : 7, "last_written" : 1748268856 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_01", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_01"
         },
         "MN276" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748266218 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC0",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_02", "access_mode" : 7, "last_written" : 1748269016 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_02", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/ActiveRunConfiguration/Tracker/Station_00/Plane_01/Panel_02"
         }
       },
@@ -106,9 +102,9 @@
       },
       "100" : {
         "MN101" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748265726 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/train_station/DAQ/Nodes/mu2edaq09/DTC1",
-          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/Tracker/Station_00/Plane_00/Panel_03", "access_mode" : 7, "last_written" : 1748266510 },
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/train_station/Tracker/Station_00/Plane_00/Panel_03", "access_mode" : 7, "last_written" : 1748437185 },
           "Panel" : "/Mu2e/RunConfigurations/train_station/Tracker/Station_00/Plane_00/Panel_03"
         }
       },
@@ -116,42 +112,42 @@
       },
       "400" : {
         "MN400" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1748229225 },
-          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
-          "PanelData/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_00", "access_mode" : 7, "last_written" : 1748229225 },
-          "PanelData" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_00"
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748491837 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_00", "access_mode" : 7, "last_written" : 1748568932 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_00"
         },
         "MN401" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1748229225 },
-          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
-          "PanelData/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_01", "access_mode" : 7, "last_written" : 1748229225 },
-          "PanelData" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_01"
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748491847 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_01", "access_mode" : 7, "last_written" : 1748568942 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_01"
         },
         "MN402" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1748229225 },
-          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
-          "PanelData/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_02", "access_mode" : 7, "last_written" : 1748229225 },
-          "PanelData" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_02"
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748491857 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_02", "access_mode" : 7, "last_written" : 1748568952 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_02"
         },
         "MN403" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1748229225 },
-          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
-          "PanelData/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_03", "access_mode" : 7, "last_written" : 1748229225 },
-          "PanelData" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_03"
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748491863 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_03", "access_mode" : 7, "last_written" : 1748568964 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_03"
         },
         "MN404" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1748229225 },
-          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
-          "PanelData/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_04", "access_mode" : 7, "last_written" : 1748229225 },
-          "PanelData" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_04"
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748491871 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_04", "access_mode" : 7, "last_written" : 1748568978 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_04"
         },
         "MN405" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1748229225 },
-          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
-          "PanelData/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_05", "access_mode" : 7, "last_written" : 1748229225 },
-          "PanelData" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_05"
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748491877 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_05", "access_mode" : 7, "last_written" : 1748568990 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_05"
         },
-        "# -----------------/key" : { "type" : 12, "item_size" : 38, "access_mode" : 7, "last_written" : 1748229225 },
+        "# -----------------/key" : { "type" : 12, "item_size" : 38, "access_mode" : 7, "last_written" : 1748437185 },
         "# -----------------" : "these are the ROC tower panels"
       },
       "080" : {
@@ -187,84 +183,188 @@
       "040" : {
       },
       "410" : {
-        "# ----------------------- 1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748229225 },
+        "# ----------------------- 1/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748437185 },
         "# ----------------------- 1" : "TS0, TS1, TS2",
         "MN410" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748229225 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0",
-          "PanelData/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_00", "access_mode" : 7, "last_written" : 1748229225 },
-          "PanelData" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_00"
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_00", "access_mode" : 7, "last_written" : 1751030573 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_00"
         },
         "MN411" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748229225 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0",
-          "PanelData/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_00", "access_mode" : 7, "last_written" : 1748229225 },
-          "PanelData" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_00"
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_04", "access_mode" : 7, "last_written" : 1751030616 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_04"
         },
         "MN412" : {
-          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748229225 },
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0", "access_mode" : 7, "last_written" : 1748437185 },
           "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC0",
-          "PanelData/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_00", "access_mode" : 7, "last_written" : 1748229225 },
-          "PanelData" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_00/Plane_00/Panel_00"
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_05", "access_mode" : 7, "last_written" : 1751030653 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_00/Panel_05"
         }
       },
       "004" : {
         "MN400" : {
         }
       },
-      "MN261" : {
-      },
-      "260MN261" : {
+      "900" : {
+        "MN900" : {
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1750977310 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_00", "access_mode" : 7, "last_written" : 1750977282 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_00"
+        },
+        "MN901" : {
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1750977315 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_01", "access_mode" : 7, "last_written" : 1750977297 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_01"
+        },
+        "MN902" : {
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1750977319 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_02", "access_mode" : 7, "last_written" : 1750980729 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_02"
+        },
+        "MN903" : {
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1750977327 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_03", "access_mode" : 7, "last_written" : 1750977336 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_03"
+        },
+        "MN904" : {
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1750977343 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_04", "access_mode" : 7, "last_written" : 1750977349 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_04"
+        },
+        "MN905" : {
+          "DTC/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1", "access_mode" : 7, "last_written" : 1750977358 },
+          "DTC" : "/Mu2e/RunConfigurations/roctower/DAQ/Nodes/mu2edaq22/DTC1",
+          "Panel/key" : { "type" : 16, "link": "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_05", "access_mode" : 7, "last_written" : 1750977364 },
+          "Panel" : "/Mu2e/RunConfigurations/roctower/Tracker/Station_99/Plane_01/Panel_05"
+        },
+        "# -----------------/key" : { "type" : 12, "item_size" : 43, "access_mode" : 7, "last_written" : 1750977400 },
+        "# -----------------" : "three  TS's and three non-existing panels "
       }
     },
     "ReadoutConfigurations" : {
       "Conf_000" : {
-        "# ------------------------ 1/key" : { "type" : 12, "item_size" : 48, "access_mode" : 7, "last_written" : 1748229225 },
+        "# ------------------------ 1/key" : { "type" : 12, "item_size" : 48, "access_mode" : 7, "last_written" : 1748437185 },
         "# ------------------------ 1" : "an empty configuration, no commands to execute "
       },
       "Conf_001" : {
         "101_control_roc_read" : {
-          "# -- comment #1/key" : { "type" : 12, "item_size" : 43, "access_mode" : 7, "last_written" : 1748229225 },
+          "# -- comment #1/key" : { "type" : 12, "item_size" : 43, "access_mode" : 7, "last_written" : 1748437185 },
           "# -- comment #1" : "parameters of the control_ROC read command",
-          "# -- comment # 2/key" : { "type" : 12, "item_size" : 41, "access_mode" : 7, "last_written" : 1748229225 },
+          "# -- comment # 2/key" : { "type" : 12, "item_size" : 41, "access_mode" : 7, "last_written" : 1748437185 },
           "# -- comment # 2" : "channel mask - individual for each panel",
-          "AdcMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "AdcMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "AdcMode" : 1,
-          "TdcMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "TdcMode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "TdcMode" : 0,
-          "NumLookback/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "NumLookback/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "NumLookback" : 0,
-          "NumSamples/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "NumSamples/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "NumSamples" : 2,
-          "EnablePulser/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "EnablePulser/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "EnablePulser" : 0,
-          "NumTriggers/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "NumTriggers/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "NumTriggers" : 0,
-          "MaxTotalDelay/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "MaxTotalDelay/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "MaxTotalDelay" : 1,
-          "MarkerClock/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "MarkerClock/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "MarkerClock" : 3,
-          "NADCPackets/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "NADCPackets/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "NADCPackets" : 1
         },
         "102_control_roc_set_thresholds" : {
-          "ThresholdsDir/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748229225 },
+          "ThresholdsDir/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748437185 },
           "ThresholdsDir" : "thresholds-10-mV"
         },
         "103_control_roc_pulser_on" : {
-          "first_channel_mask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "first_channel_mask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "first_channel_mask" : 1,
-          "duty_cycle/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "duty_cycle/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "duty_cycle" : 10,
-          "pulser_delay/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "pulser_delay/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "pulser_delay" : 1000,
-          "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748229225 },
+          "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1748437185 },
           "print_level" : 0
         },
-        "#------------------- 0/key" : { "type" : 12, "item_size" : 51, "access_mode" : 7, "last_written" : 1748276007 },
+        "#------------------- 0/key" : { "type" : 12, "item_size" : 51, "access_mode" : 7, "last_written" : 1748437185 },
         "#------------------- 0" : "------------------------------ for interactive use",
-        "ThresholdsDir/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748275990 },
+        "ThresholdsDir/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1748437185 },
         "ThresholdsDir" : "thresholds-10-mV"
+      },
+      "roctower" : {
+        "ThresholdsDir/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1750967912 },
+        "ThresholdsDir" : "thresholds"
+      }
+    }
+  },
+  "DAQ" : {
+    "Artdaq" : {
+      "Fcl" : {
+        "daq" : {
+          "event_builder" : {
+            "buffer_count/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1750944758 },
+            "buffer_count" : 0,
+            "verbose/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1750944758 },
+            "verbose" : true
+          },
+          "metrics" : {
+          }
+        },
+        "board_reader" : {
+        },
+        "event_builder" : {
+          "art" : {
+            "services" : {
+              "message" : {
+              },
+              "ConditionsService" : {
+              },
+              "GeometryService" : {
+              },
+              "GlobalConstantsService" : {
+              },
+              "DbService" : {
+              },
+              "ProditionsService" : {
+              },
+              "RandomNumberGenerator" : {
+              },
+              "SeedService" : {
+              },
+              "schedulter" : {
+              }
+            },
+            "physics" : {
+            },
+            "process_name/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+            "process_name" : 0,
+            "source" : {
+            },
+            "outputs" : {
+            }
+          },
+          "daq" : {
+            "event_builder" : {
+              "buffer_count/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1750944831 },
+              "buffer_count" : 0,
+              "verbose/key" : { "type" : 8, "access_mode" : 7, "last_written" : 1750944831 },
+              "verbose" : true
+            },
+            "metrics" : {
+            }
+          }
+        },
+        "data_logger" : {
+        },
+        "dispatcher" : {
+        }
       }
     }
   }
