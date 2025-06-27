@@ -42,8 +42,6 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
     lnk2 = 6;
   }
 
-  uint16_t data[4*96];
-
   trkdaq::DtcInterface* dtc_i = (trkdaq::DtcInterface*) EqNode.fDtc_i[Context.fPcieAddr];
 
   TLOG(TLVL_DEBUG) << "-- check 1";
@@ -80,22 +78,20 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
       Stream << "---------------------------------" << std::endl;
     }
 
-    int ch_mask[96], gain_cal[96], gain_hv[96], thr_cal[96], thr_hv[96];
-
-    odb_i->GetArray(h_panel,"ch_mask"      ,TID_INT32,ch_mask ,96);
-    odb_i->GetArray(h_panel,"gain_cal"     ,TID_INT32,gain_cal,96);
-    odb_i->GetArray(h_panel,"gain_hv"      ,TID_INT32,gain_hv ,96);
-    odb_i->GetArray(h_panel,"threshold_cal",TID_INT32,thr_cal ,96);
-    odb_i->GetArray(h_panel,"threshold_hv" ,TID_INT32,thr_hv  ,96);
+    uint16_t ch_mask[96], gain_cal[96], gain_hv[96], thr_cal[96], thr_hv[96], data[4*96];
+  
+    odb_i->GetArray(h_panel,"ch_mask" ,TID_WORD,ch_mask ,96);
+    odb_i->GetArray(h_panel,"gain_cal",TID_WORD,gain_cal,96);
+    odb_i->GetArray(h_panel,"gain_hv" ,TID_WORD,gain_hv ,96);
+    odb_i->GetArray(h_panel,"thr_cal" ,TID_WORD,thr_cal ,96);
+    odb_i->GetArray(h_panel,"thr_hv"  ,TID_WORD,thr_hv  ,96);
 
     for (int i=0; i<96; i++) {
-      data[i     ] = (uint16_t) gain_cal[i];
-      data[i+96*1] = (uint16_t) gain_hv [i];
-      data[i+96*2] = (uint16_t) thr_cal [i];
-      data[i+96*3] = (uint16_t) thr_hv  [i];
+      data[i     ] = gain_cal[i];
+      data[i+96*1] = gain_hv [i];
+      data[i+96*2] = thr_cal [i];
+      data[i+96*3] = thr_hv  [i];
 
-      // int ch_mask = o["ch_mask"][i];
-      
       if (print_level > 1) {
         Stream << std::format("{:3d} {:3d} {:5d} {:5d} {:5d} {:5d}\n",
                               i,ch_mask[i],data[i],data[i+96*1],data[i+96*2],data[i+96*3]);

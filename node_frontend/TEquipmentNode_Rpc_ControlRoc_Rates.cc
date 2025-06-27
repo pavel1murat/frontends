@@ -83,8 +83,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
       if (print_level&0x8) Stream << "panel_path:" << panel_path << " panel_name:" << panel_name << std::endl;
 
       for (int i=0; i<96; ++i) {
-        // int on_off = ch_mask_odb[i];
-        int on_off = odb_panel["ch_mask"][i];
+        uint16_t on_off = odb_panel["ch_mask"][i];
         int iw = i / 16;
         int ib = i % 16;
         if (ib == 0) {
@@ -95,10 +94,6 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 
         ch_mask[lnk].push_back(on_off);
       }
-                                        // update RATES command channel mask in ODB
-      // for (int iw=0; iw<6; iw++) {
-      //   o_cmd["ch_mask"][iw] = prates.ch_mask[iw];
-      // }
     }
 //-----------------------------------------------------------------------------
 // print the mask

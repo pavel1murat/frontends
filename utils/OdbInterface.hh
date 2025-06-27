@@ -114,6 +114,7 @@ public:
 
   std::string GetString           (HNDLE hDB, HNDLE hConf, const char* Key);
 
+  int         SetArray            (HNDLE hElement, const char* Key, int DataType, void* Data, int NElements);
   void        SetInteger          (HNDLE hElement, const char* Key, int Value);
   void        SetString           (HNDLE hElement, const char* Key, const std::string& Value);
 

@@ -97,11 +97,21 @@
         </tbody>
          `;
       
-        const div_station_tabs = document.getElementById("trk_station_tabs");
-        for (let is=0; is<18; is++) {
-          let iss = is.toString().padStart(2,'0');
-          div_station_tabs.innerHTML += `<button class="trk_station_tab" id='trk_station_${is}' onclick="trk_choose_station_id(event,'${is}')">${iss}</button>`
-        };
+        let first_station  = -1;
+        let last_station   = -1;
+        const p1 = tracker_path+`/FirstStation`;
+        const p2 = tracker_path+`/LastStation`;
+        mjsonrpc_db_get_values([p1, p2]).then(function (rpc) {
+          first_station = parseInt(rpc.result.data[0]);
+          last_station  = parseInt(rpc.result.data[1]);
+          const div_station_tabs = document.getElementById("trk_station_tabs");
+          for (let is=first_station; is<last_station+1; is++) {
+            let iss = is.toString().padStart(2,'0');
+            div_station_tabs.innerHTML += `<button class="trk_station_tab" id='trk_station_${is}' onclick="trk_choose_station_id(event,'${is}')">${iss}</button>`
+          };
+        }).catch(function(error) {
+          mjsonrpc_error_alert(error);
+        });
         
         const station_path  = tracker_path+'/Station_'+g_station.padStart(2,'0');
 
@@ -142,13 +152,6 @@
                 </div>
               </div>
               <div class="dropup">
-                <input type=button class="dropbtn" value='digi_rw'>
-                <div class="dropup-content">
-                  <div onClick='dtc_load_parameters_control_roc_digi_rw()'> Load Parameters </div>
-                  <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
-                </div>
-              </div>
-              <div class="dropup">
                 <input type=button class="dropbtn" value='pulser_on'>
                 <div class="dropup-content">
                   <div onClick='dtc_load_parameters_control_roc_pulser_on()'> Load Parameters </div>
@@ -167,13 +170,6 @@
                 <div class="dropup-content">
                   <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
                   <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
-                </div>
-              </div>
-              <div class="dropup">
-                <input type=button class="dropbtn" value='read_ddr'>
-                <div class="dropup-content">
-                  <div onClick='dtc_load_parameters_control_roc_read_ddr()'> Load Parameters </div>
-                  <div onClick='dtc_command("dtc_control_roc_read_ddr")'   > Run             </div>
                 </div>
               </div>
               <div class="dropup">
@@ -344,7 +340,7 @@
     Local Variables:
     tab-width: 8
     c-basic-offset: 2
-    js-indent-level: 2
+    js-indent-level: 0
     indent-tabs-mode: nil
     End:
   -->

@@ -7,7 +7,7 @@
 #include "xmlrpc-c/config.h"  /* information about this build environment */
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
-
+#include <ctime>
 #include "tmfe.h"
 #include "midas.h"
 
@@ -67,7 +67,7 @@ public:
   int                            _run_dtc0_command; // RPC
   int                            _run_dtc1_command;
 
-  float                          _prev_ctime_sec;
+  std::time_t                    _prev_ctime_sec;
   float                          _prev_fsize_gb;
 //-----------------------------------------------------------------------------
 // threads

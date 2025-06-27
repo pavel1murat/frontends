@@ -118,10 +118,11 @@ int OdbInterface::GetUInt32(HNDLE hDir, const char* Key, uint32_t* Data) {
 int OdbInterface::GetArray(HNDLE hDir, const char* Key, int DataType, void* Data, int NElements) {
   int rc(0), sz(0);
 
-  if      (DataType == TID_INT32 ) sz= sizeof(int   );
-  else if (DataType == TID_UINT32) sz= sizeof(int   );
-  else if (DataType == TID_FLOAT ) sz= sizeof(float );
-  else if (DataType == TID_DOUBLE) sz= sizeof(double);
+  if      (DataType == TID_INT32 ) sz= sizeof(int32_t );
+  else if (DataType == TID_WORD  ) sz= sizeof(uint16_t);
+  else if (DataType == TID_UINT32) sz= sizeof(uint32_t);
+  else if (DataType == TID_FLOAT ) sz= sizeof(float   );
+  else if (DataType == TID_DOUBLE) sz= sizeof(double  );
   else {
     TLOG(TLVL_ERROR) << "not yet implemented data type:" << DataType << " BAIL OUT";
     return -1;
@@ -676,6 +677,32 @@ std::string OdbInterface::GetCommand_ParameterPath(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
 int OdbInterface::GetCommand_Finished(HNDLE h_Cmd) {
   return GetInteger(h_Cmd,"Finished");
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::SetArray(HNDLE hDir, const char* Key, int DataType, void* Data, int NElements) {
+  int rc(0), sz(0);
+
+  if      (DataType == TID_INT32 ) sz= sizeof(int32_t );
+  else if (DataType == TID_WORD  ) sz= sizeof(uint16_t);
+  else if (DataType == TID_UINT32) sz= sizeof(uint32_t);
+  else if (DataType == TID_FLOAT ) sz= sizeof(float   );
+  else if (DataType == TID_DOUBLE) sz= sizeof(double  );
+  else {
+    TLOG(TLVL_ERROR) << "not yet implemented data type:" << DataType << " BAIL OUT";
+    return -1;
+  }
+  int tot_sz = sz*NElements;
+  HNDLE h = GetHandle(hDir,Key);
+  rc = db_set_data(_hDB, h, Data, tot_sz, NElements, DataType);
+  if (rc != DB_SUCCESS) {
+    KEY dbkey;
+    db_get_key(_hDB,hDir,&dbkey);
+    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << dbkey.name << "(" << hDir << ")";
+  }
+  TLOG(TLVL_DEBUG+1) << "--END: key:" << Key << " rc:" << rc;
+
+  return rc;
 }
 
 //-----------------------------------------------------------------------------

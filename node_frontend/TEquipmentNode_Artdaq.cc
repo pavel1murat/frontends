@@ -196,7 +196,7 @@ void TEquipmentNode::InitArtdaqVarNames() {
 //-----------------------------------------------------------------------------
 int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
   int rc(0);
-  TLOG(TLVL_DEBUG+1) << "-- START";
+  TLOG(TLVL_DEBUG+1) << "-- START, running:" << TMFE::Instance()->fStateRunning;
 
   std::regex pattern(R"(/RPC2$)");
   std::string url = std::regex_replace(Ac->xmlrpc_url, pattern, "");
@@ -209,6 +209,11 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
 
   TLOG(TLVL_DEBUG+1) << "output=" << output;
 
+  if (output[0] != '{') {
+    TLOG(TLVL_ERROR) << "wrong output:'" << output << "'";
+    return -1;
+  }
+
   json brm = json::parse(output);
 
   TLOG(TLVL_DEBUG+1) << "parsed json:" << brm << std::endl;
@@ -219,13 +224,16 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
   BkInit      (buf, sizeof(buf));
   double* ptr = (double*) BkOpen(buf, Ac->name.data(), TID_DOUBLE);
      
-  *ptr++ = brm["nf_read"];        // 
+  *ptr++ = brm["nf_sent_tot"];        // 
   *ptr++ = brm["gn_rate"];
   *ptr++ = brm["fr_rate"];
   *ptr++ = brm["time_win"];
   *ptr++ = brm["min_nf"];
   *ptr++ = brm["max_nf"];
   *ptr++ = brm["elapsed_time"];
+
+  TLOG(TLVL_DEBUG+1) << "repacking 0.5";
+
   *ptr++ = brm["nf_sent"];
   *ptr++ = brm["of_rate"];
   *ptr++ = brm["dt_rate"];
@@ -246,9 +254,9 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
   TLOG(TLVL_DEBUG+1) << "nf:" << nf << " brm[\"fids\"]:" << brm["fids"];
   
   for (int i=0; i<nf; i++) {
-    *ptr      = brm["fids"][i]["fid"   ];
-    *(ptr+5)  = brm["fids"][i]["max_nf"];
-    *(ptr+10) = brm["fids"][i]["max_nb"];
+    *ptr      = brm["fids"][i]["fid"];
+    *(ptr+5)  = brm["fids"][i]["nf" ];
+    *(ptr+10) = brm["fids"][i]["nb" ];
     ptr++;
   }
   TLOG(TLVL_DEBUG+1) << "repacking 2";
@@ -280,7 +288,7 @@ shm_nbb :250:2306872:246:4:0:0
 int TEquipmentNode::ReadDrMetrics(const ArtdaqComponent_t* Ac) {
   int rc(0);
   
-  TLOG(TLVL_DEBUG+1) << "-- START";
+  TLOG(TLVL_DEBUG+1) << "-- START, running:" << TMFE::Instance()->fStateRunning;
 
   std::regex pattern(R"(/RPC2$)");
   std::string url = std::regex_replace(Ac->xmlrpc_url, pattern, "");
@@ -292,6 +300,11 @@ int TEquipmentNode::ReadDrMetrics(const ArtdaqComponent_t* Ac) {
   std::string output  = popen_shell_command(cmd);
 
   TLOG(TLVL_DEBUG+1) << "output=" << output;
+
+  if (output[0] != '{') {
+    TLOG(TLVL_ERROR) << "wrong output:'" << output << "'";
+    return -1;
+  }
 
   json drm = json::parse(output);
 

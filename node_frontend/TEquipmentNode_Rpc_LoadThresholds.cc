@@ -17,18 +17,20 @@
 #include "odbxx.h"
 #include "TRACE/tracemf.h"
 
+#define TRACE_NAME "TEquipmentNode"
 //-----------------------------------------------------------------------------
 void TEquipmentNode::LoadThresholds(ThreadContext_t&   Context,
                                     std::ostream&      Stream ) {
   TLOG(TLVL_DEBUG) << "-- START";
+
+  OdbInterface* odb_i = OdbInterface::Instance();
   
-  midas::odb o_cmd("/Mu2e/Commands/Tracker/DTC/control_ROC_load_thresholds");
+  HNDLE h_cmd = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/control_ROC_load_thresholds");
+  int doit        = odb_i->GetInteger(h_cmd,"doit"       );
+  int print_level = odb_i->GetInteger(h_cmd,"print_level");
   
   TLOG(TLVL_DEBUG) << "-- checkpoint 0.1";
 
-  int doit        = o_cmd["Doit"      ] ;
-  int print_level = o_cmd["PrintLevel"] ;
-  
   TLOG(TLVL_DEBUG) << "-- checkpoint 0.2 Context.fLink:" << Context.fLink
                    << " Context.fPcieAddr:" << Context.fPcieAddr;
 
@@ -46,16 +48,18 @@ void TEquipmentNode::LoadThresholds(ThreadContext_t&   Context,
 // this could be universal,
 // with the definition of DetectorElement being subsystem-dependent
 // in ODB, set DTC status as busy
+// get config directory on disk
 //-----------------------------------------------------------------------------
-  std::string config_dir = _odb_i->GetConfigDir();
+  std::string config_dir = odb_i->GetConfigDir();
     
-  midas::odb o_tracker("/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration");
-  std::string thresholds_dir = o_tracker["ThresholdsDir"];
+  HNDLE h_tracker = odb_i->GetHandle(0,"/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration");
+  std::string thresholds_dir = odb_i->GetString(h_tracker,"ThresholdsDir");
 
   std::string  dtc_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}",
                                       _host_label.data(),dtc_i->fPcieAddr);
-  midas::odb o_dtc(dtc_path);
-  o_dtc["Status"] = 1;
+
+  HNDLE h_dtc = odb_i->GetHandle(0,dtc_path);
+  odb_i->SetStatus(h_dtc,1);
 
   TLOG(TLVL_DEBUG) << "-- check 1.1 dtc_path:" << dtc_path
                    << " thresholds_dir:" << thresholds_dir;
@@ -69,20 +73,15 @@ void TEquipmentNode::LoadThresholds(ThreadContext_t&   Context,
     
       TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path;
 
-      midas::odb o_panel(panel_path);
-      std::string panel_name = o_panel["Name"];
+      HNDLE h_panel          = odb_i->GetHandle(0,panel_path);
+      std::string panel_name = odb_i->GetString(h_panel,"Name");
+      
       int mnid = atoi(panel_name.substr(2).data());
       int sdir = (mnid/10)*10;
 
       TLOG(TLVL_DEBUG) << "-- check 1.3 panel_name:" << panel_name << " sdir:" << sdir;
 
-      std::string panel_data_path = std::format("/Mu2e/Subsystems/Tracker/PanelMap/{:03d}/{:s}/Panel",
-                                               sdir,panel_name.data());
-
-      TLOG(TLVL_DEBUG) << "-- check 1.35 panel_data_path:" << panel_data_path;
-      midas::odb o_panel_data(panel_data_path);
-      int station = o_panel_data["Station"];
-
+      int station = odb_i->GetInteger(h_panel,"Station");
       TLOG(TLVL_DEBUG) << "-- check 1.4 station:" << station;
       
       std::string fn = std::format("{:}/tracker/station_{:02d}/{:s}/{:s}.json",
@@ -100,12 +99,18 @@ void TEquipmentNode::LoadThresholds(ThreadContext_t&   Context,
         Stream << "---------------------------------" << std::endl;
       }
     
-   
+      uint16_t thr_cal[96], thr_hv[96], gain_cal[96], gain_hv[96];
+
+      odb_i->GetArray(h_panel,"thr_cal" ,TID_WORD,thr_cal ,96);
+      odb_i->GetArray(h_panel,"thr_hv"  ,TID_WORD,thr_hv  ,96);
+      odb_i->GetArray(h_panel,"gain_cal",TID_WORD,gain_cal,96);
+      odb_i->GetArray(h_panel,"gain_hv" ,TID_WORD,gain_hv ,96);
+      
       for (auto& elm : jf.items()) {
         nlohmann::json val = elm.value();
-        int ich            = val["channel"  ];
-        int gain           = val["gain"     ];
-        int thr            = val["threshold"];
+        uint16_t ich       = val["channel"  ];
+        uint16_t gain      = val["gain"     ];
+        uint16_t thr       = val["threshold"];
         std::string type   = val["type"     ];
         
         TLOG(TLVL_DEBUG) << "-- check 1.6 jf.ich:" << ich << " type:" << type
@@ -113,19 +118,27 @@ void TEquipmentNode::LoadThresholds(ThreadContext_t&   Context,
         
         if (print_level > 1) {
           Stream << ich << " " << gain << " " << std::setw(3) << thr << " " << type << std::endl;
+          TLOG(TLVL_DEBUG+1) << ich << " " << gain << " " << std::setw(3) << thr << " " << type << std::endl;
         }
         
         if (doit != 0) {
+          std::string thr_key, gain_key;
           if      (type == "cal") {
-            o_panel["threshold_cal"][ich] = thr;
-            o_panel["gain_cal"     ][ich] = gain;
+            thr_cal [ich] = thr;
+            gain_cal[ich] = gain;
           }
           else if (type == "hv" ) {
-            o_panel["threshold_hv" ][ich] = thr;
-            o_panel["gain_hv"      ][ich] = gain;
+            thr_hv [ich] = thr;
+            gain_hv[ich] = gain;
           }
         }
       }
+      
+      odb_i->SetArray(h_panel,"thr_cal" ,TID_WORD,thr_cal ,96);
+      odb_i->SetArray(h_panel,"thr_hv"  ,TID_WORD,thr_hv  ,96);
+      odb_i->SetArray(h_panel,"gain_cal",TID_WORD,gain_cal,96);
+      odb_i->SetArray(h_panel,"gain_hv" ,TID_WORD,gain_hv ,96);
+      
       Stream << " SUCCESS" << std::endl;
     }
     catch (...) {
@@ -133,7 +146,8 @@ void TEquipmentNode::LoadThresholds(ThreadContext_t&   Context,
     }
     
   }
+                                      
+  odb_i->SetStatus(h_dtc,0);
   
-  o_dtc["Status"] = 0;
   TLOG(TLVL_DEBUG) << "-- END";
 }
