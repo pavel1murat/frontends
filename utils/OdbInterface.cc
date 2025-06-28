@@ -488,28 +488,67 @@ int OdbInterface::GetFirstEWTag(HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
+// hRunConf = -1: request for active run configuration
+//-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetDaqConfigHandle(HNDLE hRunConf) {
   const char* key {"DAQ"};
 
-  HNDLE h(0);
-  if (db_find_key(_hDB, hRunConf, key, &h) != DB_SUCCESS) {
+  HNDLE h(0), h_conf(hRunConf);
+  
+  if (hRunConf == -1) h_conf = GetHandle(0,"/Mu2e/ActiveRunConfiguration");
+
+  if (db_find_key(_hDB, h_conf, key, &h) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << " not found";
   }
   return h;
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetFrontendConfHandle(HNDLE h_RunConf, const std::string& Host) {
-  char key[128];
-  sprintf(key,"DAQ/Nodes/%s/Frontend",Host.data());
-  return GetHandle(_hDB,h_RunConf,key);
+// hRunConf = -1: request for active run configuration
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetDtcConfigHandle(const std::string& Host, int PcieAddr, HNDLE hRunConf) {
+  HNDLE h(0), h_conf(hRunConf);
+  
+  if (hRunConf == -1) h_conf = GetHandle(0,"/Mu2e/ActiveRunConfiguration");
+
+  std::string key = std::format("DAQ/Nodes/{}/DTC{}",Host,PcieAddr);
+
+  if (db_find_key(_hDB, h_conf, key.data(), &h) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << key << " not found";
+  }
+  return h;
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetHostConfHandle(HNDLE h_RunConf, const std::string& Host) {
+// hRunConf = -1: request for active run configuration
+// 'Host' is the host label (w/o '-ctrl')
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetDtcCommandHandle(const std::string& Host, int PcieAddr) {
+  HNDLE h(0);
+  
+  std::string key = std::format("/Mu2e/Commands/DAQ/Nodes/{}/DTC{}",Host,PcieAddr);
+
+  if (db_find_key(_hDB, 0, key.data(), &h) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "DTC command handle for host:" << Host
+                     << " and PcieAddr:" << PcieAddr << " not found";
+  }
+  return h;
+}
+
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetFrontendConfHandle(HNDLE hRunConf, const std::string& Host) {
   char key[128];
-  sprintf(key,"DAQ/Nodes/%s",Host.data());
-  return GetHandle(_hDB,h_RunConf,key);
+  sprintf(key,"DAQ/Nodes/%s/Frontend",Host.data());
+  return GetHandle(_hDB,hRunConf,key);
+}
+
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetHostConfHandle(const std::string& Host, HNDLE hRunConf) {
+  HNDLE h_conf(hRunConf);
+  if (h_conf == -1) h_conf = GetHandle(0,"/Mu2e/ActiveRunConfiguration");
+  
+  std::string key = "DAQ/Nodes/"+Host;
+  return GetHandle(_hDB,h_conf,key.data());
 }
 
 //-----------------------------------------------------------------------------

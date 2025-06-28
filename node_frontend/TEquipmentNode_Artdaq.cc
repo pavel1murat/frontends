@@ -19,7 +19,7 @@ using nlohmann::json;
 #include <boost/algorithm/string.hpp>
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEquipmentNode_Artdaq"
+#define  TRACE_NAME "TEquipmentNode"
 
 std::initializer_list<const char*> BrVarName = {
   "nf_read", "gn_rate", "f_rate" , "inp_mw", "min_nf",                                //  0

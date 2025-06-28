@@ -11,6 +11,7 @@
 #include "midas.h"
 #include "odbxx.h"
 #include "TRACE/tracemf.h"
+#define TRACE_NAME "TEquipmentNode"
 
 //-----------------------------------------------------------------------------
 // read all thresholds

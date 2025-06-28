@@ -13,7 +13,7 @@ using json = nlohmann::json;
 using namespace std;
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEquipmentNode_Rpc"
+#define  TRACE_NAME "TEquipmentNode"
 
 //-----------------------------------------------------------------------------
 namespace ns {
@@ -63,10 +63,10 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     return TMFeErrorMessage(msg+args);
   }
 
-  std::string dtc_odb_path = conf_path + std::format("/DAQ/Nodes/{:s}/DTC{:d}",_host_label.data(),pcie_addr);
+  HNDLE h_dtc = odb_i->GetDtcConfigHandle(_host_label,pcie_addr);
                                                      
   TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr
-                   << " dtc_odb_path:" << dtc_odb_path
+                   << " h_dtc:" << h_dtc
                    << " DTC[0]:" << fDtc_i[0]
                    << " DTC[1]:" << fDtc_i[1] ;
 //-----------------------------------------------------------------------------
@@ -84,7 +84,8 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     dtc_i = dynamic_cast<trkdaq::DtcInterface*>(fDtc_i[pcie_addr]);
   }
   catch(...) {
-    TLOG(TLVL_ERROR) << "can\'t initialize the DTC";
+    TLOG(TLVL_ERROR) << "failed to initialize the DTC";
+    ss << " failed to initialize the DTC" << pcie_addr ;
   }
   
   if (dtc_i == nullptr) {
@@ -94,7 +95,17 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     return TMFeErrorMessage(response);
   }
 
-  if (strcmp(cmd,"dtc_control_roc_read") == 0) {
+  if (strcmp(cmd,"configure_ja") == 0) {
+//-----------------------------------------------------------------------------
+// configure the jitter attenuator. Use dtc_i->fJAMode
+//-----------------------------------------------------------------------------
+    HNDLE h_cmd        = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/configure_ja");
+
+    int rc = dtc_i->ConfigureJA();
+    if (rc == 0) ss << " SUCCESS";
+    else         ss << " ERROR: failed to configure the JA";
+  }
+  else if (strcmp(cmd,"dtc_control_roc_read") == 0) {
 //-----------------------------------------------------------------------------
 // for control_ROC_read, it would make sense to have a separate page
 //-----------------------------------------------------------------------------
@@ -258,15 +269,15 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 // measure thresholds
 //-----------------------------------------------------------------------------
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_measure_thresholds";
-    if (roc == -1) ss << std::endl;
+    ss << std::endl;
     ThreadContext_t cxt(pcie_addr,roc,2);
     MeasureThresholds(cxt,ss);
   }
-  else if (strcmp(cmd,"dtc_control_roc_load_thresholds") == 0) {
+  else if (strcmp(cmd,"dtc_load_thresholds") == 0) {
 //-----------------------------------------------------------------------------
 // load thresholds
 //-----------------------------------------------------------------------------
-    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_load_thresholds";
+    TLOG(TLVL_DEBUG) << "arrived at dtc_load_thresholds";
     if (roc == -1) ss << std::endl;
     ThreadContext_t cxt(pcie_addr,roc);
     LoadThresholds(cxt,ss);             // this is fast, synchronous
@@ -423,7 +434,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     catch (...) { ss << "ERROR : coudn't reset ROC:" << roc << " ... BAIL OUT" << std::endl; }
   }
   else {
-    ss << "ERROR: Unknown command:" << cmd;
+    ss << " ERROR: Unknown command:" << cmd;
     TLOG(TLVL_ERROR) << ss.str();
   }
 

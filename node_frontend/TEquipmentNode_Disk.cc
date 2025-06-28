@@ -57,7 +57,7 @@ void TEquipmentNode::InitDiskVarNames() {
   var_names.push_back("rate_to_disk");
   var_names.push_back("space_used");
   var_names.push_back("space_avail");
-  for (int i=0; i<15; i++) var_names.push_back("reserved");
+  for (int i=0; i<15; i++) var_names.push_back(std::format("disk_{:02d}",i+5));
   
   sprintf(dirname,"Names %s","disk");
   char path[256];

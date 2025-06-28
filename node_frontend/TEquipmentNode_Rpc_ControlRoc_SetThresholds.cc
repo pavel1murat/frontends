@@ -9,7 +9,9 @@
 #include "utils/utils.hh"
 // #include "nlohmann/json.hpp"
 #include "odbxx.h"
+
 #include "TRACE/tracemf.h"
+#define TRACE_NAME "TEquipmentNode"
 
 //-----------------------------------------------------------------------------
 void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,

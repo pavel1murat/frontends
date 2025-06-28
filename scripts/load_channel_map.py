@@ -146,5 +146,5 @@ if __name__ == "__main__":
     x = LoadChannelMap();
     x.parse_parameters();
 
-    if (x.station):
+    if (x.station != None):
         x.load_channel_map(x.station)

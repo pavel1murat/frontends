@@ -35,13 +35,10 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 //-----------------------------------------------------------------------------
 // cache the ODB handle, as need to loop over the keys in InitArtdaq
 //-----------------------------------------------------------------------------
-//  cm_get_experiment_database(&hDB, NULL);
-
   _odb_i                      = OdbInterface::Instance();
   _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
   std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
   std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
-  std::string active_run_conf = _odb_i->GetRunConfigName(_h_active_run_conf);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
 // nodes/DTC's to be monitored 
@@ -50,7 +47,7 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   _host_label     = get_short_host_name(public_subnet.data());
   _full_host_name = get_full_host_name (private_subnet.data());
 
-  _h_daq_host_conf = _odb_i->GetHostConfHandle    (_h_active_run_conf,_host_label);
+  _h_daq_host_conf = _odb_i->GetHostConfHandle(_host_label);
   if (_h_daq_host_conf == 0) {
     // if we don't find the config, there is nothing we can do, abort
     char buf[256];
@@ -60,19 +57,20 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   }
   _h_frontend_conf = _odb_i->GetFrontendConfHandle(_h_active_run_conf,_host_label);
 
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"   ,&_monitorDtc   );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq",&_monitorArtdaq);
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI"   ,&_monitorSPI);
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates" ,&_monitorRates );
+  _monitorDtc    = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc");
+  _monitorArtdaq = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq");
+  _monitorSPI    = _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI");
+  _monitorRates  = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates");
+  _diagLevel     = _odb_i->GetInteger(_h_frontend_conf,"DiagLevel");
 
-  TLOG(TLVL_DEBUG) << "active_run_conf:"  << active_run_conf 
+  TLOG(TLVL_DEBUG) << "active_run_conf:"  << _odb_i->GetString(_h_active_run_conf,"Name")
                    << " public_subnet:"   << public_subnet
                    << " private subnet:"  << private_subnet 
                    << " _full_host_name:" << _full_host_name
                    << " _host_label:"     << _host_label
                    << std::endl
                    << "_monitorDtc:"      << _monitorDtc
-                   << "_monitorSPI:"      << _monitorSPI
+                   << " _monitorSPI:"      << _monitorSPI
                    << " _monitorArtdaq:"  << _monitorArtdaq
                    << " _monitorRates:"   << _monitorRates;
   EqSetStatus("Started...", "white");
@@ -83,17 +81,21 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   InitDisk  ();
 //-----------------------------------------------------------------------------
 // hotlinks - start from one function handling both DTCs
+// command processor : 'ProcessCommand' function
 //-----------------------------------------------------------------------------
   HNDLE hdb       = _odb_i->GetDbHandle();
-  HNDLE h_dtc0    = _odb_i->GetHandle(0,std::format("/Mu2e/Commands/Frontends/{:s}/DTC0/Run",_host_label.data()));
 
-  if (db_open_record(hdb,h_dtc0,&_run_dtc0_command,sizeof(int32_t), MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
-    cm_msg(MERROR, __func__,"cannot open hotlink in ODB");
+  HNDLE h_dtc0_cmd     = _odb_i->GetDtcCommandHandle(_host_label,0);
+  HNDLE h_dtc0_cmd_run = _odb_i->GetHandle(h_dtc0_cmd,"Run");
+
+  if (db_open_record(hdb,h_dtc0_cmd_run,&_dtc0_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+    cm_msg(MERROR, __func__,"cannot open DTC0 hotlink in ODB");
   }
 
-  HNDLE h_dtc1   = _odb_i->GetHandle(0,std::format("/Mu2e/Commands/Frontends/{:s}/DTC1/Run",_host_label.data()));
-  if (db_open_record(hdb,h_dtc1,&_run_dtc1_command,sizeof(int32_t), MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
-    cm_msg(MERROR, __func__,"cannot open hotlink in ODB");
+  HNDLE h_dtc1_cmd     = _odb_i->GetDtcCommandHandle(_host_label,1);
+  HNDLE h_dtc1_cmd_run = _odb_i->GetHandle(h_dtc1_cmd,"Run");
+  if (db_open_record(hdb,h_dtc1_cmd_run,&_dtc1_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+    cm_msg(MERROR, __func__,"cannot open DTC1 hotlink in ODB");
   }
   
   return TMFeOk();
@@ -108,7 +110,6 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
 
-  //  HNDLE h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
   int   event_mode        = _odb_i->GetEventMode     (_h_active_run_conf);
   int   roc_readout_mode  = _odb_i->GetRocReadoutMode(_h_active_run_conf);
   int    handle_begin_run(0);

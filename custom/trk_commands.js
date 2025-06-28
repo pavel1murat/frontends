@@ -329,6 +329,13 @@ function trk_panel_load_parameters(station,plane,panel) {
 }
 
 //-----------------------------------------------------------------------------
+function trk_panel_load_cmd_parameters(cmd) {
+  const table     = document.getElementById('cmd_params');
+  table.innerHTML = '';
+  odb_browser('cmd_params','/Mu2e/Commands/Tracker/TRK/panel_'+cmd,0);
+}
+      
+//-----------------------------------------------------------------------------
 function trk_load_parameters_init_readout() {
   const table     = document.getElementById('cmd_params');
   table.innerHTML = '';
