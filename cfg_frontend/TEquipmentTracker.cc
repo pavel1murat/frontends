@@ -47,7 +47,7 @@ TMFeResult TEquipmentTracker::HandleInit(const std::vector<std::string>& args) {
   _host_label     = get_short_host_name(public_subnet.data());
   _full_host_name = get_full_host_name (private_subnet.data());
 
-  _h_daq_host_conf = _odb_i->GetHostConfHandle(_h_active_run_conf,_host_label);
+  _h_daq_host_conf = _odb_i->GetHostConfHandle(_host_label);
 
   _ac_path         = "/Mu2e/ActiveRunConfiguration";
   _ss_ac_path      = _ac_path+"/Tracker";

@@ -38,8 +38,12 @@ public:
   int         GetOnSpill              (HNDLE h_RunConf);
 
                                         // 'Host' - short, w/o the domain name
-  HNDLE       GetDaqConfigHandle      (HNDLE h_RunConf);
-  int         GetHostConfHandle       (HNDLE h_RunConf, const std::string& Host);
+  HNDLE       GetDaqConfigHandle      (HNDLE h_RunConf = -1);
+  HNDLE       GetDtcConfigHandle      (const std::string& Host, int PcieAddr, HNDLE hRunConf = -1);
+
+  HNDLE       GetDtcCommandHandle     (const std::string& Host, int PcieAddr);
+  
+  int         GetHostConfHandle       (const std::string& Host, HNDLE h_RunConf = -1);
   int         GetFrontendConfHandle   (HNDLE h_RunConf, const std::string& Host);
   HNDLE       GetHostArtdaqConfHandle (HNDLE h_RunConf, const std::string& Host);
 

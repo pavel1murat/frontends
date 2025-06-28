@@ -10,7 +10,7 @@ import midas
 import midas.frontend
 import midas.event
 
-class MyPeriodicEquipment(midas.frontend.EquipmentBase):
+class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
     """
     We define an "equipment" for each logically distinct task that this frontend
     performs. For example, you may have one equipment for reading data from a
@@ -22,24 +22,24 @@ class MyPeriodicEquipment(midas.frontend.EquipmentBase):
     If you're creating a "polled" equipment (rather than a periodic one), you
     should also define a `poll_func` function in addition to `readout_func`.
     """
-    def __init__(self, client):
+    def __init__(self, client, name):
         # The name of our equipment. This name will be used on the midas status
         # page, and our info will appear in /Equipment/MyPeriodicEquipment in
         # the ODB.
-        equip_name = "trackerpi11_eq"
+        equip_name = name
         
         # Define the "common" settings of a frontend. These will appear in
         # /Equipment/MyPeriodicEquipment/Common. The values you set here are
         # only used the very first time this frontend/equipment runs; after 
         # that the ODB settings are used.
-        default_common = midas.frontend.InitialEquipmentCommon()
-        default_common.equip_type = midas.EQ_PERIODIC
-        default_common.buffer_name = "SYSTEM"
+        default_common              = midas.frontend.InitialEquipmentCommon()
+        default_common.equip_type   = midas.EQ_PERIODIC
+        default_common.buffer_name  = "SYSTEM"
         default_common.trigger_mask = 0
-        default_common.event_id = 1
-        default_common.period_ms = 100
-        default_common.read_when = midas.RO_RUNNING
-        default_common.log_history = 1
+        default_common.event_id     = 1
+        default_common.period_ms    = 100
+        default_common.read_when    = midas.RO_RUNNING
+        default_common.log_history  = 1
         
         # You MUST call midas.frontend.EquipmentBase.__init__ in your equipment's __init__ method!
         midas.frontend.EquipmentBase.__init__(self, client, equip_name, default_common)
@@ -89,7 +89,7 @@ class RpiFrontend(midas.frontend.FrontendBase):
         
         # You can add equipment at any time before you call `run()`, but doing
         # it in __init__() seems logical.
-        self.add_equipment(MyPeriodicEquipment(self.client))
+        self.add_equipment(RpiPeriodicEquipment(self.client,self.name))
 
         self.cmd_top_path = '/Mu2e/Commands/Tracker/RPI/'+self.name;
         self.client.odb_watch(self.cmd_top_path+"/Run", self.process_command)
@@ -121,20 +121,22 @@ class RpiFrontend(midas.frontend.FrontendBase):
 #---v--------------------------------------------------------------------------
 # Process command: execution gets here when /Mu2e/Commands/Tracker/RPI/$piname/Run is set to 1
 #------------------------------------------------------------------------------
-    def reset_lv(self):
+    def cmd_reset_station_lv(self,print_level):
         cmd = 'pinctrl set 25 op dl; pinctrl set 25 op dh';
         p = subprocess.Popen(cmd,executable="/bin/bash",shell=True,stderr=subprocess.PIPE,stdout=subprocess.PIPE,encoding="utf-8")
         (out, err) = p.communicate();
         if (err != ''):
-            print(f'ERROR:{err}')
-       
+            self.client.msg(f'ERROR:reset_station_lv:{err}')
+
+        if (print_level != 0):
+            self.client.msg(f'executed:{cmd}')
+
         return;
 
 #---v--------------------------------------------------------------------------
 # Process command: execution gets here when /Mu2e/Commands/Tracker/RPI/$piname/Run is set to 1
 #------------------------------------------------------------------------------
     def process_command(self, client, path, new_value):
-
         print(f'path:{path}');
 #------------------------------------------------------------------------------
 # a sanity check: return of the whole tracker is disabled
@@ -147,11 +149,13 @@ class RpiFrontend(midas.frontend.FrontendBase):
             print(f'WARNING: /Mu2e/Commands/Tracker/RPI/{self.name}/Run:{cmd_run}');
             return
 
-        cmd_name  = self.client.odb_get(self.cmd_top_path+'/Name')
+        cmd_name     = self.client.odb_get(self.cmd_top_path+'/Name')
+        cmd_par_path = self.cmd_top_path+'/'+cmd_name;
+        print_level  = self.client.odb_get(cmd_par_path+'/print_level')
         
-        if   (cmd_name.upper() == 'RESET_LV'):
-            print(f'executing RESET_LV: dont forget to uncomment the command');
-            # cmd_reset_lv()
+        if   (cmd_name.upper() == 'RESET_STATION_LV'):
+            # self.client.msg(f'executing RESET_STATION_LV: dont forget to uncomment the command');
+            self.cmd_reset_station_lv(print_level)
         else:
             print(f'unknown command:{cmd_name}');
 

@@ -8,7 +8,7 @@
 #include "odbxx.h"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEquipmentNode_Dtc"
+#define  TRACE_NAME "TEquipmentNode"
 
 //-----------------------------------------------------------------------------
 // back to DTC: two are listed in the header, both should be listed in ODB
@@ -317,6 +317,7 @@ void TEquipmentNode::ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i) {
 void TEquipmentNode::ReadDtcMetrics() {
   char   text[200];
   
+  TLOG(TLVL_DEBUG+1) << "-- START";
   //  double t  = TMFE::GetTime();
   // midas::odb::set_debug(true);
 
@@ -427,10 +428,10 @@ void TEquipmentNode::ReadDtcMetrics() {
                   xx[buf] = roc_spi;
                 
                   TLOG(TLVL_DEBUG+1) << "ROC:" << ilink
-                                   << " saved N(SPI) words:" << trkdaq::TrkSpiDataNWords;
+                                     << " saved N(SPI) words:" << trkdaq::TrkSpiDataNWords;
                 }
                 else {
-                  TLOG(TLVL_ERROR) << "failed to read SPI, DTC:" << idtc << " ROC:" << ilink;
+                  TLOG(TLVL_ERROR)   << "failed to read SPI, DTC:" << idtc << " ROC:" << ilink;
 //-----------------------------------------------------------------------------
 // set ROC status to -1
 //-----------------------------------------------------------------------------
@@ -489,7 +490,7 @@ void TEquipmentNode::ReadDtcMetrics() {
                 for (int i=0; i<6; ++i) pread.ch_mask[i] = saved_ch_mask[i];
                 trkdtc_i->ControlRoc_Read(&pread,ilink,print_level);
 //-----------------------------------------------------------------------------
-// pritn diagnostics
+// print diagnostics
 //-----------------------------------------------------------------------------
                 if (rc == 0) {
                   char buf[16];
@@ -521,7 +522,7 @@ void TEquipmentNode::ReadDtcMetrics() {
 //-----------------------------------------------------------------------------
         // TODO
       }
-      
     }
   }
+  TLOG(TLVL_DEBUG+1) << "-- END";
 }

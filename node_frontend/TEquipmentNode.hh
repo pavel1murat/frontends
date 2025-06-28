@@ -63,9 +63,11 @@ public:
   int                            _monitorSPI;
   int                            _monitorRocRegisters;
   int                            _monitorRates;
+  int                            _diagLevel;
+
   OdbInterface*                  _odb_i;
-  int                            _run_dtc0_command; // RPC
-  int                            _run_dtc1_command;
+  int                            _dtc0_cmd_run; // RPC
+  int                            _dtc1_cmd_run;
 
   std::time_t                    _prev_ctime_sec;
   float                          _prev_fsize_gb;

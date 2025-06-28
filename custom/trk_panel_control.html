@@ -182,8 +182,15 @@
               <div class="dropup">
                 <input type=button class="dropbtn" value='load_thresholds'>
                 <div class="dropup-content">
-                  <div onClick='dtc_load_parameters_control_roc_load_thresholds()'> Load Parameters </div>
-                  <div onClick='dtc_command("dtc_control_roc_load_thresholds")'   > Run             </div>
+                  <div onClick='trk_panel_load_cmd_parameters("load_thresholds")' > Load Parameters </div>
+                  <div onClick='trk_panel_command_set_odb("load_thresholds")'     > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='load_channel_map'>
+                <div class="dropup-content">
+                  <div onClick='trk_panel_load_cmd_parameters("load_channel_map")' > Load Parameters </div>
+                  <div onClick='trk_panel_command_set_odb("load_channel_map")'> Run             </div>
                 </div>
               </div>
             </td>

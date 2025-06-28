@@ -11,6 +11,7 @@
 #include "odbxx.h"
 
 #include "TRACE/tracemf.h"
+#define TRACE_NAME "TEquipmentNode"
 
 //-----------------------------------------------------------------------------
 // takes parameters frpm ODB
