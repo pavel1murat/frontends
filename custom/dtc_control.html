@@ -34,7 +34,10 @@
         dtc_com_table.innerHTML = `
         <thead>
           <tr>
-            <td> <div class="mtableheader">${g_hostname} DTC Control Commands </div></td>
+            <td> <div class="mtableheader">${g_hostname} DTC Control Commands &nbsp&nbsp
+                    <a href="https://mu2einternalwiki.fnal.gov/wiki/Tracker_DAQ_Help">[ Help ]</a>
+                  </div>
+            </td>
             <td>
               <div class="tab">
                 <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">PCIE:0</button>
@@ -99,7 +102,7 @@
             </td>
           </tr>
           <tr>
-            <td colspan=2></td>
+            <td colspan=2> </td>
             <td></td>
             <td>
               <input type=button value='read &nbsp DTC register'    onClick='dtc_command("dtc_read_register")'>
