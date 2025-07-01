@@ -296,17 +296,18 @@ class TestXmlrpc:
             output += f', "nev_bad_sr":{w[12]}'
 #------------------------------------------------------------------------------
 #shm_nbb :50:1153440:50:0:0:0
+#Shared Memory:250 buffers of 1153440 B, 38 Empty, 0 Writing, 212 Full, 0 reading
 #-----------v------------------------------------------------------------------
             w       = lines[5].split();
             self.Print(name,1,f'line 5: w:{w}');
 
             nbuf = w[1].split(':');
             output += f', "nbuf_shm_tot":{nbuf[1]}'
-            output += f', "nbytes_shm_tot":{nbuf[2]}'
-            output += f', "nbuf_shm_empty":{nbuf[3]}'
-            output += f', "nbuf_shm_write":{nbuf[4]}'
-            output += f', "nbuf_shm_full":{nbuf[5]}'
-            output += f', "nbuf_shm_read":{nbuf[6]}'
+            output += f', "nbytes_shm_tot":{w[4]}'
+            output += f', "nbuf_shm_empty":{w[6]}'
+            output += f', "nbuf_shm_write":{w[8]}'
+            output += f', "nbuf_shm_full":{w[10]}'
+            output += f', "nbuf_shm_read":{w[12]}'
 #------------------------------------------------------------------------------
 # done parsing
 #------------------------------------------------------------------------------
