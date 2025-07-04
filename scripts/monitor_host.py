@@ -96,12 +96,17 @@ class MonitorHost:
                              stdout=subprocess.PIPE,
                              encoding="utf-8")
         (out, err) = p.communicate();
-        w = out.split();
-        self.Print(name,1,f'line 1:{w}')
 
-        one_gb = 1024.*1024*1024;
-        fsize_gb = float(w[4])/one_gb;  # in MBytes
-        res += f', "fsize_gb":{fsize_gb}';
+        self.Print(name,1,f'output:{out}')
+        one_gb = 1024.*1024;
+        if (out != ''):
+            w = out.split();
+            self.Print(name,1,f'line 1:{w}')
+
+            fsize_gb = float(w[4])/one_gb/1024.;  # in MBytes
+            res += f', "fsize_gb":{fsize_gb}';
+        else:
+            res += f', "fsize_gb":0';
 #------------------------------------------------------------------------------
 # finally, space available in write partition
 #-------v----------------------------------------------------------------------
@@ -114,12 +119,16 @@ class MonitorHost:
                              stdout=subprocess.PIPE,
                              encoding="utf-8")
         (out, err) = p.communicate();
+        self.Print(name,1,f'out_2:{out}')
 
-        w = out.splitlines()[1].split();
-        self.Print(name,1,f'line 2:{w}')
+        space_used  = 0;
+        space_avail = 0;
+        if (out != ''):
+            w = out.splitlines()[1].split();
+            self.Print(name,1,f'line 2:{w}')
 
-        space_used  = float(w[2])/one_gb;
-        space_avail = float(w[3])/one_gb;
+            space_used  = float(w[2])/one_gb;
+            space_avail = float(w[3])/one_gb;
 
         res += f', "space_used":{space_used}';
         res += f', "space_avail":{space_avail}';

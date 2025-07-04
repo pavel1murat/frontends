@@ -125,6 +125,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         config_path                  = "/Mu2e/RunConfigurations/"+self.config_name;
         self.use_runinfo_db          = self.client.odb_get(config_path+'/UseRunInfoDB')
         self.tfm_rpc_host            = self.client.odb_get(self.tfm_odb_path+'/RpcHost')
+        self.artdaq_delay_ms         = self.client.odb_get(self.tfm_odb_path+'/artdaq_delay_ms')
 
         mu2e_config_dir              = os.path.expandvars(self.client.odb_get("/Mu2e/ConfigDir"));
         config_dir                   = mu2e_config_dir+'/'+self.config_name;
@@ -213,8 +214,6 @@ class TfmFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
     def begin_of_run(self, run_number):
 
-        self.client.msg("Frontend has seen start of run number %d" % run_number)
-
         if (self.use_runinfo_db):
             try:
                 db = runinfo_db("aaa");
@@ -239,6 +238,10 @@ class TfmFrontend(midas.frontend.FrontendBase):
             except:
                 TRACE.ERROR("failed to register the end of the START transition")
 
+        sleep_time = self.artdaq_delay_ms/1000;
+        self.client.msg(f'TFM: wait for {sleep_time} seconds before starting run number {run_number}')
+        time.sleep(sleep_time);
+       
         self.set_all_equipment_status("Running", "greenLight")
 
         return midas.status_codes["SUCCESS"]

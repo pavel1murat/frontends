@@ -30,7 +30,7 @@ void TEquipmentTracker::ProcessCommand_PanelPrintStatus(const std::string& CmdPa
   int mnid = odb_i->GetInteger(h_params,"mnid"); // o_params["mnid"];
  
   int sdir = (mnid/10)*10;
-  std::string panel_path = std::format("/Mu2e/Subsystems/Tracker/PanelMap/{:03d}/MN{:03d}/Panel",sdir,mnid);
+  std::string panel_path = std::format("/Mu2e/ActieRunConfiguration/Tracker/PanelMap/{:03d}/MN{:03d}/Panel",sdir,mnid);
 
   TLOG(TLVL_DEBUG) << " panel_path:" << panel_path;
 
@@ -46,11 +46,11 @@ void TEquipmentTracker::ProcessCommand_PanelPrintStatus(const std::string& CmdPa
   uint16_t ch_mask  [96], thr_hv[96], thr_cal[96], gain_hv[96], gain_cal[96];
   float    thr_hv_mv[96], thr_cal_mv[96];
   
-  odb_i->GetArray(h_panel,"ch_mask"   ,TID_WORD, ch_mask   ,96);
-  odb_i->GetArray(h_panel,"thr_hv"    ,TID_WORD, thr_hv    ,96);
-  odb_i->GetArray(h_panel,"thr_cal"   ,TID_WORD, thr_cal   ,96);
-  odb_i->GetArray(h_panel,"gain_hv"   ,TID_WORD, gain_hv   ,96);
-  odb_i->GetArray(h_panel,"gain_cal"  ,TID_WORD, gain_cal  ,96);
+  odb_i->GetArray(h_panel,"ch_mask"   ,TID_WORD , ch_mask   ,96);
+  odb_i->GetArray(h_panel,"thr_hv"    ,TID_WORD , thr_hv    ,96);
+  odb_i->GetArray(h_panel,"thr_cal"   ,TID_WORD , thr_cal   ,96);
+  odb_i->GetArray(h_panel,"gain_hv"   ,TID_WORD , gain_hv   ,96);
+  odb_i->GetArray(h_panel,"gain_cal"  ,TID_WORD , gain_cal  ,96);
   odb_i->GetArray(h_panel,"thr_hv_mv" ,TID_FLOAT, thr_hv_mv ,96);
   odb_i->GetArray(h_panel,"thr_cal_mv",TID_FLOAT, thr_cal_mv,96);
 

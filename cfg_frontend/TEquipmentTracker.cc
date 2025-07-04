@@ -49,11 +49,13 @@ TMFeResult TEquipmentTracker::HandleInit(const std::vector<std::string>& args) {
 
   _h_daq_host_conf = _odb_i->GetHostConfHandle(_host_label);
 
-  _ac_path         = "/Mu2e/ActiveRunConfiguration";
-  _ss_ac_path      = _ac_path+"/Tracker";
+  _ss_ac_path      = "/Mu2e/ActiveRunConfiguration/Tracker";
+  _h_tracker_conf  = _odb_i->GetHandle(0,_ss_ac_path);
 
   _ss_cmd_path     = "/Mu2e/Commands/Tracker";
-
+//-----------------------------------------------------------------------------
+// register hotlink
+//-----------------------------------------------------------------------------
   HNDLE hdb        = _odb_i->GetDbHandle();
   HNDLE h_run      = _odb_i->GetHandle(0,_ss_cmd_path+"/Run");
 
