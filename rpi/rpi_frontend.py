@@ -4,11 +4,13 @@ initial version of the Mu2e RPI frontend
 See `examples/multi_frontend.py` for an example that uses more
 features (frontend index, polled equipment, ODB settings etc). 
 """
-import os, sys, socket, subprocess
+import os, sys, socket, subprocess, time
 
 import midas
 import midas.frontend
 import midas.event
+
+from PowerSupplyServerConnection import PowerSupplyServerConnection
 
 class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
     """
@@ -26,7 +28,7 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
         # The name of our equipment. This name will be used on the midas status
         # page, and our info will appear in /Equipment/MyPeriodicEquipment in
         # the ODB.
-        equip_name = name
+        equip_name = name;
         
         # Define the "common" settings of a frontend. These will appear in
         # /Equipment/MyPeriodicEquipment/Common. The values you set here are
@@ -37,8 +39,8 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
         default_common.buffer_name  = "SYSTEM"
         default_common.trigger_mask = 0
         default_common.event_id     = 1
-        default_common.period_ms    = 100
-        default_common.read_when    = midas.RO_RUNNING
+        default_common.period_ms    = 20000
+        default_common.read_when    = midas.RO_ALWAYS; ## midas.RO_RUNNING
         default_common.log_history  = 1
         
         # You MUST call midas.frontend.EquipmentBase.__init__ in your equipment's __init__ method!
@@ -46,29 +48,38 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
         
         # You can set the status of the equipment (appears in the midas status page)
         self.set_status("Initialized")
-        
+
+
     def readout_func(self):
         """
         For a periodic equipment, this function will be called periodically
-        (every 100ms in this case). It should return either a `midas.event.Event`
-        or None (if we shouldn't write an event).
+        (every 20s = 20000ms in this case). 
+        It should return either a `midas.event.Event` or None if we shouldn't write an event
         """
-        
-        # In this example, we just make a simple event with one bank.
+        # self.client.msg("readout_func called")
+        lv_data = []
+        supply = PowerSupplyServerConnection('localhost', 12000)
+        for channel in range(6):
+            supply.EnableLowVoltage(channel)
+            time.sleep(1)
+            readback = supply.QueryPowerVoltage(channel)
+            # print(f'channel:{channel} readback:{readback}')
+            lv_data.append(readback);
+#------------------------------------------------------------------------------
+# In this example, we just make a simple event with one bank.
+# Create a bank (called "LV00") which in this case will store 4 floats
+# data can be a list, a tuple or a numpy array.
+# teh abnk name should be 4 chars long
+# If performance is a strong factor (and you have large bank sizes), 
+# you should use a numpy array instead of raw python lists. In
+# that case you would have `data = numpy.ndarray(8, numpy.int32)`
+# and then fill the ndarray as desired. The correct numpy data type
+# for each midas TID_xxx type is shown in the `midas.tid_np_formats` dict.
+#------------------------------------------------------------------------------
         event = midas.event.Event()
-        
-        # Create a bank (called "MYBK") which in this case will store 8 ints.
-        # data can be a list, a tuple or a numpy array.
-        # If performance is a strong factor (and you have large bank sizes), 
-        # you should use a numpy array instead of raw python lists. In
-        # that case you would have `data = numpy.ndarray(8, numpy.int32)`
-        # and then fill the ndarray as desired. The correct numpy data type
-        # for each midas TID_xxx type is shown in the `midas.tid_np_formats`
-        # dict.
-        # data = [1,2,3,4,5,6,7,8]
-        # event.create_bank("MYBK", midas.TID_INT, data)
-        
-        return None #  event
+        event.create_bank("LV00", midas.TID_FLOAT, lv_data)
+
+        return event # None #  event
 
 #------------------------------------------------------------------------------
 # RPI assigned to a certain station
@@ -102,12 +113,12 @@ class RpiFrontend(midas.frontend.FrontendBase):
         dict if needed.
         """
         self.set_all_equipment_status("Running", "greenLight")
-        self.client.msg("Frontend has seen start of run number %d" % run_number)
+        # self.client.msg("Frontend has seen start of run number %d" % run_number)
         return midas.status_codes["SUCCESS"]
         
     def end_of_run(self, run_number):
         self.set_all_equipment_status("Finished", "greenLight")
-        self.client.msg("Frontend has seen end of run number %d" % run_number)
+        # self.client.msg("Frontend has seen end of run number %d" % run_number)
         return midas.status_codes["SUCCESS"]
     
     def frontend_exit(self):

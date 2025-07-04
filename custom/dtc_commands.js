@@ -146,20 +146,6 @@ function dtc_load_parameters_control_roc_read_ddr() {
 }
       
 //-----------------------------------------------------------------------------
-function dtc_load_parameters_control_roc_set_thresholds() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_set_thresholds',0);
-}
-      
-//-----------------------------------------------------------------------------
-function dtc_load_parameters_control_roc_load_thresholds() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_load_thresholds',0);
-}
-      
-//-----------------------------------------------------------------------------
 function dtc_load_cmd_parameters(cmd) {
   const table     = document.getElementById('cmd_params');
   table.innerHTML = '';

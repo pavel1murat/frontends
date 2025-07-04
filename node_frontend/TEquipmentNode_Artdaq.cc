@@ -214,58 +214,63 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
     return -1;
   }
 
-  json brm = json::parse(output);
+  try {
+    json brm = json::parse(output);
+    TLOG(TLVL_DEBUG+1) << "parsed json:" << brm << std::endl;
 
-  TLOG(TLVL_DEBUG+1) << "parsed json:" << brm << std::endl;
-
-  char buf[1024];
+    char buf[1024];
   
-  ComposeEvent(buf, sizeof(buf));
-  BkInit      (buf, sizeof(buf));
-  double* ptr = (double*) BkOpen(buf, Ac->name.data(), TID_DOUBLE);
+    ComposeEvent(buf, sizeof(buf));
+    BkInit      (buf, sizeof(buf));
+    double* ptr = (double*) BkOpen(buf, Ac->name.data(), TID_DOUBLE);
      
-  *ptr++ = brm["nf_sent_tot"];        // 
-  *ptr++ = brm["gn_rate"];
-  *ptr++ = brm["fr_rate"];
-  *ptr++ = brm["time_win"];
-  *ptr++ = brm["min_nf"];
-  *ptr++ = brm["max_nf"];
-  *ptr++ = brm["elapsed_time"];
+    *ptr++ = brm["nf_sent_tot"];        // 
+    *ptr++ = brm["gn_rate"];
+    *ptr++ = brm["fr_rate"];
+    *ptr++ = brm["time_win"];
+    *ptr++ = brm["min_nf"];
+    *ptr++ = brm["max_nf"];
+    *ptr++ = brm["elapsed_time"];
+    
+    TLOG(TLVL_DEBUG+1) << "repacking 0.5";
+    
+    *ptr++ = brm["nf_sent"];
+    *ptr++ = brm["of_rate"];
+    *ptr++ = brm["dt_rate"];
+    *ptr++ = brm["time_win2"];
+    *ptr++ = brm["min_ev_size"];
+    *ptr++ = brm["max_ev_size"];
+    *ptr++ = brm["inp_wait_time"];
+    *ptr++ = brm["buf_wait_time"];
+    *ptr++ = brm["req_wait_time"];
+    *ptr++ = brm["out_wait_time"];
 
-  TLOG(TLVL_DEBUG+1) << "repacking 0.5";
-
-  *ptr++ = brm["nf_sent"];
-  *ptr++ = brm["of_rate"];
-  *ptr++ = brm["dt_rate"];
-  *ptr++ = brm["time_win2"];
-  *ptr++ = brm["min_ev_size"];
-  *ptr++ = brm["max_ev_size"];
-  *ptr++ = brm["inp_wait_time"];
-  *ptr++ = brm["buf_wait_time"];
-  *ptr++ = brm["req_wait_time"];
-  *ptr++ = brm["out_wait_time"];
-
-  TLOG(TLVL_DEBUG+1) << "repacking 1";
+    TLOG(TLVL_DEBUG+1) << "repacking 1";
 //-----------------------------------------------------------------------------
 // shared memory
 //-----------------------------------------------------------------------------
-  double* psave = ptr;
-  int nf = brm["fids"].size();
-  TLOG(TLVL_DEBUG+1) << "nf:" << nf << " brm[\"fids\"]:" << brm["fids"];
-  
-  for (int i=0; i<nf; i++) {
-    *ptr      = brm["fids"][i]["fid"];
-    *(ptr+5)  = brm["fids"][i]["nf" ];
-    *(ptr+10) = brm["fids"][i]["nb" ];
-    ptr++;
-  }
-  TLOG(TLVL_DEBUG+1) << "repacking 2";
+    double* psave = ptr;
+    int nf = brm["fids"].size();
+    TLOG(TLVL_DEBUG+1) << "nf:" << nf << " brm[\"fids\"]:" << brm["fids"];
+    
+    for (int i=0; i<nf; i++) {
+      *ptr      = brm["fids"][i]["fid"];
+      *(ptr+5)  = brm["fids"][i]["nf" ];
+      *(ptr+10) = brm["fids"][i]["nb" ];
+      ptr++;
+    }
+    TLOG(TLVL_DEBUG+1) << "repacking 2";
 //-----------------------------------------------------------------------------
 // record has a fixed length !
 //-----------------------------------------------------------------------------
-  ptr = psave+15;
-  BkClose    (buf,ptr);
-  EqSendEvent(buf);
+    ptr = psave+15;
+    BkClose    (buf,ptr);
+    EqSendEvent(buf);
+  }
+  catch (...) {
+    TLOG(TLVL_ERROR) << "json::parse failed to parse output" ;
+  }
+
 //-----------------------------------------------------------------------------
 // for i=4, the last word filled is Data[29]
 //-----------------------------------------------------------------------------

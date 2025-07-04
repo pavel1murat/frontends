@@ -65,7 +65,7 @@ function trk_choose_panel_id(evt, panel_id) {
   var x1 = Number(panel_id.charAt(2))*100;
   var x2 = x1.toString();
   var x  = x2.padStart(3,'0');
-  var panel_path = '/Mu2e/Subsystems/Tracker/PanelMap/'+x+'/'+panel_id+'/Panel';
+  var panel_path = '/Mu2e/ActiveRunConfiguration/Tracker/PanelMap/'+x+'/'+panel_id+'/Panel';
   var paths=[panel_path+'/GeoStation', panel_path+'/GeoPlane', panel_path+'/GeoPanel'];
   let station = -1;
   let plane   = -1;

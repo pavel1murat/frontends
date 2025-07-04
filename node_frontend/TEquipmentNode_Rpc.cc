@@ -99,7 +99,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
 // configure the jitter attenuator. Use dtc_i->fJAMode
 //-----------------------------------------------------------------------------
-    HNDLE h_cmd        = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/configure_ja");
+//    HNDLE h_cmd        = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/configure_ja");
 
     int rc = dtc_i->ConfigureJA();
     if (rc == 0) ss << " SUCCESS";
@@ -264,29 +264,29 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       }
     }
   }
-  else if (strcmp(cmd,"dtc_control_roc_measure_thresholds") == 0) {
+  else if (strcmp(cmd,"measure_thresholds") == 0) {
 //-----------------------------------------------------------------------------
 // measure thresholds
 //-----------------------------------------------------------------------------
-    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_measure_thresholds";
+    TLOG(TLVL_DEBUG) << "arrived at measure_thresholds";
     ss << std::endl;
     ThreadContext_t cxt(pcie_addr,roc,2);
     MeasureThresholds(cxt,ss);
   }
-  else if (strcmp(cmd,"dtc_load_thresholds") == 0) {
+  else if (strcmp(cmd,"load_thresholds") == 0) {
 //-----------------------------------------------------------------------------
 // load thresholds
 //-----------------------------------------------------------------------------
-    TLOG(TLVL_DEBUG) << "arrived at dtc_load_thresholds";
+    TLOG(TLVL_DEBUG) << "arrived at load_thresholds";
     if (roc == -1) ss << std::endl;
     ThreadContext_t cxt(pcie_addr,roc);
     LoadThresholds(cxt,ss);             // this is fast, synchronous
   }
-  else if (strcmp(cmd,"dtc_control_roc_set_thresholds") == 0) {
+  else if (strcmp(cmd,"set_thresholds") == 0) {
 //-----------------------------------------------------------------------------
 // set thresholds: use thread as the RPC times out
 //-----------------------------------------------------------------------------
-    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_set_thresholds";
+    TLOG(TLVL_DEBUG) << "arrived at set_thresholds";
     // ss << std::endl;
     fSetThrContext.fPcieAddr = pcie_addr;
     fSetThrContext.fLink     = roc;
@@ -369,6 +369,24 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_rates";
     
      Rpc_ControlRoc_Rates(pcie_addr,roc,dtc_i,ss,conf_name.data());
+  }
+  else if (strcmp(cmd,"set_caldac") == 0) {
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+    ss << std::endl;
+    TLOG(TLVL_DEBUG) << "arrived at set_caldaq";
+    
+     Rpc_ControlRoc_SetCalDac(pcie_addr,roc,dtc_i,ss,conf_name.data());
+  }
+  else if (strcmp(cmd,"dump_settings") == 0) {
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+    ss << std::endl;
+    TLOG(TLVL_DEBUG) << "arrived at dump_settings";
+    
+    Rpc_ControlRoc_DumpSettings(pcie_addr,roc,dtc_i,ss,conf_name.data());
   }
   else if (strcmp(cmd,"read_ilp") == 0) {
 //-----------------------------------------------------------------------------

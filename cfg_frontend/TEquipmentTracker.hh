@@ -13,12 +13,12 @@ class TEquipmentTracker : public TMFeEquipment {
 public:
   HNDLE                          _h_active_run_conf;
   HNDLE                          _h_daq_host_conf;
+  HNDLE                          _h_tracker_conf;
   HNDLE                          _h_frontend_conf;
   std::string                    _full_host_name;  // on private network, for communicatioin
   std::string                    _host_label;      // on public network, for ODB
   OdbInterface*                  _odb_i;
   int                            _run;
-  std::string                    _ac_path;         // "/Mu2e/ActiveRunConfiguration" (active config path)
   std::string                    _ss_ac_path;      // "/Mu2e/ActiveRunConfiguration/Tracker"
   std::string                    _ss_cmd_path;     // "/Mu2e/Commands/Tracker"
   int                            _first_station;

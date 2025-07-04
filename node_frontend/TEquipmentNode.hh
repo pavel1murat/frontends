@@ -115,9 +115,11 @@ public:
   // to be able to call it interactively
   void               ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i);
 
-  int                Rpc_ControlRoc_Rates  (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-  int                Rpc_ControlRoc_Read   (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-  int                Rpc_ControlRoc_ReadDDR(trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream);
+  int                Rpc_ControlRoc_DumpSettings(int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  int                Rpc_ControlRoc_SetCalDac   (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  int                Rpc_ControlRoc_Rates       (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  int                Rpc_ControlRoc_Read        (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  int                Rpc_ControlRoc_ReadDDR     (trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream);
 
                                         // called via a thread
 
