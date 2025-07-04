@@ -771,3 +771,14 @@ void OdbInterface::SetCommand_Finished(HNDLE h_Cmd, int Value) {
   SetInteger(h_Cmd,"Finished",Value);
 }
 
+//-----------------------------------------------------------------------------
+// tracker section
+//-----------------------------------------------------------------------------
+
+HNDLE OdbInterface::GetTrackerPanelHandle(int MnID) {
+  int sdir = (MnID/10)*10;
+  std::string panel_path = std::format("/Mu2e/ActiveRunConfiguration/Tracker/PanelMap/{:03d}/MN{:03d}/Panel",sdir,MnID);
+
+  HNDLE h = GetHandle(0,panel_path);
+  return h;
+}

@@ -26,15 +26,8 @@ void TEquipmentTracker::ProcessCommand_PanelPrintStatus(const std::string& CmdPa
 // find the panel
 //-----------------------------------------------------------------------------
   HNDLE h_params = odb_i->GetHandle(0,CmdParameterPath);
-
-  int mnid = odb_i->GetInteger(h_params,"mnid"); // o_params["mnid"];
- 
-  int sdir = (mnid/10)*10;
-  std::string panel_path = std::format("/Mu2e/ActieRunConfiguration/Tracker/PanelMap/{:03d}/MN{:03d}/Panel",sdir,mnid);
-
-  TLOG(TLVL_DEBUG) << " panel_path:" << panel_path;
-
-  HNDLE h_panel = odb_i->GetHandle(0,panel_path);
+  int   mnid     = odb_i->GetInteger(h_params,"mnid"); // o_params["mnid"];
+  HNDLE h_panel  = odb_i->GetTrackerPanelHandle(mnid);
 //-----------------------------------------------------------------------------
 // the name should be constructed based on the experiment name
 //-----------------------------------------------------------------------------

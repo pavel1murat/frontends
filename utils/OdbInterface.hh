@@ -144,6 +144,11 @@ public:
   int         GetCommand_Finished     (HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
 
   void        SetCommand_Finished     (HNDLE h_Cmd, int Val); // retrieve a hopefully fixed attribute
+//-----------------------------------------------------------------------------
+// tracker-specific section
+//------------------------------------------------------------------------------
+  HNDLE       GetTrackerPanelHandle        (int MnID);
+  
 };
 
 #endif
