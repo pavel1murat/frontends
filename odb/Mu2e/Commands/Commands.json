@@ -175,8 +175,8 @@
       "control_roc_pulser_on" : {
         "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
         "link" : -1,
-        "first_channel_mask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
-        "first_channel_mask" : 128,
+        "first_channel_mask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751658791 },
+        "first_channel_mask" : 8,
         "#------------------------- 1/key" : { "type" : 12, "item_size" : 63, "access_mode" : 7, "last_written" : 1751031688 },
         "#------------------------- 1" : "----------------- duty_cycle (-y) : 10: pulse 200ns  200: ~4us",
         "duty_cycle/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
@@ -201,7 +201,7 @@
         "ch_mask" : [ "0xfffc", "0xffff", "0xffff", "0xffff", "0xffff", "0xffff" ],
         "#--------------------------- 0/key" : { "type" : 12, "item_size" : 42, "access_mode" : 7, "last_written" : 1751031688 },
         "#--------------------------- 0" : "defaul print_level:4  max verbosity: 0xF",
-        "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751077555 },
+        "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751581388 },
         "print_level" : 4,
         "control_ROC_rates" : {
           "UsePanelChannelMask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
@@ -262,13 +262,11 @@
         "PrintLevel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
         "PrintLevel" : 2
       },
-      "control_roc_set_thresholds" : {
-        "#-----/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1751031688 },
-        "#-----" : "if 0, only print the thresholds",
-        "doit/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
-        "doit" : 1,
-        "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
-        "print_level" : 1
+      "dump_settings" : {
+        "channel/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751572297 },
+        "channel" : -1,
+        "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751572321 },
+        "print_level" : 21
       },
       "init_readout" : {
         "#---------------- 0/key" : { "type" : 12, "item_size" : 86, "access_mode" : 7, "last_written" : 1751031688 },
@@ -319,8 +317,24 @@
       "read_roc_register" : {
         "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1751031688 },
         "Register" : "0x0000",
-        "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1751031688 },
+        "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1751755556 },
         "Value" : "0x1234"
+      },
+      "set_caldac" : {
+        "first_channel_mask/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751659182 },
+        "first_channel_mask" : 8,
+        "value/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751658852 },
+        "value" : 1000,
+        "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751659149 },
+        "print_level" : 1
+      },
+      "set_thresholds" : {
+        "#-----/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1751031688 },
+        "#-----" : "if 0, only print the thresholds",
+        "doit/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
+        "doit" : 1,
+        "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
+        "print_level" : 1
       },
       "write_register" : {
         "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1751031688 },
@@ -335,13 +349,13 @@
         "Value" : "0x0000"
       }
     },
-    "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1751148043 },
-    "Name" : "panel_print_status",
-    "ParameterPath/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1751148043 },
+    "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1751755414 },
+    "Name" : "reset_station_lv",
+    "ParameterPath/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1751755414 },
     "ParameterPath" : "/Mu2e/Commands/Tracker/TRK",
-    "Run/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1751148043 },
-    "Run" : 1,
-    "Finished/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751148043 },
+    "Run/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1751755421 },
+    "Run" : 0,
+    "Finished/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751755421 },
     "Finished" : 1,
     "TRK" : {
       "panel_load_channel_map" : {
@@ -353,8 +367,8 @@
         "mnid" : 235
       },
       "panel_print_status" : {
-        "mnid/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751148043 },
-        "mnid" : 248
+        "mnid/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751657897 },
+        "mnid" : 235
       },
       "reset_output" : {
         "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
@@ -365,7 +379,7 @@
         "station" : 0
       },
       "reset_station_lv" : {
-        "station/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751137567 },
+        "station/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751402827 },
         "station" : 0,
         "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
         "print_level" : 0
@@ -391,18 +405,20 @@
         "ReturnCode" : 0
       },
       "trackerpi12" : {
-        "Name/key" : { "type" : 12, "item_size" : 17, "access_mode" : 7, "last_written" : 1751137567 },
+        "Name/key" : { "type" : 12, "item_size" : 17, "access_mode" : 7, "last_written" : 1751755415 },
         "Name" : "reset_station_lv",
-        "ParameterPath/key" : { "type" : 12, "item_size" : 56, "access_mode" : 7, "last_written" : 1751137567 },
+        "ParameterPath/key" : { "type" : 12, "item_size" : 56, "access_mode" : 7, "last_written" : 1751755415 },
         "ParameterPath" : "/Mu2e/Commands/Tracker/RPI/trackerpi12/reset_station_lv",
-        "Run/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1751137567 },
+        "Run/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1751755415 },
         "Run" : 1,
-        "Finished/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751137567 },
+        "Finished/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751755421 },
         "Finished" : 1,
         "ReturnCode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751031688 },
         "ReturnCode" : 0,
         "reset_station_lv" : {
-          "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751137567 },
+          "station/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+          "station" : 0,
+          "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1751755415 },
           "print_level" : 1
         }
       }
