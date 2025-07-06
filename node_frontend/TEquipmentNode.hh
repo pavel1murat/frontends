@@ -51,8 +51,8 @@ public:
   HNDLE                          _h_active_run_conf;
   HNDLE                          _h_daq_host_conf;
   HNDLE                          _h_frontend_conf;
-  HNDLE                          _h_dtc[2];
-  mu2edaq::DtcInterface*          fDtc_i[2];       // one or two DTCs, nullprt:disabled
+  HNDLE                          _h_dtc [2];
+  mu2edaq::DtcInterface*          fDtc_i[2];       // one or two DTCs, nullptr=disabled
   std::vector<ArtdaqComponent_t> _list_of_ac;
   std::string                    _full_host_name;  // on private network, for communicatioin
   std::string                    _host_label;      // on public network, for ODB
