@@ -32,7 +32,9 @@ ln -s spack/var/spack/environments/$env_name
 mkdir spack-repos
 pushd spack-repos
 git clone https://github.com/FNALssi/fnal_art.git
+cd fnal_art; git checkout 8df014c32544bc72f9d27e39b0d190a5a2a03e91 ; cd ..;
 git clone https://github.com/marcmengel/scd_recipes.git
+cd scd_recipes; git checkout c0328997e3f48b0b1341f8ea7ebacea95f9b7472 ; cd ..;
 git clone https://github.com/art-daq/artdaq-spack.git
 git clone https://github.com/Mu2e/mu2e-spack.git
 git clone https://github.com/pavel1murat/spack_packages murat-spack
@@ -95,6 +97,11 @@ spack add     frontends@main
 spack develop frontends@main
 
 #  pushd $env_name/otsdaq-mu2e-stm     ; git fetch --all; git checkout stm_develop; popd ;
+
+# 2025-07-08 PM: libxml@2.9 no longer exists
+
+fn=spack-repos/artdaq-spack/packages/art-suite/package.py
+cat $fn | sed 's/libxml2@2.9"/libxml2@2.13:"/' >| $fn
 
 spack concretize -f
 spack install
