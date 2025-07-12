@@ -121,7 +121,6 @@ namespace mu2e {
     int                                   _nreg;               // their number
     std::string                           _xmlrpcUrl;          // 
     xmlrpc_env                            _env;                // XML-RPC environment
-    ulong                                 _tstamp;             //
 
     std::string                           _midas_host;
     std::string                           _exptName;
@@ -161,7 +160,7 @@ namespace mu2e {
 //-----------------------------------------------------------------------------
     int  message(const std::string& msg_type, const std::string& message);
                                         // read functions
-    int  readData        (artdaq::FragmentPtrs& Frags, ulong& Timestamp);
+    int  readData        (artdaq::FragmentPtrs& Frags);
 
     int  validateFragment(void* DtcFragment);
 
@@ -329,8 +328,6 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   _xmlrpcUrl   = "http://" + _tfmHost + ":" + std::to_string(rpc_port)+"/RPC2";
   xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS, "debug", "v1_0");
   xmlrpc_env_init(&_env);
-
-  _tstamp           = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -466,113 +463,128 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 //-----------------------------------------------------------------------------
 // read one event - could consist of multiple DTC blocks (subevents)
 //-----------------------------------------------------------------------------
-int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags, ulong& TStamp) {
+int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 
   int    rc         (-1);                        // return code, negative if error
   bool   timeout    (false);
   bool   readSuccess(false);
   bool   match_ts   (false);
   int    nbytes     (0);
+
   std::vector<std::unique_ptr<DTCLib::DTC_SubEvent>> subevents;  // auto   tmo_ms(1500);
 
-  TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
-                     << " event:" << ev_counter() 
-                     << " START TStamp:" << TStamp << std::endl;
+  ulong              tstamp    = ev_counter();
+  DTC_EventWindowTag event_tag = DTC_EventWindowTag(tstamp);
 
-  DTC_EventWindowTag event_tag = DTC_EventWindowTag(_tstamp);
-
+  TLOG(TLVL_DEBUG+1) << "label:"         << _artdaqLabel
+                     << " event:"        << ev_counter() 
+                     << " START tstamp:" << tstamp;
+  int sz(0);
   try {
 //------------------------------------------------------------------------------
 // sz: 1 (or 0, if nothing has been read out)
 //     so far, get a single (DTC) subevent
 //-----------------------------------------------------------------------------
-      subevents = _dtc->GetSubEventData(event_tag,match_ts);
-      int sz    = subevents.size();
-      TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
-                         << " event:" << ev_counter()
-                         << " read:" << sz
-                         << " DTC blocks" << std::endl;
-      if (sz > 0) {
-        _tstamp  += 1;
-      }
-      else {
-                                        // ERROR: size = 0
-        cm_msg(MERROR, _artdaqLabel.data(),Form("event: %10li subevents.size():%i",ev_counter(),sz));
-        TLOG(TLVL_ERROR) << "event:" << ev_counter() << " subevents.size():" << sz;
-        rc = 0;
-        return rc;
-      }
+    subevents = _dtc->GetSubEventData(event_tag,match_ts);
+    sz        = subevents.size();
+  }
+  catch (...) {
+    TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " DTC EXCEPTION ";
+    cm_msg(MERROR,_artdaqLabel.data(),Form("event: %10li subevents.size():%i DTC EXCEPTION",ev_counter(),sz));
+  }
+
+  TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
+                     << " event:" << ev_counter()
+                     << " sz:" << sz;
 //-----------------------------------------------------------------------------
+// in case of a null read, add an empty ARTDAQ fragment
+//-----------------------------------------------------------------------------
+  if (sz <= 0) {
+    cm_msg(MERROR, _artdaqLabel.data(),Form("event: %10li subevents.size():%i",ev_counter(),sz));
+    TLOG(TLVL_ERROR) << "event:" << ev_counter() << " subevents.size():" << sz;
+    
+    artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::DTCEVT, tstamp);
+    int event_size = sizeof(DTCLib::DTC_EventHeader);
+    frag->resizeBytes(event_size);
+      
+    DTCLib::DTC_EventHeader* hdr = (DTCLib::DTC_EventHeader*) frag->dataBegin();
+    hdr->inclusive_event_byte_count = event_size;
+    hdr->num_dtcs       = 1;
+    hdr->event_tag_low  = (tstamp      ) & 0xFFFFFFFF;
+    hdr->event_tag_high = (tstamp >> 32) & 0x0000FFFF;
+//-----------------------------------------------------------------------------
+// now copy the empty fragment
+//-----------------------------------------------------------------------------
+    Frags.emplace_back(frag);
+  }
+  else {
+//-----------------------------------------------------------------------------
+// non-null payload
 // each subevent (a block of data corresponding to a single DTC) becomes an artdaq fragment
 //-----------------------------------------------------------------------------
-      for (int i=0; i<sz; i++) {                       // and so far sz = 1
-        DTC_SubEvent* ev     = subevents[i].get();
-        int           nb     = ev->GetSubEventByteCount();
-        uint64_t      ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
+    for (int i=0; i<sz; i++) {                       // and so far sz = 1
+      DTC_SubEvent* ev     = subevents[i].get();
+      int           nb     = ev->GetSubEventByteCount();
+      nbytes              += nb;
+      uint64_t      ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
 
-        TStamp = ew_tag;  // hack ?? may be not
+      tstamp               = ew_tag;  // hack ?? may be not
         
-        TLOG(TLVL_DEBUG+1) << "label:"      << _artdaqLabel
-                           << " dtc_block:" << i
-                           << " nbytes:" << nb << std::endl;
-        nbytes += nb;
-        if (nb > 0) {
-          artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::DTCEVT, TStamp);
-          int event_size = nb+sizeof(DTCLib::DTC_EventHeader);
-          frag->resizeBytes(event_size);
+      TLOG(TLVL_DEBUG+1) << "label:"      << _artdaqLabel
+                         << " dtc_block:" << i
+                         << " nb:"        << nb
+                         << " nbytes:"    << nbytes;
+      if (nb > 0) {
+        artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::DTCEVT, tstamp);
+        int event_size = nb+sizeof(DTCLib::DTC_EventHeader);
+        frag->resizeBytes(event_size);
       
-          DTCLib::DTC_EventHeader* hdr = (DTCLib::DTC_EventHeader*) frag->dataBegin();
-          hdr->inclusive_event_byte_count = event_size;
-          hdr->num_dtcs       = 1;
-          hdr->event_tag_low  = (TStamp      ) & 0xFFFFFFFF;
-          hdr->event_tag_high = (TStamp >> 32) & 0x0000FFFF;
+        DTCLib::DTC_EventHeader* hdr = (DTCLib::DTC_EventHeader*) frag->dataBegin();
+        hdr->inclusive_event_byte_count = event_size;
+        hdr->num_dtcs                   = 1;
+        hdr->event_tag_low              = (tstamp      ) & 0xFFFFFFFF;
+        hdr->event_tag_high             = (tstamp >> 32) & 0x0000FFFF;
 
-          void* afd  = (void*) (hdr+1);
-          memcpy(afd,ev->GetRawBufferPointer(),nb);
+        void* afd  = (void*) (hdr+1);
+        memcpy(afd,ev->GetRawBufferPointer(),nb);
 
-          validateFragment(afd);        // skip validation of the header
+        validateFragment(afd);        // skip validation of the header
 //-----------------------------------------------------------------------------
 // now copy the fragment
 //-----------------------------------------------------------------------------
-          Frags.emplace_back(frag);
+        Frags.emplace_back(frag);
 //-----------------------------------------------------------------------------
 // this is essentially it, now - diagnostics 
 //-----------------------------------------------------------------------------
-          uint64_t ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
+        uint64_t ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
 
-          if ((_debugLevel > 0) and (ev_counter() < _nEventsDbg)) { 
-            TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
-                               << " subevent:" << i
-                               << " EW tag:" << ew_tag
-                               << " nbytes: " << nb;
-            _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2,&std::cout);
-          }
-          rc = 0;
+        if ((_debugLevel > 0) and (ev_counter() < _nEventsDbg)) { 
+          TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
+                             << " subevent:" << i
+                             << " EW tag:" << ew_tag
+                             << " nbytes: " << nb;
+          _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2,&std::cout);
         }
-        else {
+        rc = 0;
+      }
+      else {
 //-----------------------------------------------------------------------------
 // ERROR: read zero bytes
 //-----------------------------------------------------------------------------
-          TLOG(TLVL_ERROR) << "label:" << _artdaqLabel
-                           << " zero length read, event:" << ev_counter();
-          message("alarm", _artdaqLabel+"::ReadData::ERROR event="+std::to_string(ev_counter())+" nbytes=0") ;
-        }
+        TLOG(TLVL_ERROR) << "label:" << _artdaqLabel
+                         << " zero length read, event:" << ev_counter();
+        message("alarm", _artdaqLabel+"::ReadData::ERROR event="+std::to_string(ev_counter())+" nbytes=0") ;
       }
+    }
+  }
       
-      TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
-                         << " NDTCs:" << sz
-                         << " nbytes:" << nbytes;
-    }
-    catch (...) {
-      TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " ERROR reading data, EXCEPTION THROWN";
-    }
-  
   int print_event = (ev_counter() % _printFreq) == 0;
   if (print_event) {
     TLOG(TLVL_DEBUG+1) << "-- END: label:" << _artdaqLabel
-                       << " event:" << ev_counter()
+                       << " event:"        << ev_counter()
                        << " readSuccess:"  << readSuccess
-                       << " timeout:" << timeout << " nbytes:" << nbytes << " rc:" << rc;
+                       << " sz:"           << sz
+                       << " timeout:"      << timeout << " nbytes:" << nbytes << " rc:" << rc;
   }
 
   return rc;
@@ -592,13 +604,11 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
 // int print_event = (ev_counter() % _printFreq) == 0;
 // make sure even a fake fragment goes in
 //-----------------------------------------------------------------------------
-  ulong tstamp = CommandableFragmentGenerator::ev_counter();
-
   if (_readData) {
 //-----------------------------------------------------------------------------
 // read data 
 //-----------------------------------------------------------------------------
-    int rc = readData(Frags,tstamp);
+    int rc = readData(Frags);
     if (rc < 0) {
       TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " rc(readData):" << rc;
     }
@@ -607,6 +617,8 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
 // fake reading
 //-----------------------------------------------------------------------------
+    ulong tstamp = CommandableFragmentGenerator::ev_counter();
+
     artdaq::Fragment* f1 = new artdaq::Fragment(ev_counter(), _fragment_ids[0], _fragmentType, tstamp);
     f1->resizeBytes(4);
     uint* afd  = (uint*) f1->dataBegin();

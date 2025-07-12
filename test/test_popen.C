@@ -1,3 +1,7 @@
+///////////////////////////////////////////////////////////////////////////////
+// test_popen("artdaq_xmlrpc","dr_metrics","mu2edaq09:21301")
+// test_popen("monitor_host","disk_io","/data/tracker/vst/mu2e_daquser_001")
+///////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -38,7 +42,7 @@ std::string popen_shell_command(const std::string& command) {
 
 //-----------------------------------------------------------------------------
 // Host: "mu2edaq22-ctrl" or "mu2edaq09"
-// Backend: "test_xmlrpc" or "monitor_host"
+// Backend: "artdaq_xmlrpc" or "monitor_host"
 // Dir: output directory for "monitor_host" , or Host:Port for test_xmlrpc
 //-----------------------------------------------------------------------------
 std::string test_popen(const std::string& Backend, const std::string& Job, const char* Params, int DiagLevel=0) {

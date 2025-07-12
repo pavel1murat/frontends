@@ -21,7 +21,7 @@ int TEquipmentNode::MeasureThresholds(ThreadContext_t& Context, std::ostream& St
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
-  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_measure_thresholds");
+  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_measure_thresholds");
   
   TLOG(TLVL_DEBUG) << "- checkpoint 0.1 Context.fLink:" << Context.fLink
                    << " Context.fPcieAddr:" << Context.fPcieAddr

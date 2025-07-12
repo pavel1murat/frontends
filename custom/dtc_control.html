@@ -68,15 +68,16 @@
                   <div onClick='dtc_command("dtc_init_readout")'   > Run             </div>
                 </div>
               </div>
-              <input type=button value='print status'     onClick='dtc_command("dtc_print_status")'>
-              <input type=button value='print ROC status' onClick='dtc_command("dtc_print_roc_status")'>
-              <input type=button value='clear output'     onClick='dtc_clear_output()'>
               <div class="dropup">
                 <input type=button class="dropbtn" value='configure_ja'>
                 <div class="dropup-content">
                   <div onClick='dtc_load_cmd_parameters("configure_ja")'> Load Parameters </div>
                   <div onClick='dtc_command("configure_ja")'            > Run             </div>
                 </div>
+              </div>
+              <input type=button value='print status'     onClick='dtc_command("dtc_print_status")'>
+              <input type=button value='print ROC status' onClick='dtc_command("dtc_print_roc_status")'>
+              <input type=button value='clear output'     onClick='dtc_clear_output()'>
             </td>
             <td></td>
             <td> Register </td>

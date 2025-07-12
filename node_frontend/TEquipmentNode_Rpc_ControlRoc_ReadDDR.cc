@@ -12,9 +12,9 @@
 
 
 int TEquipmentNode::Rpc_ControlRoc_ReadDDR(trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream) {
-  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_read_ddr");
+  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_read_ddr");
 
-  int block_number = o["BlockNumber"];
+  int block_number = o["block_number"];
   // int print_level  = o["PrintLevel"];
   
   try {

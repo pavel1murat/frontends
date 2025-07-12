@@ -68,7 +68,12 @@ TrackerCfgFrontend::TrackerCfgFrontend() : TMFrontend() {
   
 // add eq to the list of equipment pieces, equipment stores backward pointer to the frontend
   TEquipmentTracker* eq = new TEquipmentTracker("tracker",__FILE__);
-  FeAddEquipment(eq);  
+  FeAddEquipment(eq);
+//-----------------------------------------------------------------------------
+// TRK config frontend starts after the DTC frontends (500) and stops before them
+//-----------------------------------------------------------------------------
+  cm_set_transition_sequence(TR_START,505);
+  cm_set_transition_sequence(TR_STOP ,495);
 }
 
 
