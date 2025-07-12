@@ -107,22 +107,22 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   }
   else if (strcmp(cmd,"dtc_control_roc_read") == 0) {
 //-----------------------------------------------------------------------------
-// for control_ROC_read, it would make sense to have a separate page
+// for control_roc_read, it would make sense to have a separate page
 //-----------------------------------------------------------------------------
     ss << std::endl;
     Rpc_ControlRoc_Read(pcie_addr,roc,dtc_i,ss,conf_name.data());
   }
   else if (strcmp(cmd,"dtc_control_roc_read_ddr") == 0) {
     ss << std::endl;
-    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_read_ddr");
+    //    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_roc_read_ddr");
     Rpc_ControlRoc_ReadDDR(dtc_i,roc,ss);
   }
   else if (strcmp(cmd,"dtc_control_roc_digi_rw") == 0) {
 //-----------------------------------------------------------------------------
-// for control_ROC_digi_rw, it would make sense to have a separate page
+// for control_roc_digi_rw, it would make sense to have a separate page
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_digi_rw");
+    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_roc_digi_rw");
 
     trkdaq::ControlRoc_DigiRW_Input_t  par;
     trkdaq::ControlRoc_DigiRW_Output_t pout;
@@ -349,7 +349,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 // turn pulser OFF
 //-----------------------------------------------------------------------------
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_pulser_off";
-    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_ROC_pulser_off");
+    midas::odb o("/Mu2e/Commands/Tracker/DTC/control_roc_pulser_off");
 
     int print_level        = o["print_level"];
 

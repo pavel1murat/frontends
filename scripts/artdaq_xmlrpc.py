@@ -296,18 +296,18 @@ class TestXmlrpc:
             output += f', "nev_bad_sr":{w[12]}'
 #------------------------------------------------------------------------------
 #shm_nbb :50:1153440:50:0:0:0
-#Shared Memory:250 buffers of 1153440 B, 38 Empty, 0 Writing, 212 Full, 0 reading
+#Shared Memory: 250 buffers of 1153440 B, 38 Empty, 0 Writing, 212 Full, 0 reading
 #-----------v------------------------------------------------------------------
             w       = lines[5].split();
             self.Print(name,1,f'line 5: w:{w}');
 
-            nbuf = w[1].split(':');
-            output += f', "nbuf_shm_tot":{nbuf[1]}'
-            output += f', "nbytes_shm_tot":{w[4]}'
-            output += f', "nbuf_shm_empty":{w[6]}'
-            output += f', "nbuf_shm_write":{w[8]}'
-            output += f', "nbuf_shm_full":{w[10]}'
-            output += f', "nbuf_shm_read":{w[12]}'
+#            nbuf = w[1].split(':');
+            output += f', "nbuf_shm_tot":{w[2]}'
+            output += f', "nbytes_shm_tot":{w[5]}'
+            output += f', "nbuf_shm_empty":{w[7]}'
+            output += f', "nbuf_shm_write":{w[9]}'
+            output += f', "nbuf_shm_full":{w[11]}'
+            output += f', "nbuf_shm_read":{w[13]}'
 #------------------------------------------------------------------------------
 # done parsing
 #------------------------------------------------------------------------------
@@ -327,7 +327,7 @@ if __name__ == "__main__":
         x.test2()
     elif (x.test == "t3"):
         x.test3()
-    elif (x.test == "parse_br_metrics"):
+    elif (x.test == "br_metrics"):
         x.parse_br_metrics()
-    elif (x.test == "parse_dr_metrics"):
+    elif (x.test == "dr_metrics"):
         x.parse_dr_metrics()

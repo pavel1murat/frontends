@@ -25,7 +25,7 @@ void TEquipmentNode::LoadThresholds(ThreadContext_t&   Context,
 
   OdbInterface* odb_i = OdbInterface::Instance();
   
-  HNDLE h_cmd = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/control_ROC_load_thresholds");
+  HNDLE h_cmd = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/control_roc_load_thresholds");
   int doit        = odb_i->GetInteger(h_cmd,"doit"       );
   int print_level = odb_i->GetInteger(h_cmd,"print_level");
   

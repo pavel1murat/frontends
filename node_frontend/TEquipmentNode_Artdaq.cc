@@ -201,7 +201,7 @@ int TEquipmentNode::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
   std::regex pattern(R"(/RPC2$)");
   std::string url = std::regex_replace(Ac->xmlrpc_url, pattern, "");
 
-  std::string cmd = std::format("python config/scripts/artdaq_xmlrpc.py --test=parse_br_metrics --url={}",url);
+  std::string cmd = std::format("python config/scripts/artdaq_xmlrpc.py --test=br_metrics --url={}",url);
 
   TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
   
@@ -298,7 +298,7 @@ int TEquipmentNode::ReadDrMetrics(const ArtdaqComponent_t* Ac) {
   std::regex pattern(R"(/RPC2$)");
   std::string url = std::regex_replace(Ac->xmlrpc_url, pattern, "");
 
-  std::string cmd = std::format("python config/scripts/artdaq_xmlrpc.py --test=parse_dr_metrics --url={}",url);
+  std::string cmd = std::format("python config/scripts/artdaq_xmlrpc.py --test=dr_metrics --url={}",url);
 
   TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
   

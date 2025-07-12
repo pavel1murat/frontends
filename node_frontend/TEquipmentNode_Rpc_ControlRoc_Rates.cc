@@ -26,14 +26,14 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 
   TLOG(TLVL_DEBUG) << "--- START";
   
-  midas::odb o_cmd("/Mu2e/Commands/Tracker/DTC/control_ROC_rates");
+  midas::odb o_cmd("/Mu2e/Commands/Tracker/DTC/control_roc_rates");
     
   trkdaq::ControlRoc_Rates_t  prates;
     
-  prates.num_lookback = o_cmd["num_lookback"];    //
-  prates.num_samples  = o_cmd["num_samples" ];    //
-
-  int  print_level    = o_cmd["print_level" ];
+  prates.num_lookback         = o_cmd["num_lookback"];    //
+  prates.num_samples          = o_cmd["num_samples" ];    //
+  int  print_level            = o_cmd["print_level" ];
+  int  use_panel_channel_mask = o_cmd["use_panel_channel_mask"];
 
   for (int i=0; i<6; i++) {
     rates  [i].reserve(96);
@@ -51,7 +51,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
   for (int lnk=lnk1; lnk<lnk2; ++lnk) {
     if (Dtc_i->LinkEnabled(lnk) == 0) continue ;
     
-    if (o_cmd["UsePanelChannelMask"] == 0) {
+    if (use_panel_channel_mask == 0) {
 //-----------------------------------------------------------------------------
 // use masks stored in the command ODB record
 // '6' below is a random coincidence
@@ -71,10 +71,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
     }
     else {
 //-----------------------------------------------------------------------------
-// use straw mask defined by the panel // save the masks in the command ODB record <=== what do I need it for ??? probably this is not needed!
-// the missing part - need to know the node name. But that is the local host name,
-// the one the frontend is running on
-// _read mask: 6 ushort's
+// use straw mask defined by the panel
 //-----------------------------------------------------------------------------
       std::string  panel_path = std::format("/Mu2e/RunConfigurations/{:s}/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
                                             ConfName,_host_label.data(),PcieAddr,lnk);
@@ -100,7 +97,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 // print the mask
 //-----------------------------------------------------------------------------
     if (print_level&0x8) {
-      Stream << "par.ch_mask:";
+      Stream << " par.ch_mask:";
       for (int iw=0; iw<6; iw++) {
         Stream << " " << std::hex << rates_ch_mask[iw];
       }
@@ -114,10 +111,10 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 // of parameters stored
 //-----------------------------------------------------------------------------
       if (print_level & 0x8) {
-        Stream <<  std::format("dtc_i->fLinkMask: 0x%04x",Dtc_i->fLinkMask) << std::endl;
+        Stream <<  std::format("dtc_i->fLinkMask: 0x{:06x}",Dtc_i->fLinkMask) << std::endl;
       }
 
-      midas::odb o_read_cmd   ("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
+      midas::odb o_read_cmd   ("/Mu2e/Commands/Tracker/DTC/control_roc_read");
 
       trkdaq::ControlRoc_Read_Input_t0 pread;
 

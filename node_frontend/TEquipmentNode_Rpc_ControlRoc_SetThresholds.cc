@@ -22,9 +22,9 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
 
   OdbInterface* odb_i = OdbInterface::Instance();
   
-  //  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_ROC_set_thresholds");
+  //  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_set_thresholds");
 
-  HNDLE h_cmd = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/control_ROC_set_thresholds");
+  HNDLE h_cmd = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/control_roc_set_thresholds");
   
   TLOG(TLVL_DEBUG) << "-- checkpoint 0.1";
 

@@ -195,11 +195,11 @@ void TEquipmentNode::InitDtcVarNames() {
   // SC TODO: I think we should define these together with the registers? 
   std::initializer_list<const char*> dtc_names = {"Temp", "VCCINT", "VCCAUX", "VCBRAM"};
 
-  const std::string node_path     = "/Equipment/"+TMFeEquipment::fEqName;
-  //midas::odb odb_node(node_path);
+  const std::string node_eq_path     = "/Equipment/"+TMFeEquipment::fEqName;
+  //midas::odb odb_node(node_eq_path);
   
-  const std::string settings_path = node_path+"/Settings";
-  midas::odb odb_settings(node_path+"/Settings");
+  const std::string settings_path = node_eq_path+"/Settings";
+  midas::odb odb_settings(node_eq_path+"/Settings");
 //-----------------------------------------------------------------------------
 // DTCs and ROCs
 //-----------------------------------------------------------------------------
@@ -227,7 +227,7 @@ void TEquipmentNode::InitDtcVarNames() {
       
     sprintf(dirname,"DTC%i",idtc);
 
-    midas::odb   odb_dtc(node_path+"/"+dirname);
+    midas::odb   odb_dtc(node_eq_path+"/"+dirname);
     odb_dtc["RegName"] = dtc_var_names;
 
     std::vector<uint32_t> dtc_reg_data(dtc_var_names.size());
@@ -259,7 +259,7 @@ void TEquipmentNode::InitDtcVarNames() {
 
         char roc_subdir[128];
 
-        sprintf(roc_subdir,"%s/DTC%i/ROC%i",node_path.data(),idtc,ilink);
+        sprintf(roc_subdir,"%s/DTC%i/ROC%i",node_eq_path.data(),idtc,ilink);
         midas::odb odb_roc = {{"RegName",{"a","b"}},{"RegData",{1u,2u}}};
         odb_roc.connect(roc_subdir);
         odb_roc["RegName"] = roc_var_names;
@@ -281,7 +281,7 @@ void TEquipmentNode::InitDtcVarNames() {
 //-----------------------------------------------------------------------------
 void TEquipmentNode::ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i) {
   
-  std::string node_path = "/Equipment/"+TMFeEquipment::fEqName;
+  std::string node_eq_path = "/Equipment/"+TMFeEquipment::fEqName;
 
   std::vector<uint32_t>  dtc_reg;
   dtc_reg.reserve(DtcRegisters.size());
@@ -300,7 +300,7 @@ void TEquipmentNode::ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i) {
 
   char buf[64];
   
-  sprintf(buf,"%s/DTC%i",node_path.data(),Dtc_i->PcieAddr());
+  sprintf(buf,"%s/DTC%i",node_eq_path.data(),Dtc_i->PcieAddr());
       
   TLOG(TLVL_DEBUG+1) << "N(DTC registers):" << DtcRegisters.size() << " buf:" << buf;
         
@@ -325,15 +325,15 @@ void TEquipmentNode::ReadDtcMetrics() {
   int running_state          = o_runinfo["State"];
   int transition_in_progress = o_runinfo["Transition in progress"];
 
-  std::string node_path = "/Equipment/"+TMFeEquipment::fEqName;
+  std::string node_eq_path = "/Equipment/"+TMFeEquipment::fEqName;
   
-  for (int idtc=0; idtc<2; idtc++) {
-    mu2edaq::DtcInterface* dtc_i = fDtc_i[idtc];
+  for (int pcie_addr=0; pcie_addr<2; pcie_addr++) {
+    mu2edaq::DtcInterface* dtc_i = fDtc_i[pcie_addr];
     if (dtc_i) {
 //-----------------------------------------------------------------------------
 // DTC temperature and voltages - for history 
 //-----------------------------------------------------------------------------
-      sprintf(text,"dtc%i",idtc);
+      sprintf(text,"dtc%i",pcie_addr);
 
       try {
         std::vector<float> dtc_tv;
@@ -354,10 +354,10 @@ void TEquipmentNode::ReadDtcMetrics() {
         }
 
         char buf[100];
-        sprintf(buf,"dtc%i",idtc);
+        sprintf(buf,"dtc%i",pcie_addr);
         
         midas::odb odb_dtc_tv = {{buf,{1.0f, 1.0f, 1.0f, 1.0f}}};
-        odb_dtc_tv.connect(node_path+"/Variables");
+        odb_dtc_tv.connect(node_eq_path+"/Variables");
         
         odb_dtc_tv[buf] = dtc_tv;
 //-----------------------------------------------------------------------------
@@ -389,14 +389,14 @@ void TEquipmentNode::ReadDtcMetrics() {
                   }
               
                   char buf[100];
-                  sprintf(buf,"%s/DTC%i/ROC%i",node_path.data(),idtc,ilink);
+                  sprintf(buf,"%s/DTC%i/ROC%i",node_eq_path.data(),pcie_addr,ilink);
 
                   midas::odb roc = {{"RegData",{1u}}};
                   roc.connect(buf);
                   roc["RegData"] = roc_reg;
                 }
                 catch (...) {
-                  TLOG(TLVL_ERROR) << "failed to read DTC:" << idtc << " ROC:" << ilink << " registers";
+                  TLOG(TLVL_ERROR) << "failed to read DTC:" << pcie_addr << " ROC:" << ilink << " registers";
 //-----------------------------------------------------------------------------
 // set DTC status to -1
 //-----------------------------------------------------------------------------
@@ -419,10 +419,10 @@ void TEquipmentNode::ReadDtcMetrics() {
                   }
               
                   char buf[100];
-                  sprintf(buf,"rc%i%i",idtc,ilink);
+                  sprintf(buf,"rc%i%i",pcie_addr,ilink);
               
                   midas::odb xx = {{buf,{1.0f}}};
-                  xx.connect(node_path+"/Variables");
+                  xx.connect(node_eq_path+"/Variables");
                 
                   xx[buf].resize(trkdaq::TrkSpiDataNWords);
                   xx[buf] = roc_spi;
@@ -431,7 +431,7 @@ void TEquipmentNode::ReadDtcMetrics() {
                                      << " saved N(SPI) words:" << trkdaq::TrkSpiDataNWords;
                 }
                 else {
-                  TLOG(TLVL_ERROR)   << "failed to read SPI, DTC:" << idtc << " ROC:" << ilink;
+                  TLOG(TLVL_ERROR)   << "failed to read SPI, DTC:" << pcie_addr << " ROC:" << ilink;
 //-----------------------------------------------------------------------------
 // set ROC status to -1
 //-----------------------------------------------------------------------------
@@ -453,12 +453,27 @@ void TEquipmentNode::ReadDtcMetrics() {
 // 3. run read command restoring the clock marker (source of the clock) and the read mask
 //    which someone may rely on
 //-----------------------------------------------------------------------------
-                midas::odb o_read_cmd   ("/Mu2e/Commands/Tracker/DTC/control_ROC_read");
+                midas::odb o_read_cmd   ("/Mu2e/Commands/Tracker/DTC/control_roc_read");
 
                 trkdaq::ControlRoc_Read_Input_t0 pread;                // ch_mask is set to all oxffff
-                                                                       // save the read comamnd ch_mask
+                                                                       // save the read command ch_mask
+//-----------------------------------------------------------------------------
+// always use panel channel mask, ch_mask[i] is either 0 or 1
+//-----------------------------------------------------------------------------
+                std::string panel_path = std::format("Link{}/DetectorElement",ilink);
+                HNDLE h_panel = _odb_i->GetHandle(_h_dtc[pcie_addr],panel_path);
+
+                uint16_t ch_mask[96];
+                _odb_i->GetArray(h_panel,"ch_mask" ,TID_WORD,ch_mask ,96);
+                
                 uint16_t saved_ch_mask[6];
-                for (int i=0; i<6; ++i) saved_ch_mask[i] = o_read_cmd["ch_mask"][i];
+                
+                for (int i=0; i<96; ++i) {
+                  int iw  = i/16;
+                  int bit = i % 16;
+                  if (bit == 0) saved_ch_mask[iw] = 0;
+                  saved_ch_mask[iw] |= (ch_mask[i] << bit);
+                }
 
                 pread.adc_mode        = o_read_cmd["adc_mode"     ];   // -a
                 pread.tdc_mode        = o_read_cmd["tdc_mode"     ];   // -t 
@@ -470,6 +485,7 @@ void TEquipmentNode::ReadDtcMetrics() {
 //-----------------------------------------------------------------------------
 // this is a tricky place: rely on that the READ command ODB record
 // stores the -p value used during the data taking
+// that is a wrong assumption !                 
 //-----------------------------------------------------------------------------
                 pread.enable_pulser   = o_read_cmd["enable_pulser"];   // -p 1
                 pread.marker_clock    = 0;                             // to read the rates, enable internal clock
@@ -494,15 +510,15 @@ void TEquipmentNode::ReadDtcMetrics() {
 //-----------------------------------------------------------------------------
                 if (rc == 0) {
                   char buf[16];
-                  sprintf(buf,"rr%i%i",idtc,ilink);
-              
-                  midas::odb vars(node_path+"/Variables");
+                  sprintf(buf,"rr%i%i",pcie_addr,ilink);
+
+                  midas::odb vars(node_eq_path+"/Variables");
                   vars[buf] = rates;
-                
-                  TLOG(TLVL_DEBUG+1) << "ROC:" << ilink << " saved rates to \"" << node_path+"/Variables[" << buf << "\"], nw:" << rates.size();
+
+                  TLOG(TLVL_DEBUG+1) << "ROC:" << ilink << " saved rates to \"" << node_eq_path+"/Variables[" << buf << "\"], nw:" << rates.size();
                 }
                 else {
-                  TLOG(TLVL_ERROR) << "failed to read rates DTC:" << idtc << " ROC:" << ilink;
+                  TLOG(TLVL_ERROR) << "failed to read rates DTC:" << pcie_addr << " ROC:" << ilink;
 //-----------------------------------------------------------------------------
 // set ROC status to -1
 //-----------------------------------------------------------------------------
@@ -516,7 +532,7 @@ void TEquipmentNode::ReadDtcMetrics() {
         }
       }
       catch (...) {
-        TLOG(TLVL_ERROR) << "failed to read DTC:" << idtc << " registers";
+        TLOG(TLVL_ERROR) << "failed to read DTC:" << pcie_addr << " registers";
 //-----------------------------------------------------------------------------
 // set DTC status to -1
 //-----------------------------------------------------------------------------
