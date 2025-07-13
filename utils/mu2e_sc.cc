@@ -326,7 +326,7 @@ INT mu2e_sc_init(EQUIPMENT *pequipment) {
 
    if      (equal_ustring(str, "Fixed")) m_info->format = FORMAT_FIXED;
    else if (equal_ustring(str, "MIDAS")) m_info->format = FORMAT_MIDAS;
-   else if (equal_ustring(str, "YBOS" )) m_info->format = FORMAT_YBOS;
+   //   else if (equal_ustring(str, "YBOS" )) m_info->format = FORMAT_YBOS;
 //-----------------------------------------------------------------------------
 // count total number of channels, they are lumped into a single array
 // this is what I may try to avoid in the future
@@ -760,34 +760,35 @@ INT cd_mu2e_sc_read(char *pevent, int) {
       }
 
       return bk_size(pevent);
-   } else if (m_info->format == FORMAT_YBOS) {
-#ifdef HAVE_YBOS
-      ybk_init((DWORD *) pevent);
-
-      /* create EVID bank */
-      ybk_create((DWORD *) pevent, "EVID", I4_BKTYPE, (DWORD *) (&pdw));
-      *(pdw)++ = EVENT_ID(pevent);      /* Event_ID + Mask */
-      *(pdw)++ = SERIAL_NUMBER(pevent); /* Serial number */
-      *(pdw)++ = TIME_STAMP(pevent);    /* Time Stamp */
-      ybk_close((DWORD *) pevent, pdw);
-
-      /* create INPT bank */
-      ybk_create((DWORD *) pevent, "INPT", F4_BKTYPE, (DWORD *) & pdata);
-      memcpy(pdata, m_info->var_input, sizeof(float) * m_info->num_channels_input);
-      pdata += m_info->num_channels_input;
-      ybk_close((DWORD *) pevent, pdata);
-
-      /* create OUTP bank */
-      ybk_create((DWORD *) pevent, "OUTP", F4_BKTYPE, (DWORD *) & pdata);
-      memcpy(pdata, m_info->var_output, sizeof(float) * m_info->num_channels_output);
-      pdata += m_info->num_channels_output;
-      ybk_close((DWORD *) pevent, pdata);
-
-      return ybk_size((DWORD *) pevent);
-#lese
-      assert(!"YBOS support not compiled in");
-#endif
    }
+   //    else if (m_info->format == FORMAT_YBOS) {
+// #ifdef HAVE_YBOS
+//       ybk_init((DWORD *) pevent);
+
+//       /* create EVID bank */
+//       ybk_create((DWORD *) pevent, "EVID", I4_BKTYPE, (DWORD *) (&pdw));
+//       *(pdw)++ = EVENT_ID(pevent);      /* Event_ID + Mask */
+//       *(pdw)++ = SERIAL_NUMBER(pevent); /* Serial number */
+//       *(pdw)++ = TIME_STAMP(pevent);    /* Time Stamp */
+//       ybk_close((DWORD *) pevent, pdw);
+
+//       /* create INPT bank */
+//       ybk_create((DWORD *) pevent, "INPT", F4_BKTYPE, (DWORD *) & pdata);
+//       memcpy(pdata, m_info->var_input, sizeof(float) * m_info->num_channels_input);
+//       pdata += m_info->num_channels_input;
+//       ybk_close((DWORD *) pevent, pdata);
+
+//       /* create OUTP bank */
+//       ybk_create((DWORD *) pevent, "OUTP", F4_BKTYPE, (DWORD *) & pdata);
+//       memcpy(pdata, m_info->var_output, sizeof(float) * m_info->num_channels_output);
+//       pdata += m_info->num_channels_output;
+//       ybk_close((DWORD *) pevent, pdata);
+
+//       return ybk_size((DWORD *) pevent);
+// #lese
+//       assert(!"YBOS support not compiled in");
+// #endif
+//    }
 
    return 0;
 }

@@ -17,10 +17,11 @@ logger = logging.getLogger('midas')
 # the hostname and the experiment name need to come from the environment
 #------------------------------------------------------------------------------
 def get_next_run_number():
-    experiment = os.getenv("MIDAS_EXPT_NAME")
-    client     = midas.client.MidasClient("get_next_run_number", "localhost",experiment, None)
-    cfg_file   = os.getenv("MU2E_DAQ_DIR")+'/config/runinfodb.json';
-    rundb      = fur.RuninfoDB(midas_client=client,config_file=cfg_file);
+    experiment   = os.getenv("MIDAS_EXPT_NAME")
+    client       = midas.client.MidasClient("get_next_run_number", "localhost",experiment, None)
+    mu2e_daq_dir = os.path.expandvars(os.getenv("MU2E_DAQ_DIR"))
+    cfg_file     =  mu2e_daq_dir+'/config/runinfodb.json';
+    rundb        = fur.RuninfoDB(midas_client=client,config_file=cfg_file);
 
     try:
         next_run = rundb.next_run_number(store_in_odb=True)
@@ -32,4 +33,5 @@ def get_next_run_number():
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
     rn = get_next_run_number()
-    TRACE.DEBUG(f'NEXT RUN NUMBER:{rn}',TRACE_NAME)
+    msg=f'NEXT RUN NUMBER:{rn}'
+    TRACE.TRACE(6,msg)

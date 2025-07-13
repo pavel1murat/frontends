@@ -1,0 +1,30 @@
+comment "------------------------------------------"
+
+INCLUDE run_library
+INCLUDE trk_control_roc_library
+
+comment "8 calibration runs with the external pulser"
+comment "automated, catalog the runs if needed" 
+ODBGET "/Mu2e/ActiveRunConfiguration/UseRunInfoDB" , use_rundb
+
+RUNDESCRIPTION "pulse injection run"
+PARAM runs, "aaaaa", 8
+
+run_duration       = 60
+end_pause          =  5
+first_channel_mask =  1
+
+LOOP i, $runs
+   
+   call trk_control_roc_pulser_on, $first_channel_mask, 1000, 10, 0
+
+   IF ($use_rundb != 0)
+      script get_next_run_number.py
+   ENDIF
+
+  call run_fixed_time, $run_duration, $end_pause
+  
+  first_channel_mask = first_channel_mask*2;
+ENDLOOP
+
+call trk_control_roc_pulser_off, 0

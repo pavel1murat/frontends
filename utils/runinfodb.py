@@ -16,23 +16,35 @@ logger = logging.getLogger('midas')
 import TRACE;
 TRACE_NAME = "runinfodb";
 
+HALT   = 0  #                        // RUNNING --> HALTED  (abort   )
+STOP   = 1  #                        // RUNNING --> STOPPED (stop    )
+ERROR  = 2  #                        // ERROR               (not sure)
+PAUSE  = 3  #                        // RUNNING --> PAUSED  (pause   )
+RESUME = 4  #                        // PAUSED  --> RUNNING (resume  )
+START  = 5  #                        // STOPPED --> RUNNING (start   )
+
 class RuninfoDB:
 #------------------------------------------------------------------------------
     def __init__(self, config_file ="config/runinfodb.json", midas_client = None):
 
+        self.error  = None;
         self.client = midas_client;
-        self.info   = json.loads(open(config_file).read());
+        self.info   = None;
+        try:
+            self.info   = json.loads(open(config_file).read());
+            TRACE.TRACE(8, "db:%s host:%s port:%s user:%s passwd:%s schema:%s"%
+                        (self.database(),self.host(),self.port(),self.user(),self.passwd(),self.schema()),TRACE_NAME)
+        except:
+            self.error = f"Postgresql DB user is not defined - check {config_file}";
+            TRACE.ERROR(self.error,TRACE_NAME)
+            # raise Exception("RuninfoDB::__init__ : Postgresql DB user is not defined")
 
-        TRACE.TRACE(8, "db:%s host:%s port:%s user:%s passwd:%s schema:%s"%
-                    (self.database(),self.host(),self.port(),self.user(),self.passwd(),self.schema()),TRACE_NAME)
-        
-        if (self.user() == None):
-            TRACE.ERROR("Postgresql DB user is not defined",TRACE_NAME)
-            raise Exception("RuninfoDB::__init__ : Postgresql DB user is not defined")
-
-        self.conn     = self.open_connection();
-        self.cur      = self.conn.cursor();
-        TRACE.TRACE(8, "after open_connection",TRACE_NAME)
+        try:
+            self.conn     = self.open_connection();
+            self.cur      = self.conn.cursor();
+            TRACE.TRACE(8, "after open_connection",TRACE_NAME)
+        except:
+            self.error    = "DB connection failed. If ssh tunnel is used, check it";
 
 #------------------------------------------------------------------------------
     def __del__(self):
@@ -69,13 +81,13 @@ class RuninfoDB:
                                 port     = self.port())
 
         if conn.status == extensions.STATUS_READY:
-          print("Connection is active and ready.")
+            TRACE.TRACE(8,"Connection is active and ready.",TRACE_NAME);
         elif conn.status == extensions.STATUS_BEGIN:
-          print("A transaction is currently open.")
+            TRACE.TRACE(5,"A transaction is currently open.",TRACE_NAME);
         elif conn.status == extensions.STATUS_PREPARED:
-          print("Connection is in prepared state.")
+            TRACE.TRACE(5,"Connection is in prepared state.",TRACE_NAME);
         elif conn.status == extensions.STATUS_UNKNOWN:
-          print("Connection is in an unknown state.")
+            TRACE.TRACE(5,"Connection is in a unknown state.",TRACE_NAME);
 
         if (conn.status == extensions.STATUS_READY): 
             TRACE.TRACE(8, "success in connecting to Postgresql",TRACE_NAME);
@@ -87,7 +99,9 @@ class RuninfoDB:
 
 #---v--------------------------------------------------------------------------
     def execute_query(self, query):
+        TRACE.TRACE(8,f"query:{query}",TRACE_NAME)
         self.cur.execute(query)
+        TRACE.TRACE(8,"before commit",TRACE_NAME)
         self.conn.commit()
         TRACE.TRACE(8, self.cur.statusmessage,TRACE_NAME)
         return
@@ -105,13 +119,15 @@ class RuninfoDB:
 # Run Control transition cause: 0:start 1:end
 #---v--------------------------------------------------------------------------
     def register_transition(run_number, transition_type, cause_type):
-
+ 
+        TRACE.TRACE(8,f"-- register_transition START",TRACE_NAME)
         query = (f"INSERT INTO {self.schema()}.run_transition"
                  f"(run_number,transition_type,cause_type,transition_time)"
                  f" VALUES ({run_number},{transition_type},{cause_type},CURRENT_TIMESTAMP);"
              )
-
+        TRACE.TRACE(8,f"query:{query}",TRACE_NAME)
         self.execute_query(query)
+        TRACE.TRACE(8,f"-- register_transition END",TRACE_NAME)
         return
 
 #-------^---------------------------------------------------------------------
@@ -119,7 +135,7 @@ class RuninfoDB:
 #-----------------------------------------------------------------------------
     def next_run_number(self, store_in_odb):
 
-        TRACE.TRACE(8,"001 next_run_number",TRACE_NAME)
+        TRACE.TRACE(8,"--- start",TRACE_NAME)
         
         run_number              = -1;
         run_type                = -1;
@@ -134,19 +150,17 @@ class RuninfoDB:
 #-----------------------------------------------------------------------------
 # retrieve from ODB parameters to be stored in Postgresql
 #-------v---------------------------------------------------------------------
-        partition_number = self.client.odb_get("/Mu2e/ARTDAQ_PARTITION_NUMBER");
-#-----------------------------------------------------------------------------
-# everything else comes from the active configuration
-#-------v---------------------------------------------------------------------
-        run_config_name = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name");
-        run_type        = self.client.odb_get("/Mu2e/ActiveRunConfiguration/RunType");
-        tt_name         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Trigger/Table");
-        hostname        = os.environ["HOSTNAME"]
-        context_name    = "test"
+        partition_number = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID');
+        run_config_name  = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name");
+        run_type         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/RunType");
+        tt_name          = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Trigger/Table");
+        hostname         = os.environ["HOSTNAME"]
+        TRACE.TRACE(8,f'run_config_name{run_config_name} run_type:{run_type} tt_name:{tt_name} hostname:{hostname}',TRACE_NAME)
 #-------------------------------------------------------------------------------
 # write run info into db
 #-  at this point run number in the DB gets incremented
 #-------v-----------------------------------------------------------------------
+        context_name       = "test"
         run_config_version = "1"
         tt_version         = "1"
         
@@ -155,7 +169,8 @@ class RuninfoDB:
                  f"context_name, context_version, online_software_version, "
                  f"trigger_table_name, trigger_table_version, commit_time) "
                  f"VALUES ('{run_type}','{condition_id}','{hostname}','{partition_number}','{run_config_name}',"
-                 f"'{run_config_version}','{context_name}','{context_version}','{online_software_version}','{tt_name}','{tt_version}',CURRENT_TIMESTAMP);"
+                 f"'{run_config_version}','{context_name}','{context_version}','{online_software_version}',"
+                 f"'{tt_name}','{tt_version}',CURRENT_TIMESTAMP);"
                  )
 
         TRACE.TRACE(8,"query=%s"%query,TRACE_NAME)
@@ -163,20 +178,21 @@ class RuninfoDB:
 
         query = f"select max(run_number) from {self.schema()}.run_configuration;"
         self.execute_query(query)
-        print("run number = ",run_number)
+        # print("run number = ",run_number)
         row        = self.cur.fetchone()
-        print(row)
+        # print(row)
         run_number = int(row[0])
-        print("run_number ",run_number)
+        TRACE.TRACE(8,f'run_number:{run_number}',TRACE_NAME)
+        # print("run_number ",run_number)
 
-        run_info_conditions = "unknown"
-        query = (f"INSERT INTO {self.schema()}.run_condition(condition,commit_time)  VALUES ("
-                 f" '{run_info_conditions}',CURRENT_TIMESTAMP);"
-                 )
-        self.execute_query(query)
-        query = f"select max(condition_id) from {self.schema()}.run_condition;"
-        self.execute_query(query)
-        print("condition id = ",condition_id)
+#        run_info_conditions = "unknown"
+#        query = (f"INSERT INTO {self.schema()}.run_condition(condition,commit_time)  VALUES ("
+#                 f" '{run_info_conditions}',CURRENT_TIMESTAMP);"
+#                 )
+#        self.execute_query(query)
+#        query = f"select max(condition_id) from {self.schema()}.run_condition;"
+#        self.execute_query(query)
+        # print("condition id = ",condition_id)
 #------------------------------------------------------------------------------
 # P.M. hopefully, these are going away
 # insert a new row in the run_condition table if 
@@ -226,7 +242,7 @@ class RuninfoDB:
 # instead of printing, store the next run number directly in ODB
 # MIDAS increments the next run number, so subtract one in advance
 #-------v----------------------------------------------------------------------
-        print("run number",run_number);
+        # print("run number",run_number);
         if (store_in_odb): 
             rc = self.client.odb_set("/Runinfo/Run number",run_number-1);
         return run_number 
@@ -247,16 +263,21 @@ def test1():
     # Initialize the RuninfoDB
     runinfo_db = RuninfoDB(midas_client=client,config_file=cfg_file);
 
-    print("back after creating RuninfoDB")
+    # print("back after creating RuninfoDB")
     
     # Call next_run_number
     try:
-        next_run = runinfo_db.next_run_number(store_in_odb=True)
-        print(f"Next run number:{next_run}")
+#        next_run = runinfo_db.next_run_number(store_in_odb=True)
+        next_run = runinfo_db.next_run_number(store_in_odb=False)
+
+        print(f'Next run number:{next_run}')
+        
+        runinfo_db.register_transition(next_run,runinfo.START,0);
+        runinfo_db.register_transition(next_run,runinfo.START,1);
+        
     except Exception as e:
-        print(f"Error occurred: {e}")
+        TRACE.TRACE(4,"ERROR",TRACE_NAME) # print(f"Error occurred: {e}")
               
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
-
     test1()

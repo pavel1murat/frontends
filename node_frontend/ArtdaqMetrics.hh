@@ -17,18 +17,18 @@ fragment_id:0 nfragments:0 nbytes:0 max_nf:1000 max_nb:1048576000
 
 struct BrMetrics_t {
   int    nf_read;                       // [ 0]
-  float  getNextRate;                   // [ 1] per second;
+  float  gn_rate;                       // [ 1] per second;
   float  fr_rate;                       // [ 2]
-  float  time_window;                   // [ 3] sec
+  float  time_win;                      // [ 3] sec
   int    min_nf;                        // [ 4] per getNext call
   int    max_nf;                        // [ 5] per getNext call
   float  elapsed_time;                  // [ 6] sec, end of line 1
   int    nf_sent;                       // [ 7] 
-  float  output_fr;                     // [ 8] output, frag/sec
-  float  output_dr;                     // [ 9] output, MB/sec
-  float  output_mw;                     // [10] sec
-  float  min_evt_size;                  // [11] MB
-  float  max_evt_size;                  // [12] MB , end of line 2
+  float  of_rate;                       // [ 8] output, frag/sec
+  float  dt_rate;                       // [ 9] output, MB/sec
+  float  time_win2;                     // [10] sec
+  float  min_ev_size;                  // [11] MB
+  float  max_ev_size;                  // [12] MB , end of line 2
   float  inp_wait_time;                 // [13] input wait time, sec
   float  buf_wait_time;                 // [14] buffering wait time, sec
   float  req_wait_time;                 // [15] request wait time, sec
@@ -86,7 +86,7 @@ struct EbMetrics_t {
 enum { NEbDataWords = sizeof(EbMetrics_t)/sizeof(int) };
 extern std::initializer_list<const char*> EbVarName;
 /* ------------------------------------------------------------------------------
- the DL metrics has he same format as the EB metrics
+ the DL metrics has the same format as the EB metrics
  -----------------------------------------------
 dl01 statistics:
   Event statistics: 17052 events released at 284.181 events/sec, effective data rate = 6.51481 MB/sec, monitor window = 60.0041 sec, min::max event size = 0.00696564::0.0305862 MB

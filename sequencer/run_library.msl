@@ -1,0 +1,17 @@
+LIBRARY RUN_LIBRARY
+
+SUBROUTINE run_fixed_time
+  comment " process input parameters"
+  run_duration = $1
+  end_pause    = $2
+  
+  MSG "beginning of the start transition"
+  TRANSITION START
+  ODBGET "/Runinfo/Run Number", rn
+  MSG    "run $rn: end  of the start transition, take data for $run_duration seconds"
+  WAIT seconds, $run_duration
+  MSG  "run $rn: beginning of the STOP transition"
+  TRANSITION STOP
+  MSG  "run $rn: end of the stop transition, wait for $end_pause seconds"
+  WAIT seconds, $end_pause
+ENDSUBROUTINE

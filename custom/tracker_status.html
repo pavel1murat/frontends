@@ -1,161 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <meta charset="UTF-8">
+  <meta charset="UTF-8">
+  <link   rel="stylesheet" href="midas.css">
+  <link   rel="stylesheet" href="tracker_style.css">
+  <link   rel="stylesheet" href="mu2edaq.css">
+  
+  <script src="controls.js"></script>
+  <script src="midas.js"></script>
+  <script src="mhttpd.js"></script>
+  <script src="filesrw.js"></script>
+  
+  <script src="mu2edaq.js"></script>
+  <script src="trk_commands.js"></script>
+  
+  <title>Tracker Status</title>
 
-   <link rel="stylesheet" href="midas.css">
-   <link type="text/css" rel="stylesheet" href="tracker_style.css">
-
-   <script src="controls.js"></script>
-   <script src="midas.js"></script>
-   <script src="mhttpd.js"></script>
-   <script src="filesrw.js"></script>
-   <script src="tracker_utils.js"></script>
- 
-   <title>Tracker</title>
-
-   <script>
-     let midasInitialized = false;
+  <script>
 //-----------------------------------------------------------------------------
-// 'i' - station number
+// main function
 //-----------------------------------------------------------------------------
-     function redirectToStation(i) {
-       window.location.href = `tracker_station_status.html?station=${i}`;
-     }
-
-     function load_values(path, cell) {
-       // Fetch values for Enabled and Status
-       const path_enabled = path+`/Enabled`;
-       const path_status  = path+`/Status`;
-       mjsonrpc_db_get_values([path_enabled, path_status]).then(function (rpc) {
-         let enabled = rpc.result.data[0];
-         let status = rpc.result.data[1];
-         
-         // Apply color styles
-         if (enabled === 0) {
-           cell.style.backgroundColor = "gray";
-           cell.style.color = "white";
-         } else if (enabled === 1) {
-           if (status === 0) {
-             cell.style.backgroundColor = "green";
-             cell.style.color = "white";
-           } else if (status < 0) {
-             cell.style.backgroundColor = "red";
-             cell.style.color = "white";
-           } else if (status > 0) {
-             cell.style.backgroundColor = "yellow";
-             cell.style.color = "black";
-           }
-         }
-       }).catch(function (error) {
-         console.error("Error fetching values:", error);
-       });
-     }
-
-     function n_stations() {
-       let n = 0;
-       let path = '/Mu2e/ActiveRunConfiguration/Tracker/NStations';
-       mjsonrpc_db_get_value(path).then(function (rpc) {
-         n = rpc.result.data[0];
-       }).catch(function (error) {
-         console.error("Error fetching values:", error);
-       });
-       return n;
-     }
-
-     function createStationsTable() {
-       const table     = document.querySelector(".mtable");
-       
-       // Clear existing table rows
-       table.innerHTML = `
-            <thead>
-               <tr>
-                  <th>Station</th>
-                  <th>Status</th>
-                  <th>Action</th>
-               </tr>
-            </thead>
-            <tbody></tbody>
-         `;
-
-       const tbody = table.querySelector("tbody");
-
-       const tracker_path = '/Mu2e/ActiveRunConfiguration/Tracker';
-       mjsonrpc_db_get_value(tracker_path+'/NStations').then(function (rpc) {
-         nstations = rpc.result.data[0];
-
-         for (let i = 0; i < nstations; i++) {
-           const row = document.createElement("tr");
-
-           // Station Cell
-           const stationCell = document.createElement("td");
-           stationCell.innerHTML = `<b>Station_${i.toString().padStart(2, '0')}</b>`;
-           row.appendChild(stationCell);
-           
-           // Status Cell
-           const statusCell = document.createElement("td");
-           const path       = tracker_path+`/Station_${i.toString().padStart(2, "0")}`;
-           
-           //         statusCell.innerHTML = `
-           //               <div class="modbvalue status-cell"
-           //                  data-odb-path="${tracker_path}/Station_${i.toString().padStart(2, '0')}/Enabled"
-           //                  onchange="loadAndStyleValues(this)">
-           //               </div>`;
-           
-           row.appendChild(statusCell);
-           
-           // Action Cell
-           const actionCell = document.createElement("td");
-           actionCell.innerHTML = `
-               <button onclick="redirectToStation('${i}')">View station</button>`;
-           row.appendChild(actionCell);
-           
-           tbody.appendChild(row);
-
-           // Initial load
-           load_values(path,statusCell);
-           
-           // Poll for updates
-           setInterval(() => {load_values(path,statusCell);},2000);
-         }
-       }).catch(function (error) {
-         console.error("Error fetching values:", error);
-       });
-     }
-
-     function initializePage() {
-       if (!midasInitialized) {
-         mhttpd_init("Tracker Stations");
-         midasInitialized = true;
-       }
-       
-       createStationsTable();
-     }
-     
-     document.addEventListener("DOMContentLoaded", initializePage);
-   </script>
+    function createPage() {
+    
+      const urlParams    = new URLSearchParams(window.location.search);
+      const stationIndex = urlParams.get('station') || '0';  // Default to Station_00
+      const planeIndex   = urlParams.get('plane'  ) || '0';  // Default to Plane_00
+      const npanels      = 6; // Number of panels
 
 
+      const com_table       = document.getElementById('station_commands');
+//      const com_table_title = document.querySelector("#table-title");
+//      com_table_title.textContent = `Station ${stationIndex}`;
+
+      const tracker_path  = `/Mu2e/ActiveRunConfiguration/Tracker`;
+      const station_path  = `${tracker_path}/Station_${stationIndex.padStart(2,'0')}`;
+//      x             = `<div class="modbvalue" data-odb-path="${tracker_path}/FirstStation">`;
+//      const first_station = parseInt(`<div class="modbvalue" data-odb-path="${tracker_path}/FirstStation">`);
+//      const last_station  = parseInt(`<div class="modbvalue" data-odb-path="${tracker_path}/LastStation">`);
+
+        com_table.innerHTML = `
+        <thead>
+          <tr>
+            <td colspan=15> <div class="mtableheader">Tracker Control Commands </div></td>
+          </tr>
+        </thead>
+        <tbody></tbody>`;
+      
+      const com_table_tbody = com_table.querySelector("tbody");
+//-----------------------------------------------------------------------------
+// first row - commands
+//-----------------------------------------------------------------------------
+      const r1  = document.createElement("tr");
+      const c2  = document.createElement("td");
+      c2.innerHTML = `
+               <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
+               <input type=button value='load channel map'  onClick='dtc_command("load_channels_map")'>
+               <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>`;
+    
+      c2.colSpan = 5;
+      r1.appendChild(c2);
+      com_table_tbody.appendChild(r1);
+
+      let first_station = -1;
+      let last_station  = -1;
+      const p1 = tracker_path+`/FirstStation`;
+      const p2 = tracker_path+`/LastStation`;
+      mjsonrpc_db_get_values([p1, p2]).then(function (rpc) {
+        first_station = parseInt(rpc.result.data[0]);
+        last_station  = parseInt(rpc.result.data[1]);
+
+        for (let i=first_station; i<last_station+1; i++) {
+          const row       = document.createElement("tr");
+        
+          const s_path = `${tracker_path}/Station_${i.toString().padStart(2,'0')}`;
+          const cell   = document.createElement("td");
+          cell.innerHTML = `<b>Station ${i}</b>`;
+          set_colors(s_path,cell);
+          row.appendChild(cell);
+
+          const plane_cell_done = new Array(2);
+          for (let k=0; k<2; k++) { 
+//            const pln     = document.createElement("td");
+//            pln.innerHTML = `<b>plane ${k}</b>`;
+//            row.appendChild(pln);
+            plane_cell_done[k] = 0;
+        
+            // now - panels
+            for (let ip=0; ip<6; ip++) {
+//              if (plane_cell_done[k] == 0) {
+//                const pln = document.createElement("td");
+//                pln.innerHTML = `<b>plane ${k}</b>`;
+//                row.appendChild(pln);
+//                plane_cell_done[k] = 1;
+//              }
+              const panel_odb_path = s_path+`/Plane_${k.toString().padStart(2,'0')}`+`/Panel_${ip.toString().padStart(2,'0')}`;
+            
+              const c1     = document.createElement("td");
+              c1.className = "status-cell";
+              const mnid_path = panel_odb_path+`/Name`;
+              mjsonrpc_db_get_values([mnid_path]).then(function (rpc) {
+                panel_name = rpc.result.data[0];
+                mnid = parseInt(panel_name.substring(2));
+                c1.innerHTML = `<button onclick="trk_panel_control('${i}','${k}', '${ip}', '${mnid}')"> ${panel_name} </button></div>`;
+            
+                // Load initial values and set up polling for updates
+
+                // Initial load
+                set_colors(panel_odb_path,c1);
+
+              // Poll for updates
+                setInterval(() => {set_colors(panel_odb_path,c1);},2000);
+
+                row.appendChild(c1);
+              });
+            }
+          }
+          com_table_tbody.appendChild(row);
+        }
+      });
+    }
+    document.addEventListener("DOMContentLoaded", createPage);
+    </script>
 </head>
 
-<body class="mcss">
-   <div id="mheader"></div> <!-- MIDAS Header -->
-   <div id="msidenav"></div> <!-- MIDAS Sidebar -->
+<!--- ---------------------------------------------------------------------------
+    BODY: tables
+----------------------------------------------------------------------------- -->   
+
+<body class="mcss" onload="mhttpd_init('Tracker Planes');">
+   <div id="mheader"></div>
+   <div id="msidenav"></div>
+
+   
    <div id="mmain">
-      <h1>Tracker Stations</h1>
-      <table class="mtable">
-         <!-- Table content is generated dynamically -->
-      </table>
+
+     <h1 id="table-title"></h1>
+     <table class="mtable" id="station_commands">  <!-- Table content is generated dynamically -->
+     </table>
+     
    </div>
+
+
 </body>
 </html>
 
 <!--
     emacs
     Local Variables:
-    tab-width: 8
+    tab-width: 0
     c-basic-offset: 2
-    js-indent-level: 0
+    js-indent-level: 2
     indent-tabs-mode: nil
     End:
--->
+  -->

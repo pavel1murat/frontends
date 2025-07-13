@@ -1,0 +1,59 @@
+LIBRARY trk_control_roc_library
+
+comment "-------------------------------------------------------------------------------------------------"
+comment " to be executed for all enabled DTC links"
+comment " call trk_control_roc_pulser_off,  $first_channel_mask,  $pulser_delay, $duty_cycle, $print_level"
+comment "-------------------------------------------------------------------------------------------------"
+
+SUBROUTINE trk_control_roc_pulser_on
+
+  comment "define command and its parameters"
+  
+  odbset "/Mu2e/Commands/Tracker/Name"         , "control_roc_pulser_on"
+  odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/DTC"
+
+  ODBSUBDIR /Mu2e/Commands/Tracker/DTC/control_roc_pulser_on
+    ODBSET link              , -1
+    ODBSET first_channel_mask, $1
+    ODBSET pulser_delay      , $2
+    ODBSET duty_cycle        , $3
+    ODBSET print_level       , $4
+  ENDODBSUBDIR
+
+  comment "set command to be executed"
+   
+  odbset            "/Mu2e/Commands/Tracker/Finished", 0 , 0
+  odbset            "/Mu2e/Commands/Tracker/Run"     , 1 , 1
+
+  comment "wait until execution is finished"
+  
+  wait   ODBValue , "/Mu2e/Commands/Tracker/Finished", > , 0
+  odbset            "/Mu2e/Commands/Tracker/Run"     , 0 , 0
+ENDSUBROUTINE
+
+comment "------------------------------------------------------------------"
+comment " to be executed for all enabled  DTC links"
+comment " call trk_control_roc_pulser_off, $print_level"
+comment "------------------------------------------------------------------"
+SUBROUTINE trk_control_roc_pulser_off
+
+  comment "define command and its parameters"
+  
+  odbset "/Mu2e/Commands/Tracker/Name"         , "control_roc_pulser_off"
+  odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/DTC"
+
+  ODBSUBDIR /Mu2e/Commands/Tracker/DTC/control_roc_pulser_off
+    ODBSET link              , -1
+    ODBSET print_level       , $1
+  ENDODBSUBDIR
+
+  comment "set command to be executed"
+   
+  odbset            "/Mu2e/Commands/Tracker/Finished", 0 , 0
+  odbset            "/Mu2e/Commands/Tracker/Run"     , 1 , 1
+
+  comment "wait until execution is finished"
+  
+  wait   ODBValue , "/Mu2e/Commands/Tracker/Finished", > , 0
+  odbset            "/Mu2e/Commands/Tracker/Run"     , 0 , 0
+ENDSUBROUTINE

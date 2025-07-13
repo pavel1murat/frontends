@@ -1,93 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-  <style>
-    #myDIV {
-        height: 250px;
-        width: 250px;
-        overflow: auto;
-        background: coral;
-    }
-    
-    #content {
-        margin:500px;
-        height: 800px;
-        width: 2000px;
-        background-color: coral;
-    }
-  </style>
-  
   <head>
     <meta charset="UTF-8">
     <title>DAQ nodes</title>
     <link rel="stylesheet" href="midas.css">
+    <link rel="stylesheet" href="mu2edaq.css">
     <link rel="stylesheet" href="tracker_style.css">
     <script src="controls.js"></script>
     <script src="midas.js"></script>
     <script src="mhttpd.js"></script>
     <script src="filesrw.js"></script>
-    
+    <script src="mu2edaq.js"></script>
     <script>
-      function set_colors(path, statusCell) {
-        // Fetch values for Enabled and Status
-        const path_enabled = path+`/Enabled`;
-        const path_status  = path+`/Status`;
-        mjsonrpc_db_get_values([path_enabled, path_status]).then(function (rpc) {
-          let enabled = rpc.result.data[0];
-        let status = rpc.result.data[1];
-          
-          // Apply color styles
-          if (enabled === 0) {
-          statusCell.style.backgroundColor = "gray";
-            statusCell.style.color = "white";
-          } else if (enabled === 1) {
-            if (status === 0) {
-              statusCell.style.backgroundColor = "green";
-              statusCell.style.color = "white";
-            } else if (status < 0) {
-              statusCell.style.backgroundColor = "red";
-              statusCell.style.color = "white";
-            } else if (status > 0) {
-              statusCell.style.backgroundColor = "yellow";
-              statusCell.style.color = "black";
-            }
-          } else {
-            statusCell.style.backgroundColor = "gray";
-            statusCell.style.color = "white";
-          }
-        }).catch(function (error) {
-          console.error("Error fetching values:", error);
-        });
-      }
-    
-      function dtc_control(hostname,pcie) {
-        // window.location.href = `dtc_control_001.html?hostname=${hostname}&pcie=${pcie}`;
-        window.location.href = `dtc_control.html?hostname=${hostname}&pcie=${pcie}`;
-      }
-
-      function drillDown(hostname,process) {
-        window.location.href = `artdaq_process_status.html?hostname=${hostname}&process=${process}`;
-      }
-
-      function createTable() {
+//-----------------------------------------------------------------------------
+// main function doing the job - defines internals of this page
+//-----------------------------------------------------------------------------
+      function loadPage() {
         const urlParams    = new URLSearchParams(window.location.search);
-        const table        = document.querySelector(".mtable");
+//-----------------------------------------------------------------------------
+// CFO and TFM status table
+//-----------------------------------------------------------------------------
+        const tfm_status_table = document.getElementById("tfm_status_table");
+        tfm_status_table.innerHTML =
+        `<thead>
+          <tr> <td colspan=2> <div class="mtableheader">CFO and TFM status </div> </td> </tr>
+        </thead>`;
+
+        const tfm_r1 = document.createElement("tr");
+
+        // TFM cell
+        const tfm_odb_path = `/Mu2e/ActiveRunConfiguration/DAQ/Tfm`;
+        const tfm_cell = document.createElement("td");
+        tfm_cell.innerHTML = `<button onclick="tfm_control()">TFM</button>`;
+        tfm_cell.colSpan = 1;
+        set_colors(tfm_odb_path,tfm_cell);
+        // Poll for updates
+        setInterval(() => {set_colors(tfm_odb_path,tfm_cell);},2000);
+        
+        tfm_r1.appendChild(tfm_cell);
+
+        const cfo_path   = `/Mu2e/ActiveRunConfiguration/DAQ/CFO`;
+        const tfm_cell_2 = document.createElement("td");
+        tfm_cell_2.colSpan = 1;
+        tfm_cell_2.innerHTML = `<button onclick="cfo_status()">CFO</button>`;
+        setInterval(() => {set_colors(cfo_path,tfm_cell_2);},2000);
+        
+        tfm_r1.appendChild(tfm_cell_2);
+        
+        tfm_status_table.appendChild(tfm_r1);
+//-----------------------------------------------------------------------------
+// DAQ nodes table
+//-----------------------------------------------------------------------------
+        const daq_nodes_table  = document.getElementById("daq_nodes_table");
       
       // Set the table title dynamically
         const title = document.querySelector("#table-title");
         title.textContent = `DAQ status`;
       
       // Clear existing table rows
-        table.innerHTML = `
+        daq_nodes_table.innerHTML = `
             <thead>
                <tr>
-                  <th> node </th>
-                  <th colspan="10">Processes</th>
+                  <th colspan="12"> <div class="mtableheader">DAQ nodes status</div></th>
                </tr>
             </thead>
             <tbody></tbody>
          `;
         
-        const tbody = table.querySelector("tbody");
+        const tbody = daq_nodes_table.querySelector("tbody");
+        tbody.innerHTML = `
+               <tr>
+                  <td> <div>node </div></td>
+                  <td colspan="2"><div>DTCs </div></td>
+                  <td colspan="8"><div>Processes</div></td>
+               </tr>`
+
         
         const nodes_path   = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes`;
         
@@ -97,6 +84,7 @@
           let keys    = Object.keys(nodesp);
           let values  = Object.values(nodesp);
           let entries = Object.entries(nodesp);
+
           nkeys = keys.length;
           for (let i = 1; i < nkeys; i+=2) {
 //-----------------------------------------------------------------------------
@@ -107,7 +95,7 @@
             // node Cell
             const nodeCell = document.createElement("td");
             let   hostname = keys[i];
-            nodeCell.innerHTML = '<b>'+hostname+'</b>';
+            nodeCell.innerHTML = `<button onclick="node_status('${hostname}')">${hostname}</button>`;
             let path = nodes_path+'/'+hostname;
             set_colors(path,nodeCell);
             // Poll for updates
@@ -144,11 +132,14 @@
               nproc       = values.length
               
               for (let ip=0; ip<nproc; ip++) {
+//------------------------------------------------------------------------------
+// here, labels are short, i.e. label='br01', rather than label='br01@mu2edaq22' used by ARTDAQ
+//------------------------------------------------------------------------------
                 label = values[ip];
                 if ((typeof label == 'string') && (label != 'Enabled') && (label != 'Status')) {
                   const cell = document.createElement("td");
                   cell.className = "status-cell";
-                  cell.innerHTML = `<button onclick="drillDown('${hostname}',${label})">${label}</button>`;
+                  cell.innerHTML = `<button onclick="artdaq_process_status('${hostname}','${label}')">${label}</button>`;
                   
                   // Load initial values and set up polling for updates
                 
@@ -174,7 +165,7 @@
         });
         
       }
-      document.addEventListener("DOMContentLoaded", createTable);
+      document.addEventListener("DOMContentLoaded", loadPage);
     </script>
 </head>
 
@@ -183,8 +174,11 @@
    <div id="msidenav"></div>
    <div id="mmain">
       <h1 id="table-title">DAQ nodes</h1>
-      <table class="mtable">
-         <!-- Table content is generated dynamically -->
+
+      <table class="mtable" id="tfm_status_table">  <!-- TFM status -->
+      </table>
+      
+      <table class="mtable" id="daq_nodes_table">   <!-- DAQ nodes -->
       </table>
    </div>
 </body>
@@ -193,6 +187,7 @@
 <!--
     emacs
     Local Variables:
+    mode: XHTML+
     tab-width: 8
     c-basic-offset: 2
     js-indent-level: 0
