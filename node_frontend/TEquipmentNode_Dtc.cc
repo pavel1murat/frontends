@@ -51,11 +51,9 @@ TMFeResult TEquipmentNode::InitDtc() {
 
       // for now, disable re-initialization
       mu2edaq::DtcInterface* dtc_i = nullptr;
-      if(_odb_i->GetIsCrv(h_subkey)) {
-        // TODO
-        // dtc_i = crvdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
-        dtc_i = mu2edaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
-        dtc_i->fIsCrv = 1;
+      if(_odb_i->GetSubsystem(h_subkey) == mu2edaq::kCRV) {
+        dtc_i = crvdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
+        dtc_i->fSubsystem = mu2edaq::kCRV;
       }
       else {
         dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
@@ -85,7 +83,7 @@ TMFeResult TEquipmentNode::InitDtc() {
       dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode   (_h_active_run_conf);
       dtc_i->fJAMode         = _odb_i->GetJAMode           (h_subkey);
 
-      TLOG(TLVL_DEBUG) << "is_crv:"            << dtc_i->fIsCrv
+      TLOG(TLVL_DEBUG) << "subsystem"          << dtc_i->fSubsystem
                        << " dtc_fw_version:0x" << std::hex << dtc_fw_version
                        << " _readout_mode:"    << std::dec << dtc_i->fRocReadoutMode
                        << " roc_readout_mode:" << dtc_i->fRocReadoutMode
@@ -235,7 +233,7 @@ void TEquipmentNode::InitDtcVarNames() {
 //-----------------------------------------------------------------------------
 // loop over the ROCs and create names for each of them
 //-----------------------------------------------------------------------------
-    if (not fDtc_i[idtc]->IsCrv()) { // no CRV
+    if (fDtc_i[idtc]->Subsystem() != mu2edaq::kCRV) { // no CRV
       for (int ilink=0; ilink<6; ilink++) { 
      
         std::vector<std::string> roc_var_names;
@@ -268,7 +266,19 @@ void TEquipmentNode::InitDtcVarNames() {
         odb_roc["RegData"] = roc_reg_data;
       }
     } else { // CRV
-       
+      for (int ilink=0; ilink<6; ilink++) { 
+        
+        std::vector<std::string> crv_roc_var_names = fDtc_i[idtc]->GetRocRegistersNames();
+        
+        char roc_subdir[128];
+        sprintf(roc_subdir,"%s/DTC%i/ROC%i",node_path.data(),idtc,ilink);
+        midas::odb odb_roc = {{"RegName",{"a","b"}},{"RegData",{1u,2u}}};
+        odb_roc.connect(roc_subdir);
+        odb_roc["RegName"] = crv_roc_var_names;
+        
+        std::vector<uint32_t> crv_roc_reg_data(crv_roc_var_names.size());
+        odb_roc["RegData"] = crv_roc_reg_data;
+      }
     }
   }
 
@@ -370,7 +380,7 @@ void TEquipmentNode::ReadDtcMetrics() {
 // do it for the tracker
 // don't use 'link' - ROOT doesn't like 'link' for a variable name
 //-----------------------------------------------------------------------------
-        if(!dtc_i->IsCrv()) {
+        if(dtc_i->Subsystem() != mu2edaq::kCRV) {
           auto trkdtc_i = dynamic_cast<trkdaq::DtcInterface*>(dtc_i);
           for (int ilink=0; ilink<6; ilink++) {
             if (trkdtc_i->LinkEnabled(ilink)) {
@@ -512,7 +522,27 @@ void TEquipmentNode::ReadDtcMetrics() {
             }
           }
         } else { // CRV ROC
+          auto crvdtc_i = dynamic_cast<crvdaq::DtcInterface*>(dtc_i);
+          for (int ilink=0; ilink<6; ilink++) {
+            if (crvdtc_i->LinkEnabled(ilink)) {
+              
+              if (_monitorRocRegisters) {
+                try {
+                  std::vector<uint32_t> crv_roc_reg = crvdtc_i->GetRocRegisters(ilink);
+                  
+                  char buf[100];
+                  sprintf(buf,"%s/DTC%i/ROC%i",node_path.data(),idtc,ilink);
 
+                  midas::odb roc = {{"RegData",{1u}}};
+                  roc.connect(buf);
+                  roc["RegData"] = crv_roc_reg;
+                }
+                catch (...) {
+                  TLOG(TLVL_ERROR) << "failed to read CRV DTC:" << idtc << " ROC:" << ilink << " registers";
+                }
+              }
+            }
+          }
         }
       }
       catch (...) {

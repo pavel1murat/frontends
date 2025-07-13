@@ -46,6 +46,7 @@ cet_make_exec(NAME      node_frontend
                         TEquipmentNode_Rpc_DumpSettings.cc
               LIBRARIES frontends_utils
                         otsdaq-mu2e-tracker::Ui
+                        otsdaq-mu2e-crv::Ui
                         mu2e-pcie-utils::DTCInterface
                         midas
                         stdc++ m util pthread rt

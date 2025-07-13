@@ -432,9 +432,9 @@ int OdbInterface::GetDtcSampleEdgeMode(HNDLE hDTC) {
 }
 
 //-----------------------------------------------------------------------------
-int OdbInterface::GetIsCrv(HNDLE hDTC) {
-  const char* key {"IsCrv"};
-  INT   data(0);       // if not found, set to false
+int OdbInterface::GetSubsystem(HNDLE hDTC) {
+  const char* key {"Subsystem"};
+  INT   data(-1);      // if not found, set to undefined
   int   sz = sizeof(data);
   if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << " not found, return: " << data;
