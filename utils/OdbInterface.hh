@@ -80,7 +80,7 @@ public:
   int         GetDtcMacAddrByte   (HNDLE h_Card); // card: DTC
   int         GetDtcPcieAddress   (HNDLE h_Card); // card: DTC
   int         GetDtcSampleEdgeMode(HNDLE h_Card); // 0:force rising; 1: force falling; 2:auto
-  int         GetIsCrv            (HNDLE h_Card);
+  int         GetSubsystem        (HNDLE h_Card);
   int         SetLinkMask         (HNDLE h_Card, int Mask);
 
   int         GetPcieAddress      (HNDLE h_Card); // card: either CFO or DTC

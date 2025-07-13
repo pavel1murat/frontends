@@ -36,6 +36,7 @@ message(-- frontends: Trace_inc_dir=.${Trace_inc_dir}. )
 
 # these are minimum required versions, not the actual product versions
 find_package(otsdaq-mu2e-tracker 3.01.00 REQUIRED EXPORT)
+find_package(otsdaq-mu2e-crv 3.01.00 REQUIRED EXPORT)
 find_package(mu2e-pcie-utils     3.01.00 REQUIRED EXPORT)
 
 find_package(SQLite3                     REQUIRED EXPORT QUIET)
