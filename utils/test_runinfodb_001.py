@@ -1,7 +1,8 @@
-import  midas,TRACE
+import  midas, TRACE
 import  midas.client
-import  runinfodb;
-import  os, psycopg2
+import  os, socket, psycopg2
+import  frontends.utils.runinfodb;
+import  logging
 
 logger = logging.getLogger('midas')
 
@@ -17,7 +18,6 @@ logger = logging.getLogger('midas')
 #            "/Mu2e/PostgresqlDB/User"      : "run_user",
 #            "/Mu2e/PostgresqlDB/Pwd"       : "ask_antonio",
 #            "/Mu2e/PostgresqlDB/Schema"    : "test",
-#            "/Mu2e/ARTDAQ_PARTITION_NUMBER": 13,
 #            "/Mu2e/RunConfigurations/demo/RunType": 4,
 #            "/Mu2e/RunConfigurations/demo/TriggerTable": "demo_tt_v00",
 #        }
@@ -32,15 +32,21 @@ def test1():
     # Initialize MIDAS client
 
     logger.info("Initializing %s" % "get_next_run")
-    client = midas.client.MidasClient("get_next_run", "mu2edaq22", "test_025", None)
+    hostname = socket.gethostname().split('.')[0];
+    client = midas.client.MidasClient("get_next_run", hostname, "test_025", None)
    
     # Initialize the RuninfoDB
-    runinfo_db = runinfodb.RuninfoDB(client)
+
+    db = runinfodb.RuninfoDB(midas_client=client,config="config/runinfodb.json",)
 
     # Call next_run_number
     try:
-        next_run = runinfo_db.next_run_number(run_configuration="demo", store_in_odb=True)
-        print(f"Next run number: {next_run}")
+        run_number = db.next_run_number(run_configuration="demo", store_in_odb=False)
+        print(f"Next run number: {run_number}")
+
+        db.register_transition(run_number,runinfo.START,0);
+        db.register_transition(run_number,runinfo.START,1);
+        
     except Exception as e:
         print(f"Error occurred: {e}")
 

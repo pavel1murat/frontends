@@ -70,3 +70,90 @@ int test_odb_003() {
 
   return 0;
 }
+
+//-----------------------------------------------------------------------------
+// test setting the ROC ID for DTC1:Link2
+//-----------------------------------------------------------------------------
+int test_odb_004(int DtcID = 1, int Link = 2) {
+
+  if (Link == -1) {
+    printf("ERROR\n");
+    return -1;
+  }
+
+  MidasInterface* mi = MidasInterface::Instance();
+
+  mi->connect_experiment("mu2edaq22-ctrl","test_025","test_odb_002",nullptr);
+
+  HNDLE hDB, hClient;
+  mi->get_experiment_database(&hDB, &hClient);
+
+  OdbInterface* odb_i = OdbInterface::Instance(hDB);
+
+  HNDLE h_conf = odb_i->GetActiveRunConfigHandle();
+  
+  std::string name = odb_i->GetRunConfigName(h_conf);
+
+  printf("name = %s\n",name.data());
+
+
+  trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(DtcID);
+  std::string roc_id      = dtc_i->GetRocID         (Link);
+  std::string design_info = dtc_i->GetRocDesignInfo (Link);
+  std::string git_commit  = dtc_i->GetRocFwGitCommit(Link);
+
+  std::string p0 = Form("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/mu2edaq22/DTC%i/Link%i",DtcID,Link);
+  printf("p0 = %s\n",p0.data());
+
+  HNDLE h_link = odb_i->GetHandle(hDB,0,p0.data());
+
+  odb_i->SetRocID         (h_link,roc_id);
+  odb_i->SetRocDesignInfo (h_link,design_info);
+  odb_i->SetRocFwGitCommit(h_link,git_commit);
+
+  //  mi->disconnect_experiment();
+
+  return 0;
+}
+//-----------------------------------------------------------------------------
+// test GetLinkEnabled
+//-----------------------------------------------------------------------------
+int test_odb_005(int DtcID = 1, int Link = 2) {
+
+  if (Link == -1) {
+    printf("ERROR\n");
+    return -1;
+  }
+
+  MidasInterface* mi = MidasInterface::Instance();
+
+  mi->connect_experiment("mu2edaq09","test_025","test_odb_005",nullptr);
+
+  HNDLE hDB, hClient;
+  mi->get_experiment_database(&hDB, &hClient);
+
+  OdbInterface* odb_i = OdbInterface::Instance(hDB);
+
+  HNDLE h_conf = odb_i->GetActiveRunConfigHandle();
+  
+  std::string name = odb_i->GetRunConfigName(h_conf);
+
+  printf("name = %s\n",name.data());
+
+  HNDLE h_dtc = odb_i->GetHandle(h_conf,Form("DAQ/Nodes/mu2edaq09/DTC%i",DtcID));
+  printf("h_dtc:%i\n",h_dtc);
+
+  HNDLE h_link = odb_i->GetHandle(h_dtc,Form("Link%i",Link));
+  printf("h_link:%i\n",h_link);
+
+  int enabled = odb_i->GetEnabled(h_link);
+  printf("DTC:%i Link:%i enabled:%i\n",DtcID,Link,enabled);
+
+  int enabled2 = odb_i->GetLinkEnabled(h_dtc,Link);
+  printf("DTC:%i Link:%i enabled2:%i\n",DtcID,Link,enabled2);
+
+
+  // mi->disconnect_experiment();
+
+  return 0;
+}

@@ -1,64 +1,119 @@
 #+startup:fold -*- buffer-read-only:t -*- 
 * ------------------------------------------------------------------------------
-* installation under spack - hints                                           
-- last update: <2024-12-12 Thu> - versions are time-dependent
-- do the mu2e spack thing - see https://github.com/Mu2e/daq-operations/wiki/Getting-Started-With-Spack
-- assuming top="your working area"
-- cd to the top/spack-repos
+* installation under spack                                               
+- last update: <2025-04-28 Thu> - versions are time-dependent
+  fermi 0.23: remotes/origin/v0.23.0-fermi
+  spack 0.23: tags/v0.23.0
+- do not use spack v1.0
+- the installation script takes two parameters:
+  the created subrirectory name and the name of the created spack environment
 #+begin_src
-- git clone https://github.com/pavel1murat/spack_packages murat-spack
-  spack repo add murat-spack
-
-  # keep using gcc 13.1.0 , problems otherwise
-
-  env_name=my_env                          # replace my_env with your own name
-  spack env create   $env_name
-  spack env activate $env_name
-  ln -s spack/var/spack/environments/$env_name
-
-  spack add py-psycopg2              # python interface to postgresql
-
-  spack add root@6.30.06%gcc@13.1.0+postgres+root7+webgui cxxstd=20       # for direct DQM
-  spack add geant4@11.1.2
-
-  spack add art@3.15.00 cxxstd=20
-  spack add canvas@3.17.00%gcc@13.1.0  cxxstd=20
-  spack add art-root-io@1.13.06%gcc@13.1.0 cxxstd=20
-  spack add canvas-root-io@1.13.06%gcc@13.1.0 cxxstd=20 # otherwise I see C++17 vs C++20 mismatch in art-root-io
-
-  # with the latest version of artdaq, cant read the produced files in the offline
-  spack add artdaq@v3_13_01%gcc@13.1.0 
-  spack add otsdaq@develop%gcc@13.1.0     # needed by otsdaq-mu2e-tracker (which is @develop)
-
-  spack add otsdaq-mu2e-tracker@develop%gcc@13.1.0
-  spack add elog@2024-09-25
-  spack add midas@3.01.00%gcc@13.1.0~postgresql~sqlite~opencv
-  spack add tfm@main%gcc@13.1.0
-  spack add frontends@main%gcc@13.1.0
-  spack add mu2e-pcie-utils@develop%gcc@13.1.0
-  spack add kinkal@3.1.3                           # needed by Offline ? 
-
-  spack develop mu2e-pcie-utils@develop%gcc@13.1.0
-  spack develop tfm@main%gcc@13.1.0
-  spack develop midas@3.01.00%gcc@13.1.0~postgresql~sqlite~opencv
-  spack develop otsdaq-mu2e-tracker@develop%gcc@13.1.0
-  pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2024; popd ;
-  spack develop frontends@main%gcc@13.1.0
-  
-  spack add     emacs@29.3%gcc@13.1.0+X
-  
-  spack concretize -f
-  spack install
+  curl -o install_daq.sh  https://raw.githubusercontent.com/pavel1murat/frontends/refs/heads/main/scripts/install_daq.sh
+  source install_daq.sh <dir_name> <env_name>
 #+end_src
-* ROOT interface to mu2e_pcie_utils    validated <2024-11-20 Wed>            
+
+[[file:../scripts/install_daq.sh]]
+  
+#+begin_src
+mkdir pasha_404
+cd pasha_404
+unset SPACK_ROOT
+git clone https://github.com/spack/spack.git
+cd spack; git checkout v0.23.1; cd ..
+export SPACK_DISABLE_LOCAL_CONFIG=true
+source spack/share/spack/setup-env.sh
+env_name=v001                                # replace v001 with your own name, i.e. 'v001'
+spack env create   $env_name
+spack env activate $env_name
+ln -s spack/var/spack/environments/$env_name
+#------------------------------------------------------------------------------
+# repositories
+#------------------------------------------------------------------------------
+mkdir spack-repos
+pushd spack-repos
+git clone https://github.com/FNALssi/fnal_art.git
+cd fnal_art; git checkout 8df014c32544bc72f9d27e39b0d190a5a2a03e91 ; cd ..;
+git clone https://github.com/marcmengel/scd_recipes.git
+cd scd_recipes; git checkout c0328997e3f48b0b1341f8ea7ebacea95f9b7472 ; cd ..;
+git clone https://github.com/art-daq/artdaq-spack.git
+git clone https://github.com/Mu2e/mu2e-spack.git
+git clone https://github.com/pavel1murat/spack_packages murat-spack
+for d in `ls` ; do echo $d; spack repo add $d ; done
+popd
+#------------------------------------------------------------------------------
+# now fix the recipes:                          
+#------------------------------------------------------------------------------
+#  artdaq-spack/packages/art-suite (@s132)
+
+#        depends_on("libxml2@2.9")
+        depends_on("libxml2")
+#        depends_on("root@6.30.06 +http+mlp+root7+spectrum+tmva+tmva-sofie cxxstd=20", when="+root")
+        depends_on("root@6.32.06 +http+mlp+root7+spectrum+tmva+tmva-sofie cxxstd=20", when="+root")
+#------------------------------------------------------------------------------
+# keep using gcc 13.1.0 , problems otherwise
+#------------------------------------------------------------------------------
+spack add gcc@13.1.0
+spack concretize -f
+spack install
+spack compiler find                # add GCC to the list of compilers
+#------------------------------------------------------------------------------
+# after that ;
+#------------------------------------------------------------------------------
+spack add py-psycopg2              # python interface to postgresql
+spack add emacs+X # the rest is for spack 1.0 ... %gcc@13.1.0 gui=x11
+
+spack add elog@2024-09-25
+                                     # there is a midas link problem with +postgres investigate
+# spack add midas@2025-04-25+sqlite  #  +postgresql - link problems with postgres
+spack add     midas@2025-05-03+sqlite
+spack develop midas@2025-05-03+sqlite
+spack concretize -f                          # success
+spack install
+#------------------------------------------------------------------------------
+# artdaq may be needed by artdaq-core-mu2e-develop, choose one with minimal dependencies
+# development packages
+# otsdaq-mu2e-tracker/2025 has the build of FEInterfaces, the only part which depends on otsdaq, disabled
+#------------------------------------------------------------------------------
+spack add     artdaq@develop
+spack add     artdaq-core-mu2e@develop
+spack develop artdaq-core-mu2e@develop
+# 2025-05-04: for now, don't forget merge the fix with the added accessor ...
+pushd $env_name/artdaq-core-mu2e ; git merge origin/pasha/ewtag  ; popd ;
+
+spack add     mu2e-pcie-utils@develop
+spack develop mu2e-pcie-utils@develop
+
+spack add     Offline@develop
+spack develop Offline@develop
+
+spack add     otsdaq-mu2e-tracker@develop
+spack develop otsdaq-mu2e-tracker@develop
+pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2025       ; popd ;
+
+spack add     tfm@main
+spack develop tfm@main
+
+spack add     frontends@main
+spack develop frontends@main
+
+#  pushd $env_name/otsdaq-mu2e-stm     ; git fetch --all; git checkout stm_develop; popd ;
+
+# 2025-07-08 PM: libxml@2.9 no longer exists
+
+fn=spack-repos/artdaq-spack/packages/art-suite/package.py
+cat $fn | sed 's/libxml2@2.9"/libxml2@2.13:"/' >| $fn
+
+spack concretize -f
+spack install
+#+end_src
+
+* ROOT interface to mu2e-pcie-utils    validated <2025-04-17 Thu>            
 - ROOT interface library is not available by default, you have to build it
 - mu2e-pcie-utils depends on artdaq-core-mu2e
 #+begin_src                                                                  
 export BUILD_ROOT_INTERFACE=1
-spack     add canvas-root-io@1.13.06%gcc@13.1.0 cxxstd=20
 spack     add mu2e-pcie-utils@develop%gcc@13.1.0
 
-# spack develop mu2e_pcie_utils@develop%gcc@13.1.0
 spack concretize -f
 spack install mu2e-pcie-utils@develop%gcc@13.1.0
 #+end_src
@@ -93,9 +148,9 @@ root [4]   rc = dev->read_register(0x9100,100,&res); printf("0x9100: DTC status 
 
 *Comments*
 
-- for examples, see https://github.com/Mu2e/otsdaq_mu2e_tracker/blob/develop/scripts/daq_scripts.C , 
+- for examples, see https://github.com/Mu2e/otsdaq_mu2e_tracker/blob/develop/scripts/daq.C , 
   or any other .C script in that area
-- every script should have the following line on top"
+- every script should have the following line on top:
 #+begin_src
 #define __CLING__ 1
 #+end_src

@@ -25,16 +25,7 @@ mu2etrk@mu2edaq09:~/test_stand/pasha_023>odbedit
 - setup an ssh tunnel to the mhttpd running host
 - start web browser, direct it to http://localhost:<your_port_number> 
 
-3) configure ARTDAQ control frontend: tfm_launch_fe
-#+begin_src
-tfm_launch_fe
-#+end_src
-- go to web interface http://localhost:3123/?cmd=Programs, click om tfm_launch_fe, set 
-Required "yes"
-Start Command "tfm_launch_fe"
-- restart tfm_launch_fe using the web interface
-
-4) configure TFM monitoring frontend tfm_mon_fe
+3) configure TFM monitoring frontend tfm_mon_fe
 #+begin_src
 tfm_mon_fe
 #+end_src
@@ -42,6 +33,16 @@ tfm_mon_fe
 Required "yes"
 Start Command "tfm_mon_fe"
 - restart tfm_mon_fe using the web interface
+
+4) configure the custom web pages
+ - go to http://localhost:3123/?cmd=ODB&odb_path=/Custom
+   set /Custom/Path to $SPACK_ENV/frontends/custom (expand the env var)
+
+5) configure the sequencer script path
+   MIDAS help says it should be relative to $EXPERIMENT/userfiles/sequencer,
+   where $EXPERIMENT points to directory storing the .ODB.SHM, for example,
+   daq22:/home/mu2etrk/test_stand/experiments/test_025
+
 * ------------------------------------------------------------------------------
 * back to file:frontends.org
 * ------------------------------------------------------------------------------

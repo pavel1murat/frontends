@@ -7,7 +7,7 @@
 #include "xmlrpc-c/config.h"  /* information about this build environment */
 #include <xmlrpc-c/base.h>
 #include <xmlrpc-c/client.h>
-
+#include <ctime>
 #include "tmfe.h"
 #include "midas.h"
 
@@ -37,22 +37,52 @@ class TEquipmentNode : public TMFeEquipment {
   
 public:
 
-  HNDLE                          hDB;
+  HNDLE                          hDB;                     // need to loop over ...
   HNDLE                          _h_active_run_conf;
   HNDLE                          _h_daq_host_conf;
   HNDLE                          _h_frontend_conf;
-  mu2edaq::DtcInterface*          fDtc_i[2];       // one or two DTCs, nullprt:disabled
+  HNDLE                          _h_dtc [2];
+  mu2edaq::DtcInterface*          fDtc_i[2];       // one or two DTCs, nullptr=disabled
   std::vector<ArtdaqComponent_t> _list_of_ac;
   std::string                    _full_host_name;  // on private network, for communicatioin
   std::string                    _host_label;      // on public network, for ODB
   xmlrpc_env                     _env;
   int                            _monitorDtc;
+  int                            _monitorDisk;
   int                            _monitorArtdaq;
-  int                            _monitorRocSPI;        // trk specific, these are history channels
-  int                            _monitorRoc;           // hisotry channels
-  int                            _monitorRocRegisters;  // non-hisotry channels
-  OdbInterface*                  _odb_i;
+  int                            _monitorSPI;           // trk specific, these are history channels
+  int                            _monitorRocRegisters;
+  int                            _monitorRates;
+  int                            _diagLevel;
 
+  OdbInterface*                  _odb_i;
+  int                            _dtc0_cmd_run; // RPC
+  int                            _dtc1_cmd_run;
+
+  std::time_t                    _prev_ctime_sec;
+  float                          _prev_fsize_gb;
+//-----------------------------------------------------------------------------
+// threads
+//-----------------------------------------------------------------------------
+  struct ThreadContext_t {
+    int                             fPcieAddr;
+    int                             fLink;
+    int                             fRunning;          // status: 0=stopped 1=running
+    int                             fStop;             // end marker
+    int                             fCmd;              // command
+    int                             fPrintLevel;
+
+    ThreadContext_t() {}
+    
+    ThreadContext_t(int PcieAddr, int Link, int PrintLevel = 0): 
+      fPcieAddr (PcieAddr), fLink(Link), fPrintLevel(PrintLevel) {}
+  };
+  
+  ThreadContext_t                   fSetThrContext;
+  std::stringstream                 fSSthr;
+//-----------------------------------------------------------------------------
+// functions
+//-----------------------------------------------------------------------------
   TEquipmentNode(const char* eqname, const char* eqfilename);
 
   virtual TMFeResult HandleInit         (const std::vector<std::string>& args);
@@ -65,16 +95,41 @@ public:
   virtual TMFeResult HandleResumeRun    (int RunNumber);
   virtual TMFeResult HandleStartAbortRun(int RunNumber);
   
-  TMFeResult         InitDtc            ();
-  void               InitDtcVarNames    ();
-  void               ReadDtcMetrics     ();
+  TMFeResult         InitDtc               ();
+  void               InitDtcVarNames       ();
+  void               LoadThresholds        (ThreadContext_t& Context, std::ostream& Stream);   // load thresholds from disk to ODB
+  int                MeasureThresholds     (ThreadContext_t& Context, std::ostream& Stream);
 
-  TMFeResult         InitArtdaq             ();
-  void               InitArtdaqVarNames     ();
-  void               ReadArtdaqMetrics      ();
-  int                ReadBrMetrics          (const ArtdaqComponent_t* Ac);
-  int                ReadDataReceiverMetrics(const ArtdaqComponent_t* Ac);
-  int                ReadDsMetrics          (const ArtdaqComponent_t* Ac);
+  void               ReadDtcMetrics        ();
 
+  // to be able to call it interactively
+  void               ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i);
+
+  int                Rpc_ControlRoc_DumpSettings(int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  int                Rpc_ControlRoc_SetCalDac   (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  int                Rpc_ControlRoc_Rates       (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  int                Rpc_ControlRoc_Read        (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  int                Rpc_ControlRoc_ReadDDR     (trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream);
+
+                                        // called via a thread
+
+  static void        SetThresholds    (ThreadContext_t& Context,
+                                       TEquipmentNode& Node,
+                                       std::ostream& Stream );
+  
+                                        // ODB-based RPC command handler
+  
+  static void        ProcessCommand(int hDB, int hKey, void* Info);
+
+  TMFeResult         InitArtdaq        ();
+  void               InitArtdaqVarNames();
+  void               ReadArtdaqMetrics ();
+  int                ReadBrMetrics     (const ArtdaqComponent_t* Ac);
+  int                ReadDrMetrics     (const ArtdaqComponent_t* Ac);
+  int                ReadDsMetrics     (const ArtdaqComponent_t* Ac);
+
+  TMFeResult         InitDisk          ();
+  void               InitDiskVarNames  ();
+  int                ReadDiskMetrics   ();
 };
 #endif

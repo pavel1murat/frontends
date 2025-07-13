@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="midas.css">
+  <link rel="stylesheet" href="mu2edaq.css">
+  <script src="controls.js"></script>
+  <script src="midas.js"></script>
+  <script src="mhttpd.js"></script>
+  <script src="filesrw.js"></script>
+  <script src="odbbrowser.js"></script>
+  <script src="mu2edaq.js"></script>
+    
+  <title>node_status</title>
+    
+  <script>
+//-----------------------------------------------------------------------------
+// the hostname (nodename) should be the same within the scope of this script
+//-----------------------------------------------------------------------------
+    let g_hostname = 'undefined';
+    let g_pcie     = 0;
+    let g_roc      = 0;
+//-----------------------------------------------------------------------------
+// CFO frontend : the name shoudl be fixed! 
+//-----------------------------------------------------------------------------
+    function cfo_command(cmd) {
+      let msg = { "client_name":"cfo_emu_fe", "cmd":cmd, "args":'{}'};
+      mjsonrpc_call("jrpc",msg).then(function(rpc1) {
+        let s = rpc1.result.reply;
+        const regex = /\n/gi
+        let y = s.replaceAll(regex,'<br>');
+        
+        const el = document.getElementById("content");
+        el.innerHTML += y;
+        el.style.fontFamily = 'monospace';
+        el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        
+      }).catch(function(error){
+        mjsonrpc_error_alert(error);
+      });
+    }
+
+//-----------------------------------------------------------------------------
+    function dtc_load_control_roc_read_parameters() {
+      const table     = document.getElementById('cmd_params');
+      table.innerHTML = '';
+      odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_read',0);
+      //        window.location.href = `dtc_control_roc_read.html?hostname=${g_hostname}&pcie=${g_pcie}`;
+    }
+      
+//-----------------------------------------------------------------------------
+    function dtc_load_control_roc_digi_rw_parameters() {
+      const table     = document.getElementById('cmd_params');
+      table.innerHTML = '';
+      odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_ROC_digi_rw',0);
+      //        window.location.href = `dtc_control_roc_read.html?hostname=${g_hostname}&pcie=${g_pcie}`;
+    }
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+    function dtc_command(cmd) {
+      let msg = { "client_name":g_hostname, "cmd":cmd, "max_reply_length":10000,
+                  "args":'{"pcie":'+g_pcie.toString()+',"roc":'+g_roc.toString()+'}'};
+      mjsonrpc_call("jrpc",msg).then(function(rpc1) {
+        let s = rpc1.result.reply
+        console.log(s.length);
+        let y = '<br>'+s.replaceAll(/\n/gi,'<br>').replace(/ /g, '&nbsp;');
+        
+        const el = document.getElementById("content");
+        el.innerHTML += y;
+        el.style.fontFamily = 'monospace';
+        // el.scrollIntoView();
+        const scrollToBottom = (id) => {
+          el.scrollTop = el.scrollHeight;
+        }
+        
+      }).catch(function(error){
+        mjsonrpc_error_alert(error);
+      });
+    }
+//-----------------------------------------------------------------------------      
+    function choose_dtc_id(evt, dtc_id) {
+      var i, tablinks;
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i=0; i<tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(dtc_id).style.display = "block";
+      evt.currentTarget.className += " active";
+      
+      if (dtc_id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
+      console.log('g_pcie=',g_pcie);
+    }
+//-----------------------------------------------------------------------------      
+    function choose_roc_id(evt, roc_id) {
+      var i, roctabs;
+      roctabs = document.getElementsByClassName("roctabs");
+      for (i=0; i<roctabs.length; i++) {
+        roctabs[i].className = roctabs[i].className.replace(" active", "");
+      }
+      document.getElementById(roc_id).style.display = "block";
+      evt.currentTarget.className += " active";
+      
+      g_roc = Number(roc_id.charAt(3));
+      // -1: all ROCs
+      if (g_roc == 6) {g_roc = -1};
+      console.log('g_roc=',g_roc);
+    }
+//-----------------------------------------------------------------------------
+// main function defining the page contents
+//-----------------------------------------------------------------------------
+    function loadPage() {
+      const urlParams = new URLSearchParams(window.location.search);
+      g_hostname      = urlParams.get('hostname') || 'none';  // 
+      
+//      let title       = document.getElementById('table-title');
+//      title.innerHTML = '&nbsp;&nbsp;&nbsp;'+g_hostname+' status page';
+//-----------------------------------------------------------------------------
+//  fill ARTDAQ commands table
+//-----------------------------------------------------------------------------
+      const artdaq_table     = document.getElementById('artdaq_table');
+
+      artdaq_table.innerHTML = `
+      <tbody>
+        <tr>
+          <td> <div class="mtableheader" colspan=2> ${g_hostname} ARTDAQ processes </div> </td> 
+          <td colspan=3>
+          <div class="tab">
+          <button class="roctabs" id='br01' onclick="choose_roc_id(event,'br01')">BR01</button>
+          <button class="roctabs" id='br02' onclick="choose_roc_id(event,'br02')">BR02</button>
+          <button class="roctabs" id='eb01' onclick="choose_roc_id(event,'eb01')">EB01</button>
+          <button class="roctabs" id='dl01' onclick="choose_roc_id(event,'dl01')">DL01</button>
+          <button class="roctabs" id='ds01' onclick="choose_roc_id(event,'ds01')">DS01</button>
+          </div>
+          </td>
+        </tr>
+        <tr>
+          <td colspan=2>
+            <div class="dropup">
+              <input type=button class="dropbtn" value='control_ROC_read'>
+              <div class="dropup-content">
+<!--
+                <a href="#">Load Parameters 1</a>
+                <a href="#">Run 1</a>
+-->
+                <div onClick='dtc_load_control_roc_read_parameters()'> Load Parameters </div>
+                <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
+              </div>
+            </div>
+            <div class="dropup">
+              <input type=button class="dropbtn" value='control_ROC_digi_rw'>
+              <div class="dropup-content">
+<!--
+                <a href="#">Load Parameters 1</a>
+                <a href="#">Run 1</a>
+-->
+                <div onClick='dtc_load_control_roc_digi_rw_parameters()'> Load Parameters </div>
+                <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
+              </div>
+            </div>
+          </td>
+          <td> <div> Register </div> </td>
+          <td> <div> Value    </div> </td>
+        </tr>
+
+      <tr>
+        <td>
+          <input type=button value='reset ROC'        onClick='dtc_command("reset_roc")'>
+          <input type=button value='print ROC status' onClick='dtc_command("print_roc_status")'>
+          <input type=button value='read SPI'         onClick='dtc_command("read_spi")'>
+        </td>
+        <td>
+          <input type=button value='write ROC register' onClick='dtc_command("write_roc_register")'>
+        </td>
+        <td>
+          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
+        </td>
+        <td>
+          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Value" data-odb-editable="1"  data-format="%x"></div>
+        </td>
+      <tr>
+        <td colspan>
+        </td>
+        <td><input type=button value='read ROC register' onClick='dtc_command("read_roc_register")'></td>
+        <td>
+          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
+        </td>
+        <td>
+          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Value" data-format="%x"></div>
+        </td>
+      </tr>
+      </tbody>
+    `;      
+//-----------------------------------------------------------------------------
+//  fill node frontend table
+//-----------------------------------------------------------------------------
+      const frontend_table     = document.getElementById('frontend_table');
+
+      frontend_table.innerHTML = `
+      <tbody>
+        <tr>
+          <td> <div class="mtableheader" colspan=2> Node frontend </div> </td> 
+          <td colspan=3>
+          <div class="tab">
+          <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
+          <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
+          <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
+          <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
+          <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
+          <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
+          <button class="roctabs" id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
+          </div>
+          </td>
+        </tr>
+        <tr>
+          <td colspan=2>
+            <div class="dropup">
+              <input type=button class="dropbtn" value='control_ROC_read'>
+              <div class="dropup-content">
+<!--
+                <a href="#">Load Parameters 1</a>
+                <a href="#">Run 1</a>
+-->
+                <div onClick='dtc_load_control_roc_read_parameters()'> Load Parameters </div>
+                <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
+              </div>
+            </div>
+            <div class="dropup">
+              <input type=button class="dropbtn" value='control_ROC_digi_rw'>
+              <div class="dropup-content">
+<!--
+                <a href="#">Load Parameters 1</a>
+                <a href="#">Run 1</a>
+-->
+                <div onClick='dtc_load_control_roc_digi_rw_parameters()'> Load Parameters </div>
+                <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
+              </div>
+            </div>
+          </td>
+          <td> <div> Register </div> </td>
+          <td> <div> Value    </div> </td>
+        </tr>
+
+      <tr>
+        <td>
+          <input type=button value='reset ROC'        onClick='dtc_command("reset_roc")'>
+          <input type=button value='print ROC status' onClick='dtc_command("print_roc_status")'>
+          <input type=button value='read SPI'         onClick='dtc_command("read_spi")'>
+        </td>
+        <td>
+          <input type=button value='write ROC register' onClick='dtc_command("write_roc_register")'>
+        </td>
+        <td>
+          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
+        </td>
+        <td>
+          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Value" data-odb-editable="1"  data-format="%x"></div>
+        </td>
+      <tr>
+        <td colspan>
+        </td>
+        <td><input type=button value='read ROC register' onClick='dtc_command("read_roc_register")'></td>
+        <td>
+          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
+        </td>
+        <td>
+          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Value" data-format="%x"></div>
+        </td>
+      </tr>
+      </tbody>
+    `;      
+//-----------------------------------------------------------------------------
+//  fill node parameters table
+//-----------------------------------------------------------------------------
+      const node_params_table     = document.getElementById('node_params');
+      node_params_table.innerHTML = '';
+      odb_browser('node_params',`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}`,0);
+//-----------------------------------------------------------------------------
+//  end
+//-----------------------------------------------------------------------------
+    }
+//-----------------------------------------------------------------------------
+// loadPage is the function doing the job
+//-----------------------------------------------------------------------------
+    document.addEventListener("DOMContentLoaded", loadPage);
+  </script>
+  </head>
+<!-- ------------------------------------------------------------------------------
+     here the HTML structure starts
+     it seems to be convenient to have the large scale topology in HtML and use
+     javascript to fill hte details
+     her is the high-level structure of the page - menus on hte left, output window - on the right
+  ------------------------------------------------------------------------------  -->
+  <body class="mcss" onload="mhttpd_init('node_status');">
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+    <div id="mmain">
+<!-- ---------------- row 1: ----------------  -->
+      
+      <div class="row">
+     <!--   <h3 id="table-title">Node name... </h3>  -->
+        
+        <div class="column"> <!-- column gets pushed to the left -->
+
+          <table class="mtable" id="artdaq_table">  <!-- Table content is generated dynamically -->
+          </table>
+          
+          <table class="mtable" id="frontend_table">  <!-- Table content is generated dynamically -->
+          </table>
+          
+          <table class="mtable" id="node_params">    <!-- Table content is generated dynamically -->
+          </table>
+          
+        </div>
+<!--    ------------------------- this is the output window  -->
+        <div id="myDIV">
+          <div id="content"> 
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </body>
+</html>
+<!--
+    emacs
+    Local Variables:
+    mode: HTML+
+    tab-width: 8
+    c-basic-offset: 2
+    js-indent-level: 0
+    indent-tabs-mode: nil
+    End:
+  -->

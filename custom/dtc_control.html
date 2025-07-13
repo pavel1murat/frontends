@@ -1,147 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-<style>
-* {
-  box-sizing: border-box;
-}
-
-.row {
-  margin-left:-5px;
-  margin-right:-5px;
-}
-  
-.column {
-  float: left;
-  width: 37%;
-  padding: 2px;
-}
-
-/* Clearfix (clear floats) */
-.row::after {
-  content: "";
-  clear  : both;
-  display: table;
-}
-
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-  width: 100%;
-  border: 1px solid #ddd;
-}
-
-th, td {
-  text-align: left;
-  padding: 4px;
-}
-
-tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-body {font-family: Arial;}
-
-#myDIV {
-    padding   : 20px;
-    height    : 380px;
-    width     : 60% ; /* 600px; */
-    overflow  : auto;
-    background: #bdb;
-}
-
-#content {
-/*  margin: 40%; */
-/*  height: 300px; */
-/*  width:  400px; */
-  background-color: #bdb;
-}
-/* Style the tab */
-.tab {
-  overflow: hidden;
-  border: 1px solid #ccc;
-  background-color: #f1f1f1;
-}
-
-/* Style the buttons inside the tab */
-.tab button {
-  background-color: inherit;
-  float     : left;
-  border    : none;
-  outline   : none;
-  cursor    : pointer;
-  padding   : 12px 12px;
-  transition: 0.3s;
-  font-size : 14px;
-}
-
-/* Change background color of buttons on hover */
-.tab button:hover {
-  background-color: #ddd;
-}
-
-/* Create an active/current tablink class */
-.tab button.active {
-  background-color: #bdb;
-}
-
-/* Style the tab content */
-.tabcontent {
-  display: none;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-top: none;
-}
-
-</style>
 
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="midas.css">
+    <link   rel="stylesheet" href="midas.css">
     <script src="controls.js"></script>
     <script src="midas.js"></script>
     <script src="mhttpd.js"></script>
     <script src="filesrw.js"></script>
+    <script src="odbbrowser.js"></script>
+
+    <link   rel="stylesheet" href="mu2edaq.css">
+    <script src="dtc_commands.js"></script>
     
     <title>DTC</title>
     
     <script>
 //-----------------------------------------------------------------------------
-// the hostname should be the same within the scope of this script
-//-----------------------------------------------------------------------------
-      let g_hostname = 'undefined';
-      let g_pcie     = 0;
-      
-      function dtc_command(cmd,pcie) {
-        let msg = { "client_name":g_hostname, "cmd":cmd, "args":'{"pcie":'+g_pcie.toString()+'}'};
-        mjsonrpc_call("jrpc",msg).then(function(rpc1) {
-          let s = rpc1.result.reply;
-          const regex = /\n/gi
-          let y = s.replaceAll(regex,'<br>');
-
-          const el = document.getElementById("content");
-          el.innerHTML += y;
-          el.style.fontFamily = 'monospace';
-          el.scrollIntoView();
-
-        }).catch(function(error){
-          mjsonrpc_error_alert(error);
-        });
-      }
-//-----------------------------------------------------------------------------      
-      function choose_dtc_id(evt, dtc_id) {
-        var i, tablinks;
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i=0; i<tablinks.length; i++) {
-          tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-        document.getElementById(dtc_id).style.display = "block";
-        evt.currentTarget.className += " active";
-
-        if (dtc_id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
-        console.log('g_pcie=',g_pcie);
-      }
-//-----------------------------------------------------------------------------
-// createTable
+// main function: createTable
 //-----------------------------------------------------------------------------
       function createTable() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -149,196 +25,278 @@ body {font-family: Arial;}
         const pcie      = urlParams.get('pcie') || '0'   ;  //
 
         let title       = document.getElementById('table-title');
-        title.innerHTML = '&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
+        title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
 //-----------------------------------------------------------------------------
-// the column titles 
+//  create DTC commands table
 //-----------------------------------------------------------------------------
-        const table     = document.querySelector(".mtable"); 
-        const tbody     = document.createElement('tbody');
-        table.appendChild(tbody);
-        
-        let names = ['Register', 'DTC0','DTC1','Comment'];
-        
-        const row      = document.createElement("tr");
-        for (let i=0; i<4; i++) {
-          const cell     = document.createElement("td");
-          cell.className = 'mtableheader';
-          cell.style     = 'background-color:#8cbdff';
-          cell.innerHTML = names[i];
-          cell.colSpan   = '1';
-          row.appendChild(cell);
-        }
-        tbody.appendChild(row);
+        const dtc_com_table     = document.getElementById('dtc_commands');
 
-        let nreg = 14;
-
-        const path0   = '/Equipment/'+g_hostname;
-        const subpath = [ 'DTC0/RegNames', 'DTC0/RegData', 'DTC1/RegData' ];
-        
-        const comment = [ 'DTC firmware version', 'DTC status register', 'DTC Link Enable', 'Locked fibers', 'DTC timeout',
-                          'N EVB nodes'         , 'Data timeout length', 'EW marker deltaT', 'N data requests', 'null HB after last valid one',
-                          'CFO emulation event mode bytes 3,2,1,0', 'CFO emulation event mode bytes 5,4', ' Clk marker deltaT', 'DCS timeout'
-                        ];
-      
-        for (let ireg=0; ireg<nreg; ireg++) {
-          const row   = document.createElement("tr");
-          for (let ic=0; ic<4; ic++) {
-            const cell = document.createElement("td");
-            cell.className = 'modbvalue';
-            // cell.style     = 'background-color:#8cbdff';
-            cell.colSpan   = '1';
-            if (ic < 3) {
-              path=path0+'/'+subpath[ic]+'['+ireg+']';
-              mjsonrpc_db_get_values([path]).then(function (rpc) {
-                cell.innerHTML = rpc.result.data[0];
-              }).catch(function (error) {
-                console.error("Error fetching values:", error);
-              });
-            }
-            else {
-              cell.innerHTML = comment[ireg];
-            }
-            row.appendChild(cell);
-          }
-          tbody.appendChild(row);
-        }
-//-----------------------------------------------------------------------------
-//  create command table
-//-----------------------------------------------------------------------------
-        const com_table_title  = document.getElementById('commands-table-title');
-//        com_table_title.innerHTML = 'commands for DTC at PCIE:'+pcie;
-
-        const com_table     = document.getElementById('commands');
-
-        com_table.innerHTML = `
-<div class="tab">
-                 <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">PCIE:0</button>
-                 <button class="tablinks" id="dtc1" onclick="choose_dtc_id(event,'dtc1')">PCIE:1</button>
-</div>
-        <tr>
-          <th <div class="mtableheader" colspan=4> DTC Control Commands </div> </th> 
-        </tr>
-        <tr>
-          <td>
-            Command
-          </td>
-          <td>
-            <div> Register </div>
-          </td>
-          <td>
-            <div> Value</div>
-          </td>
-          <td>
-            <div> Run</div>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            write register
-          </td>
-          <td>
-            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Register" data-odb-editable="1" data-format="%x"> </div>
-          </td>
-          <td>
-            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Value" data-odb-editable="1"  data-format="%x"></div>
-          </td>
-          <td>
-            <input type=button value='Run' onClick='dtc_command("dtc_write_register",${g_pcie})'>
-          </td>
-        <tr>
-          <td> read DTC register </td>
-          <td>
-            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Register" data-odb-editable="1" data-format="%x"> </div>
-          </td>
-          <td>
-            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Value" data-format="%x"></div>
-          </td>
-          <td>
-            <input type=button value='Run' onClick='dtc_command("dtc_read_register",${g_pcie})'>
-          </td>
-        </tr>
-        <!--   --------------------------      DTC print status  -->
-        <tr>
-          <td> DTC print status</td>
-          <td> </td>
-          <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_status",${g_pcie})'> </td>
-        </tr>
-        <!--   --------------------------      DTC print ROC status  -->
-        <tr>
-          <td> DTC print ROC status</td>
-          <td> </td>
-          <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_print_roc_status",${g_pcie})'> </td>
-        </tr>
-        <!--   --------------------------      DTC soft reset  -->
-        <tr>
-          <td> DTC soft reset</td>
-          <td> </td>
-          <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_soft_reset",${g_pcie})'> </td>
-        </tr>
-        <!--   --------------------------      DTC hard reset  -->
-        <tr>
-          <td> DTC hard reset</td>
-          <td> </td>
-          <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_hard_reset"),${g_pcie}'> </td>
-        </tr>
-        <!--   --------------------------      DTC hard reset  -->
-        <tr>
-          <td> Init Readout (both DTCs) </td>
-          <td> </td>
-          <td> </td>
-          <td> <input type=button value='Run' onClick='dtc_command("dtc_init_readout",${g_pcie})'> </td>
-        </tr>
-        <!--   --------------------------      control roc read  -->
-        <tr>
-          <td> control_ROC_read</td>
-          <td></td>
-          <td></td>
-          <td><input type=button value='Run' onClick='dtc_command("dtc_control_roc_read",${g_pcie})'> </td>
-        </tr>
-      </tbody>
+        dtc_com_table.innerHTML = `
+        <thead>
+          <tr>
+            <td> <div class="mtableheader">${g_hostname} DTC Control Commands &nbsp&nbsp
+                    <a href="https://mu2einternalwiki.fnal.gov/wiki/Tracker_DAQ_Help">[ Help ]</a>
+                  </div>
+            </td>
+            <td>
+              <div class="tab">
+                <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">PCIE:0</button>
+                <button class="tablinks" id="dtc1" onclick="choose_dtc_id(event,'dtc1')">PCIE:1</button>
+              </div>
+            </td>
+            <td colspan=4>
+              <div class="tab">
+                <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
+                <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
+                <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
+                <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
+                <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
+                <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
+                <button class="roctabs" id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
+              </div>
+            </td>
+          </tr>
+        </thead>
+        <tbody>                                                                        
+          <tr>
+            <td colspan=3>
+              <input type=button value='load parameters'  onClick='dtc_load_parameters()'>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='init readout'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_init_readout()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_init_readout")'   > Run             </div>
+                </div>
+              </div>
+              <input type=button value='print status'     onClick='dtc_command("dtc_print_status")'>
+              <input type=button value='print ROC status' onClick='dtc_command("dtc_print_roc_status")'>
+              <input type=button value='clear output'     onClick='dtc_clear_output()'>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='configure_ja'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_cmd_parameters("configure_ja")'> Load Parameters </div>
+                  <div onClick='dtc_command("configure_ja")'            > Run             </div>
+                </div>
+            </td>
+            <td></td>
+            <td> Register </td>
+            <td> Value    </td>
+          </tr>
+          <!----------------- DTC print status, print ROC status , write reg   -->
+          <tr>
+            <td colspan=2>
+              <input type=button value='CFO launch run plan' onClick='cfo_command("cfo_launch_run_plan")'>
+              <input type=button value='read subevents'      onClick='dtc_command("dtc_read_subevents")'>
+              <input type=button value='soft reset'          onClick='dtc_command("dtc_soft_reset")'>
+              <input type=button value='hard reset'          onClick='dtc_command("dtc_hard_reset")'>
+            </td>
+            <td></td>
+            <td>
+              <input type=button value='write DTC register'  onClick='dtc_command("dtc_write_register")'>
+            </td>
+            <td>
+              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Register" data-odb-editable="1" data-format="%x"></div>
+            </td>
+            <td>
+              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Value"    data-odb-editable="1" data-format="%x"></div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan=2> </td>
+            <td></td>
+            <td>
+              <input type=button value='read &nbsp DTC register'    onClick='dtc_command("dtc_read_register")'>
+            </td>
+            <td>
+              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Register" data-odb-editable="1" data-format="%x"></div>
+            </td>
+            <td>
+              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Value" data-format="%x"></div>
+            </td>
+          </tr>
+        </tbody>
          `;
         
-        const com_tbody = com_table.querySelector("tbody");
+        const com_tbody = dtc_com_table.querySelector("tbody");
+//-----------------------------------------------------------------------------
+//  create ROC commands table
+//-----------------------------------------------------------------------------
+        const roc_com_table     = document.getElementById('roc_commands');
+
+        roc_com_table.innerHTML = `
+        <tbody>
+          <tr>
+            <td> <div class="mtableheader"> control_ROC commands </div> </td>
+            <td colspan=3></td>
+          </tr>
+          <tr>
+            <td colspan=2>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='read'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_read()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='digi_rw'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_digi_rw()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='pulser_on'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_pulser_on()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_pulser_on")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='pulser_off'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_pulser_off()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='rates'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='read_ddr'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_read_ddr()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_read_ddr")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='set_thresholds'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_cmd_parameters("set_thresholds")'> Load Parameters </div>
+                  <div onClick='dtc_command("set_thresholds")'            > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='load_thresholds'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_cmd_parameters("load_thresholds")'> Load Parameters </div>
+                  <div onClick='dtc_command("load_thresholds")'            > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='set_caldac'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_cmd_parameters("set_caldac")'> Load Parameters </div>
+                  <div onClick='dtc_command("set_caldac")'            > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='dump_settings'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_cmd_parameters("dump_settings")'> Load Parameters </div>
+                  <div onClick='dtc_command("dump_settings")'            > Run             </div>
+                </div>
+              </div>
+            </td>
+            <td> <div> Register </div> </td>
+            <td> <div> Value    </div> </td>
+          </tr>
+
+<!--  --------------------------------------------  -->
+        <tr>
+          <td>
+            <input type=button value='reset ROC'          onClick='dtc_command("reset_roc")'>
+            <input type=button value='read SPI'           onClick='dtc_command("read_spi")'>
+            <input type=button value='read ILP'           onClick='dtc_command("read_ilp")'>
+            <input type=button value='get key'            onClick='dtc_command("get_key")'>
+            <input type=button value='find alignment'     onClick='dtc_command("dtc_control_roc_find_alignment")'>
+            <input type=button value='measure thresholds' onClick='dtc_command("measure_thresholds")'>
+          </td>
+          <td>
+            <input type=button value='write ROC register' onClick='dtc_command("write_roc_register")'>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Value" data-odb-editable="1"  data-format="%x"></div>
+          </td>
+        </tr>
+<!--  --------------------------------------------  -->
+        <tr>
+          <td colspan>
+            <input type=button value='get design info'  onClick='dtc_command("get_roc_design_info")'>
+<!--
+            <input type=button value='get ID'           onClick='dtc_command("get_roc_id")'>
+            <input type=button value='get GIT commit'   onClick='dtc_command("get_roc_fw_git_commit")'>
+-->
+          </td>
+          <td><input type=button value='read &nbsp ROC register' onClick='dtc_command("read_roc_register")'></td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
+          </td>
+          <td>
+            <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Value" data-format="%x"></div>
+          </td>
+        </tr>
+        <!---------------------------------------------- this row is temporarily commented out
+        <tr>
+          <td colspan=4>
+            <div class="dropup">
+            </div>
+          </td>
+        </tr>
+          --------------------------------------------  -->
+        </tbody>
+        `;      
 //-----------------------------------------------------------------------------
 //  end
 //-----------------------------------------------------------------------------
       }
       
       document.addEventListener("DOMContentLoaded", createTable);
+      // choose_roc_id('DOMContentLoaded','roc0')
     </script>
   </head>
   <!--
-      it seems to be convenient to have the large scale topology in HtML and use
-      javascript to fill hte details
+      it seems to be convenient to have the large scale topology defined in HTML
+      and use javascript to fill internal details
     -->
   <body class="mcss" onload="mhttpd_init('dtc_control');">
     <div id="mheader"></div>
     <div id="msidenav"></div>
     <div id="mmain">
+
+<!-- ---------------- row 1: DTC registers - are they needed?  and the output field ----------------  -->
+      
       <div class="row">
-        <h1 id="table-title">DTC </h1>
-        <div class="column">
-          <table class="mtable">
-            <!-- Table content is generated dynamically -->
+        <h2 id="table-title">DTC </h2>
+        
+        <div class="column"> <!-- gets pushed to the left -->
+
+          <table class="mtable" id="dtc_commands">  <!-- Table content is generated dynamically -->
           </table>
+          
+          <table class="mtable" id="roc_commands">  <!-- Table content is generated dynamically -->
+          </table>
+          
+          <table class="mtable" id="cmd_params">    <!-- Table content is generated dynamically -->
+          </table>
+          
         </div>
 
+<!--    ------------------------- this is the output window  -->
         <div id="myDIV">
-          <div id="content"> <!-- the field for output -->
+          <div id="content"> 
           </div>
         </div>
 
       </div>
 
-      <div class="column">
-        <table class="mtable" id="commands">
-          <!-- Table content is generated dynamically -->
-        </table>
-      </div>
     </div>
 
   </body>
@@ -348,7 +306,7 @@ body {font-family: Arial;}
     Local Variables:
     tab-width: 8
     c-basic-offset: 2
-    js-indent-level: 0
+    js-indent-level: 2
     indent-tabs-mode: nil
     End:
   -->

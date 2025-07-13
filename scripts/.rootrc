@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------
 # assume HOSTNAME=`hostname -s`
 #------------------------------------------------------------------------------
-Unix.*.Root.MacroPath:.:$(SPACK_ENV)/otsdaq-mu2e-tracker/scripts
+Unix.*.Root.MacroPath:.:$(SPACK_ENV)/otsdaq-mu2e-tracker/scripts:$(SPACK_VIEW)/include
 
 Unix*.Root.DynamicPath:.:$(LD_LIBRARY_PATH):$(SPACK_VIEW)/lib/root
 Root.Html.OutputDir:.
@@ -21,10 +21,14 @@ Root.ObjectStat: 1
 # Record session commands, set to "-" to turn off command recording
 Rint.History            $(PWD)/.root_hist.$(HOSTNAME)
 # ------------------------------------------------------------------------------
-# WebGui.HttpPort: 8088
-# WebGui.HttpBind: 127.0.0.1
-
+# this is for the web-based DQM
+# it looks that the job overrides the chosen port
+#------------------------------------------------------------------------------
 Browser.Name : ROOT::RWebBrowserImp
+
+WebGui.HttpPort:    8088
+WebGui.HttpBind:    127.0.0.1
+WebGui.HttpThreads: 100
 
 WebGui.HttpPortMin: 8080
 WebGui.HttpPortMax: 9800

@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "node_frontend/TEquipmentNode.hh"
 #include "utils/utils.hh"
+#include "TString.h"
 
 #include "odbxx.h"
 
@@ -34,13 +35,10 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 //-----------------------------------------------------------------------------
 // cache the ODB handle, as need to loop over the keys in InitArtdaq
 //-----------------------------------------------------------------------------
-  cm_get_experiment_database(&hDB, NULL);
-
-  _odb_i                      = OdbInterface::Instance(hDB);
+  _odb_i                      = OdbInterface::Instance();
   _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
   std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
   std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
-  std::string active_run_conf = _odb_i->GetRunConfigName(_h_active_run_conf);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
 // nodes/DTC's to be monitored 
@@ -49,7 +47,7 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   _host_label     = get_short_host_name(public_subnet.data());
   _full_host_name = get_full_host_name (private_subnet.data());
 
-  _h_daq_host_conf = _odb_i->GetHostConfHandle    (_h_active_run_conf,_host_label);
+  _h_daq_host_conf = _odb_i->GetHostConfHandle(_host_label);
   if (_h_daq_host_conf == 0) {
     // if we don't find the config, there is nothing we can do, abort
     char buf[256];
@@ -59,22 +57,46 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   }
   _h_frontend_conf = _odb_i->GetFrontendConfHandle(_h_active_run_conf,_host_label);
 
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"   ,&_monitorDtc   );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq",&_monitorArtdaq);
+  _monitorDtc    = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc");
+  _monitorArtdaq = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq");
+  _monitorSPI    = _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI");
+  _monitorRates  = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates");
+  _diagLevel     = _odb_i->GetInteger(_h_frontend_conf,"DiagLevel");
 
-  TLOG(TLVL_DEBUG) << "active_run_conf:"  << active_run_conf 
+  TLOG(TLVL_DEBUG) << "active_run_conf:"  << _odb_i->GetString(_h_active_run_conf,"Name")
                    << " public_subnet:"   << public_subnet
                    << " private subnet:"  << private_subnet 
                    << " _full_host_name:" << _full_host_name
                    << " _host_label:"     << _host_label
                    << std::endl
                    << "_monitorDtc:"      << _monitorDtc
-                   << " _monitorArtdaq:"  << _monitorArtdaq;
+                   << " _monitorSPI:"      << _monitorSPI
+                   << " _monitorArtdaq:"  << _monitorArtdaq
+                   << " _monitorRates:"   << _monitorRates;
   EqSetStatus("Started...", "white");
   fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
-  InitDtc();
+  InitDtc   ();
   InitArtdaq();
+  InitDisk  ();
+//-----------------------------------------------------------------------------
+// hotlinks - start from one function handling both DTCs
+// command processor : 'ProcessCommand' function
+//-----------------------------------------------------------------------------
+  HNDLE hdb       = _odb_i->GetDbHandle();
+
+  HNDLE h_dtc0_cmd     = _odb_i->GetDtcCommandHandle(_host_label,0);
+  HNDLE h_dtc0_cmd_run = _odb_i->GetHandle(h_dtc0_cmd,"Run");
+
+  if (db_open_record(hdb,h_dtc0_cmd_run,&_dtc0_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+    cm_msg(MERROR, __func__,"cannot open DTC0 hotlink in ODB");
+  }
+
+  HNDLE h_dtc1_cmd     = _odb_i->GetDtcCommandHandle(_host_label,1);
+  HNDLE h_dtc1_cmd_run = _odb_i->GetHandle(h_dtc1_cmd,"Run");
+  if (db_open_record(hdb,h_dtc1_cmd_run,&_dtc1_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+    cm_msg(MERROR, __func__,"cannot open DTC1 hotlink in ODB");
+  }
   
   return TMFeOk();
 }
@@ -84,10 +106,10 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 // init DTC reaout for a given mode at begin run
 // for now, assume that all DTCs are using the same ROC readout mode
 // if this assumption will need to be dropped, will do that
+// may want to change the link mask at begin run w/o restarting the frontend
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
 
-  //  HNDLE h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
   int   event_mode        = _odb_i->GetEventMode     (_h_active_run_conf);
   int   roc_readout_mode  = _odb_i->GetRocReadoutMode(_h_active_run_conf);
   int    handle_begin_run(0);
@@ -100,10 +122,21 @@ TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
   if (handle_begin_run) {
     for (int i=0; i<2; i++) {
       mu2edaq::DtcInterface* dtc_i = fDtc_i[i];
+      TLOG(TLVL_DEBUG) << "DTC" << i << ":" << dtc_i;
       if (dtc_i) {
-        dtc_i->fRocReadoutMode = roc_readout_mode;
+        HNDLE h_dtc = _h_dtc[dtc_i->fPcieAddr];
         dtc_i->fEventMode      = event_mode;
-
+        dtc_i->fRocReadoutMode = roc_readout_mode;
+        dtc_i->fLinkMask       = _odb_i->GetLinkMask         (h_dtc);
+        dtc_i->fJAMode         = _odb_i->GetJAMode           (h_dtc);
+        dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_dtc);
+//-----------------------------------------------------------------------------
+// HardReset erases the DTC link mask, restore it
+// also, release all buffers from the previous read - this is the initialization
+//-----------------------------------------------------------------------------
+        // 2025-01-19 PM dtc_i->Dtc()->HardReset();
+        // 2025-01-19 PM dtc_i->ResetLinks(0,1);
+                                        // InitReadout performs some soft resets, ok for now
         dtc_i->InitReadout();
       }
     }
@@ -160,29 +193,123 @@ TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
 // read ARTDAQ metrics only when running
 //-----------------------------------------------------------------------------
 void TEquipmentNode::HandlePeriodic() {
-  // SC: question, do we want to read this at every periodic read?
+
+  TLOG(TLVL_DEBUG+1) << "-- START";
+
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"         ,&_monitorDtc         );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Disk"        ,&_monitorDisk        );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocSPI"      ,&_monitorRocSPI      );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Roc"         ,&_monitorRoc         );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI"         ,&_monitorSPI         );
+  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates"       ,&_monitorRates       );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
   
-  TLOG(TLVL_DEBUG+1) << "_monitorDtc:" << _monitorDtc
-                     << " _monitorRocSPI:" << _monitorRocSPI
-                     << " _monitorRoc:" << _monitorRoc
-                     << " _monitorRocRegisters:" << _monitorRocRegisters
-                     << " _monitorArtdaq:" << _monitorArtdaq
+  TLOG(TLVL_DEBUG+1) << "_monitorDtc:"                      << _monitorDtc
+                     << " _monitorSPI:"                     << _monitorSPI
+                     << " _monitorRates:"                   << _monitorRates
+                     << " _monitorRocRegisters:"            << _monitorRocRegisters
+                     << " _monitorArtdaq:"                  << _monitorArtdaq
+                     << " _monitorDisk:"                     << _monitorDisk
                      << " TMFE::Instance()->fStateRunning:" << TMFE::Instance()->fStateRunning; 
 
-  if (_monitorDtc) {
-    ReadDtcMetrics();
-  }
+  if (_monitorDtc) ReadDtcMetrics();
 
   if (_monitorArtdaq and TMFE::Instance()->fStateRunning) {
     ReadArtdaqMetrics();
   }
   
-  char status[256];
-  sprintf(status, "OK");
-  EqSetStatus(status, "green");
+  if (_monitorDisk) ReadDiskMetrics();
+
+  TLOG(TLVL_DEBUG+1) << "-- END";
+
+  EqSetStatus(Form("OK"),"green");
 }
+
+//-----------------------------------------------------------------------------
+void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  OdbInterface* odb_i = OdbInterface::Instance();
+
+  KEY k;
+  odb_i->GetKey(hKey,&k);
+
+  HNDLE h_dtc = odb_i->GetParent(hKey);
+  KEY dtc;
+  odb_i->GetKey(h_dtc,&dtc);
+
+  int pcie_addr(0);
+  if (dtc.name[3] == '1') pcie_addr = 1;
+
+  HNDLE h_frontend = odb_i->GetParent(h_dtc);
+  KEY frontend;
+  odb_i->GetKey(h_frontend,&frontend);
+  
+  TLOG(TLVL_DEBUG) << "k.name:" << k.name
+                   << " dtc.name:" << dtc.name
+                   << " pcie_addr:" << pcie_addr
+                   << " frontend.name:" << frontend.name;
+
+  std::string dtc_cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
+  midas::odb o_dtc_cmd(dtc_cmd_buf_path);
+                                        // should 0 or 1
+  if (o_dtc_cmd["Run"] == 0) {
+    TLOG(TLVL_DEBUG) << "self inflicted, return";
+    return;
+  }
+
+  std::string dtc_cmd        = o_dtc_cmd["Name"];
+  std::string parameter_path = dtc_cmd_buf_path+std::format("/{:s}",dtc_cmd.data());
+//-----------------------------------------------------------------------------
+// 
+// this is address of the parameter record
+//-----------------------------------------------------------------------------
+  TLOG(TLVL_DEBUG) << "dtc_cmd:" << dtc_cmd;
+  TLOG(TLVL_DEBUG) << "parameter_path:" << parameter_path;
+
+  midas::odb o_par(parameter_path);
+  TLOG(TLVL_DEBUG) << "-- parameters found";
+//-----------------------------------------------------------------------------
+// should be already defined at this point
+//-----------------------------------------------------------------------------
+  trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(pcie_addr);
+
+  if (dtc_cmd == "control_roc_pulser_on") {
+//-----------------------------------------------------------------------------
+// execute pulser_on command , no printout
+// so far assume link != -1, but we do want to use -1 (all)
+//------------------------------------------------------------------------------
+    int link               = o_par["link"              ];
+    int first_channel_mask = o_par["first_channel_mask"];
+    int duty_cycle         = o_par["duty_cycle"        ];
+    int pulser_delay       = o_par["pulser_delay"      ];
+
+    TLOG(TLVL_DEBUG) << "link:" << link
+                     << " first_channel_mask:" << first_channel_mask
+                     << " duty_cycle:" << duty_cycle
+                     << " pulser_delay:" << pulser_delay;
+    try {
+      dtc_i->ControlRoc_PulserOn(link,first_channel_mask,duty_cycle,pulser_delay);
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserON ... BAIL OUT";
+    }
+  }
+  else if (dtc_cmd == "control_roc_pulser_off") {
+    int link               = o_par["link"       ];
+    int print_level        = o_par["print_level"];
+
+    TLOG(TLVL_DEBUG) << "link:" << link
+                     << " print_level:" << print_level;
+    try {
+      dtc_i->ControlRoc_PulserOff(link,print_level);
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserOFF ... BAIL OUT";
+    }
+  }
+  
+  o_dtc_cmd["Finished"] = 1;
+  
+  TLOG(TLVL_DEBUG) << "-- END";
+}
+
