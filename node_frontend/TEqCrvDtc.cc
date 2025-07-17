@@ -21,6 +21,9 @@ TEqCrvDtc::TEqCrvDtc(HNDLE H_RunConf, HNDLE H_Dtc) : TMu2eEqBase () {
   _dtc_i = mu2edaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
   _dtc_i->fIsCrv     = 1;
   _dtc_i->fSubsystem = mu2edaq::kCRV;
+
+  _logfile = "/home/mu2etrk/test_stand/experiments/test_025/crvdtc.log"; // TODO: to come from config
+  
 }
 
 //-----------------------------------------------------------------------------

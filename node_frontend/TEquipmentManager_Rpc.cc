@@ -66,7 +66,7 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
     eq_type        = j1.at("eq_type" );
     if (eq_type == "dtc") {
       pcie_addr = j1.at("pcie");
-      eq = _eq_dtc[pcie_addr];
+      eq        = _eq_dtc[pcie_addr];
     }
     else if (eq_type == "artdaq") {
                                         // perhaps some additional parameters to parse
@@ -81,18 +81,11 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
       throw std::runtime_error("undefined eq_type:"+eq_type);
     }      
   }
-  catch(...){
+  catch(...) {
     std::string msg("couldn't parse json:");
     TLOG(TLVL_ERROR) << msg << args;
     return TMFeErrorMessage(msg+args);
   }
-
-  HNDLE h_dtc = odb_i->GetDtcConfigHandle(_host_label,pcie_addr);
-                                                  
-  TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr
-                   << " h_dtc:" << h_dtc;
-                   // << " DTC[0]:" << _eq_dtc[0]->_dtc_i
-                   // << " DTC[1]:" << _eq_dtc[1]->_dtc_i ;
 //-----------------------------------------------------------------------------
 // start forming response
 //-----------------------------------------------------------------------------
@@ -103,19 +96,20 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
 //-----------------------------------------------------------------------------
 // a single place to make sure that the pointer to the EqDTC is OK
 //-----------------------------------------------------------------------------
-  if (_eq_dtc[pcie_addr] == nullptr) {
-    ss << " DTC" << pcie_addr << " is not enabled";
+  if (eq == nullptr) {
+    ss << " EQ:" << eq_type << " is not enabled";
     response += ss.str();
     TLOG(TLVL_ERROR) << response;
     return TMFeErrorMessage(response);
   }
-
-  //  int subsystem = _eq_dtc[pcie_addr]->_dtc_i->Subsystem();
-
-  // eq_name: 'DTC0', 'DTC1', 'Artdaq', 'Disk', etc
+//-----------------------------------------------------------------------------
+// eq_name: 'DTC0', 'DTC1', 'Artdaq', 'Disk', etc
+//-----------------------------------------------------------------------------
   std::string cmd_path = odb_i->GetCmdConfigPath(_host_label,eq->Name());
-  HNDLE h_cmd = odb_i->GetHandle(0,cmd_path);
-
+  HNDLE       h_cmd    = odb_i->GetHandle(0,cmd_path);
+//-----------------------------------------------------------------------------
+// is the assumption that the parameter path is always local OK ?
+//-----------------------------------------------------------------------------
   std::string cmd_parameter_path = std::format("{}/{}",cmd_path,cmd);
 
   std::string s_cmd(cmd);
@@ -125,8 +119,8 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
   odb_i->SetInteger(h_cmd,"Finished"     ,0);
   odb_i->SetInteger(h_cmd,"ReturnCode"   ,0);
   // and , finally, trigger the execution
-  odb_i->SetInteger(h_cmd,"ReturnCode"   ,0);
-  // after that, return to the caller, with the response being "passed"
+  odb_i->SetInteger(h_cmd,"Run"          ,1);
+  // after that, return to the caller, with the response "passed"
 
   response += " passed for execution";
   
@@ -252,6 +246,7 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
 
   return TMFeOk();
 }
+
 
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentManager::HandleBinaryRpc(const char* cmd, const char* args, std::vector<char>& response) {

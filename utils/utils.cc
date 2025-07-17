@@ -47,3 +47,15 @@ std::string popen_shell_command(const std::string& command) {
   pclose(pipe);                             // Close the pipe
   return result;                            // Return the captured output
 }
+
+//-----------------------------------------------------------------------------
+std::vector<std::string> splitString(const std::string& s, char delimiter) {
+  std::vector<std::string> tokens;
+  std::string token;
+  std::istringstream tokenStream(s);
+  while (std::getline(tokenStream, token, delimiter)) {
+    tokens.push_back(token);
+  }
+  return tokens;
+}
+

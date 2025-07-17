@@ -155,6 +155,8 @@ TEqArtdaq::TEqArtdaq(const char* Name) : TMu2eEqBase() {
   
   InitVarNames();
   
+  _logfile = "/home/mu2etrk/test_stand/experiments/test_025/artdaq.log"; // TODO: to come from config
+  
   TLOG(TLVL_DEBUG) << "END";
 }
 
