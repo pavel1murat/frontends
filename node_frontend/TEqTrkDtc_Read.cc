@@ -4,17 +4,23 @@
 #include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
-#include "node_frontend/TEquipmentNode.hh"
+#include "node_frontend/TEqTrkDtc.hh"
 #include "utils/OdbInterface.hh"
 #include "utils/utils.hh"
 #include "nlohmann/json.hpp"
 #include "odbxx.h"
 
 //-----------------------------------------------------------------------------
-int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i,
-                                        std::ostream& Stream, const char* ConfName) {
+int TEqTrkDtc::Read(std::ostream& Stream) {
   
+  OdbInterface* odb_i      = OdbInterface::Instance();
+  HNDLE         h_run_conf = odb_i->GetActiveRunConfigHandle();
+  std::string   conf_name  = odb_i->GetRunConfigName(h_run_conf);
+
   midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_read");
+  
+  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"control_roc_read"); // for now
 
   trkdaq::ControlRoc_Read_Input_t0 par;
 
@@ -26,7 +32,6 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
   par.num_triggers[0] = o["num_triggers"][0]; // -T 10
   par.num_triggers[1] = o["num_triggers"][1]; //
 
-
   // this is how we get the panel name
 
   int use_panel_channel_mask = o["use_panel_channel_mask"];
@@ -34,15 +39,16 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
     
   // Stream << "use_panel_channel_mask:" <<  use_panel_channel_mask << std::endl;
 
-  int lnk1(Link), lnk2(Link+1);
-  if (Link == -1) {
+  int lnk1 = odb_i->GetInteger(h_cmd_par,"link");
+  int lnk2 = lnk1+1;
+  if (lnk1 == -1) {
     lnk1 = 0;
     lnk2 = 6;
   }
 
   for (int lnk=lnk1; lnk<lnk2; ++lnk) {
     Stream << "----------------- link:" << lnk;
-    if (Dtc_i->LinkEnabled(lnk) == 0) {
+    if (_dtc_i->LinkEnabled(lnk) == 0) {
       if (print_level != 0) {
         Stream << " is disabled" << std::endl;
         continue;
@@ -62,7 +68,7 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
 // _read mask: 6 ushort's
 //-----------------------------------------------------------------------------
       std::string  panel_path = std::format("/Mu2e/RunConfigurations/{:s}/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
-                                            ConfName,_host_label.data(),PcieAddr,lnk);
+                                            conf_name.data(),_host_label.data(),_dtc_i->PcieAddr(),lnk);
       midas::odb   odb_panel(panel_path);
       for (int i=0; i<96; ++i) {
         int on_off = odb_panel["ch_mask"][i];
@@ -93,7 +99,7 @@ int TEquipmentNode::Rpc_ControlRoc_Read(int PcieAddr, int Link, trkdaq::DtcInter
 //-----------------------------------------------------------------------------
 // ControlRoc_Read handles roc=-1 internally
 //-----------------------------------------------------------------------------
-      Dtc_i->ControlRoc_Read(&par,lnk,print_level,Stream);
+      _dtc_i->ControlRoc_Read(&par,lnk,print_level,Stream);
       Stream << " SUCCESS" << std::endl;
     }
     catch(...) {

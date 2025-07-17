@@ -4,19 +4,19 @@
 #include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
-#include "node_frontend/TEquipmentNode.hh"
+#include "node_frontend/TEqTrkDtc.hh"
 #include "utils/OdbInterface.hh"
 #include "utils/utils.hh"
 #include "nlohmann/json.hpp"
 #include "odbxx.h"
 
 #include "TRACE/tracemf.h"
-#define TRACE_NAME "TEquipmentNode"
+#define TRACE_NAME "TEqTrkDtc"
 
 //-----------------------------------------------------------------------------
-// takes parameters frpm ODB
+// takes parameters from ODB
 //-----------------------------------------------------------------------------
-int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName) {
+int TEqTrkDtc::Rates(std::ostream& Stream) {
   // int timeout_ms(150);
 
   std::vector<uint16_t> rates  [6];   // 6 ROCs max
@@ -25,6 +25,10 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
   uint16_t              rates_ch_mask[6]; // cached masks from the RATES command ODB record
 
   TLOG(TLVL_DEBUG) << "--- START";
+  
+  OdbInterface* odb_i      = OdbInterface::Instance();
+  HNDLE         h_run_conf = odb_i->GetActiveRunConfigHandle();
+  std::string   conf_name  = odb_i->GetRunConfigName(h_run_conf);
   
   midas::odb o_cmd("/Mu2e/Commands/Tracker/DTC/control_roc_rates");
     
@@ -40,8 +44,9 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
     ch_mask[i].reserve(96);
   }
 
-  int lnk1(Link), lnk2(Link+1);
-  if (Link == -1) {
+  int  link = o_cmd["link"];
+  int lnk1(link), lnk2(link+1);
+  if (link == -1) {
     lnk1 = 0;
     lnk2 = 6;
   }
@@ -49,7 +54,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
   TLOG(TLVL_DEBUG) << "--- 002 lnk1:" << lnk1 << " lnk2:" << lnk2;
   
   for (int lnk=lnk1; lnk<lnk2; ++lnk) {
-    if (Dtc_i->LinkEnabled(lnk) == 0) continue ;
+    if (_dtc_i->LinkEnabled(lnk) == 0) continue ;
     
     if (use_panel_channel_mask == 0) {
 //-----------------------------------------------------------------------------
@@ -74,7 +79,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 // use straw mask defined by the panel
 //-----------------------------------------------------------------------------
       std::string  panel_path = std::format("/Mu2e/RunConfigurations/{:s}/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
-                                            ConfName,_host_label.data(),PcieAddr,lnk);
+                                            conf_name,_host_label.data(),_dtc_i->PcieAddr(),lnk);
       midas::odb   odb_panel(panel_path);
       std::string  panel_name = odb_panel["Name"];
 
@@ -111,7 +116,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 // of parameters stored
 //-----------------------------------------------------------------------------
       if (print_level & 0x8) {
-        Stream <<  std::format("dtc_i->fLinkMask: 0x{:06x}",Dtc_i->fLinkMask) << std::endl;
+        Stream <<  std::format("dtc_i->fLinkMask: 0x{:06x}",_dtc_i->fLinkMask) << std::endl;
       }
 
       midas::odb o_read_cmd   ("/Mu2e/Commands/Tracker/DTC/control_roc_read");
@@ -145,13 +150,13 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
                << " enable_pulser:" << pread.enable_pulser << std::endl;
       }
 
-      Dtc_i->ControlRoc_Read(&pread,lnk,print_level,Stream);
+      _dtc_i->ControlRoc_Read(&pread,lnk,print_level,Stream);
       
       if (print_level & 0x8) Stream <<  "--- running control_roc_rates" << std::endl;
 
       for (int iw=0; iw<6; iw++) prates.ch_mask[iw] = 0XFFFF; // want to read all channels, RATES doesn't change any masks
 
-      Dtc_i->ControlRoc_Rates(lnk,&rates[lnk],print_level,&prates,&Stream);
+      _dtc_i->ControlRoc_Rates(lnk,&rates[lnk],print_level,&prates,&Stream);
 
       pread.marker_clock    = o_read_cmd["marker_clock" ];   // recover marker_clock mode
 
@@ -164,10 +169,10 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 // either all channels are enabled, or the channel mask is defined by the panel
 //-----------------------------------------------------------------------------
       for (int iw=0; iw<6; iw++) pread.ch_mask[iw] = rates_ch_mask[iw];
-      Dtc_i->ControlRoc_Read(&pread,lnk,print_level,Stream);
+      _dtc_i->ControlRoc_Read(&pread,lnk,print_level,Stream);
 
       if (print_level & 0x2) { // detailed printout, one ROC only
-        Dtc_i->PrintRatesSingleRoc(&rates[lnk],&ch_mask[lnk],Stream);
+        _dtc_i->PrintRatesSingleRoc(&rates[lnk],&ch_mask[lnk],Stream);
       }
     }
     catch(...) {
@@ -179,7 +184,7 @@ int TEquipmentNode::Rpc_ControlRoc_Rates(int PcieAddr, int Link, trkdaq::DtcInte
 // if we got here, the execution succeeded, print
 //-----------------------------------------------------------------------------
   if (print_level & 0x4) {
-    Dtc_i->PrintRatesAllRocs(rates,ch_mask,Stream);
+    _dtc_i->PrintRatesAllRocs(rates,ch_mask,Stream);
   }
   
   TLOG(TLVL_DEBUG) << "--- END";

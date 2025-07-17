@@ -1,37 +1,98 @@
 //////////////////////////////////////////////////////////////////////////////
 // equipment name is the short node name, i.e. 'mu2edaq22'
 //////////////////////////////////////////////////////////////////////////////
-#include "node_frontend/TEquipmentNode.hh"
+#include "node_frontend/TEqCrvDtc.hh"
+#include "node_frontend/TEqTrkDtc.hh"
+#include "node_frontend/TEquipmentManager.hh"
+
 #include "utils/utils.hh"
 #include "TString.h"
 
 #include "odbxx.h"
+#include "node_frontend/TEqArtdaq.hh"
+#include "node_frontend/TEqDisk.hh"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEquipmentNode"
+#define  TRACE_NAME "TEquipmentManager"
+
+TEquipmentManager* TEquipmentManager::gEqManager(nullptr);
 
 //-----------------------------------------------------------------------------
-TEquipmentNode::TEquipmentNode(const char* eqname, const char* eqfilename): TMFeEquipment(eqname,eqfilename) {
+TEquipmentManager::TEquipmentManager(const char* eqname, const char* eqfilename): TMFeEquipment(eqname,eqfilename) {
   fEqConfEventID          = 3;
   fEqConfPeriodMilliSec   = 30000;  // 30 sec ?
   fEqConfLogHistory       = 1;
   fEqConfWriteEventsToOdb = true;
 
-  fDtc_i[0]               = nullptr;
-  fDtc_i[1]               = nullptr;
+  gEqManager              = this;
+
+  _eq_dtc[0]              = nullptr;
+  _eq_dtc[1]              = nullptr;
+  _eq_artdaq              = nullptr;
+  _eq_disk                = nullptr; 
+}
+
+
+//-----------------------------------------------------------------------------
+// back to DTC: two are listed in the header, both should be listed in ODB
+//-----------------------------------------------------------------------------
+TMFeResult TEquipmentManager::InitDtc() {
+
+  TLOG(TLVL_DEBUG) << "--- START";
+
+  _eq_dtc[0] = nullptr;
+  _eq_dtc[1] = nullptr;
+  
+  HNDLE h_subkey;
+  KEY   subkey;
+
+  HNDLE hdb = _odb_i->GetDbHandle();
+  for (int i=0; db_enum_key(hdb,_h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
+//-----------------------------------------------------------------------------
+// skip 'Artdaq' folder
+//-----------------------------------------------------------------------------
+    db_get_key(hdb,h_subkey,&subkey);
+    
+    TLOG(TLVL_DEBUG) << "subkey.name:" << subkey.name;
+    
+    if (strstr(subkey.name,"DTC") != subkey.name)           continue;
+//-----------------------------------------------------------------------------
+// capitalize the subsystem name
+//-----------------------------------------------------------------------------
+    std::string subsystem = _odb_i->GetString(h_subkey,"Subsystem");
+    std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
+    int dtc_enabled       = _odb_i->GetEnabled(h_subkey);
+    int pcie_addr         = _odb_i->GetInteger(h_subkey,"PcieAddr");
+
+    TLOG(TLVL_DEBUG) << "subsystem:" << subsystem << " enabled:" << dtc_enabled;
+
+    _h_dtc[pcie_addr]    = h_subkey;
+    
+    if (dtc_enabled) {
+      if      (subsystem == "CRV"    ) _eq_dtc[pcie_addr] = new TEqCrvDtc(_h_active_run_conf,h_subkey);
+      else if (subsystem == "TRACKER") _eq_dtc[pcie_addr] = new TEqTrkDtc(_h_active_run_conf,h_subkey);
+    }
+  }
+
+  TLOG(TLVL_DEBUG) << "--- END: EQ_DTC0:" <<  _eq_dtc[0] << " EQ_DTC1:" <<  _eq_dtc[1];
+
+  return TMFeOk();
 }
 
 //-----------------------------------------------------------------------------
-// overloaded function of TMFeEquipment : 2 DTCs
+// overloaded function of TMFeEquipment
+// a Mu2e DAQ node has:
+// - up to 2 DTCs, depending on the subsystem, the DTCs could be running different firmwarw
+// - artdaq processes running on it
+// - standard node hardware (disk, memory etc)
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
+TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
 
   fEqConfReadOnlyWhenRunning = false;
   fEqConfWriteEventsToOdb    = true;
   //fEqConfLogHistory = 1;
 
   fEqConfBuffer = "SYSTEM";
-
 //-----------------------------------------------------------------------------
 // cache the ODB handle, as need to loop over the keys in InitArtdaq
 //-----------------------------------------------------------------------------
@@ -53,7 +114,7 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
     char buf[256];
     sprintf(buf, "Host configuration DAQ/Nodes/%s not found", _host_label.c_str());
     fMfe->Msg(MERROR, "HandleInit", buf);
-    return TMFeMidasError(buf,"TEquipmentNode::HandleInit(",DB_INVALID_NAME);
+    return TMFeMidasError(buf,"TEquipmentManager::HandleInit(",DB_INVALID_NAME);
   }
   _h_frontend_conf = _odb_i->GetFrontendConfHandle(_h_active_run_conf,_host_label);
 
@@ -61,6 +122,8 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
   _monitorArtdaq = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq");
   _monitorSPI    = _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI");
   _monitorRates  = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates");
+  _monitorDisk   = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Disk");
+  
   _diagLevel     = _odb_i->GetInteger(_h_frontend_conf,"DiagLevel");
 
   TLOG(TLVL_DEBUG) << "active_run_conf:"  << _odb_i->GetString(_h_active_run_conf,"Name")
@@ -73,30 +136,13 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
                    << " _monitorSPI:"      << _monitorSPI
                    << " _monitorArtdaq:"  << _monitorArtdaq
                    << " _monitorRates:"   << _monitorRates;
+  
   EqSetStatus("Started...", "white");
   fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
   InitDtc   ();
   InitArtdaq();
   InitDisk  ();
-//-----------------------------------------------------------------------------
-// hotlinks - start from one function handling both DTCs
-// command processor : 'ProcessCommand' function
-//-----------------------------------------------------------------------------
-  HNDLE hdb       = _odb_i->GetDbHandle();
-
-  HNDLE h_dtc0_cmd     = _odb_i->GetDtcCommandHandle(_host_label,0);
-  HNDLE h_dtc0_cmd_run = _odb_i->GetHandle(h_dtc0_cmd,"Run");
-
-  if (db_open_record(hdb,h_dtc0_cmd_run,&_dtc0_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
-    cm_msg(MERROR, __func__,"cannot open DTC0 hotlink in ODB");
-  }
-
-  HNDLE h_dtc1_cmd     = _odb_i->GetDtcCommandHandle(_host_label,1);
-  HNDLE h_dtc1_cmd_run = _odb_i->GetHandle(h_dtc1_cmd,"Run");
-  if (db_open_record(hdb,h_dtc1_cmd_run,&_dtc1_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
-    cm_msg(MERROR, __func__,"cannot open DTC1 hotlink in ODB");
-  }
   
   return TMFeOk();
 }
@@ -108,37 +154,15 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 // if this assumption will need to be dropped, will do that
 // may want to change the link mask at begin run w/o restarting the frontend
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
+TMFeResult TEquipmentManager::HandleBeginRun(int RunNumber)  {
 
-  int   event_mode        = _odb_i->GetEventMode     (_h_active_run_conf);
-  int   roc_readout_mode  = _odb_i->GetRocReadoutMode(_h_active_run_conf);
-  int    handle_begin_run(0);
-  _odb_i->GetInteger(_h_daq_host_conf,"Frontend/HandleBeginRun",&handle_begin_run);
+  int    handle_begin_run = _odb_i->GetInteger(_h_daq_host_conf,"Frontend/HandleBeginRun");
 
-  TLOG(TLVL_DEBUG) << "event mode:"        << event_mode
-                   << " roc_readout_mode:" << roc_readout_mode
-                   << " handle_begin_run:" << handle_begin_run;
+  TLOG(TLVL_DEBUG) << " handle_begin_run:" << handle_begin_run;
 
   if (handle_begin_run) {
     for (int i=0; i<2; i++) {
-      mu2edaq::DtcInterface* dtc_i = fDtc_i[i];
-      TLOG(TLVL_DEBUG) << "DTC" << i << ":" << dtc_i;
-      if (dtc_i) {
-        HNDLE h_dtc = _h_dtc[dtc_i->fPcieAddr];
-        dtc_i->fEventMode      = event_mode;
-        dtc_i->fRocReadoutMode = roc_readout_mode;
-        dtc_i->fLinkMask       = _odb_i->GetLinkMask         (h_dtc);
-        dtc_i->fJAMode         = _odb_i->GetJAMode           (h_dtc);
-        dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_dtc);
-//-----------------------------------------------------------------------------
-// HardReset erases the DTC link mask, restore it
-// also, release all buffers from the previous read - this is the initialization
-//-----------------------------------------------------------------------------
-        // 2025-01-19 PM dtc_i->Dtc()->HardReset();
-        // 2025-01-19 PM dtc_i->ResetLinks(0,1);
-                                        // InitReadout performs some soft resets, ok for now
-        dtc_i->InitReadout();
-      }
+      if (_eq_dtc[i]) _eq_dtc[i]->BeginRun(_h_active_run_conf);
     }
   }
   TLOG(TLVL_DEBUG) << "DONE";
@@ -147,7 +171,7 @@ TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
 };
 
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleEndRun   (int RunNumber) {
+TMFeResult TEquipmentManager::HandleEndRun   (int RunNumber) {
   fMfe->Msg(MINFO, "HandleEndRun", "End run %d!", RunNumber);
   EqSetStatus("Stopped", "#00FF00");
 
@@ -157,7 +181,7 @@ TMFeResult TEquipmentNode::HandleEndRun   (int RunNumber) {
 }
 
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandlePauseRun(int run_number) {
+TMFeResult TEquipmentManager::HandlePauseRun(int run_number) {
   fMfe->Msg(MINFO, "HandlePauseRun", "Pause run %d!", run_number);
   EqSetStatus("Stopped", "#00FF00");
     
@@ -167,7 +191,7 @@ TMFeResult TEquipmentNode::HandlePauseRun(int run_number) {
 }
 
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleResumeRun(int RunNumber) {
+TMFeResult TEquipmentManager::HandleResumeRun(int RunNumber) {
   fMfe->Msg(MINFO, "HandleResumeRun", "Resume run %d!", RunNumber);
   EqSetStatus("Stopped", "#00FF00");
 
@@ -178,7 +202,7 @@ TMFeResult TEquipmentNode::HandleResumeRun(int RunNumber) {
 
 
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
+TMFeResult TEquipmentManager::HandleStartAbortRun(int run_number) {
   fMfe->Msg(MINFO, "HandleStartAbortRun", "Begin run %d aborted!", run_number);
   EqSetStatus("Stopped", "#00FF00");
 
@@ -187,14 +211,22 @@ TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
   return TMFeOk();
 }
 
-
 //-----------------------------------------------------------------------------
 // read DTC temperatures and voltages, artdaq metrics
 // read ARTDAQ metrics only when running
 //-----------------------------------------------------------------------------
-void TEquipmentNode::HandlePeriodic() {
+void TEquipmentManager::HandlePeriodic() {
 
   TLOG(TLVL_DEBUG+1) << "-- START";
+
+  //  double t  = TMFE::GetTime();
+  // midas::odb::set_debug(true);
+
+  // midas::odb o_runinfo("/Runinfo");
+  // int running_state          = o_runinfo["State"];
+  // int transition_in_progress = o_runinfo["Transition in progress"];
+  //
+  //  std::string node_eq_path = "/Equipment/"+TMFeEquipment::fEqName;
 
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"         ,&_monitorDtc         );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Disk"        ,&_monitorDisk        );
@@ -202,7 +234,7 @@ void TEquipmentNode::HandlePeriodic() {
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI"         ,&_monitorSPI         );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates"       ,&_monitorRates       );
   _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
-  
+
   TLOG(TLVL_DEBUG+1) << "_monitorDtc:"                      << _monitorDtc
                      << " _monitorSPI:"                     << _monitorSPI
                      << " _monitorRates:"                   << _monitorRates
@@ -211,21 +243,35 @@ void TEquipmentNode::HandlePeriodic() {
                      << " _monitorDisk:"                     << _monitorDisk
                      << " TMFE::Instance()->fStateRunning:" << TMFE::Instance()->fStateRunning; 
 
-  if (_monitorDtc) ReadDtcMetrics();
-
-  if (_monitorArtdaq and TMFE::Instance()->fStateRunning) {
-    ReadArtdaqMetrics();
+  if (_monitorDtc) {
+    for (int pcie_addr=0; pcie_addr<2; pcie_addr++) {
+      if (_eq_dtc[pcie_addr]) {
+        _eq_dtc[pcie_addr]->ReadMetrics();
+      }
+    }
   }
-  
-  if (_monitorDisk) ReadDiskMetrics();
-
-  TLOG(TLVL_DEBUG+1) << "-- END";
+//-----------------------------------------------------------------------------
+// read metrics of artdaq processes running on this node
+//-----------------------------------------------------------------------------
+  if (_monitorArtdaq and TMFE::Instance()->fStateRunning) {
+    _eq_artdaq->ReadMetrics();
+  }
+//-----------------------------------------------------------------------------
+// monitor node resources
+//-----------------------------------------------------------------------------
+  if (_monitorDisk) {
+    _eq_disk->ReadMetrics();
+  }
 
   EqSetStatus(Form("OK"),"#00FF00");
+
+  TLOG(TLVL_DEBUG+1) << "-- END";
 }
 
+
+
 //-----------------------------------------------------------------------------
-void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
+void TEquipmentManager::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "-- START";
 
   OdbInterface* odb_i = OdbInterface::Instance();
@@ -313,3 +359,14 @@ void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "-- END";
 }
 
+//-----------------------------------------------------------------------------
+TMFeResult TEquipmentManager::InitArtdaq() {
+  _eq_artdaq = new TEqArtdaq("artdaq");
+  return TMFeOk();
+}
+//-----------------------------------------------------------------------------
+
+TMFeResult TEquipmentManager::InitDisk() {
+  _eq_disk = new TEqDisk("disk");
+  return TMFeOk();
+}
