@@ -4,19 +4,17 @@
 #include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 //
-#include "node_frontend/TEquipmentNode.hh"
+#include "node_frontend/TEqTrkDtc.hh"
 #include "utils/OdbInterface.hh"
 #include "utils/utils.hh"
 // #include "nlohmann/json.hpp"
 #include "odbxx.h"
 
 #include "TRACE/tracemf.h"
-#define TRACE_NAME "TEquipmentNode"
+#define TRACE_NAME "TEqTrkDtc"
 
 //-----------------------------------------------------------------------------
-void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
-                                   TEquipmentNode&    EqNode ,
-                                   std::ostream&      Stream ) {
+int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
 
   TLOG(TLVL_DEBUG) << "-- START";
 
@@ -31,20 +29,19 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
   // int doit        = o["doit"] ;
   // int print_level = o["print_level"] ;
 
-  int doit        = odb_i->GetInteger(h_cmd,"doit");
+  int doit        = odb_i->GetInteger(h_cmd,"doit"       );
   int print_level = odb_i->GetInteger(h_cmd,"print_level");
+  int link        = odb_i->GetInteger(h_cmd,"link"       );
   
-  TLOG(TLVL_DEBUG) << "-- checkpoint 0.2 Context.fLink:" << Context.fLink
-                   << " Context.fPcieAddr:" << Context.fPcieAddr;
+  TLOG(TLVL_DEBUG) << "-- checkpoint 0.2 link:" << link
+                   << " PcieAddr:" << _dtc_i->PcieAddr();
 
-  int lnk1 = Context.fLink;
+  int lnk1 = link;
   int lnk2 = lnk1+1;
-  if (Context.fLink == -1) {
+  if (link == -1) {
     lnk1 = 0;
     lnk2 = 6;
   }
-
-  trkdaq::DtcInterface* dtc_i = (trkdaq::DtcInterface*) EqNode.fDtc_i[Context.fPcieAddr];
 
   TLOG(TLVL_DEBUG) << "-- check 1";
 //-----------------------------------------------------------------------------
@@ -53,11 +50,11 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
 // in ODB, set DTC status as busy
 //-----------------------------------------------------------------------------
   std::string  dtc_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}",
-                                      EqNode._host_label.data(),dtc_i->fPcieAddr);
+                                      _host_label.data(),_dtc_i->fPcieAddr);
   // midas::odb o_dtc(dtc_path);
   // o_dtc["Status"] = 1;
 
-  HNDLE h_dtc = odb_i->GetHandle(0,dtc_path);
+  HNDLE h_dtc = odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr());
   odb_i->SetStatus(h_dtc,1);
 
   TLOG(TLVL_DEBUG) << "-- check 1.1 dtc_path:" << dtc_path;
@@ -68,7 +65,7 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
     }
     
     std::string  panel_path = std::format("{:s}/Link{:d}/DetectorElement",dtc_path.data(),lnk);
-    HNDLE h_panel = odb_i->GetHandle(0,panel_path);
+    HNDLE        h_panel    = odb_i->GetHandle(0,panel_path);
     
     TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path << " h_panel:" << h_panel;
 
@@ -102,13 +99,12 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
       
     if (doit != 0) {
       try {
-        dtc_i->ControlRoc_SetThresholds(lnk,data);
+        _dtc_i->ControlRoc_SetThresholds(lnk,data);
         Stream << " : SUCCESS" ;
       }
       catch(...) {
         Stream << "ERROR : coudn't execute Rpc_ControlRoc_SetThresholds. BAIL OUT" << std::endl;
       }
-      // TThread::Unlock();
     }
     
     Stream << std::endl;
@@ -117,4 +113,5 @@ void TEquipmentNode::SetThresholds(ThreadContext_t&   Context,
   odb_i->SetStatus(h_dtc,0);
   
   TLOG(TLVL_DEBUG) << "-- END";
+  return 0;
 }

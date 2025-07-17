@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// tracekr configuration frontend
+// tracker configuration frontend
 //-----------------------------------------------------------------------------
 #ifndef __TEquipmentTracker_hh__
 #define __TEquipmentTracker_hh__

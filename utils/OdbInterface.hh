@@ -27,7 +27,7 @@ public:
 
   HNDLE       GetDbHandle() { return _hDB; }
 //-----------------------------------------------------------------------------  
-// parameters of teh active run configuration
+// parameters of the active run configuration
 //-----------------------------------------------------------------------------  
   HNDLE       GetActiveRunConfigHandle();
   std::string GetRunConfigName        (HNDLE h_RunConf);
@@ -37,10 +37,11 @@ public:
   int         GetEventMode            (HNDLE h_RunConf); //
   int         GetOnSpill              (HNDLE h_RunConf);
 
-                                        // 'Host' - short, w/o the domain name
+                                        // 'HostLabel' - short, w/o the domain name
+  std::string GetCmdConfigPath        (std::string& HostLabel, std::string& EqName);
+
   HNDLE       GetDaqConfigHandle      (HNDLE h_RunConf = -1);
   HNDLE       GetDtcConfigHandle      (const std::string& Host, int PcieAddr, HNDLE hRunConf = -1);
-
   HNDLE       GetDtcCommandHandle     (const std::string& Host, int PcieAddr);
   
   int         GetHostConfHandle       (const std::string& Host, HNDLE h_RunConf = -1);
@@ -103,9 +104,12 @@ public:
   HNDLE       GetHandle           (HNDLE hConf, const std::string& Key);
   
   HNDLE       GetHandle           (HNDLE hConf, const char* Key);
-  int         GetInteger          (HNDLE hConf, const char* Key, int*      Data);
   int         GetKey              (HNDLE hConf, KEY* Key);
   HNDLE       GetParent           (HNDLE hConf);
+
+  uint16_t    GetUInt16           (HNDLE hConf, const char* Key);
+  
+  uint32_t    GetUInt32           (HNDLE hConf, const char* Key);
   int         GetUInt32           (HNDLE hConf, const char* Key, uint32_t* Data);
   std::string GetString           (HNDLE hConf, const char* Key);
 
@@ -113,14 +117,17 @@ public:
 
   HNDLE       GetHandle           (HNDLE hDB, HNDLE hConf, const char* Key);
   
+  int         GetInteger          (HNDLE hConf, const char* Key, int*      Data);
   int         GetInteger          (HNDLE hConf, const char* Key); // returns result
-  int         GetInteger          (HNDLE hDB, HNDLE hConf, const char* Key, int* Data);
+  //  int         GetInteger          (HNDLE hDB  , HNDLE hConf, const char* Key, int* Data);
 
   std::string GetString           (HNDLE hDB, HNDLE hConf, const char* Key);
 
   int         SetArray            (HNDLE hElement, const char* Key, int DataType, void* Data, int NElements);
   void        SetInteger          (HNDLE hElement, const char* Key, int Value);
   void        SetString           (HNDLE hElement, const char* Key, const std::string& Value);
+  void        SetUInt16           (HNDLE hElement, const char* Key, uint16_t Value);
+  void        SetUInt32           (HNDLE hElement, const char* Key, uint32_t Value);
 
 
   // set status of a given configuration element

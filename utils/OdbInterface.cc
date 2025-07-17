@@ -115,6 +115,34 @@ int OdbInterface::GetUInt32(HNDLE hDir, const char* Key, uint32_t* Data) {
 }
 
 //-----------------------------------------------------------------------------
+uint16_t OdbInterface::GetUInt16(HNDLE hDir, const char* Key) {
+  uint16_t val(0xFFFF);
+  int sz = sizeof(uint16_t); 
+  int rc = db_get_value(_hDB, hDir, Key, &val, &sz, TID_UINT16, FALSE);
+  if (rc != DB_SUCCESS) {
+    KEY dbkey;
+    db_get_key(_hDB,hDir,&dbkey);
+    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << dbkey.name << "(" << hDir << ")"; 
+  }
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " value:" << val;
+  return val;
+}
+
+//-----------------------------------------------------------------------------
+uint32_t OdbInterface::GetUInt32(HNDLE hDir, const char* Key) {
+  uint32_t val(0xFFFFFFFF);
+  int sz = sizeof(uint32_t); 
+  int rc = db_get_value(_hDB, hDir, Key, &val, &sz, TID_UINT32, FALSE);
+  if (rc != DB_SUCCESS) {
+    KEY dbkey;
+    db_get_key(_hDB,hDir,&dbkey);
+    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << dbkey.name << "(" << hDir << ")"; 
+  }
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " value:" << val;
+  return val;
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetArray(HNDLE hDir, const char* Key, int DataType, void* Data, int NElements) {
   int rc(0), sz(0);
 
@@ -171,10 +199,10 @@ int OdbInterface::GetInteger(HNDLE hDir, const char* Key, int* Data) {
   return rc;
 }
 
-
-int OdbInterface::GetInteger(HNDLE hDB, HNDLE hDir, const char* Key, int* Data) {
-  return GetInteger(hDir,Key,Data);
-}
+// obsolete
+// int OdbInterface::GetInteger(HNDLE hDB, HNDLE hDir, const char* Key, int* Data) {
+//   return GetInteger(hDir,Key,Data);
+// }
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetEnabled(HNDLE hConf) {
@@ -234,6 +262,11 @@ HNDLE OdbInterface::GetCfoConfHandle(HNDLE h_RunConf) {
 }
 
 //-----------------------------------------------------------------------------
+std::string OdbInterface::GetCmdConfigPath(std::string& HostLabel, std::string& EqName) {
+  return std::format("/Mu2e/Commands/{}/{}",HostLabel,EqName);
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetCfoEnabled(HNDLE hCFO) {
   INT   data;
   int   sz = sizeof(data);
@@ -248,10 +281,7 @@ int OdbInterface::GetCfoEnabled(HNDLE hCFO) {
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetCfoEmulatedMode(HNDLE hCFO) {
-  INT   data(0);
-
-  GetInteger(_hDB,hCFO,"EmulatedMode",&data);
-  return data;
+  return GetInteger(hCFO,"EmulatedMode");
 }
 
 //-----------------------------------------------------------------------------
@@ -322,14 +352,7 @@ int OdbInterface::GetCfoNEventsPerTrain(HNDLE hCFO) {
 // emulated CFO: sleep time for rate throttling
 //-----------------------------------------------------------------------------
 int OdbInterface::GetCfoSleepTime(HNDLE hCFO) {
-  const char* key {"SleepTimeMs"};
-  int   data(-1);
-
-  if (GetInteger(_hDB,hCFO,key,&data) != DB_SUCCESS) {
-    // data = -1;
-    TLOG(TLVL_ERROR) << key << "not found, return " << data;
-  }
-  return data;
+  return GetInteger(hCFO,"SleepTimeMs");
 }
 
 //-----------------------------------------------------------------------------
@@ -530,7 +553,8 @@ HNDLE OdbInterface::GetDtcCommandHandle(const std::string& Host, int PcieAddr) {
 
   if (db_find_key(_hDB, 0, key.data(), &h) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "DTC command handle for host:" << Host
-                     << " and PcieAddr:" << PcieAddr << " not found";
+                     << " and PcieAddr:" << PcieAddr << " not found"
+                     << " key:" << key;
   }
   return h;
 }
@@ -596,25 +620,16 @@ int OdbInterface::GetDtcPcieAddress(HNDLE hDtc) {
 // hDetConf - handle of the detector configuration
 //-----------------------------------------------------------------------------
 int OdbInterface::GetRocReadoutMode(HNDLE hDetConf) {
-  int data(-1);
-  GetInteger(_hDB,hDetConf,"DAQ/RocReadoutMode",&data);
-  return data;
+  return GetInteger(hDetConf,"DAQ/RocReadoutMode");
 }
 
 int OdbInterface::GetEventMode(HNDLE hDetConf) {
-  int data(-1);
-  GetInteger(_hDB,hDetConf,"DAQ/EventMode",&data);
-  return data;
+  return GetInteger(hDetConf,"DAQ/EventMode");
 }
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetPartitionID(HNDLE h_RunConf) {
-  const char* key {"DAQ/PartitionID"};
-  int   data(-1);
-  if (GetInteger(h_RunConf,key,&data) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "not found, return " << data;
-  }
-  return data;
+  return GetInteger(h_RunConf,"DAQ/PartitionID");
 }
 
 //-----------------------------------------------------------------------------
@@ -757,6 +772,22 @@ void OdbInterface::SetString(HNDLE hElement, const char* Key, const std::string&
   HNDLE h = GetHandle(hElement,Key);
   
   if (db_set_data(_hDB,h,(void*) Value.data(),Value.length()+1,1,TID_STRING) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to set Key:" << Key << " to : " << Value;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void OdbInterface::SetUInt16(HNDLE hElement, const char* Key, uint16_t Value) {
+  HNDLE h = GetHandle(hElement,Key);
+  if (db_set_data(_hDB,h,(void*) &Value,sizeof(uint16_t),1,TID_UINT16) != DB_SUCCESS) {
+    TLOG(TLVL_ERROR) << "failed to set Key:" << Key << " to : " << Value;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void OdbInterface::SetUInt32(HNDLE hElement, const char* Key, uint32_t Value) {
+  HNDLE h = GetHandle(hElement,Key);
+  if (db_set_data(_hDB,h,(void*) &Value,sizeof(uint32_t),1,TID_UINT32) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "failed to set Key:" << Key << " to : " << Value;
   }
 }

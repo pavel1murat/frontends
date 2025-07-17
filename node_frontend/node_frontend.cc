@@ -17,7 +17,7 @@
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "node_frontend"
 
-#include "node_frontend/TEquipmentNode.hh"
+#include "node_frontend/TEquipmentManager.hh"
 #include "utils/utils.hh"
 
 //-----------------------------------------------------------------------------
@@ -75,11 +75,12 @@ NodeFrontend::NodeFrontend() : TMFrontend() {
   fName  = hostname;
   FeSetName(fName.data());
   
-  TEquipmentNode* eq_dtc = new TEquipmentNode(hostname.data(),__FILE__);
-
-// add eq to the list of equipment pieces
-// equipment stores backward pointer to the frontend
-  FeAddEquipment(eq_dtc);
+  TEquipmentManager* eqm = new TEquipmentManager(hostname.data(),__FILE__);
+//-----------------------------------------------------------------------------
+// add eqm to the list of equipment pieces - it will be the only one 'TEquipment' thing
+// managed by the frontend, TEquipment stores backward pointer to the frontend
+//-----------------------------------------------------------------------------
+  FeAddEquipment(eqm);
 }
 
 
