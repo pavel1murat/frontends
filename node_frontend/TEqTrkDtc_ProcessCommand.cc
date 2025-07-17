@@ -11,7 +11,9 @@
 #define  TRACE_NAME "TEqTrkDtc"
 
 //-----------------------------------------------------------------------------
-//
+// an equipment item can process commands sent to it only sequentially
+// however different items can run in parallel
+// also, can run command processing as a detached thread 
 //-----------------------------------------------------------------------------
 void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "-- START";
@@ -311,10 +313,15 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     TLOG(TLVL_ERROR) << ss.str();
   }
 //-----------------------------------------------------------------------------
-// need to send ss.str() to the appropriate log
+// write output to the equipment log - need to revert the line order 
+//-----------------------------------------------------------------------------
+  eq_dtc->WriteOutput(ss.str());
+  
+//-----------------------------------------------------------------------------
+// done, avoid second call - leave "Run" = 1;, before setting it to 1 again,
+// need to make sure that "Finished" = 1
 //-----------------------------------------------------------------------------
   odb_i->SetInteger(h_cmd,"Finished",1);
   
   TLOG(TLVL_DEBUG) << "-- END";
 }
-

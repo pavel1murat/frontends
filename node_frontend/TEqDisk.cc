@@ -21,6 +21,7 @@ using nlohmann::json;
 
 //-----------------------------------------------------------------------------
 TEqDisk::TEqDisk(const char* Name) : TMu2eEqBase() {
+  _logfile = "/home/mu2etrk/test_stand/experiments/test_025/disk.log"; // TODO: to come from config
 }
 
 //-----------------------------------------------------------------------------

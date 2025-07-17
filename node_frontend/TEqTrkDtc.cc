@@ -43,7 +43,8 @@ TEqTrkDtc::~TEqTrkDtc() {
 //-----------------------------------------------------------------------------
 TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
 
-  _h_dtc = H_Dtc;
+  _h_dtc   = H_Dtc;
+  _logfile = "/home/mu2etrk/test_stand/experiments/test_025/trkdtc.log"; // TODO: to come from config
   
   OdbInterface* odb_i = OdbInterface::Instance();
 

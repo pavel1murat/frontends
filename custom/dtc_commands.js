@@ -55,8 +55,11 @@ function cfo_command(cmd) {
 
 //-----------------------------------------------------------------------------
 function dtc_command(cmd) {
-  let msg = { "client_name":g_hostname, "cmd":cmd, "max_reply_length":100000,
-              "args":'{"pcie":'+g_pcie.toString()+',"roc":'+g_roc.toString()+'}'};
+  let msg = { "client_name":g_hostname,
+              "cmd":cmd,
+              "max_reply_length":100000,
+              "args":'{"eq_type:dtc","pcie":'+g_pcie.toString()+',"roc":'+g_roc.toString()+'}'};
+  
   mjsonrpc_call("jrpc",msg).then(function(rpc1) {
     let s = rpc1.result.reply
     console.log(s.length);

@@ -11,6 +11,11 @@
 #include "node_frontend/TMu2eEqBase.hh"
 
 class TEqTrkDtc: public TMu2eEqBase {
+  enum {
+    kNRegHist    =  4,
+    kNRegNonHist = 15,     
+  } ;
+ 
 public:
   HNDLE                 _h_dtc;
   trkdaq::DtcInterface* _dtc_i;

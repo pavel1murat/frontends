@@ -323,17 +323,17 @@ int TEqTrkDtc::ReadRocRegister(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 // ROC registers are 16-bit
 //-----------------------------------------------------------------------------
-    try {
-      int timeout_ms(150);
-      uint16_t val = _dtc_i->Dtc()->ReadROCRegister(DTC_Link_ID(link),reg,timeout_ms);
-      odb_i->SetInteger(h_cmd_par,"value",val);
+  try {
+    int timeout_ms(150);
+    uint16_t val = _dtc_i->Dtc()->ReadROCRegister(DTC_Link_ID(link),reg,timeout_ms);
+    odb_i->SetInteger(h_cmd_par,"value",val);
+    
+    Stream << " -- read_roc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
+  }
+  catch (...) {
+    Stream << " -- ERROR : coudn't read ROC register ... BAIL OUT";
+  }
 
-      Stream << " -- read_roc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
-    }
-    catch (...) {
-      Stream << " -- ERROR : coudn't read ROC register ... BAIL OUT";
-    }
-  
   return 0;
 }
 
@@ -424,7 +424,7 @@ int TEqTrkDtc::ResetRoc(std::ostream& Stream) {
   midas::odb o   ("/Mu2e/Commands/Tracker/DTC/reset_roc");
 
   int link         = o["link"       ];
-  int print_level  = o["print_level"];
+  //  int print_level  = o["print_level"];
   
   rc = _dtc_i->ResetLink(link);
 
