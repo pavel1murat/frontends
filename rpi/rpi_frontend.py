@@ -58,13 +58,14 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
         """
         # self.client.msg("readout_func called")
         lv_data = []
-        supply = PowerSupplyServerConnection('localhost', 12000)
-        for channel in range(6):
-            supply.EnableLowVoltage(channel)
-            time.sleep(1)
-            readback = supply.QueryPowerVoltage(channel)
-            # print(f'channel:{channel} readback:{readback}')
-            lv_data.append(readback);
+        try:
+            supply = PowerSupplyServerConnection('localhost', 12000)
+            for channel in range(6):
+                supply.EnableLowVoltage(channel)
+                time.sleep(1)
+                readback = supply.QueryPowerVoltage(channel)
+                # print(f'channel:{channel} readback:{readback}')
+                lv_data.append(readback);
 #------------------------------------------------------------------------------
 # In this example, we just make a simple event with one bank.
 # Create a bank (called "LV00") which in this case will store 4 floats
@@ -76,6 +77,11 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
 # and then fill the ndarray as desired. The correct numpy data type
 # for each midas TID_xxx type is shown in the `midas.tid_np_formats` dict.
 #------------------------------------------------------------------------------
+        except:
+            self.client.message('ERROR: failed to connect to HVLV server',1);
+            for channel in range(6):
+                lv_data.append(-1.);
+            
         event = midas.event.Event()
         event.create_bank("LV00", midas.TID_FLOAT, lv_data)
 
