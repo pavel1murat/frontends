@@ -194,8 +194,8 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"init_readout");
 
   try {
-    uint32_t emulate_cfo      = odb_i->GetUInt32(h_cmd_par,"emulate_cfo"     );
-    uint32_t roc_readout_mode = odb_i->GetUInt32(h_cmd_par,"roc_readout_mode");
+    uint32_t emulate_cfo      = odb_i->GetInteger(h_cmd_par,"emulate_cfo"     );
+    uint32_t roc_readout_mode = odb_i->GetInteger(h_cmd_par,"roc_readout_mode");
     
     _dtc_i->InitReadout(emulate_cfo,roc_readout_mode);
 
@@ -217,10 +217,10 @@ int TEqTrkDtc::FindAlignment(std::ostream& Stream) {
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"find_alignment");
 
   int link        = odb_i->GetInteger(h_cmd,"link"       );
-  // int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
+  int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
 
   try {
-    _dtc_i->FindAlignments(1,link,Stream);
+    _dtc_i->FindAlignments(print_level,link,Stream);
   }
   catch (...) {
     Stream << " -- ERROR : coudn't execute FindAlignments for link:" << link << " ... BAIL OUT" << std::endl;
