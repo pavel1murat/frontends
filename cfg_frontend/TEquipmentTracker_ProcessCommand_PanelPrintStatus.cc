@@ -31,9 +31,6 @@ void TEquipmentTracker::ProcessCommand_PanelPrintStatus(const std::string& CmdPa
 //-----------------------------------------------------------------------------
 // the name should be constructed based on the experiment name
 //-----------------------------------------------------------------------------
-  std::ofstream output_file;
-  output_file.open("/home/mu2etrk/test_stand/experiments/test_025/tracker.log",std::ios::app);
-
   std::vector<std::string> vs;
 
   uint16_t ch_mask  [96], thr_hv[96], thr_cal[96], gain_hv[96], gain_cal[96];
@@ -54,6 +51,12 @@ void TEquipmentTracker::ProcessCommand_PanelPrintStatus(const std::string& CmdPa
   }
 
   int ns = vs.size();
+//-----------------------------------------------------------------------------
+// write output to the log
+//-----------------------------------------------------------------------------
+  std::ofstream output_file;
+  output_file.open("/home/mu2etrk/test_stand/experiments/test_025/tracker.log",std::ios::app);
+
   for (int i=ns-1; i>=0; i--) {
     output_file << vs[i] << std::endl;
   }

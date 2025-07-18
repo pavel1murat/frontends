@@ -96,50 +96,66 @@ public:
   TEquipmentNode(const char* eqname, const char* eqfilename);
 
   virtual TMFeResult HandleInit         (const std::vector<std::string>& args);
-  virtual void       HandlePeriodic     ();
-  virtual TMFeResult HandleRpc          (const char* cmd, const char* args, std::string& response);
+//-----------------------------------------------------------------------------
+// to force overloading HandlePeriodic and HandleRpc
+//-----------------------------------------------------------------------------
+  virtual void       HandlePeriodic     () = 0;
+  virtual TMFeResult HandleRpc          (const char* cmd, const char* args, std::string& response) = 0;
+  virtual TMFeResult HandleBeginRun     (int RunNumber) = 0;
+//-----------------------------------------------------------------------------
+// these ones do not need to be overloaded (yet)
+//-----------------------------------------------------------------------------
   virtual TMFeResult HandleBinaryRpc    (const char* cmd, const char* args, std::vector<char>& response);
-  virtual TMFeResult HandleBeginRun     (int RunNumber);
   virtual TMFeResult HandleEndRun       (int RunNumber);
   virtual TMFeResult HandlePauseRun     (int RunNumber);
   virtual TMFeResult HandleResumeRun    (int RunNumber);
   virtual TMFeResult HandleStartAbortRun(int RunNumber);
   
-  TMFeResult         InitDtc               ();
-  void               InitDtcVarNames       ();
-  void               LoadThresholds        (ThreadContext_t& Context, std::ostream& Stream);   // load thresholds from disk to ODB
-  int                MeasureThresholds     (ThreadContext_t& Context, std::ostream& Stream);
+  // void               LoadThresholds     (ThreadContext_t& Context, std::ostream& Stream);   // load thresholds from disk to ODB
+  // int                MeasureThresholds  (ThreadContext_t& Context, std::ostream& Stream);
+//-----------------------------------------------------------------------------
+// the DTC part has to be overloaded
+//-----------------------------------------------------------------------------
+  virtual TMFeResult InitDtc            ();
+  
+  void               InitDtcVarNames    ();
+  void               InitTrkDtcVarNames ();
+  void               InitCrvDtcVarNames ();
+  
+  void               ReadDtcMetrics     ();
+  void               ReadDtcTrkMetrics  ();
+  void               ReadDtcCrvMetrics  ();
 
-  void               ReadDtcMetrics        ();
+  TMFeResult         InitDisk           ();
+  void               InitDiskVarNames   ();
+  int                ReadDiskMetrics    ();
+                                               // ARTDAQ is common for everyone
+  TMFeResult         InitArtdaq         ();
+  void               InitArtdaqVarNames ();
+  void               ReadArtdaqMetrics  ();
 
+  int                ReadBrMetrics      (const ArtdaqComponent_t* Ac);
+  int                ReadDrMetrics      (const ArtdaqComponent_t* Ac);
+  int                ReadDsMetrics      (const ArtdaqComponent_t* Ac);
+  
   // to be able to call it interactively
-  void               ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i);
+  // void               ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i);
 
-  int                Rpc_ControlRoc_DumpSettings(int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-  int                Rpc_ControlRoc_SetCalDac   (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-  int                Rpc_ControlRoc_Rates       (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-  int                Rpc_ControlRoc_Read        (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
-  int                Rpc_ControlRoc_ReadDDR     (trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream);
+  // int                Rpc_ControlRoc_DumpSettings(int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  // int                Rpc_ControlRoc_SetCalDac   (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  // int                Rpc_ControlRoc_Rates       (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  // int                Rpc_ControlRoc_Read        (int PcieAddr, int Link, trkdaq::DtcInterface* Dtc_i, std::ostream& Stream, const char* ConfName);
+  // int                Rpc_ControlRoc_ReadDDR     (trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream);
 
                                         // called via a thread
 
-  static void        SetThresholds    (ThreadContext_t& Context,
-                                       TEquipmentNode& Node,
-                                       std::ostream& Stream );
+  // static void        SetThresholds    (ThreadContext_t& Context,
+  //                                      TEquipmentNode& Node,
+  //                                      std::ostream& Stream );
   
                                         // ODB-based RPC command handler
   
-  static void        ProcessCommand(int hDB, int hKey, void* Info);
+  //  static void        ProcessCommand(int hDB, int hKey, void* Info);
 
-  TMFeResult         InitArtdaq        ();
-  void               InitArtdaqVarNames();
-  void               ReadArtdaqMetrics ();
-  int                ReadBrMetrics     (const ArtdaqComponent_t* Ac);
-  int                ReadDrMetrics     (const ArtdaqComponent_t* Ac);
-  int                ReadDsMetrics     (const ArtdaqComponent_t* Ac);
-
-  TMFeResult         InitDisk          ();
-  void               InitDiskVarNames  ();
-  int                ReadDiskMetrics   ();
 };
 #endif

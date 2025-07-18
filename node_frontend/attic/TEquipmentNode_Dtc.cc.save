@@ -1,0 +1,284 @@
+//////////////////////////////////////////////////////////////////////////////
+// equipment name is the short node name, i.e. 'mu2edaq22'
+//////////////////////////////////////////////////////////////////////////////
+#include "node_frontend/TEquipmentNode.hh"
+#include "utils/utils.hh"
+
+#include <algorithm>
+#include <cctype>
+
+#include "midas.h"
+#include "odbxx.h"
+
+#include "TRACE/tracemf.h"
+#define  TRACE_NAME "TEquipmentNode"
+
+//-----------------------------------------------------------------------------
+// back to DTC: two are listed in the header, both should be listed in ODB
+//-----------------------------------------------------------------------------
+TMFeResult TEquipmentNode::InitDtc() {
+  
+  int skip_dtc_init    = _odb_i->GetSkipDtcInit   (_h_active_run_conf);
+
+  HNDLE h_subkey;
+  KEY   subkey;
+
+  TLOG(TLVL_DEBUG) << "--- START";
+
+  HNDLE hdb = _odb_i->GetDbHandle();
+
+  uint32_t required_dtc_fw_version = _odb_i->GetDtcFwVersion(_h_active_run_conf);
+                                                        
+  for (int i=0; db_enum_key(hdb,_h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
+//-----------------------------------------------------------------------------
+// skip 'Artdaq' folder
+//-----------------------------------------------------------------------------
+    db_get_key(hdb,h_subkey,&subkey);
+    
+    TLOG(TLVL_DEBUG) << "subkey.name:" << subkey.name;
+    
+    if (strstr(subkey.name,"DTC") != subkey.name)           continue;
+//-----------------------------------------------------------------------------
+// capitalize the subsystem name
+//-----------------------------------------------------------------------------
+    std::string subsystem = _odb_i->GetString(h_subkey,"Subsystem");
+    std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
+    
+    int dtc_enabled       = _odb_i->GetEnabled       (h_subkey);
+    TLOG(TLVL_DEBUG) << "subsystem:" << subsystem << " enabled:" << dtc_enabled;
+
+    int pcie_addr        = _odb_i->GetDtcPcieAddress(h_subkey);
+    int link_mask        = _odb_i->GetLinkMask      (h_subkey);
+    TLOG(TLVL_DEBUG) << "link_mask:0x" <<std::hex << link_mask
+                     << " DTC pcie_addr:" << pcie_addr
+                     << " dtc_enabled:" << dtc_enabled;
+
+    _h_dtc[pcie_addr]    = h_subkey;
+    
+    if (dtc_enabled) {
+//-----------------------------------------------------------------------------
+// for now, disable re-initialization
+//-----------------------------------------------------------------------------
+      mu2edaq::DtcInterface* dtc_i = nullptr;
+      if      (subsystem == "CRV") {
+        // TODO
+        // dtc_i = crvdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
+        dtc_i = mu2edaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
+        dtc_i->fIsCrv = 1;
+        dtc_i->fSubsystem = kCRV;
+      }
+      else if (subsystem == "TRACKER") {
+        dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
+        dtc_i->fSubsystem = kTracker;
+      }
+//-----------------------------------------------------------------------------
+// start from checking the DTC FW verion and comparing it to the required one -
+// defined in ODB
+//-----------------------------------------------------------------------------
+      uint32_t dtc_fw_version    = dtc_i->ReadRegister(0x9004);
+      if (dtc_fw_version != required_dtc_fw_version) {
+        TLOG(TLVL_ERROR) << "dtc_fw_version:" << std::hex << dtc_fw_version
+                         << " is different from required version:" << required_dtc_fw_version
+                         << " BAIL OUT";
+        return TMFeErrorMessage(std::format("wrong DTC FW version:{:x}",dtc_fw_version));
+      }
+
+      //      dtc_i->fLinkMask       = link_mask;
+      dtc_i->fPcieAddr       = pcie_addr;
+      dtc_i->fEnabled        = dtc_enabled;
+
+      dtc_i->fDtcID          = _odb_i->GetDtcID         (h_subkey);
+      dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte(h_subkey);
+      dtc_i->fEmulateCfo     = _odb_i->GetDtcEmulatesCfo(h_subkey);
+        
+      dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_subkey);
+      dtc_i->fEventMode      = _odb_i->GetEventMode        (_h_active_run_conf);
+      dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode   (_h_active_run_conf);
+      dtc_i->fJAMode         = _odb_i->GetJAMode           (h_subkey);
+
+      TLOG(TLVL_DEBUG) << "is_crv:"            << dtc_i->fIsCrv
+                       << " dtc_fw_version:0x" << std::hex << dtc_fw_version
+                       << " _readout_mode:"    << std::dec << dtc_i->fRocReadoutMode
+                       << " roc_readout_mode:" << dtc_i->fRocReadoutMode
+                       << " sample_edge_mode:" << dtc_i->fSampleEdgeMode
+                       << " event_mode:"       << dtc_i->fEventMode
+                       << " emulate_cfo:"      << dtc_i->fEmulateCfo;
+//-----------------------------------------------------------------------------
+// loop over links, redefine the enabled link mask (also in ODB)
+// also store in ODB IDs of the ROCs
+//-----------------------------------------------------------------------------
+      int mask = 0;
+      for (int i=0; i<6; i++) {
+        int link_enabled = _odb_i->GetLinkEnabled(h_subkey,i);
+        TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
+        if (link_enabled) {
+          mask |= (1 << 4*i);
+
+          try {
+            roc_id      = dtc_i->GetRocID         (i);
+            TLOG(TLVL_DEBUG) << "roc_id:" << roc_id;
+            design_info = dtc_i->GetRocDesignInfo (i);
+            TLOG(TLVL_DEBUG) << "design_info:" << design_info;
+            git_commit  = dtc_i->GetRocFwGitCommit(i);
+            TLOG(TLVL_DEBUG) << "git_commit:" << git_commit;
+          }
+          catch(...) {
+            TLOG(TLVL_ERROR) << "cant read link:" << i << " ROC info";
+          }
+//-----------------------------------------------------------------------------
+// 'h_link' points to a subsystem-specific place
+//-----------------------------------------------------------------------------
+          char key[10];
+          sprintf(key,"Link%d",i);
+          HNDLE h_link = _odb_i->GetHandle(h_subkey,key);
+          _odb_i->SetRocID         (h_link,roc_id     );
+          _odb_i->SetRocDesignInfo (h_link,design_info);
+          _odb_i->SetRocFwGitCommit(h_link,git_commit );
+        }
+      }
+//-----------------------------------------------------------------------------
+// set link mask, also update link mask in ODB - that is not used, but is convenient
+//-----------------------------------------------------------------------------
+      dtc_i->fLinkMask       = mask;
+      _odb_i->SetLinkMask(h_subkey,mask);
+//-----------------------------------------------------------------------------
+// write panel IDs - to begin with, make it a separate loop
+// comment it out, already done by Vadim
+//-----------------------------------------------------------------------------
+//       trkdaq::ControlRoc_DigiRW_Input_t  pin;
+//       trkdaq::ControlRoc_DigiRW_Output_t pout;
+//       pin.rw      = 1;
+//       pin.hvcal   = 0;
+//       pin.address = 0x90;
+//       for (int i=0; i<6; i++) {
+//         int link_enabled = dtc_i->LinkEnabled(i);
+//         TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
+//         if (link_enabled) {
+// //-----------------------------------------------------------------------------
+// // Minnesota panel name .. at this point 
+// //-----------------------------------------------------------------------------
+//           char key[32];
+//           sprintf(key,"Link%d",i);
+//           HNDLE h_link = _odb_i->GetHandle(h_subkey,key);
+//           std::string panel_mn_name = _odb_i->GetString(h_link,"DetectorElement/Name");
+//           int mn_id = atoi(panel_mn_name.substr(2).data());
+//           // and write it to the digis
+//           pin.data[0] = int16_t(mn_id);
+//           pin.data[1] = 0;
+//           TLOG(TLVL_DEBUG) << "link:" << i << " panel_mn_name:" << panel_mn_name
+//                            << " mn_id:" << mn_id
+//                            << " pin.data[0]:" << pin.data[0] << " pin.data[1]:" << pin.data[1];
+// //-----------------------------------------------------------------------------
+// // PM: make it look ugly - the ugliness indicates that the logic is not right
+// // most likely, need different node frontends for different subsystems
+// //-----------------------------------------------------------------------------
+//           trkdaq::DtcInterface* trk_dtc_i = (trkdaq::DtcInterface*) dtc_i;
+//           trk_dtc_i->ControlRoc_DigiRW(&pin,&pout,i);
+//         }
+//       }
+//-----------------------------------------------------------------------------
+// don't reset ROCs on enabled links
+//-----------------------------------------------------------------------------
+      fDtc_i[pcie_addr]   = dtc_i;
+    }
+  }
+
+  InitDtcVarNames();
+  
+  TLOG(TLVL_DEBUG) << "--- END: DTC0:" <<  fDtc_i[0] << " DTC1:" <<  fDtc_i[1];
+
+  return TMFeOk();
+}
+
+//-----------------------------------------------------------------------------
+// 2 DTCs and their ROCs
+//-----------------------------------------------------------------------------
+void TEquipmentNode::InitDtcVarNames() {
+  char dirname[256], var_name[128];
+  
+  TLOG(TLVL_DEBUG) << " --- START";
+// midas::odb::set_debug(true);
+
+//-----------------------------------------------------------------------------
+// DTCs and ROCs
+//-----------------------------------------------------------------------------
+  for (int pcie_addr=0; pcie_addr<2; pcie_addr++) {
+    // SC: should we not create the variables if the DTC doesn't exist?
+    if(fDtc_i[pcie_addr] == nullptr) continue;
+
+    HNDLE       h_dtc     = _odb_i->GetDtcConfigHandle(_host_label,pcie_addr);
+    std::string subsystem = _odb_i->GetString(h_dtc,"Subsystem");
+    std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
+
+    if      (subsystem == "TRACKER") InitTrkDtcVarNames(pcie_addr);
+    else if (subsystem == "CRV"    ) InitCrvDtcVarNames(pcie_addr);
+  }
+
+  //  midas::odb::set_debug(false);
+
+  TLOG(TLVL_DEBUG) << " --- END";
+};
+
+
+//-----------------------------------------------------------------------------
+void TEquipmentNode::ReadNonHistDtcRegisters(mu2edaq::DtcInterface* Dtc_i) {
+  
+  std::string node_path = "/Equipment/"+TMFeEquipment::fEqName;
+
+  std::vector<uint32_t>  dtc_reg;
+  dtc_reg.reserve(DtcRegisters.size());
+        
+  for (const int reg : DtcRegisters) {
+    uint32_t dat(0);
+    try {
+      Dtc_i->fDtc->GetDevice()->read_register(reg,100,&dat);
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "failed to read register:" << reg;
+      dat = 0xFFFFFFFF;
+    }
+    dtc_reg.emplace_back(dat);
+  }
+
+  char buf[64];
+  
+  sprintf(buf,"%s/DTC%i",node_path.data(),Dtc_i->PcieAddr());
+      
+  TLOG(TLVL_DEBUG+1) << "N(DTC registers):" << DtcRegisters.size() << " buf:" << buf;
+        
+  midas::odb xx = {{"RegData",{1u}}};
+  xx.connect(buf);
+  xx["RegData"].resize(DtcRegisters.size());
+  xx["RegData"] = dtc_reg;
+
+  TLOG(TLVL_DEBUG+1) << "saved to:" << buf;
+}
+
+
+//-----------------------------------------------------------------------------
+void TEquipmentNode::ReadDtcMetrics() {
+  char   text[200];
+  
+  TLOG(TLVL_DEBUG+1) << "-- START";
+  //  double t  = TMFE::GetTime();
+  // midas::odb::set_debug(true);
+
+  midas::odb o_runinfo("/Runinfo");
+  int running_state          = o_runinfo["State"];
+  int transition_in_progress = o_runinfo["Transition in progress"];
+
+  std::string node_path = "/Equipment/"+TMFeEquipment::fEqName;
+  
+  for (int idtc=0; idtc<2; idtc++) {
+    mu2edaq::DtcInterface* dtc_i = fDtc_i[idtc];
+    if (dtc_i) {
+      if (dtc_i->Subsystem() == mu2edaq::kTracker) {
+        ReadTrkDtcMetrics();
+      }
+      else if (dtc_i->Subsystem() == mu2edaq::kCRV) { // CRV
+        ReadCrvDtcMetrics();
+      }
+    }
+  }
+  TLOG(TLVL_DEBUG+1) << "-- END";
+}

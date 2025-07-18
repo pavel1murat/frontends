@@ -4,27 +4,33 @@
 #include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
-#include "node_frontend/TEquipmentNode.hh"
+#include "node_frontend/TEqTrkDtc.hh"
 #include "utils/OdbInterface.hh"
 #include "utils/utils.hh"
 #include "nlohmann/json.hpp"
 #include "odbxx.h"
 
-
-int TEquipmentNode::Rpc_ControlRoc_ReadDDR(trkdaq::DtcInterface* Dtc_i, int Link, std::ostream& Stream) {
+#include "TRACE/tracemf.h"
+#define TRACE_NAME "TEqTrkDtc"
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::ReadDDR(std::ostream& Stream) {
+  int rc(0);
   midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_read_ddr");
 
   int block_number = o["block_number"];
-  // int print_level  = o["PrintLevel"];
+  int link         = o["link"        ];
+  // int print_level  = o["print_level"];
   
   try {
 //-----------------------------------------------------------------------------
 // ControlRoc_Read handles roc=-1 internally
 //-----------------------------------------------------------------------------
-    Dtc_i->ReadRocDDR(Link,block_number,Stream);
+    _dtc_i->ReadRocDDR(link,block_number,Stream);
   }
   catch(...) {
-    Stream << "ERROR : coudn't execute ControlRoc_ReadDDR ... BAIL OUT" << std::endl;
+    TLOG(TLVL_ERROR) << "failed ControlRoc_ReadDDR for link:" << link;
+    Stream << "ERROR : coudn't execute ControlRoc_ReadDDR ... BAIL OUT" << " link:" << link << std::endl;
+    rc = -1;
   }
-  return 0;
+  return rc;
 }

@@ -31,6 +31,9 @@ namespace ns {
   }
 } // namespace ns
 
+
+//-----------------------------------------------------------------------------
+// this function needs to define which type of equipment is being talked to and forward
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::string& response) {
   fMfe->Msg(MINFO, "HandleRpc", "RPC cmd [%s], args [%s]", cmd, args);
@@ -64,7 +67,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
   }
 
   HNDLE h_dtc = odb_i->GetDtcConfigHandle(_host_label,pcie_addr);
-                                                     
+                                                  
   TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr
                    << " h_dtc:" << h_dtc
                    << " DTC[0]:" << fDtc_i[0]
@@ -79,20 +82,20 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
 // a single place to make sure that the pointer to the DTC is OK
 //-----------------------------------------------------------------------------
-  trkdaq::DtcInterface* dtc_i(nullptr);
-  try {
-    dtc_i = dynamic_cast<trkdaq::DtcInterface*>(fDtc_i[pcie_addr]);
-  }
-  catch(...) {
-    TLOG(TLVL_ERROR) << "failed to initialize the DTC";
-    ss << " failed to initialize the DTC" << pcie_addr ;
-  }
-  
-  if (dtc_i == nullptr) {
+  if (fDtc_i[pcie_addr] == nullptr) {
     ss << " DTC" << pcie_addr << " is not enabled";
     response += ss.str();
     TLOG(TLVL_ERROR) << response;
     return TMFeErrorMessage(response);
+  }
+
+  int subsystem = fDtc_i[pcie_addr->Subsystem();
+    
+  if      ( subsystem == mu2edaq::kTracker) {
+    TEquipmentNode_Rpc_Tracker(fDtc_i[pcie_addr],h_dtc,cmd,args);
+  }
+  else if (dtc_i->Subsystem() == mu2edaq::kCRV) {
+    TEquipmentNode_Rpc_CRV(fDtc_i[pcie_addr],h_dtc,cmd,args);
   }
 
   if (strcmp(cmd,"configure_ja") == 0) {
@@ -134,7 +137,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     par.data[0]      = o["data"   ][0]; //
     par.data[1]      = o["data"   ][1]; //
     int  print_level = o["print_level"];
-      
+   
     printf("dtc_i->fLinkMask: 0x%04x\n",dtc_i->fLinkMask);
     try {
       dtc_i->ControlRoc_DigiRW(&par,&pout,roc,print_level,ss);
@@ -147,7 +150,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
     int      timeout_ms(150);
 
     midas::odb o("/Mu2e/Commands/Tracker/DTC/read_register");
-    
+ 
     try {
       uint32_t reg = o["Register"];
       uint32_t val;
@@ -229,7 +232,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
       rmin = 0;
       rmax = 6;
     }
-      
+   
     TLOG(TLVL_INFO) << "-------------- rmin, rmax:" << rmin << " " << rmax;
 
     for (int i=rmin; i<rmax; ++i) {
@@ -367,7 +370,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
     ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_rates";
-    
+ 
      Rpc_ControlRoc_Rates(pcie_addr,roc,dtc_i,ss,conf_name.data());
   }
   else if (strcmp(cmd,"set_caldac") == 0) {
@@ -376,7 +379,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
     ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at set_caldaq";
-    
+ 
      Rpc_ControlRoc_SetCalDac(pcie_addr,roc,dtc_i,ss,conf_name.data());
   }
   else if (strcmp(cmd,"dump_settings") == 0) {
@@ -385,7 +388,7 @@ TMFeResult TEquipmentNode::HandleRpc(const char* cmd, const char* args, std::str
 //-----------------------------------------------------------------------------
     ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at dump_settings";
-    
+ 
     Rpc_ControlRoc_DumpSettings(pcie_addr,roc,dtc_i,ss,conf_name.data());
   }
   else if (strcmp(cmd,"read_ilp") == 0) {
@@ -470,7 +473,7 @@ TMFeResult TEquipmentNode::HandleBinaryRpc(const char* cmd, const char* args, st
   fMfe->Msg(MINFO, "HandleBinaryRpc", "RPC cmd [%s], args [%s]", cmd, args);
 
   // RPC handler
-      
+   
   response.resize(8*64);
 
   uint64_t* p64 = (uint64_t*)response.data();
@@ -478,7 +481,7 @@ TMFeResult TEquipmentNode::HandleBinaryRpc(const char* cmd, const char* args, st
   for (size_t i=0; i<response.size()/sizeof(p64[0]); i++) {
     *p64++ = (1<<i);
   }
-      
+   
   return TMFeOk();
 }
 
