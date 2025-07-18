@@ -64,6 +64,8 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
   TLOG(TLVL_DEBUG) << "cmd:" << cmd << " parameter_path:" << parameter_path;
 
+  ss << "--cmd:" << cmd ; // << " parameter_path:" << parameter_path;
+
   // midas::odb o_par(parameter_path);
   HNDLE h_par_path           = odb_i->GetHandle(0,parameter_path);
   TLOG(TLVL_DEBUG) << "-- parameters found";
@@ -93,10 +95,6 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     eq_dtc->DumpSettings(ss);
   }
   else if (cmd == "find_alignment") {
-//-----------------------------------------------------------------------------
-// 
-//-----------------------------------------------------------------------------
-    ss << std::endl;
     eq_dtc->FindAlignment(ss);
   }
   else if (cmd == "get_key") {

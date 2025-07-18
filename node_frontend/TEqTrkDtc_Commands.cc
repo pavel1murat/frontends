@@ -219,6 +219,8 @@ int TEqTrkDtc::FindAlignment(std::ostream& Stream) {
   int link        = odb_i->GetInteger(h_cmd,"link"       );
   int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
 
+  if (link == -1) Stream << std::endl;
+
   try {
     _dtc_i->FindAlignments(print_level,link,Stream);
   }
@@ -714,6 +716,7 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
   
   int lnk2 = lnk1+1;
   if (lnk1 == -1) {
+    Stream << std::endl;
     lnk1 = 0;
     lnk2 = 6;
   }
@@ -754,7 +757,7 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
       }
 
       if (print_level & 0x4) {
-        Stream << "par.ch_mask:";
+        Stream << " par.ch_mask:";
         for (int i=0; i<6; i++) {
           Stream << " " << std::hex << par.ch_mask[i];
         }
@@ -937,7 +940,7 @@ int TEqTrkDtc::ResetRoc(std::ostream& Stream) {
   rc = _dtc_i->ResetLink(link);
 
   if (rc == 0) Stream << " -- reset_roc OK";
-  else         Stream << " -- ERROR: failed reset_roc link:" << link << std::endl;
+  else         Stream << " -- ERROR: failed reset_roc link:" << link << " rc:" << rc << std::endl;
   
   return rc;
 }
