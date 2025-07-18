@@ -113,24 +113,12 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     eq_dtc->GetRocDesignInfo(ss);
   }
-  else if (cmd == "rates") {
+  else if (cmd == "init_readout") {
 //-----------------------------------------------------------------------------
-// CONTROL_ROC_RATES
+// get ROC design info - print output of 3 separate commands together
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    TLOG(TLVL_DEBUG) << "arrived at dtc_control_roc_rates";
- 
-    eq_dtc->Rates(ss);
-  }
-  else if (cmd == "read") {
-//-----------------------------------------------------------------------------
-// CONTROL_ROC_READ : link comes from ODB
-//-----------------------------------------------------------------------------
-    eq_dtc->Read(ss);
-  }
-  else if (cmd == "read_ddr") {
-    ss << std::endl;
-    eq_dtc->ReadDDR(ss);
+    eq_dtc->InitReadout(ss);
   }
   else if (cmd == "digi_rw") {
 //-----------------------------------------------------------------------------
@@ -204,12 +192,24 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     eq_dtc->PulserOn(ss);
   }
-  else if (cmd == "read") {
+  else if (cmd == "rates") {
 //-----------------------------------------------------------------------------
-// control_ROC READ comamnd
+// CONTROL_ROC_RATES
 //-----------------------------------------------------------------------------
     ss << std::endl;
+    TLOG(TLVL_DEBUG) << "arrived at rates";
+ 
+    eq_dtc->Rates(ss);
+  }
+  else if (cmd == "read") {
+//-----------------------------------------------------------------------------
+// CONTROL_ROC_READ : link comes from ODB
+//-----------------------------------------------------------------------------
     eq_dtc->Read(ss);
+  }
+  else if (cmd == "read_ddr") {
+    ss << std::endl;
+    eq_dtc->ReadDDR(ss);
   }
   else if (cmd == "read_ddr") {
 //-----------------------------------------------------------------------------

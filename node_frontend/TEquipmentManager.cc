@@ -222,22 +222,6 @@ void TEquipmentManager::HandlePeriodic() {
   // int running_state          = o_runinfo["State"];
   // int transition_in_progress = o_runinfo["Transition in progress"];
   //
-  //  std::string node_eq_path = "/Equipment/"+TMFeEquipment::fEqName;
-
-  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"         ,&_monitorDtc         );
-  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/Disk"        ,&_monitorDisk        );
-  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
-  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI"         ,&_monitorSPI         );
-  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates"       ,&_monitorRates       );
-  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
-
-  // TLOG(TLVL_DEBUG+1) << "_monitorDtc:"                      << _monitorDtc
-  //                    << " _monitorSPI:"                     << _monitorSPI
-  //                    << " _monitorRates:"                   << _monitorRates
-  //                    << " _monitorRocRegisters:"            << _monitorRocRegisters
-  //                    << " _monitorArtdaq:"                  << _monitorArtdaq
-  //                    << " _monitorDisk:"                     << _monitorDisk
-  //                    << " TMFE::Instance()->fStateRunning:" << TMFE::Instance()->fStateRunning; 
 
   for (int pcie_addr=0; pcie_addr<2; pcie_addr++) {
     if (_eq_dtc[pcie_addr] and (_eq_dtc[pcie_addr]->MonitoringLevel() > 0)) {
@@ -263,7 +247,8 @@ void TEquipmentManager::HandlePeriodic() {
 }
 
 
-
+//-----------------------------------------------------------------------------
+// not sure if this function is needed any more
 //-----------------------------------------------------------------------------
 void TEquipmentManager::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "-- START";
@@ -313,7 +298,7 @@ void TEquipmentManager::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
   trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(pcie_addr);
 
-  if (dtc_cmd == "control_roc_pulser_on") {
+  if (dtc_cmd == "pulser_on") {
 //-----------------------------------------------------------------------------
 // execute pulser_on command , no printout
 // so far assume link != -1, but we do want to use -1 (all)
@@ -334,7 +319,7 @@ void TEquipmentManager::ProcessCommand(int hDB, int hKey, void* Info) {
       TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserON ... BAIL OUT";
     }
   }
-  else if (dtc_cmd == "control_roc_pulser_off") {
+  else if (dtc_cmd == "pulser_off") {
     int link               = o_par["link"       ];
     int print_level        = o_par["print_level"];
 
