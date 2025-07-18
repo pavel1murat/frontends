@@ -5,6 +5,7 @@
 #define __frontends_utils_hh__
 
 #include <string>
+#include <vector>
 
 #include "midas.h"
 //-----------------------------------------------------------------------------
@@ -17,7 +18,7 @@ namespace FrontendsGlobals {
 };
 
 std::string expand_env_vars    (const std::string& String);
-
+std::vector<std::string> splitString(const std::string& s, char delimiter);
 //-----------------------------------------------------------------------------
 // hostname is defined by a subnet, i.e. 192.168.1.107 and nslookup 
 //-----------------------------------------------------------------------------

@@ -31,19 +31,24 @@ cet_set_compiler_flags(
 
 cet_make_exec(NAME      node_frontend
               SOURCE    node_frontend.cc
-                        TEquipmentNode.cc
-                        TEquipmentNode_Artdaq.cc
-                        TEquipmentNode_Disk.cc
-                        TEquipmentNode_Dtc.cc
-                        TEquipmentNode_Rpc.cc
-                        TEquipmentNode_Rpc_ControlRoc_Read.cc
-                        TEquipmentNode_Rpc_ControlRoc_Rates.cc
-                        TEquipmentNode_Rpc_ControlRoc_ReadDDR.cc
-                        TEquipmentNode_Rpc_ControlRoc_SetThresholds.cc
-                        TEquipmentNode_Rpc_LoadThresholds.cc
-                        TEquipmentNode_Rpc_ControlRoc_MeasureThresholds.cc
-                        TEquipmentNode_Rpc_SetCalDac.cc
-                        TEquipmentNode_Rpc_DumpSettings.cc
+                        TEquipmentManager.cc
+                        TEquipmentManager_Rpc.cc
+                        TEqCrvDtc.cc
+                        TEqArtdaq.cc
+                        TEqDisk.cc
+#
+                        TEqTrkDtc.cc
+                        TEqTrkDtc_Commands.cc
+#                        TEqTrkDtc_Commands_LoadThresholds.cc
+#                        TEqTrkDtc_Commands_MeasureThresholds.cc
+#                        TEqTrkDtc_Commands_Rates.cc
+#                        TEqTrkDtc_Commands_Read.cc
+#                        TEqTrkDtc_Commands_SetThresholds.cc
+                        TEqTrkDtc_ProcessCommand.cc
+
+                        TMu2eEqBase.cc
+
+
               LIBRARIES frontends_utils
                         otsdaq-mu2e-tracker::Ui
                         mu2e-pcie-utils::DTCInterface

@@ -144,12 +144,6 @@ void TEquipmentTracker::HandlePeriodic() {
 void TEquipmentTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "--- START"; 
 
-  // midas::odb o_tracker_cmd("/Mu2e/Commands/Tracker");
-  // if (o_tracker_cmd["Run"] == 0) {
-  //   TLOG(TLVL_DEBUG) << "self inflicted, return";
-  //   return;
-  // }
-
   OdbInterface* odb_i = OdbInterface::Instance();
   
   HNDLE h_tracker_cmd = odb_i->GetCommandHandle("Tracker"); // returns handle of '/Mu2e/Commands/Tracker'

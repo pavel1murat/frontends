@@ -4,6 +4,9 @@
 #include "node_frontend/TEquipmentNode.hh"
 #include "utils/utils.hh"
 
+#include <algorithm>
+#include <cctype>
+
 #include "midas.h"
 #include "odbxx.h"
 
@@ -35,9 +38,14 @@ TMFeResult TEquipmentNode::InitDtc() {
     TLOG(TLVL_DEBUG) << "subkey.name:" << subkey.name;
     
     if (strstr(subkey.name,"DTC") != subkey.name)           continue;
+//-----------------------------------------------------------------------------
+// capitalize the subsystem name
+//-----------------------------------------------------------------------------
+    std::string subsystem = _odb_i->GetString(h_subkey,"Subsystem");
+    std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
     
-    int dtc_enabled      = _odb_i->GetEnabled       (h_subkey);
-    TLOG(TLVL_DEBUG) << "enabled:" << dtc_enabled;
+    int dtc_enabled       = _odb_i->GetEnabled       (h_subkey);
+    TLOG(TLVL_DEBUG) << "subsystem:" << subsystem << " enabled:" << dtc_enabled;
 
     int pcie_addr        = _odb_i->GetDtcPcieAddress(h_subkey);
     int link_mask        = _odb_i->GetLinkMask      (h_subkey);
@@ -48,17 +56,20 @@ TMFeResult TEquipmentNode::InitDtc() {
     _h_dtc[pcie_addr]    = h_subkey;
     
     if (dtc_enabled) {
-
-      // for now, disable re-initialization
+//-----------------------------------------------------------------------------
+// for now, disable re-initialization
+//-----------------------------------------------------------------------------
       mu2edaq::DtcInterface* dtc_i = nullptr;
-      if(_odb_i->GetIsCrv(h_subkey)) {
+      if      (subsystem == "CRV") {
         // TODO
         // dtc_i = crvdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
         dtc_i = mu2edaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
         dtc_i->fIsCrv = 1;
+        dtc_i->fSubsystem = kCRV;
       }
-      else {
+      else if (subsystem == "TRACKER") {
         dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
+        dtc_i->fSubsystem = kTracker;
       }
 //-----------------------------------------------------------------------------
 // start from checking the DTC FW verion and comparing it to the required one -
@@ -72,7 +83,7 @@ TMFeResult TEquipmentNode::InitDtc() {
         return TMFeErrorMessage(std::format("wrong DTC FW version:{:x}",dtc_fw_version));
       }
 
-      dtc_i->fLinkMask       = link_mask;
+      //      dtc_i->fLinkMask       = link_mask;
       dtc_i->fPcieAddr       = pcie_addr;
       dtc_i->fEnabled        = dtc_enabled;
 
@@ -93,20 +104,16 @@ TMFeResult TEquipmentNode::InitDtc() {
                        << " event_mode:"       << dtc_i->fEventMode
                        << " emulate_cfo:"      << dtc_i->fEmulateCfo;
 //-----------------------------------------------------------------------------
-// loop over links and store in ODB IDs of the ROCs
-// this place is tracker-specific
+// loop over links, redefine the enabled link mask (also in ODB)
+// also store in ODB IDs of the ROCs
 //-----------------------------------------------------------------------------
       int mask = 0;
       for (int i=0; i<6; i++) {
-        // int link_enabled = dtc_i->LinkEnabled(i);
         int link_enabled = _odb_i->GetLinkEnabled(h_subkey,i);
         TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
         if (link_enabled) {
           mask |= (1 << 4*i);
-            
-          std::string roc_id     ("READ_ERROR");
-          std::string design_info("READ_ERROR");
-          std::string git_commit ("READ_ERROR");
+
           try {
             roc_id      = dtc_i->GetRocID         (i);
             TLOG(TLVL_DEBUG) << "roc_id:" << roc_id;
@@ -192,87 +199,22 @@ void TEquipmentNode::InitDtcVarNames() {
   TLOG(TLVL_DEBUG) << " --- START";
 // midas::odb::set_debug(true);
 
-  // SC TODO: I think we should define these together with the registers? 
-  std::initializer_list<const char*> dtc_names = {"Temp", "VCCINT", "VCCAUX", "VCBRAM"};
-
-  const std::string node_eq_path     = "/Equipment/"+TMFeEquipment::fEqName;
-  //midas::odb odb_node(node_eq_path);
-  
-  const std::string settings_path = node_eq_path+"/Settings";
-  midas::odb odb_settings(node_eq_path+"/Settings");
 //-----------------------------------------------------------------------------
 // DTCs and ROCs
 //-----------------------------------------------------------------------------
-  for (int idtc=0; idtc<2; idtc++) {
+  for (int pcie_addr=0; pcie_addr<2; pcie_addr++) {
     // SC: should we not create the variables if the DTC doesn't exist?
-    if(fDtc_i[idtc] == nullptr) continue;
+    if(fDtc_i[pcie_addr] == nullptr) continue;
 
-    std::vector<std::string> dtc_var_names;
-    for (const char* name : dtc_names) {
-      sprintf(var_name,"dtc%i#%s",idtc,name);
-      dtc_var_names.push_back(name);
-    }
-       
-    sprintf(dirname,"Names dtc%i",idtc);
-    odb_settings[dirname] = dtc_var_names;
-//-----------------------------------------------------------------------------
-// non-history DTC registers
-//-----------------------------------------------------------------------------
-    dtc_var_names.clear();
-    for (const int& reg : DtcRegisters) {
-      // sprintf(var_name,"dtc%i#0x%04x",idtc,reg);
-      sprintf(var_name,"0x%04x",reg);
-      dtc_var_names.push_back(var_name);
-    }
-      
-    sprintf(dirname,"DTC%i",idtc);
+    HNDLE       h_dtc     = _odb_i->GetDtcConfigHandle(_host_label,pcie_addr);
+    std::string subsystem = _odb_i->GetString(h_dtc,"Subsystem");
+    std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
 
-    midas::odb   odb_dtc(node_eq_path+"/"+dirname);
-    odb_dtc["RegName"] = dtc_var_names;
-
-    std::vector<uint32_t> dtc_reg_data(dtc_var_names.size());
-    odb_dtc["RegData"] = dtc_reg_data;
-//-----------------------------------------------------------------------------
-// loop over the ROCs and create names for each of them
-//-----------------------------------------------------------------------------
-    if (not fDtc_i[idtc]->IsCrv()) { // no CRV
-      for (int ilink=0; ilink<6; ilink++) { 
-     
-        std::vector<std::string> roc_var_names;
-        for (int k=0; k<trkdaq::TrkSpiDataNWords; k++) {
-          sprintf(var_name,"rc%i%i#%s",idtc,ilink,trkdaq::DtcInterface::SpiVarName(k));
-          roc_var_names.push_back(var_name);
-        }
-      
-        sprintf(dirname,"Names rc%i%i",idtc,ilink);
-        if (not midas::odb::exists(settings_path+"/"+dirname)) {
-          odb_settings[dirname] = roc_var_names;
-        }
-//-----------------------------------------------------------------------------
-// non-history ROC registers - counters and such - just to be looked at
-//-----------------------------------------------------------------------------
-        roc_var_names.clear();
-        for(const int& reg : RocRegisters) {
-          sprintf(var_name,"reg_%03i",reg);
-          roc_var_names.push_back(var_name);
-        }
-
-        char roc_subdir[128];
-
-        sprintf(roc_subdir,"%s/DTC%i/ROC%i",node_eq_path.data(),idtc,ilink);
-        midas::odb odb_roc = {{"RegName",{"a","b"}},{"RegData",{1u,2u}}};
-        odb_roc.connect(roc_subdir);
-        odb_roc["RegName"] = roc_var_names;
-      
-        std::vector<uint16_t> roc_reg_data(roc_var_names.size());
-        odb_roc["RegData"] = roc_reg_data;
-      }
-    } else { // CRV
-       
-    }
+    if      (subsystem == "TRACKER") InitTrkDtcVarNames(pcie_addr);
+    else if (subsystem == "CRV"    ) InitCrvDtcVarNames(pcie_addr);
   }
 
-  midas::odb::set_debug(false);
+  //  midas::odb::set_debug(false);
 
   TLOG(TLVL_DEBUG) << " --- END";
 };
@@ -531,12 +473,8 @@ void TEquipmentNode::ReadDtcMetrics() {
 
         }
       }
-      catch (...) {
-        TLOG(TLVL_ERROR) << "failed to read DTC:" << pcie_addr << " registers";
-//-----------------------------------------------------------------------------
-// set DTC status to -1
-//-----------------------------------------------------------------------------
-        // TODO
+      else if (dtc_i->Subsystem() == mu2edaq::kCRV) { // CRV
+        ReadCrvDtcMetrics();
       }
     }
   }

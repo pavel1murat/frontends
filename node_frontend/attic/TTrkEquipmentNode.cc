@@ -1,30 +1,30 @@
 //////////////////////////////////////////////////////////////////////////////
 // equipment name is the short node name, i.e. 'mu2edaq22'
 //////////////////////////////////////////////////////////////////////////////
-#include "node_frontend/TEquipmentNode.hh"
+#include "node_frontend/TTrkEquipmentNode.hh"
 #include "utils/utils.hh"
 #include "TString.h"
 
 #include "odbxx.h"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEquipmentNode"
+#define  TRACE_NAME "TTrkEquipmentNode"
 
 //-----------------------------------------------------------------------------
-TEquipmentNode::TEquipmentNode(const char* eqname, const char* eqfilename): TMFeEquipment(eqname,eqfilename) {
-  fEqConfEventID          = 3;
-  fEqConfPeriodMilliSec   = 30000;  // 30 sec ?
-  fEqConfLogHistory       = 1;
-  fEqConfWriteEventsToOdb = true;
+TTrkEquipmentNode::TTrkEquipmentNode(const char* eqname, const char* eqfilename): TEquipmentNode(eqname,eqfilename) {
+  // fEqConfEventID          = 3;
+  // fEqConfPeriodMilliSec   = 30000;  // 30 sec ?
+  // fEqConfLogHistory       = 1;
+  // fEqConfWriteEventsToOdb = true;
 
-  fDtc_i[0]               = nullptr;
-  fDtc_i[1]               = nullptr;
+  // fDtc_i[0]               = nullptr;
+  // fDtc_i[1]               = nullptr;
 }
 
 //-----------------------------------------------------------------------------
 // overloaded function of TMFeEquipment : 2 DTCs
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
+TMFeResult TTrkEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 
   fEqConfReadOnlyWhenRunning = false;
   fEqConfWriteEventsToOdb    = true;
@@ -53,7 +53,7 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
     char buf[256];
     sprintf(buf, "Host configuration DAQ/Nodes/%s not found", _host_label.c_str());
     fMfe->Msg(MERROR, "HandleInit", buf);
-    return TMFeMidasError(buf,"TEquipmentNode::HandleInit(",DB_INVALID_NAME);
+    return TMFeMidasError(buf,"TTrkEquipmentNode::HandleInit(",DB_INVALID_NAME);
   }
   _h_frontend_conf = _odb_i->GetFrontendConfHandle(_h_active_run_conf,_host_label);
 
@@ -108,7 +108,7 @@ TMFeResult TEquipmentNode::HandleInit(const std::vector<std::string>& args) {
 // if this assumption will need to be dropped, will do that
 // may want to change the link mask at begin run w/o restarting the frontend
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
+TMFeResult TTrkEquipmentNode::HandleBeginRun(int RunNumber)  {
 
   int   event_mode        = _odb_i->GetEventMode     (_h_active_run_conf);
   int   roc_readout_mode  = _odb_i->GetRocReadoutMode(_h_active_run_conf);
@@ -147,7 +147,7 @@ TMFeResult TEquipmentNode::HandleBeginRun(int RunNumber)  {
 };
 
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleEndRun   (int RunNumber) {
+TMFeResult TTrkEquipmentNode::HandleEndRun   (int RunNumber) {
   fMfe->Msg(MINFO, "HandleEndRun", "End run %d!", RunNumber);
   EqSetStatus("Stopped", "#00FF00");
 
@@ -157,7 +157,7 @@ TMFeResult TEquipmentNode::HandleEndRun   (int RunNumber) {
 }
 
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandlePauseRun(int run_number) {
+TMFeResult TTrkEquipmentNode::HandlePauseRun(int run_number) {
   fMfe->Msg(MINFO, "HandlePauseRun", "Pause run %d!", run_number);
   EqSetStatus("Stopped", "#00FF00");
     
@@ -167,7 +167,7 @@ TMFeResult TEquipmentNode::HandlePauseRun(int run_number) {
 }
 
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleResumeRun(int RunNumber) {
+TMFeResult TTrkEquipmentNode::HandleResumeRun(int RunNumber) {
   fMfe->Msg(MINFO, "HandleResumeRun", "Resume run %d!", RunNumber);
   EqSetStatus("Stopped", "#00FF00");
 
@@ -178,7 +178,7 @@ TMFeResult TEquipmentNode::HandleResumeRun(int RunNumber) {
 
 
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
+TMFeResult TTrkEquipmentNode::HandleStartAbortRun(int run_number) {
   fMfe->Msg(MINFO, "HandleStartAbortRun", "Begin run %d aborted!", run_number);
   EqSetStatus("Stopped", "#00FF00");
 
@@ -192,7 +192,7 @@ TMFeResult TEquipmentNode::HandleStartAbortRun(int run_number) {
 // read DTC temperatures and voltages, artdaq metrics
 // read ARTDAQ metrics only when running
 //-----------------------------------------------------------------------------
-void TEquipmentNode::HandlePeriodic() {
+void TTrkEquipmentNode::HandlePeriodic() {
 
   TLOG(TLVL_DEBUG+1) << "-- START";
 
@@ -225,7 +225,7 @@ void TEquipmentNode::HandlePeriodic() {
 }
 
 //-----------------------------------------------------------------------------
-void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
+void TTrkEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "-- START";
 
   OdbInterface* odb_i = OdbInterface::Instance();
@@ -304,7 +304,7 @@ void TEquipmentNode::ProcessCommand(int hDB, int hKey, void* Info) {
       dtc_i->ControlRoc_PulserOff(link,print_level);
     }
     catch(...) {
-      TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserOFF ... BAIL OUT";
+      TLOG(TLVL_ERROR) << "coudn't execute DtcInterface::ControlRoc_PulserOFF ... BAIL OUT";
     }
   }
   
