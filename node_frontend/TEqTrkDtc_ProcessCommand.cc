@@ -265,6 +265,9 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     eq_dtc->ReadSpi(ss);
   }
+  else if (cmd == "reset_output") {
+    eq_dtc->ResetOutput();
+  }
   else if (cmd == "reset_roc") {
     eq_dtc->ResetRoc(ss);
   }

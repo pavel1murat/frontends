@@ -66,35 +66,12 @@ TEqArtdaq::TEqArtdaq(const char* Name) : TMu2eEqBase() {
 // boardreaders start from 10000+1000*partition+100+1;
 // init XML RPC            10000+1000*partition+11
 //-----------------------------------------------------------------------------
-  // int         partition   = _odb_i->GetArtdaqPartition(hDB);
-  // int         port_number = 10000+1000*partition+11;
-  
-  //  char cbuf[100];
-
-  TLOG(TLVL_DEBUG) << "START";
-
-  OdbInterface* odb_i = OdbInterface::Instance();
-  
-  HNDLE h_active_run_conf     = odb_i->GetActiveRunConfigHandle();
-  
-  std::string private_subnet  = odb_i->GetPrivateSubnet(h_active_run_conf);
-  std::string public_subnet   = odb_i->GetPublicSubnet (h_active_run_conf);
-//-----------------------------------------------------------------------------
-// now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
-// nodes/DTC's to be monitored 
-// MIDAS 'host_name' could be 'local'..
-//-----------------------------------------------------------------------------
-  _host_label     = get_short_host_name(public_subnet.data());
-  _full_host_name = get_full_host_name (private_subnet.data());
-
-  // sprintf(cbuf,"%s_mon",_full_host_name.data());
-  // xmlrpc_client_init(XMLRPC_CLIENT_NO_FLAGS,cbuf,"v1_0");
-  // xmlrpc_env_init(&_env);
+  TLOG(TLVL_DEBUG) << "-- START";
 //-----------------------------------------------------------------------------
 // read ARTDAQ configuration from ODB
 //-----------------------------------------------------------------------------
-  HNDLE hdb           = odb_i->GetDbHandle();
-  HNDLE h_artdaq_conf = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,_host_label);
+  HNDLE hdb           = _odb_i->GetDbHandle();
+  HNDLE h_artdaq_conf = _odb_i->GetHostArtdaqConfHandle(_h_active_run_conf,_host_label);
   HNDLE h_component;
   KEY   component;
   for (int i=0; db_enum_key(hdb, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
@@ -118,8 +95,8 @@ TEqArtdaq::TEqArtdaq(const char* Name) : TMu2eEqBase() {
 
     ArtdaqComponent_t ac;
 
-    odb_i->GetInteger(h_component,"Enabled"    ,&ac.enabled);
-    odb_i->GetInteger(h_component,"Status"     ,&ac.status);
+    _odb_i->GetInteger(h_component,"Enabled"    ,&ac.enabled);
+    _odb_i->GetInteger(h_component,"Status"     ,&ac.status);
 
     if ((ac.enabled != 1) || (ac.status != 0)) {
       TLOG(TLVL_WARNING) << " ARTDAQ component:" << component.name
@@ -137,14 +114,14 @@ TEqArtdaq::TEqArtdaq(const char* Name) : TMu2eEqBase() {
     else if (ac.name.find("ds") == 0) ac.type = kDispatcher;
 
     int x;
-    odb_i->GetInteger(h_component,"XmlrpcPort",&x);
+    _odb_i->GetInteger(h_component,"XmlrpcPort",&x);
     ac.xmlrpc_port = std::format("{}",x);
     
-    ac.subsystem   = odb_i->GetString (h_component,"Subsystem");
+    ac.subsystem   = _odb_i->GetString (h_component,"Subsystem");
 
-    odb_i->GetInteger(h_component,"Rank"          ,&ac.rank);
+    _odb_i->GetInteger(h_component,"Rank"          ,&ac.rank);
     // _odb_i->GetInteger(hDB,h_component,"Target"    ,&ac.target);
-    odb_i->GetInteger(h_component,"NFragmentTypes",&ac.n_fragment_types);
+    _odb_i->GetInteger(h_component,"NFragmentTypes",&ac.n_fragment_types);
 
     // char url[100];
     // sprintf(url,"http://%s:%i/RPC2",_full_host_name.data(),ac.xmlprc_port);
@@ -153,11 +130,12 @@ TEqArtdaq::TEqArtdaq(const char* Name) : TMu2eEqBase() {
     _list_of_ac.push_back(ac);
   }
   
+  _monitoringLevel = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq");
   InitVarNames();
   
   _logfile = "/home/mu2etrk/test_stand/experiments/test_025/artdaq.log"; // TODO: to come from config
   
-  TLOG(TLVL_DEBUG) << "END";
+  TLOG(TLVL_DEBUG) << "-- END";
 }
 
 //-----------------------------------------------------------------------------

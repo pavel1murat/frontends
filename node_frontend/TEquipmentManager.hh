@@ -4,9 +4,9 @@
 #ifndef __TEquipmentManager_hh__
 #define __TEquipmentManager_hh__
 
-#include "xmlrpc-c/config.h"  /* information about this build environment */
-#include <xmlrpc-c/base.h>
-#include <xmlrpc-c/client.h>
+// #include "xmlrpc-c/config.h"  /* information about this build environment */
+// #include <xmlrpc-c/base.h>
+// #include <xmlrpc-c/client.h>
 #include <ctime>
 #include "tmfe.h"
 #include "midas.h"
@@ -31,16 +31,16 @@ public:
   HNDLE                          _h_active_run_conf;
   HNDLE                          _h_daq_host_conf;
   HNDLE                          _h_frontend_conf;
-  HNDLE                          _h_dtc [2];
+  //  HNDLE                          _h_dtc [2];
   std::string                    _full_host_name;  // on private network, for communicatioin
   std::string                    _host_label;      // on public network, for ODB
-  xmlrpc_env                     _env;
-  int                            _monitorDtc;
-  int                            _monitorDisk;
-  int                            _monitorArtdaq;
-  int                            _monitorSPI;
-  int                            _monitorRocRegisters;
-  int                            _monitorRates;
+  //  xmlrpc_env                     _env;
+  // int                            _monitorDtc;
+  // int                            _monitorDisk;
+  // int                            _monitorArtdaq;
+  // int                            _monitorSPI;
+  // int                            _monitorRocRegisters;
+  // int                            _monitorRates;
   int                            _diagLevel;
 
   OdbInterface*                  _odb_i;
