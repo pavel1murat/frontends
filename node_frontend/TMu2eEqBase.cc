@@ -1,6 +1,7 @@
 //
 #include <fstream>
 #include "utils/utils.hh"
+#include "utils/OdbInterface.hh"
 #include "node_frontend/TMu2eEqBase.hh"
 
 #include "TRACE/tracemf.h"
@@ -8,6 +9,20 @@
 
 //-----------------------------------------------------------------------------
 TMu2eEqBase::TMu2eEqBase() {
+  
+  _odb_i                      = OdbInterface::Instance();
+  _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
+  std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
+  std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
+//-----------------------------------------------------------------------------
+// now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
+// nodes/DTC's to be monitored 
+// MIDAS 'host_name' could be 'local'..
+//-----------------------------------------------------------------------------
+  _host_label      = get_short_host_name(public_subnet.data());
+  _full_host_name  = get_full_host_name (private_subnet.data());
+  _h_daq_host_conf = _odb_i->GetHostConfHandle(_host_label);
+  _monitoringLevel = 0;
 }
 
 //-----------------------------------------------------------------------------

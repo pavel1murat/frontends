@@ -238,7 +238,7 @@ int OdbInterface::GetStatus(HNDLE hConf) {
 // /Mu2e/ActiveRunConfiguration is a link to the active run configuration
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetActiveRunConfigHandle() {
-  return GetHandle(_hDB,0,"/Mu2e/ActiveRunConfiguration");
+  return GetHandle(0,"/Mu2e/ActiveRunConfiguration");
 }
 
 //-----------------------------------------------------------------------------
@@ -263,7 +263,7 @@ HNDLE OdbInterface::GetCfoConfHandle(HNDLE h_RunConf) {
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetCmdConfigPath(std::string& HostLabel, std::string& EqName) {
-  return std::format("/Mu2e/Commands/{}/{}",HostLabel,EqName);
+  return std::format("/Mu2e/Commands/DAQ/Nodes/{}/{}",HostLabel,EqName);
 }
 
 //-----------------------------------------------------------------------------
@@ -593,7 +593,7 @@ std::string OdbInterface::GetCfoRunPlan(HNDLE hCFO) {
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetPcieAddress(HNDLE hCard) {
-  const char* key {"PCIEAddress"};
+  const char* key {"PcieAddress"};
   INT   data(-1);
   int   sz = sizeof(data);
   if (db_get_value(_hDB, hCard, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
@@ -606,7 +606,7 @@ int OdbInterface::GetPcieAddress(HNDLE hCard) {
 // get PCIE address of a boardreader DTC
 //-----------------------------------------------------------------------------
 int OdbInterface::GetDtcPcieAddress(HNDLE hDtc) {
-  const char* key {"PCIEAddress"};
+  const char* key {"PcieAddress"};
   INT   data(-1);
   int   sz = sizeof(data);
   if (db_get_value(_hDB, hDtc, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {

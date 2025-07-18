@@ -19,6 +19,8 @@ TEquipmentManager* TEquipmentManager::gEqManager(nullptr);
 
 //-----------------------------------------------------------------------------
 TEquipmentManager::TEquipmentManager(const char* eqname, const char* eqfilename): TMFeEquipment(eqname,eqfilename) {
+  TLOG(TLVL_DEBUG) << "-- START eqname:" << eqname << " eqfilename:" << eqfilename;
+
   fEqConfEventID          = 3;
   fEqConfPeriodMilliSec   = 30000;  // 30 sec ?
   fEqConfLogHistory       = 1;
@@ -29,12 +31,18 @@ TEquipmentManager::TEquipmentManager(const char* eqname, const char* eqfilename)
   _eq_dtc[0]              = nullptr;
   _eq_dtc[1]              = nullptr;
   _eq_artdaq              = nullptr;
-  _eq_disk                = nullptr; 
+  _eq_disk                = nullptr;
+
+
+  TLOG(TLVL_DEBUG) << " -- checkpoint 1";
+  
+  TLOG(TLVL_DEBUG) << "-- END";
 }
 
 
 //-----------------------------------------------------------------------------
 // back to DTC: two are listed in the header, both should be listed in ODB
+// can't do this in the constructor
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentManager::InitDtc() {
 
@@ -62,15 +70,17 @@ TMFeResult TEquipmentManager::InitDtc() {
     std::string subsystem = _odb_i->GetString(h_subkey,"Subsystem");
     std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
     int dtc_enabled       = _odb_i->GetEnabled(h_subkey);
-    int pcie_addr         = _odb_i->GetInteger(h_subkey,"PcieAddr");
+    int pcie_addr         = _odb_i->GetInteger(h_subkey,"PcieAddress");
 
     TLOG(TLVL_DEBUG) << "subsystem:" << subsystem << " enabled:" << dtc_enabled;
-
-    _h_dtc[pcie_addr]    = h_subkey;
-    
+   
     if (dtc_enabled) {
-      if      (subsystem == "CRV"    ) _eq_dtc[pcie_addr] = new TEqCrvDtc(_h_active_run_conf,h_subkey);
-      else if (subsystem == "TRACKER") _eq_dtc[pcie_addr] = new TEqTrkDtc(_h_active_run_conf,h_subkey);
+      if      (subsystem == "CRV"    ) {
+        _eq_dtc[pcie_addr] = new TEqCrvDtc(_h_active_run_conf,h_subkey);
+      }
+      else if (subsystem == "TRACKER") {
+        _eq_dtc[pcie_addr]    = new TEqTrkDtc(_h_active_run_conf,h_subkey);
+      }
     }
   }
 
@@ -93,22 +103,22 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
   //fEqConfLogHistory = 1;
 
   fEqConfBuffer = "SYSTEM";
-//-----------------------------------------------------------------------------
-// cache the ODB handle, as need to loop over the keys in InitArtdaq
-//-----------------------------------------------------------------------------
+
   _odb_i                      = OdbInterface::Instance();
   _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
   std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
   std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
-//-----------------------------------------------------------------------------
-// now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
-// nodes/DTC's to be monitored 
-// MIDAS 'host_name' could be 'local'..
-//-----------------------------------------------------------------------------
-  _host_label     = get_short_host_name(public_subnet.data());
-  _full_host_name = get_full_host_name (private_subnet.data());
+  _full_host_name             = get_full_host_name (private_subnet.data());
+  _host_label                 = get_short_host_name(public_subnet.data());
+  _h_daq_host_conf            = _odb_i->GetHostConfHandle(_host_label);
 
-  _h_daq_host_conf = _odb_i->GetHostConfHandle(_host_label);
+
+  TLOG(TLVL_DEBUG) << "active_run_conf:"  << _odb_i->GetString(_h_active_run_conf,"Name")
+                   << " public_subnet:"   << public_subnet
+                   << " private subnet:"  << private_subnet 
+                   << " _full_host_name:" << _full_host_name
+                   << " _host_label:"     << _host_label;
+
   if (_h_daq_host_conf == 0) {
     // if we don't find the config, there is nothing we can do, abort
     char buf[256];
@@ -117,26 +127,12 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
     return TMFeMidasError(buf,"TEquipmentManager::HandleInit(",DB_INVALID_NAME);
   }
   _h_frontend_conf = _odb_i->GetFrontendConfHandle(_h_active_run_conf,_host_label);
-
-  _monitorDtc    = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc");
-  _monitorArtdaq = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq");
-  _monitorSPI    = _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI");
-  _monitorRates  = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates");
-  _monitorDisk   = _odb_i->GetInteger(_h_frontend_conf,"Monitor/Disk");
-  
+//-----------------------------------------------------------------------------
+// in principle, CRV doesn't need to know about tracker-specific monitoring
+// multiple options, but for now leave as is
+//-----------------------------------------------------------------------------
   _diagLevel     = _odb_i->GetInteger(_h_frontend_conf,"DiagLevel");
 
-  TLOG(TLVL_DEBUG) << "active_run_conf:"  << _odb_i->GetString(_h_active_run_conf,"Name")
-                   << " public_subnet:"   << public_subnet
-                   << " private subnet:"  << private_subnet 
-                   << " _full_host_name:" << _full_host_name
-                   << " _host_label:"     << _host_label
-                   << std::endl
-                   << "_monitorDtc:"      << _monitorDtc
-                   << " _monitorSPI:"      << _monitorSPI
-                   << " _monitorArtdaq:"  << _monitorArtdaq
-                   << " _monitorRates:"   << _monitorRates;
-  
   EqSetStatus("Started...", "white");
   fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
@@ -228,38 +224,36 @@ void TEquipmentManager::HandlePeriodic() {
   //
   //  std::string node_eq_path = "/Equipment/"+TMFeEquipment::fEqName;
 
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"         ,&_monitorDtc         );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Disk"        ,&_monitorDisk        );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI"         ,&_monitorSPI         );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates"       ,&_monitorRates       );
-  _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
+  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"         ,&_monitorDtc         );
+  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/Disk"        ,&_monitorDisk        );
+  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/Artdaq"      ,&_monitorArtdaq      );
+  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/SPI"         ,&_monitorSPI         );
+  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/Rates"       ,&_monitorRates       );
+  // _odb_i->GetInteger(_h_frontend_conf,"Monitor/RocRegisters",&_monitorRocRegisters);
 
-  TLOG(TLVL_DEBUG+1) << "_monitorDtc:"                      << _monitorDtc
-                     << " _monitorSPI:"                     << _monitorSPI
-                     << " _monitorRates:"                   << _monitorRates
-                     << " _monitorRocRegisters:"            << _monitorRocRegisters
-                     << " _monitorArtdaq:"                  << _monitorArtdaq
-                     << " _monitorDisk:"                     << _monitorDisk
-                     << " TMFE::Instance()->fStateRunning:" << TMFE::Instance()->fStateRunning; 
+  // TLOG(TLVL_DEBUG+1) << "_monitorDtc:"                      << _monitorDtc
+  //                    << " _monitorSPI:"                     << _monitorSPI
+  //                    << " _monitorRates:"                   << _monitorRates
+  //                    << " _monitorRocRegisters:"            << _monitorRocRegisters
+  //                    << " _monitorArtdaq:"                  << _monitorArtdaq
+  //                    << " _monitorDisk:"                     << _monitorDisk
+  //                    << " TMFE::Instance()->fStateRunning:" << TMFE::Instance()->fStateRunning; 
 
-  if (_monitorDtc) {
-    for (int pcie_addr=0; pcie_addr<2; pcie_addr++) {
-      if (_eq_dtc[pcie_addr]) {
-        _eq_dtc[pcie_addr]->ReadMetrics();
-      }
+  for (int pcie_addr=0; pcie_addr<2; pcie_addr++) {
+    if (_eq_dtc[pcie_addr] and (_eq_dtc[pcie_addr]->MonitoringLevel() > 0)) {
+      _eq_dtc[pcie_addr]->ReadMetrics();
     }
   }
 //-----------------------------------------------------------------------------
 // read metrics of artdaq processes running on this node
 //-----------------------------------------------------------------------------
-  if (_monitorArtdaq and TMFE::Instance()->fStateRunning) {
+  if (_eq_artdaq and (_eq_artdaq->MonitoringLevel() > 0) and TMFE::Instance()->fStateRunning) {
     _eq_artdaq->ReadMetrics();
   }
 //-----------------------------------------------------------------------------
 // monitor node resources
 //-----------------------------------------------------------------------------
-  if (_monitorDisk) {
+  if (_eq_disk and (_eq_disk->MonitoringLevel() > 0)) {
     _eq_disk->ReadMetrics();
   }
 

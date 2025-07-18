@@ -8,7 +8,7 @@
 #include "odbxx.h"
 #include "frontends/utils/OdbInterface.hh"
 //-----------------------------------------------------------------------------
-int test_odb_access() {
+int test_odb_link() {
 
   cm_connect_experiment(NULL, NULL, "test_025", NULL);
 

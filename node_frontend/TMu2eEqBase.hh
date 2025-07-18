@@ -8,20 +8,22 @@
 #include "midas.h"
 #include "tmfe.h"
 
+class OdbInterface;
+
 class TMu2eEqBase {
 public:
-  std::string   _name;
+  std::string   _name;                  // equipment name, for now: 'dtc0','dtc1','artdaq','disk'
   std::string   _full_host_name;
-  std::string   _host_label;
+  std::string   _host_label;            // i.e. 'mu2edaq09'
   std::string   _logfile;               // set by the derived class
-  HNDLE         _h_daq_cost_conf;
+  HNDLE         _h_active_run_conf;
+  HNDLE         _h_daq_host_conf;
+
+  OdbInterface* _odb_i;
                                         // there could be have more monitoring flags - in the
                                         // derives classes, below are the common ones
-  int           _monitorDtc;
-  int           _monitorDisk;
-  int           _monitorArtdaq;
-                                        // alway s need a diag flag
-  int           _diagLevel;
+  int           _monitoringLevel;       // 0 or 1
+  int           _diagLevel;             // always needed
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -32,8 +34,12 @@ public:
   std::string&        HostLabel   () { return _host_label    ; }
   std::string&        FullHostName() { return _full_host_name; }
 
+  int                 MonitoringLevel() { return _monitoringLevel ; }
+
   void                ResetOutput ();
   void                WriteOutput (const std::string& Output);
+
+  void SetName(const char* Name) { _name = Name; }
 
   virtual TMFeResult  Init               ();
   virtual int         InitVarNames       ();
