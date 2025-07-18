@@ -131,6 +131,9 @@ TEqArtdaq::TEqArtdaq(const char* Name) : TMu2eEqBase() {
   }
   
   _monitoringLevel = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq");
+
+  TLOG(TLVL_DEBUG) << "artdaq _monitoringLevel:" << _monitoringLevel;
+
   InitVarNames();
   
   _logfile = "/home/mu2etrk/test_stand/experiments/test_025/artdaq.log"; // TODO: to come from config
