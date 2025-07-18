@@ -22,12 +22,15 @@
 int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
   TLOG(TLVL_DEBUG) << "-- START";
 
-  OdbInterface* odb_i = OdbInterface::Instance();
+  OdbInterface* odb_i  = OdbInterface::Instance();
   
-  HNDLE h_cmd = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/control_roc_load_thresholds");
-  int doit        = odb_i->GetInteger(h_cmd,"doit"       );
-  int print_level = odb_i->GetInteger(h_cmd,"print_level");
-  int link        = odb_i->GetInteger(h_cmd,"link"       );
+  HNDLE h_cmd          = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  std::string cmd_name = odb_i->GetString(h_cmd,"Name");
+  HNDLE h_cmd_par      = odb_i->GetHandle(h_cmd,cmd_name);
+
+  int link        = odb_i->GetInteger(h_cmd_par,"link"       );
+  int doit        = odb_i->GetInteger(h_cmd_par,"doit"       );
+  int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
   
   TLOG(TLVL_DEBUG) << "-- checkpoint 0.1";
 
@@ -56,7 +59,7 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
   std::string  dtc_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}",
                                       _host_label.data(),_dtc_i->fPcieAddr);
 
-  HNDLE h_dtc = odb_i->GetHandle(0,dtc_path);
+  HNDLE h_dtc = odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr()); // Handle(0,dtc_path);
   odb_i->SetStatus(h_dtc,1);
 
   TLOG(TLVL_DEBUG) << "-- check 1.1 dtc_path:" << dtc_path
@@ -142,7 +145,6 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
     catch (...) {
       Stream << " ERROR" << std::endl;
     }
-    
   }
                                       
   odb_i->SetStatus(h_dtc,0);

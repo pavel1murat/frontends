@@ -237,6 +237,13 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     eq_dtc->ReadIlp(ss);
   }
+  else if (cmd == "read") {
+//-----------------------------------------------------------------------------
+// control_ROC READ comamnd
+//-----------------------------------------------------------------------------
+    ss << std::endl;
+    eq_dtc->Read(ss);
+  }
   else if (cmd == "read_ilp") {
 //-----------------------------------------------------------------------------
 // read ILP

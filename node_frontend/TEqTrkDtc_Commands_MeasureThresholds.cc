@@ -22,7 +22,6 @@ int TEqTrkDtc::MeasureThresholds(std::ostream& Stream) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
-  // midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_measure_thresholds");
 
   OdbInterface* odb_i = OdbInterface::Instance();
 
