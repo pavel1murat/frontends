@@ -190,54 +190,54 @@ function dtc_reset_output(element) {
   dtc_command_set_odb("reset_output")
 }
 
-//-----------------------------------------------------------------------------
-function dtc_load_parameters_init_readout() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/init_readout',0);
-}
-      
-//-----------------------------------------------------------------------------
-function dtc_load_parameters_control_roc_read() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_read',0);
-}
-      
-//-----------------------------------------------------------------------------
-function dtc_load_parameters_control_roc_digi_rw() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_digi_rw',0);
-}
-      
-//-----------------------------------------------------------------------------
-function dtc_load_parameters_control_roc_pulser_on() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on',0);
-}
-      
-//-----------------------------------------------------------------------------
-function dtc_load_parameters_control_roc_pulser_off() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_pulser_off',0);
-}
-      
-//-----------------------------------------------------------------------------
-function dtc_load_parameters_control_roc_rates() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_rates',0);
-}
-
-//-----------------------------------------------------------------------------
-function dtc_load_parameters_control_roc_read_ddr() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_read_ddr',0);
-}
+// //-----------------------------------------------------------------------------
+// function dtc_load_parameters_init_readout() {
+//   const table     = document.getElementById('cmd_params');
+//   table.innerHTML = '';
+//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/init_readout',0);
+// }
+//       
+// //-----------------------------------------------------------------------------
+// function dtc_load_parameters_control_roc_read() {
+//   const table     = document.getElementById('cmd_params');
+//   table.innerHTML = '';
+//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_read',0);
+// }
+//       
+// //-----------------------------------------------------------------------------
+// function dtc_load_parameters_control_roc_digi_rw() {
+//   const table     = document.getElementById('cmd_params');
+//   table.innerHTML = '';
+//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_digi_rw',0);
+// }
+//       
+// //-----------------------------------------------------------------------------
+// function dtc_load_parameters_control_roc_pulser_on() {
+//   const table     = document.getElementById('cmd_params');
+//   table.innerHTML = '';
+//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on',0);
+// }
+//       
+// //-----------------------------------------------------------------------------
+// function dtc_load_parameters_control_roc_pulser_off() {
+//   const table     = document.getElementById('cmd_params');
+//   table.innerHTML = '';
+//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_pulser_off',0);
+// }
+//       
+// //-----------------------------------------------------------------------------
+// function dtc_load_parameters_control_roc_rates() {
+//   const table     = document.getElementById('cmd_params');
+//   table.innerHTML = '';
+//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_rates',0);
+// }
+// 
+// //-----------------------------------------------------------------------------
+// function dtc_load_parameters_control_roc_read_ddr() {
+//   const table     = document.getElementById('cmd_params');
+//   table.innerHTML = '';
+//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_read_ddr',0);
+// }
       
 //-----------------------------------------------------------------------------
 function dtc_load_cmd_parameters(cmd) {
