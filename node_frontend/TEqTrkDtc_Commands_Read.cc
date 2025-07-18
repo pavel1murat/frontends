@@ -17,25 +17,23 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
   HNDLE         h_run_conf = odb_i->GetActiveRunConfigHandle();
   std::string   conf_name  = odb_i->GetRunConfigName(h_run_conf);
 
-  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_read");
-  
   HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
-  HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"control_roc_read"); // for now
+  HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"read"); // for now
 
   trkdaq::ControlRoc_Read_Input_t0 par;
 
-  par.adc_mode        = o["adc_mode"     ];   // -a
-  par.tdc_mode        = o["tdc_mode"     ];   // -t 
-  par.num_lookback    = o["num_lookback" ];   // -l 
+  par.adc_mode        = odb_i->GetUInt16(h_cmd_par,"adc_mode"     );   // -a
+  par.tdc_mode        = odb_i->GetUInt16(h_cmd_par,"tdc_mode"     );   // -t 
+  par.num_lookback    = odb_i->GetUInt16(h_cmd_par,"num_lookback" );   // -l 
   
-  par.num_samples     = o["num_samples"  ];   // -s
-  par.num_triggers[0] = o["num_triggers"][0]; // -T 10
-  par.num_triggers[1] = o["num_triggers"][1]; //
+  par.num_samples     = odb_i->GetUInt16(h_cmd_par,"num_samples"    ); // -s
+  par.num_triggers[0] = odb_i->GetUInt16(h_cmd_par,"num_triggers[0]"); // -T 10
+  par.num_triggers[1] = odb_i->GetUInt16(h_cmd_par,"num_triggers[1]"); //
 
   // this is how we get the panel name
 
-  int use_panel_channel_mask = o["use_panel_channel_mask"];
-  int print_level            = o["print_level"];
+  int use_panel_channel_mask = odb_i->GetInteger(h_cmd_par,"use_panel_channel_mask");
+  int print_level            = odb_i->GetInteger(h_cmd_par,"print_level");
     
   // Stream << "use_panel_channel_mask:" <<  use_panel_channel_mask << std::endl;
 
@@ -58,7 +56,7 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 // use masks stored in the command ODB record
 //-----------------------------------------------------------------------------
-      for (int i=0; i<6; i++) par.ch_mask[i] = o["ch_mask"][i];
+      odb_i->GetArray(h_cmd_par,"ch_mask",TID_WORD,par.ch_mask,6);
     }
     else {
 //-----------------------------------------------------------------------------
@@ -90,10 +88,10 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
       }
     }
         
-    par.enable_pulser   = o["enable_pulser"];   // -p 1
-    par.marker_clock    = o["marker_clock" ];   // -m 3: data taking (ext clock), -m 0: rates (int clock)
-    par.mode            = o["mode"         ];   // not used ?
-    par.clock           = o["clock"        ];   // 
+    par.enable_pulser   = odb_i->GetUInt16(h_cmd_par,"enable_pulser");   // -p 1
+    par.marker_clock    = odb_i->GetUInt16(h_cmd_par,"marker_clock" );   // -m 3: data taking (ext clock), -m 0: rates (int clock)
+    par.mode            = odb_i->GetUInt16(h_cmd_par,"mode"         );   // not used ?
+    par.clock           = odb_i->GetUInt16(h_cmd_par,"clock"        );   // 
   
     try {
 //-----------------------------------------------------------------------------

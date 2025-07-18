@@ -452,15 +452,15 @@
       },
       "mu2edaq22" : {
         "DTC0" : {
-          "Name/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1752789938 },
-          "Name" : "soft_reset",
-          "ParameterPath/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1752786673 },
-          "ParameterPath" : "/Mu2e/Commands/Tracker/TRK",
-          "Run/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752786673 },
-          "Run" : 0,
-          "Finished/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752789895 },
-          "Finished" : 0,
-          "ReturnCode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752786673 },
+          "Name/key" : { "type" : 12, "item_size" : 5, "access_mode" : 7, "last_written" : 1752850540 },
+          "Name" : "read",
+          "ParameterPath/key" : { "type" : 12, "item_size" : 45, "access_mode" : 7, "last_written" : 1752850540 },
+          "ParameterPath" : "/Mu2e/Commands/DAQ/Nodes/mu2edaq22/DTC0/read",
+          "Run/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1752850540 },
+          "Run" : 1,
+          "Finished/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752850540 },
+          "Finished" : 1,
+          "ReturnCode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752850540 },
           "ReturnCode" : 0,
           "configure_ja" : {
             "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752789123 },
@@ -524,6 +524,8 @@
             "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752789214 },
             "link" : 0
           },
+          "print_status" : {
+          },
           "pulser_on" : {
             "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752789331 },
             "link" : -1,
@@ -565,8 +567,8 @@
             "print_level" : 4
           },
           "read" : {
-            "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752789438 },
-            "link" : -1,
+            "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752850534 },
+            "link" : 0,
             "# ------------------------- 2/key" : { "type" : 12, "item_size" : 73, "access_mode" : 7, "last_written" : 1752789438 },
             "# ------------------------- 2" : "--------  internal pulser digi checkerboard (-a4 -p1)  / data: (-a0 -p0)",
             "adc_mode/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789438 },
@@ -611,16 +613,20 @@
             "print_level" : 2
           },
           "read_register" : {
-            "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789583 },
-            "Register" : "0x00009140",
-            "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789583 },
-            "Value" : "0x0000007f"
+            "register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789583 },
+            "register" : "0x00009140",
+            "value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789583 },
+            "value" : "0x0000007f"
           },
           "read_roc_register" : {
-            "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789590 },
-            "Register" : "0x0000",
-            "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789590 },
-            "Value" : "0x1234"
+            "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+            "link" : 0,
+            "register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789590 },
+            "register" : "0x0000",
+            "value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752848383 },
+            "value" : "0x1234"
+          },
+          "reset_output" : {
           },
           "set_caldac" : {
             "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752789613 },
@@ -645,18 +651,18 @@
           "soft_reset" : {
           },
           "write_register" : {
-            "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789648 },
-            "Register" : "0x000091a8",
-            "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789648 },
-            "Value" : "0x00000200"
+            "register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789648 },
+            "register" : "0x000091a8",
+            "value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789648 },
+            "value" : "0x00000200"
           },
           "write_roc_register" : {
             "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752789656 },
             "link" : 0,
-            "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789656 },
-            "Register" : "0x003d",
-            "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789656 },
-            "Value" : "0x0000"
+            "register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789656 },
+            "register" : "0x003d",
+            "value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789656 },
+            "value" : "0x0000"
           }
         },
         "DTC1" : {
@@ -819,16 +825,18 @@
             "print_level" : 2
           },
           "read_register" : {
-            "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789991 },
-            "Register" : "0x00009140",
-            "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789991 },
-            "Value" : "0x0000007f"
+            "register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789991 },
+            "register" : "0x00009140",
+            "value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789991 },
+            "value" : "0x0000007f"
           },
           "read_roc_register" : {
-            "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789991 },
-            "Register" : "0x0000",
-            "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789991 },
-            "Value" : "0x1234"
+            "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+            "link" : 0,
+            "register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789991 },
+            "register" : "0x0000",
+            "value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789991 },
+            "value" : "0x1234"
           },
           "set_caldac" : {
             "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752789991 },
@@ -853,18 +861,18 @@
           "soft_reset" : {
           },
           "write_register" : {
-            "Register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789991 },
-            "Register" : "0x000091a8",
-            "Value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789991 },
-            "Value" : "0x00000200"
+            "register/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789991 },
+            "register" : "0x000091a8",
+            "value/key" : { "type" : 6, "access_mode" : 7, "last_written" : 1752789991 },
+            "value" : "0x00000200"
           },
           "write_roc_register" : {
             "link/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1752789991 },
             "link" : 0,
-            "Register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789991 },
-            "Register" : "0x003d",
-            "Value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789991 },
-            "Value" : "0x0000"
+            "register/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789991 },
+            "register" : "0x003d",
+            "value/key" : { "type" : 4, "access_mode" : 7, "last_written" : 1752789991 },
+            "value" : "0x0000"
           }
         },
         "Artdaq" : {

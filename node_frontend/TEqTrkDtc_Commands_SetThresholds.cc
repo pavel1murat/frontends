@@ -20,18 +20,18 @@ int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
 
   OdbInterface* odb_i = OdbInterface::Instance();
   
-  //  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_set_thresholds");
-
-  HNDLE h_cmd = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/DTC/control_roc_set_thresholds");
+  HNDLE h_cmd          = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  std::string cmd_name = odb_i->GetString(h_cmd,"Name");
+  HNDLE h_cmd_par      = odb_i->GetHandle(h_cmd,cmd_name);
   
   TLOG(TLVL_DEBUG) << "-- checkpoint 0.1";
 
   // int doit        = o["doit"] ;
   // int print_level = o["print_level"] ;
 
-  int doit        = odb_i->GetInteger(h_cmd,"doit"       );
-  int print_level = odb_i->GetInteger(h_cmd,"print_level");
-  int link        = odb_i->GetInteger(h_cmd,"link"       );
+  int doit        = odb_i->GetInteger(h_cmd_par,"doit"       );
+  int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
+  int link        = odb_i->GetInteger(h_cmd_par,"link"       );
   
   TLOG(TLVL_DEBUG) << "-- checkpoint 0.2 link:" << link
                    << " PcieAddr:" << _dtc_i->PcieAddr();
@@ -51,8 +51,6 @@ int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
 //-----------------------------------------------------------------------------
   std::string  dtc_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}",
                                       _host_label.data(),_dtc_i->fPcieAddr);
-  // midas::odb o_dtc(dtc_path);
-  // o_dtc["Status"] = 1;
 
   HNDLE h_dtc = odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr());
   odb_i->SetStatus(h_dtc,1);
