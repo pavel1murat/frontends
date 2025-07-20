@@ -8,14 +8,14 @@
 #include <iostream>
 #include <fstream>
 
-#include "frontends/cfg_frontend/TEquipmentTracker.hh"
+#include "frontends/cfg_frontend/TEqTracker.hh"
 #include "utils/utils.hh"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEquipmentTracker_ProcessCommand_ResetOutput"
+#define  TRACE_NAME "TEqTracker"
 
 //-----------------------------------------------------------------------------
-void TEquipmentTracker::ProcessCommand_ResetOutput() {
+void TEqTracker::ResetOutput() {
   TLOG(TLVL_DEBUG) << "--- START"; 
 
   std::ofstream output_file;

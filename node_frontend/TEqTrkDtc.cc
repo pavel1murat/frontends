@@ -192,7 +192,7 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
 // command processor : 'ProcessCommand' function
 //-----------------------------------------------------------------------------
     HNDLE hdb       = _odb_i->GetDbHandle();
-    HNDLE h_cmd     = _odb_i->GetDtcCommandHandle(_host_label,pcie_addr);
+    HNDLE h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,pcie_addr);
     HNDLE h_cmd_run = _odb_i->GetHandle(h_cmd,"Run");
 
     if (db_open_record(hdb,h_cmd_run,&_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {

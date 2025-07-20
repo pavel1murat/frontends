@@ -17,7 +17,7 @@
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "trk_cfg_frontend"
 
-#include "cfg_frontend/TEquipmentTracker.hh"
+#include "cfg_frontend/TEqTracker.hh"
 #include "utils/utils.hh"
 
 //-----------------------------------------------------------------------------
@@ -72,7 +72,7 @@ TrackerCfgFrontend::TrackerCfgFrontend() : TMFrontend() {
   FeSetName(fName.data());
   
 // add eq to the list of equipment pieces, equipment stores backward pointer to the frontend
-  TEquipmentTracker* eq = new TEquipmentTracker("tracker",__FILE__);
+  TEqTracker* eq = new TEqTracker("tracker",__FILE__);
   FeAddEquipment(eq);
 }
 

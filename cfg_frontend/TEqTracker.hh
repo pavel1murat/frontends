@@ -1,15 +1,15 @@
 //-----------------------------------------------------------------------------
 // tracker configuration frontend
 //-----------------------------------------------------------------------------
-#ifndef __TEquipmentTracker_hh__
-#define __TEquipmentTracker_hh__
+#ifndef __TEqTracker_hh__
+#define __TEqTracker_hh__
 
 #include "tmfe.h"
 #include "midas.h"
 
 #include "frontends/utils/OdbInterface.hh"
 
-class TEquipmentTracker : public TMFeEquipment {
+class TEqTracker : public TMFeEquipment {
 public:
   HNDLE                          _h_active_run_conf;
   HNDLE                          _h_daq_host_conf;
@@ -23,15 +23,16 @@ public:
   std::string                    _ss_cmd_path;     // "/Mu2e/Commands/Tracker"
   int                            _first_station;
   int                            _last_station;
+  //  std::vector<TEqTrkDtc*>        _list_of_dtcs;    // 
 //-----------------------------------------------------------------------------
 // threads
 //-----------------------------------------------------------------------------
   struct ThreadContext_t {
     int                             fPcieAddr;
     int                             fLink;
-    int                             fRunning;          // status: 0=stopped 1=running
-    int                             fStop;             // end marker
-    int                             fCmd;              // command
+    int                             fRunning;      // status: 0=stopped 1=running
+    int                             fStop;         // end marker
+    int                             fCmd;          // command
     int                             fPrintLevel;
 
     ThreadContext_t() {}
@@ -42,12 +43,12 @@ public:
     }
   };
 
-  static TEquipmentTracker*         fg_EqTracker;
+  static TEqTracker*                fg_EqTracker;
   ThreadContext_t                   fContext;
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  TEquipmentTracker(const char* eqname, const char* eqfilename);
+  TEqTracker(const char* eqname, const char* eqfilename);
 
   virtual TMFeResult HandleInit         (const std::vector<std::string>& args);
   virtual void       HandlePeriodic     ();
@@ -61,11 +62,11 @@ public:
   
   static  void       ProcessCommand(int hDB, int hKey, void* Info);
 
-  static  void       ProcessCommand_PulserOn        (const std::string& CmdParameterPath);
-  static  void       ProcessCommand_PulserOff       (const std::string& CmdParameterPath);
-  static  void       ProcessCommand_PanelPrintStatus(const std::string& CmdParameterPath);
-  static  void       ProcessCommand_ResetOutput();
-  static  TMFeResult ProcessCommand_ResetStationLV  (const std::string& CmdParameterPath);
+  static  void       PulserOn        (const std::string& CmdParameterPath);
+  static  void       PulserOff       (const std::string& CmdParameterPath);
+  static  void       PanelPrintStatus(const std::string& CmdParameterPath);
+  static  void       ResetOutput();
+  static  TMFeResult ResetStationLV  (const std::string& CmdParameterPath);
 
 
 };

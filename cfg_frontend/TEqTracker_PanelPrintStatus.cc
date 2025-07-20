@@ -8,15 +8,15 @@
 #include <iostream>
 #include <fstream>
 
-#include "frontends/cfg_frontend/TEquipmentTracker.hh"
+#include "frontends/cfg_frontend/TEqTracker.hh"
 #include "utils/utils.hh"
 #include "utils/OdbInterface.hh"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEquipmentTracker_ProcessCommand_PrintPanelStatus"
+#define  TRACE_NAME "TEqTracker"
 
 //-----------------------------------------------------------------------------
-void TEquipmentTracker::ProcessCommand_PanelPrintStatus(const std::string& CmdParameterPath) {
+void TEqTracker::PanelPrintStatus(const std::string& CmdParameterPath) {
   TLOG(TLVL_DEBUG) << "--- START"; 
 
   OdbInterface* odb_i = OdbInterface::Instance();
