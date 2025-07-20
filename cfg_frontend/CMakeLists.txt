@@ -24,17 +24,19 @@ cet_set_compiler_flags(
         -pthread 
 )
 
-cet_make_exec(NAME      trk_cfg_frontend
-              SOURCE    trk_cfg_frontend.cc TEquipmentTracker.cc
-              TEquipmentTracker_ProcessCommand_PulserOn.cc
-              TEquipmentTracker_ProcessCommand_PulserOff.cc
-              TEquipmentTracker_ProcessCommand_PanelPrintStatus.cc
-              TEquipmentTracker_ProcessCommand_ResetOutput.cc
-              TEquipmentTracker_ProcessCommand_ResetStationLV.cc
-              LIBRARIES
-              frontends_utils
-              midas
-              stdc++ m util pthread rt
+cet_make_exec(NAME trk_cfg_frontend
+  SOURCE
+  trk_cfg_frontend.cc
+  TEqTracker.cc
+  TEqTracker_PulserOn.cc
+  TEqTracker_PulserOff.cc
+  TEqTracker_PanelPrintStatus.cc
+  TEqTracker_ResetOutput.cc
+  TEqTracker_ResetStationLV.cc
+  LIBRARIES
+  frontends_utils
+  midas
+  stdc++ m util pthread rt
 )
 
 install(PROGRAMS

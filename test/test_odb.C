@@ -50,3 +50,23 @@ int test_odb_array() {
   cm_disconnect_experiment();
   return 0;
 }
+
+//-----------------------------------------------------------------------------
+// so far, looks pretty much useless
+//-----------------------------------------------------------------------------
+int test_odb_path() {
+
+  cm_connect_experiment(NULL, NULL, "test_025", NULL);
+
+  OdbInterface* odb_i = OdbInterface::Instance();
+
+  HNDLE h = odb_i->GetHandle(0,"/Mu2e/ActiveConfiguration");
+  HNDLE h1 = odb_i->GetHandle(h,"Tracker");
+
+  std::string path = db_get_path(odb_i->GetDbHandle(),h1);
+
+  std::cout << "path:" << path << std::endl;
+  
+  cm_disconnect_experiment();
+  return 0;
+}

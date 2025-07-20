@@ -5,14 +5,14 @@
 
 #include "odbxx.h"
 
-#include "frontends/cfg_frontend/TEquipmentTracker.hh"
+#include "frontends/cfg_frontend/TEqTracker.hh"
 #include "utils/utils.hh"
 
 #include "TRACE/tracemf.h"
-// #define  TRACE_NAME "TEquipmentTracker_ProcessCommand_PulserOff"
+#define  TRACE_NAME "TEqTracker"
 
 //-----------------------------------------------------------------------------
-void TEquipmentTracker::ProcessCommand_PulserOff(const std::string& CmdParameterPath) {
+void TEqTracker::PulserOff(const std::string& CmdParameterPath) {
   std::string  cmd("control_roc_pulser_off");
                   
   TLOG(TLVL_DEBUG) << "--- START"; 

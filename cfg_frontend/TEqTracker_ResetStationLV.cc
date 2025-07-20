@@ -8,15 +8,15 @@
 #include <iostream>
 #include <fstream>
 
-#include "frontends/cfg_frontend/TEquipmentTracker.hh"
+#include "frontends/cfg_frontend/TEqTracker.hh"
 #include "utils/utils.hh"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEquipmentTracker"
+#define  TRACE_NAME "TEqTracker"
 
 //-----------------------------------------------------------------------------
 // "/Mu2e/Commands/Tracker/TRK/
-TMFeResult TEquipmentTracker::ProcessCommand_ResetStationLV(const std::string& CmdParameterPath) {
+TMFeResult TEqTracker::ResetStationLV(const std::string& CmdParameterPath) {
   std::string tracker_config_path{"/Mu2e/ActiveRunConfiguration/Tracker"};
   std::string tracker_cmd_path   {"/Mu2e/Commands/Tracker"};
   std::string cmd                {"reset_station_lv"};
@@ -42,10 +42,10 @@ TMFeResult TEquipmentTracker::ProcessCommand_ResetStationLV(const std::string& C
   std::string rpi_cmd_par_path = std::format("{}/{}",rpi_cmd_path,cmd);
   HNDLE h_rpi_cmd_par = odb_i->GetHandle(0,rpi_cmd_par_path);
 
-  TLOG(TLVL_DEBUG) << "rpi_cmd_path:" << rpi_cmd_path
-                   << " h_rpi_cmd:" << h_rpi_cmd
+  TLOG(TLVL_DEBUG) << "rpi_cmd_path:"      << rpi_cmd_path
+                   << " h_rpi_cmd:"        << h_rpi_cmd
                    << " rpi_cmd_par_path:" << rpi_cmd_par_path
-                   << " h_rpi_cmd_par:" << h_rpi_cmd_par; 
+                   << " h_rpi_cmd_par:"    << h_rpi_cmd_par; 
 
   odb_i->SetInteger(h_rpi_cmd_par,"print_level",1);
 

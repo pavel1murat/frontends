@@ -53,7 +53,7 @@ int TEqTrkDtc::DigiRW(std::ostream& Stream) {
 
   OdbInterface* odb_i = OdbInterface::Instance();
 
-  HNDLE h_cmd = odb_i->GetDtcCommandHandle(HostLabel(),_dtc_i->PcieAddr());
+  HNDLE h_cmd = odb_i->GetDtcCmdHandle(HostLabel(),_dtc_i->PcieAddr());
 
   std::string cmd            = odb_i->GetString(h_cmd,"Name");
   std::string parameter_path = odb_i->GetString(h_cmd,"ParameterPath");
@@ -86,7 +86,7 @@ int TEqTrkDtc::DumpSettings(std::ostream& Stream) {
   TLOG(TLVL_DEBUG) << "--- START";
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"find_alignment");
 
   // midas::odb o_cmd("/Mu2e/Commands/Tracker/DTC/dump_settings");
@@ -117,7 +117,7 @@ int TEqTrkDtc::DumpSettings(std::ostream& Stream) {
 int TEqTrkDtc::GetKey(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"get_key");
 
   int link               = odb_i->GetInteger(h_cmd,"link");
@@ -136,7 +136,7 @@ int TEqTrkDtc::GetKey(std::ostream& Stream) {
 int TEqTrkDtc::GetRocDesignInfo(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"get_roc_design_info");
 
   int link               = odb_i->GetInteger(h_cmd,"link");
@@ -190,7 +190,7 @@ int TEqTrkDtc::GetRocDesignInfo(std::ostream& Stream) {
 int TEqTrkDtc::InitReadout(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"init_readout");
 
   try {
@@ -213,7 +213,7 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
 int TEqTrkDtc::FindAlignment(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"find_alignment");
 
   int link        = odb_i->GetInteger(h_cmd,"link"       );
@@ -237,7 +237,7 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
 
   OdbInterface* odb_i  = OdbInterface::Instance();
   
-  HNDLE h_cmd          = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE h_cmd          = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   std::string cmd_name = odb_i->GetString(h_cmd,"Name");
   HNDLE h_cmd_par      = odb_i->GetHandle(h_cmd,cmd_name);
 
@@ -379,7 +379,7 @@ int TEqTrkDtc::MeasureThresholds(std::ostream& Stream) {
 
   OdbInterface* odb_i  = OdbInterface::Instance();
 
-  HNDLE h_cmd          = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE h_cmd          = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   std::string cmd_name = odb_i->GetString(h_cmd,"Name");
   HNDLE h_cmd_par      = odb_i->GetHandle(h_cmd,cmd_name);
 
@@ -439,7 +439,7 @@ int TEqTrkDtc::MeasureThresholds(std::ostream& Stream) {
 int TEqTrkDtc::PrintRocStatus(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   //  HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"print_roc_status");
 
   int link        = odb_i->GetInteger(h_cmd,"link"       );
@@ -456,7 +456,7 @@ int TEqTrkDtc::PrintRocStatus(std::ostream& Stream) {
 int TEqTrkDtc::PulserOff(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"pulser_off");
 
   int link, print_level;
@@ -479,7 +479,7 @@ int TEqTrkDtc::PulserOff(std::ostream& Stream) {
 int TEqTrkDtc::PulserOn(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"pulser_on");
 
   int link, first_channel_mask, duty_cycle, pulser_delay, print_level;
@@ -519,7 +519,7 @@ int TEqTrkDtc::Rates(std::ostream& Stream) {
   
   trkdaq::ControlRoc_Rates_t  prates;
     
-  HNDLE h_cmd          = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE h_cmd          = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   std::string cmd_name = odb_i->GetString(h_cmd,"Name");
   HNDLE h_cmd_par      = odb_i->GetHandle(h_cmd,cmd_name);
 
@@ -691,7 +691,7 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
   HNDLE         h_run_conf = odb_i->GetActiveRunConfigHandle();
   std::string   conf_name  = odb_i->GetRunConfigName(h_run_conf);
 
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   std::string   cmd_name  = odb_i->GetString(h_cmd,"Name");
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,cmd_name); // for now
 
@@ -788,7 +788,7 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
 int TEqTrkDtc::ReadRegister(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"read_register");
 
   try {
@@ -808,7 +808,7 @@ int TEqTrkDtc::ReadRegister(std::ostream& Stream) {
 int TEqTrkDtc::ReadRocRegister(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"read_roc_register");
 
   int link        = odb_i->GetInteger(h_cmd    ,"link"    );
@@ -836,7 +836,7 @@ int TEqTrkDtc::ReadIlp(std::ostream& Stream) {
   int rc(0);
 
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   std::string   cmd_name  = odb_i->GetString(h_cmd,"Name");
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,cmd_name);
 
@@ -863,7 +863,7 @@ int TEqTrkDtc::ReadSpi(std::ostream& Stream) {
   int rc(0);
 
   OdbInterface* odb_i        = OdbInterface::Instance();
-  HNDLE h_cmd                = odb_i->GetDtcCommandHandle(HostLabel(),_dtc_i->PcieAddr());
+  HNDLE h_cmd                = odb_i->GetDtcCmdHandle(HostLabel(),_dtc_i->PcieAddr());
   std::string parameter_path = odb_i->GetString(h_cmd,"ParameterPath");
   HNDLE h_cmd_par            = odb_i->GetHandle(h_cmd,parameter_path);
 
@@ -901,7 +901,7 @@ int TEqTrkDtc::ReadDDR(std::ostream& Stream) {
   // midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_read_ddr");
 
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   std::string   cmd_name  = odb_i->GetString(h_cmd,"Name");
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,cmd_name);
 
@@ -929,7 +929,7 @@ int TEqTrkDtc::ResetRoc(std::ostream& Stream) {
   midas::odb o   ("/Mu2e/Commands/Tracker/DTC/reset_roc");
 
   //   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = _odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   std::string   cmd_name  = _odb_i->GetString(h_cmd,"Name");
   //  HNDLE         h_cmd_par = _odb_i->GetHandle(h_cmd,cmd_name);
 
@@ -952,7 +952,7 @@ int TEqTrkDtc::SetCalDac(std::ostream& Stream) {
   
   midas::odb o_cmd("/Mu2e/Commands/Tracker/DTC/set_caldac");
     
-  HNDLE        h_cmd     = _odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE        h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   std::string  cmd_name  = _odb_i->GetString(h_cmd,"Name");
   HNDLE        h_cmd_par = _odb_i->GetHandle(h_cmd,cmd_name);
 
@@ -986,7 +986,7 @@ int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
 
   OdbInterface* odb_i = OdbInterface::Instance();
   
-  HNDLE h_cmd          = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE h_cmd          = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   std::string cmd_name = odb_i->GetString(h_cmd,"Name");
   HNDLE h_cmd_par      = odb_i->GetHandle(h_cmd,cmd_name);
   
@@ -1084,7 +1084,7 @@ int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
 int TEqTrkDtc::WriteRegister(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"read_register");
 
   try {
@@ -1106,7 +1106,7 @@ int TEqTrkDtc::WriteRegister(std::ostream& Stream) {
 int TEqTrkDtc::WriteRocRegister(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCommandHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"write_roc_register");
 
   int      link = odb_i->GetInteger(h_cmd    ,"link"    );

@@ -41,8 +41,6 @@ public:
   std::string GetCmdConfigPath        (std::string& HostLabel, std::string& EqName);
 
   HNDLE       GetDaqConfigHandle      (HNDLE h_RunConf = -1);
-  HNDLE       GetDtcConfigHandle      (const std::string& Host, int PcieAddr, HNDLE hRunConf = -1);
-  HNDLE       GetDtcCommandHandle     (const std::string& Host, int PcieAddr);
   
   int         GetHostConfHandle       (const std::string& Host, HNDLE h_RunConf = -1);
   int         GetFrontendConfHandle   (HNDLE h_RunConf, const std::string& Host);
@@ -73,8 +71,14 @@ public:
 
   int         GetCfoSleepTime         (HNDLE h_CFO);
    
+  HNDLE       GetDtcConfigHandle    (const std::string& Host, int PcieAddr, HNDLE hRunConf = -1);
+  HNDLE       GetDtcCmdHandle       (const std::string& Host, int PcieAddr);
+  std::string GetDtcCmdPath         (const std::string& Node, int PcieAddr); // 
+  std::string GetDtcCmdParameterPath(const std::string& Node, int PcieAddr, const std::string& Cmd); // 
+
   int         GetDtcEmulatesCfo   (HNDLE h_Card); // card: DTC
   int         GetDtcID            (HNDLE h_Card); // card: DTC
+  std::string GetDtcHostLabel     (HNDLE h_Card); // 
   int         GetJAMode           (HNDLE h_Card); // card: CFO or DTC
   int         GetLinkMask         (HNDLE h_Card); // card: CFO or DTC
   int         GetLinkEnabled      (HNDLE h_Card, int Link); // card: DTC
@@ -152,10 +156,13 @@ public:
 
   void        SetCommand_Finished     (HNDLE h_Cmd, int Val); // retrieve a hopefully fixed attribute
 //-----------------------------------------------------------------------------
-// tracker-specific section
+// tracker-specific section - all for active configuration
 //------------------------------------------------------------------------------
-  HNDLE       GetTrackerPanelHandle        (int MnID);
-  
+  HNDLE       GetTrackerCommandHandle ();
+  HNDLE       GetTrackerConfigHandle  ();
+  HNDLE       GetTrackerStationHandle (int Station);
+  HNDLE       GetTrackerPlaneHandle   (int Station, int Plane);
+  HNDLE       GetTrackerPanelHandle   (int MnID);
 };
 
 #endif

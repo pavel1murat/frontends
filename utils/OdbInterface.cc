@@ -392,6 +392,32 @@ int OdbInterface::GetDtcID(HNDLE hNode) {
 }
 
 //-----------------------------------------------------------------------------
+// get short host name of the DTC host
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetDtcHostLabel(HNDLE hDTC) {
+  HNDLE h_parent = GetParent(hDTC);
+  // node_fe.name is the node frontend name ! 
+  KEY node;
+  GetKey(h_parent,&node);
+  std::string s(node.name);
+
+  TLOG(TLVL_DEBUG+1) << "node.name:" << (char*) node.name;
+  return s;
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetDtcCmdPath(const std::string& Node, int PcieAddr) {
+  std::string path = std::format("/Mu2e/Commands/DAQ/Nodes/{}/DTC{}",Node,PcieAddr);
+  return path;
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetDtcCmdParameterPath(const std::string& Node, int PcieAddr, const std::string& Cmd) {
+  std::string path = std::format("/Mu2e/Commands/DAQ/Nodes/{}/DTC{}/{}",Node,PcieAddr,Cmd);
+  return path;
+}
+
+//-----------------------------------------------------------------------------
 // handle: CFO or DTC record in ODB
 //-----------------------------------------------------------------------------
 int OdbInterface::GetJAMode(HNDLE hDTC) {
@@ -546,7 +572,7 @@ HNDLE OdbInterface::GetDtcConfigHandle(const std::string& Host, int PcieAddr, HN
 // hRunConf = -1: request for active run configuration
 // 'Host' is the host label (w/o '-ctrl')
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetDtcCommandHandle(const std::string& Host, int PcieAddr) {
+HNDLE OdbInterface::GetDtcCmdHandle(const std::string& Host, int PcieAddr) {
   HNDLE h(0);
   
   std::string key = std::format("/Mu2e/Commands/DAQ/Nodes/{}/DTC{}",Host,PcieAddr);
@@ -805,11 +831,28 @@ void OdbInterface::SetCommand_Finished(HNDLE h_Cmd, int Value) {
 //-----------------------------------------------------------------------------
 // tracker section
 //-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetTrackerConfigHandle() {
+  return GetHandle(0,"/Mu2e/ActiveRunConfiguration/Tracker");
+}
 
+HNDLE OdbInterface::GetTrackerCommandHandle() {
+  return GetHandle(0,"/Mu2e/Commands/Tracker");
+}
+
+HNDLE OdbInterface::GetTrackerStationHandle(int Station) {
+  std::string path = std::format("/Mu2e/ActiveRunConfiguration/Tracker/Station_{:02d}",Station);
+  return GetHandle(0,path);
+}
+
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetTrackerPlaneHandle(int Station, int Plane) {
+  std::string path = std::format("/Mu2e/ActiveRunConfiguration/Tracker/Station_{:02d}/Plane_{:02d}",Station,Plane);
+  return GetHandle(0,path);
+}
+
+//-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetTrackerPanelHandle(int MnID) {
   int sdir = (MnID/10)*10;
-  std::string panel_path = std::format("/Mu2e/ActiveRunConfiguration/Tracker/PanelMap/{:03d}/MN{:03d}/Panel",sdir,MnID);
-
-  HNDLE h = GetHandle(0,panel_path);
-  return h;
+  std::string path = std::format("/Mu2e/ActiveRunConfiguration/Tracker/PanelMap/{:03d}/MN{:03d}/Panel",sdir,MnID);
+  return GetHandle(0,path);
 }
