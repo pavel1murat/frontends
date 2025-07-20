@@ -68,6 +68,7 @@ public:
   static  void       ResetOutput();
   static  TMFeResult ResetStationLV  (const std::string& CmdParameterPath);
 
+  static  int        WaitForCompletion (HNDLE h_CMD, int TimeoutMs);
 
 };
 #endif
