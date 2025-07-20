@@ -168,11 +168,22 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "tracker_cmd:" << tracker_cmd
                    << " cmd_parameter_path:" << cmd_parameter_path;
 
-  if      (tracker_cmd == "pulser_on"          ) PulserOn (cmd_parameter_path);
+  if      (tracker_cmd == "pulser_on"          ) {
+    PulserOn (cmd_parameter_path);
+    WaitForCompletion(h_trk_cmd,10000);
+  }
   else if (tracker_cmd == "pulser_off"         ) PulserOff(cmd_parameter_path);
   else if (tracker_cmd == "panel_print_status" ) PanelPrintStatus(cmd_parameter_path);
   else if (tracker_cmd == "reset_output"       ) ResetOutput();
   else if (tracker_cmd == "reset_station_lv"   ) ResetStationLV(cmd_parameter_path);
+
+  int finished = odb_i->GetInteger(h_trk_cmd,"Finished");
+  
+  TLOG(TLVL_DEBUG) << "--- END, o_tracker_cmd[\"Finished\"]:" << finished; 
+}
+
+//-----------------------------------------------------------------------------
+int TEqTracker::WaitForCompletion(HNDLE h_Cmd, int TimeoutMs) {
 //-----------------------------------------------------------------------------
 // wait for the command completion or timeout - this is a common part for all
 // "per-DTC" commands
@@ -180,11 +191,16 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 // fields should check out during the first iteration
 //-----------------------------------------------------------------------------
   ss_sleep(100);
-  int finished = 0; // simulate .... 0;
+  // int finished = 0; // simulate .... 0;
   int wait_time(0);
   int n_not_finished = 100;
   
-  while ((n_not_finished > 0) and (wait_time < 10000)) {
+  OdbInterface* odb_i = OdbInterface::Instance();
+  HNDLE h_trk_cfg   = odb_i->GetTrackerConfigHandle();
+  int first_station = odb_i->GetInteger(h_trk_cfg,"FirstStation");
+  int last_station  = odb_i->GetInteger(h_trk_cfg,"LastStation" ); 
+
+  while ((n_not_finished > 0) and (wait_time < TimeoutMs)) {
     ss_sleep(100);
     wait_time += 100;
 
@@ -196,10 +212,10 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
         HNDLE h_plane = odb_i->GetTrackerPlaneHandle(is,pln);
         if (odb_i->GetEnabled(h_plane) == 0) continue;
         
-        HNDLE       h_dtc     = odb_i->GetHandle(h_plane,"DTC");
+        HNDLE       h_dtc     = odb_i->GetHandle        (h_plane,"DTC");
         int         pcie_addr = odb_i->GetDtcPcieAddress(h_dtc);
         std::string node      = odb_i->GetDtcHostLabel  (h_dtc);
-        HNDLE       h_dtc_cmd = odb_i->GetDtcCmdHandle(node,pcie_addr);
+        HNDLE       h_dtc_cmd = odb_i->GetDtcCmdHandle  (node,pcie_addr);
         
         int rc       = odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
         int finished = odb_i->GetInteger(h_dtc_cmd,"Finished"  );
@@ -214,21 +230,18 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 // either all finished, or timeout
 //-----------------------------------------------------------------------------
   if (n_not_finished != 0) {
-    odb_i->SetInteger(h_trk_cmd,"ReturnCode",-1);
+    odb_i->SetInteger(h_Cmd    ,"ReturnCode",-1);
     odb_i->SetInteger(h_trk_cfg,"Status"    ,-1);
   }
   else {
-    odb_i->SetInteger(h_trk_cmd,"ReturnCode", 0);
+    odb_i->SetInteger(h_Cmd    ,"ReturnCode", 0);
     odb_i->SetInteger(h_trk_cfg,"Status"    ,-0);
   }
-  
-  odb_i->SetInteger(h_trk_cmd,"Finished"  , 0);
 //-----------------------------------------------------------------------------
 // mark execution as completed
 //-----------------------------------------------------------------------------
-  odb_i->SetStatus(h_trk_cfg,0);
-  odb_i->SetInteger(h_trk_cmd,"Finished",1);
-  finished = odb_i->GetInteger(h_trk_cmd,"Finished");
-  
-  TLOG(TLVL_DEBUG) << "--- END, o_tracker_cmd[\"Finished\"]:" << finished; 
+  odb_i->SetInteger(h_trk_cfg,"Status"  ,0);
+  odb_i->SetInteger(h_Cmd    ,"Finished",1);
+
+  return n_not_finished;
 }
