@@ -99,11 +99,11 @@ function trk_command_set_odb(cmd) {
   var paths=["/Mu2e/Commands/Tracker/Name",
              "/Mu2e/Commands/Tracker/ParameterPath",
              "/Mu2e/Commands/Tracker/Finished",
-             "/Mu2e/Commands/Tracker/TRK/"+cmd+"/mnid",
+             "/Mu2e/Commands/Tracker/"+cmd+"/mnid",
             ];
   
   
-  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker/TRK",0,g_mnid]).then(function(rpc) {
+  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker",0,g_mnid]).then(function(rpc) {
     result=rpc.result;	      
     // document.getElementById("wstatus").innerHTML = 'Write status '+rpc.result.status
 
@@ -152,11 +152,11 @@ function trk_panel_command_set_odb(cmd) {
   var paths=["/Mu2e/Commands/Tracker/Name",
              "/Mu2e/Commands/Tracker/ParameterPath",
              "/Mu2e/Commands/Tracker/Finished",
-             "/Mu2e/Commands/Tracker/TRK/"+cmd+"/mnid",
+             "/Mu2e/Commands/Tracker/"+cmd+"/mnid",
             ];
   
   
-  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker/TRK",0,g_mnid]).then(function(rpc) {
+  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker",0,g_mnid]).then(function(rpc) {
     result=rpc.result;	      
     // document.getElementById("wstatus").innerHTML = 'Write status '+rpc.result.status
 
@@ -209,11 +209,11 @@ function trk_station_command_set_odb(cmd) {
   var paths=["/Mu2e/Commands/Tracker/Name",
              "/Mu2e/Commands/Tracker/ParameterPath",
              "/Mu2e/Commands/Tracker/Finished",
-             "/Mu2e/Commands/Tracker/TRK/"+cmd+"/station",
+             "/Mu2e/Commands/Tracker/"+cmd+"/station",
             ];
   
   
-  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker/TRK",0,g_station]).then(function(rpc) {
+  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker",0,g_station]).then(function(rpc) {
     result=rpc.result;	      
     // document.getElementById("wstatus").innerHTML = 'Write status '+rpc.result.status
 
@@ -332,14 +332,14 @@ function trk_panel_load_parameters(station,plane,panel) {
 function trk_panel_load_cmd_parameters(cmd) {
   const table     = document.getElementById('cmd_params');
   table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/TRK/panel_'+cmd,0);
+  odb_browser('cmd_params','/Mu2e/Commands/Tracker/panel_'+cmd,0);
 }
       
 //-----------------------------------------------------------------------------
 function trk_load_parameters_init_readout() {
   const table     = document.getElementById('cmd_params');
   table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/init_readout',0);
+  odb_browser('cmd_params','/Mu2e/Commands/Tracker/init_readout',0);
 }
       
 

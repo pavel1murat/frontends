@@ -64,16 +64,14 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
   TLOG(TLVL_DEBUG) << "cmd:" << cmd << " parameter_path:" << parameter_path;
 
-  ss << "--cmd:" << cmd ; // << " parameter_path:" << parameter_path;
-
-  // midas::odb o_par(parameter_path);
   HNDLE h_par_path           = odb_i->GetHandle(0,parameter_path);
-  TLOG(TLVL_DEBUG) << "-- parameters found";
 //-----------------------------------------------------------------------------
 // should be already defined at this point
 //-----------------------------------------------------------------------------
   TEqTrkDtc*            eq_dtc = (TEqTrkDtc*) TEquipmentManager::Instance()->_eq_dtc[pcie_addr];
   trkdaq::DtcInterface* dtc_i  = eq_dtc->Dtc_i();
+
+  ss << "--cmd:" << cmd << " pcie_addr:" << dtc_i->PcieAddr(); // << " parameter_path:" << parameter_path;
 //-----------------------------------------------------------------------------
 // CONFIGURE_JA
 //------------------------------------------------------------------------------

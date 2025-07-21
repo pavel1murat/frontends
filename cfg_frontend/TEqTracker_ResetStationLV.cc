@@ -21,7 +21,7 @@ TMFeResult TEqTracker::ResetStationLV(const std::string& CmdParameterPath) {
   std::string tracker_cmd_path   {"/Mu2e/Commands/Tracker"};
   std::string cmd                {"reset_station_lv"};
 
-  TLOG(TLVL_DEBUG) << "--- START"; 
+  TLOG(TLVL_DEBUG) << "--- START TEqTracker::" << __func__; 
 
   OdbInterface* odb_i = OdbInterface::Instance();
   
@@ -73,7 +73,7 @@ TMFeResult TEqTracker::ResetStationLV(const std::string& CmdParameterPath) {
 //-----------------------------------------------------------------------------
   odb_i->SetInteger(h_cmd,"Run",0);
   
-  TLOG(TLVL_DEBUG) << "--- END"; 
+  TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__; 
 
   return TMFeOk();
 }
