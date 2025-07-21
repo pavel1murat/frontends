@@ -9,10 +9,10 @@ SUBROUTINE trk_control_roc_pulser_on
 
   comment "define command and its parameters"
   
-  odbset "/Mu2e/Commands/Tracker/Name"         , "control_roc_pulser_on"
-  odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/DTC"
+  odbset "/Mu2e/Commands/Tracker/Name"         , "pulser_on"
+  odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/pulser_on"
 
-  ODBSUBDIR /Mu2e/Commands/Tracker/DTC/control_roc_pulser_on
+  ODBSUBDIR /Mu2e/Commands/Tracker/pulser_on
     ODBSET link              , -1
     ODBSET first_channel_mask, $1
     ODBSET pulser_delay      , $2
@@ -39,18 +39,19 @@ SUBROUTINE trk_control_roc_pulser_off
 
   comment "define command and its parameters"
   
-  odbset "/Mu2e/Commands/Tracker/Name"         , "control_roc_pulser_off"
-  odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/DTC"
+  odbset "/Mu2e/Commands/Tracker/Name"         , "pulser_off"
+  odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/pulser_off"
 
-  ODBSUBDIR /Mu2e/Commands/Tracker/DTC/control_roc_pulser_off
+  ODBSUBDIR "/Mu2e/Commands/Tracker/pulser_off"
     ODBSET link              , -1
     ODBSET print_level       , $1
   ENDODBSUBDIR
 
   comment "set command to be executed"
-   
-  odbset            "/Mu2e/Commands/Tracker/Finished", 0 , 0
-  odbset            "/Mu2e/Commands/Tracker/Run"     , 1 , 1
+  ODBSUBDIR "/Mu2e/Commands/Tracker"
+    ODBSET      "Finished", 0 , 0
+    ODBSET      "Run"     , 1 , 1
+  ENDODBSUBDIR
 
   comment "wait until execution is finished"
   
