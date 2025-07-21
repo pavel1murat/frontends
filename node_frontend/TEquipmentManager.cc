@@ -33,7 +33,6 @@ TEquipmentManager::TEquipmentManager(const char* eqname, const char* eqfilename)
   _eq_artdaq              = nullptr;
   _eq_disk                = nullptr;
 
-
   TLOG(TLVL_DEBUG) << " -- checkpoint 1";
   
   TLOG(TLVL_DEBUG) << "-- END";
@@ -142,7 +141,6 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
   
   return TMFeOk();
 }
-
 
 //-----------------------------------------------------------------------------
 // init DTC reaout for a given mode at begin run

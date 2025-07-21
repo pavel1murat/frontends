@@ -71,10 +71,11 @@ public:
 
   int         GetCfoSleepTime         (HNDLE h_CFO);
    
-  HNDLE       GetDtcConfigHandle    (const std::string& Host, int PcieAddr, HNDLE hRunConf = -1);
-  HNDLE       GetDtcCmdHandle       (const std::string& Host, int PcieAddr);
-  std::string GetDtcCmdPath         (const std::string& Node, int PcieAddr); // 
-  std::string GetDtcCmdParameterPath(const std::string& Node, int PcieAddr, const std::string& Cmd); // 
+  HNDLE       GetDtcConfigHandle      (const std::string& Host, int PcieAddr, HNDLE hRunConf = -1);
+  HNDLE       GetDtcCmdHandle         (const std::string& Host, int PcieAddr);
+  HNDLE       GetDtcCmdParameterHandle(const std::string& Host, int PcieAddr, const std::string& Cmd);
+  std::string GetDtcCmdPath           (const std::string& Node, int PcieAddr); // 
+  std::string GetDtcCmdParameterPath  (const std::string& Node, int PcieAddr, const std::string& Cmd); // 
 
   int         GetDtcEmulatesCfo   (HNDLE h_Card); // card: DTC
   int         GetDtcID            (HNDLE h_Card); // card: DTC
@@ -158,7 +159,9 @@ public:
 //-----------------------------------------------------------------------------
 // tracker-specific section - all for active configuration
 //------------------------------------------------------------------------------
-  HNDLE       GetTrackerCommandHandle ();
+  HNDLE       GetTrackerCmdHandle     ();
+  std::string GetTrackerCmdParameterPath  (std::string& Cmd);
+  HNDLE       GetTrackerCmdParameterHandle(std::string& Cmd);
   HNDLE       GetTrackerConfigHandle  ();
   HNDLE       GetTrackerStationHandle (int Station);
   HNDLE       GetTrackerPlaneHandle   (int Station, int Plane);
