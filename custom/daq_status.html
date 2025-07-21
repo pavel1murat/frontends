@@ -139,7 +139,7 @@
                 if ((typeof label == 'string') && (label != 'Enabled') && (label != 'Status')) {
                   const cell = document.createElement("td");
                   cell.className = "status-cell";
-                  cell.innerHTML = `<button onclick="artdaq_process_status('${hostname}','${label}')">${label}</button>`;
+                  cell.innerHTML = `<button onclick="artdaq_process_control('${hostname}','${label}')">${label}</button>`;
                   
                   // Load initial values and set up polling for updates
                 
