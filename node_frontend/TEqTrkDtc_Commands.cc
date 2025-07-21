@@ -454,6 +454,8 @@ int TEqTrkDtc::PrintRocStatus(std::ostream& Stream) {
 
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::PulserOff(std::ostream& Stream) {
+
+  TLOG(TLVL_DEBUG) << "-- START TEqTrkDtc::PulserOff";
   
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
@@ -472,12 +474,15 @@ int TEqTrkDtc::PulserOff(std::ostream& Stream) {
     Stream << "ERROR : coudn't execute ControlRoc_PulserOFF ... BAIL OUT" << std::endl;
   }
   
+  TLOG(TLVL_DEBUG) << "-- END TEqTrkDtc::PulserOff";
   return 0;
 }
 
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::PulserOn(std::ostream& Stream) {
   
+  TLOG(TLVL_DEBUG) << "-- START TEqTrkDtc::PulserOn";
+
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"pulser_on");
@@ -499,6 +504,7 @@ int TEqTrkDtc::PulserOn(std::ostream& Stream) {
     Stream << " -- ERROR : coudn\'t execute ControlRoc_PulserOn ... BAIL OUT" << std::endl;
   }
   
+  TLOG(TLVL_DEBUG) << "-- END TEqTrkDtc::PulserOn";
   return 0;
 }
 

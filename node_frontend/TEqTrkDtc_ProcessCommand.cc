@@ -16,7 +16,7 @@
 // also, can run command processing as a detached thread 
 //-----------------------------------------------------------------------------
 void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
-  TLOG(TLVL_DEBUG) << "-- START";
+  TLOG(TLVL_DEBUG) << "-- START TEqTrkDtc::" << __func__;
 
   // in the end, ProcessCommand should send ss.str() as a message to some log
   std::stringstream ss;
@@ -181,7 +181,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // PULSER_OFF
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->PulserOn(ss);
+    eq_dtc->PulserOff(ss);
   }
   else if (cmd == "pulser_on") {
 //-----------------------------------------------------------------------------
@@ -305,5 +305,5 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
   odb_i->SetInteger(h_cmd,"Finished",1);
   
-  TLOG(TLVL_DEBUG) << "-- END";
+  TLOG(TLVL_DEBUG) << "-- END TEqTrkDtc::" << __func__;
 }

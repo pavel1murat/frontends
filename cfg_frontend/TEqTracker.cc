@@ -141,11 +141,11 @@ void TEqTracker::HandlePeriodic() {
 // when the execution comes here, odb["/Mu2e/Commands/Tracker/Run"] is set to 1
 //-----------------------------------------------------------------------------
 void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
-  TLOG(TLVL_DEBUG) << "--- START"; 
+  TLOG(TLVL_DEBUG) << "--- START: TEqTracker::" << __func__; 
 
   OdbInterface* odb_i = OdbInterface::Instance();
   
-  HNDLE h_trk_cmd = odb_i->GetTrackerCommandHandle(); // returns handle of '/Mu2e/Commands/Tracker'
+  HNDLE h_trk_cmd = odb_i->GetTrackerCmdHandle();  // returns handle of '/Mu2e/Commands/Tracker'
   if (odb_i->GetCommand_Run(h_trk_cmd) == 0) {
     TLOG(TLVL_DEBUG) << "self inflicted, return";
     return;
@@ -160,26 +160,30 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   fg_EqTracker->_first_station   = first_station;
   fg_EqTracker->_last_station    = last_station ;
 
-  std::string tracker_cmd        = odb_i->GetString(h_trk_cmd,"Name");
+  std::string cmd                = odb_i->GetString(h_trk_cmd,"Name");
   std::string cmd_parameter_path = odb_i->GetString(h_trk_cmd,"ParameterPath");
 
-  cmd_parameter_path            += "/"+tracker_cmd;
-
-  TLOG(TLVL_DEBUG) << "tracker_cmd:" << tracker_cmd
+  TLOG(TLVL_DEBUG) << "cmd:" << cmd
                    << " cmd_parameter_path:" << cmd_parameter_path;
 
-  if      (tracker_cmd == "pulser_on"          ) {
+  if      (cmd == "pulser_on"          ) {
     PulserOn (cmd_parameter_path);
     WaitForCompletion(h_trk_cmd,10000);
   }
-  else if (tracker_cmd == "pulser_off"         ) PulserOff(cmd_parameter_path);
-  else if (tracker_cmd == "panel_print_status" ) PanelPrintStatus(cmd_parameter_path);
-  else if (tracker_cmd == "reset_output"       ) ResetOutput();
-  else if (tracker_cmd == "reset_station_lv"   ) ResetStationLV(cmd_parameter_path);
+  else if (cmd == "pulser_off"         ) {
+    PulserOff(cmd_parameter_path);
+    WaitForCompletion(h_trk_cmd,10000);
+  }
+  else if (cmd == "panel_print_status" ) PanelPrintStatus(cmd_parameter_path);
+  else if (cmd == "reset_output"       ) ResetOutput();
+  else if (cmd == "reset_station_lv"   ) ResetStationLV(cmd_parameter_path);
+  else {
+    TLOG(TLVL_ERROR) << "unknown command:" << cmd;
+  }
 
   int finished = odb_i->GetInteger(h_trk_cmd,"Finished");
   
-  TLOG(TLVL_DEBUG) << "--- END, o_tracker_cmd[\"Finished\"]:" << finished; 
+  TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__ << " finished::" << finished; 
 }
 
 //-----------------------------------------------------------------------------
@@ -190,6 +194,7 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd, int TimeoutMs) {
 // for no-DTC commands it should be fast as all "ReturnCode" and "Finished"
 // fields should check out during the first iteration
 //-----------------------------------------------------------------------------
+  TLOG(TLVL_DEBUG) << "--- START:" << __func__; 
   ss_sleep(100);
   // int finished = 0; // simulate .... 0;
   int wait_time(0);
@@ -243,5 +248,6 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd, int TimeoutMs) {
   odb_i->SetInteger(h_trk_cfg,"Status"  ,0);
   odb_i->SetInteger(h_Cmd    ,"Finished",1);
 
+  TLOG(TLVL_DEBUG) << "--- END:" << __func__; 
   return n_not_finished;
 }

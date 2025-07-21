@@ -418,6 +418,12 @@ std::string OdbInterface::GetDtcCmdParameterPath(const std::string& Node, int Pc
 }
 
 //-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetDtcCmdParameterHandle(const std::string& Node, int PcieAddr, const std::string& Cmd) {
+  std::string path = std::format("/Mu2e/Commands/DAQ/Nodes/{}/DTC{}/{}",Node,PcieAddr,Cmd);
+  return GetHandle(0,path);
+}
+
+//-----------------------------------------------------------------------------
 // handle: CFO or DTC record in ODB
 //-----------------------------------------------------------------------------
 int OdbInterface::GetJAMode(HNDLE hDTC) {
@@ -835,8 +841,23 @@ HNDLE OdbInterface::GetTrackerConfigHandle() {
   return GetHandle(0,"/Mu2e/ActiveRunConfiguration/Tracker");
 }
 
-HNDLE OdbInterface::GetTrackerCommandHandle() {
+HNDLE OdbInterface::GetTrackerCmdHandle() {
   return GetHandle(0,"/Mu2e/Commands/Tracker");
+}
+
+//-----------------------------------------------------------------------------
+// in most cases, but not always, parameter path = "/Mu2e/Commands/Tracker"+"/"+Cmd
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetTrackerCmdParameterHandle(std::string& Cmd) {
+  HNDLE       h_cmd = GetHandle(0,"/Mu2e/Commands/Tracker");
+  std::string path  = GetString(h_cmd,"ParameterPath");
+  return GetHandle(0,path);
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetTrackerCmdParameterPath(std::string& Cmd) {
+  std::string path = std::format("/Mu2e/Commands/Tracker/{}",Cmd);
+  return path;
 }
 
 HNDLE OdbInterface::GetTrackerStationHandle(int Station) {

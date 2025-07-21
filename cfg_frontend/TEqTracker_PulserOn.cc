@@ -20,7 +20,9 @@
 // perhaps do not need passing the CmdParameterPath
 //-----------------------------------------------------------------------------
 void TEqTracker::PulserOn(const std::string& CmdParameterPath) {
-  TLOG(TLVL_DEBUG) << "--- START"; 
+  std::string cmd("pulser_on");
+  
+  TLOG(TLVL_DEBUG) << "--- START TEqTracker::" << __func__; 
 
   OdbInterface* odb_i = OdbInterface::Instance();
 
@@ -32,10 +34,9 @@ void TEqTracker::PulserOn(const std::string& CmdParameterPath) {
 
   TLOG(TLVL_DEBUG) << " CmdParameterPath:" << CmdParameterPath;
 
-  HNDLE h_trk_cmd     = odb_i->GetTrackerCommandHandle();
-  //  HNDLE h_trk_cmd_par = odb_i->GetHandle(h_trk_cmd,"pulser_on");
+  //  HNDLE h_trk_cmd     = odb_i->GetTrackerCmdHandle();
 
-  std::string trk_cmd_parameter_path = "/Mu2e/Commands/Tracker/pulser_on";
+  std::string trk_cmd_parameter_path = odb_i->GetTrackerCmdParameterPath(cmd);
 //-----------------------------------------------------------------------------
 // loop over all active DTCs and execute 'PULSER_ON'
 // it might make sense, at initialization stage, to build a list of DTCs assosiated
@@ -75,5 +76,5 @@ void TEqTracker::PulserOn(const std::string& CmdParameterPath) {
     }
   }
   
-  TLOG(TLVL_DEBUG) << "--- END"; 
+  TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__; 
 }
