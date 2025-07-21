@@ -78,8 +78,8 @@ function dtc_control(hostname,pcie) {
 //-----------------------------------------------------------------------------
 // redirects browser to the ARTDAQ process control page
 //-----------------------------------------------------------------------------
-function artdaq_process_status(hostname,process) {
-  window.location.href = `artdaq_process_status.html?hostname=${hostname}&process=${process}`;
+function artdaq_process_control(hostname,process) {
+  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}`;
 }
 
 //-----------------------------------------------------------------------------

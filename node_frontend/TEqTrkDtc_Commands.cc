@@ -827,7 +827,7 @@ int TEqTrkDtc::ReadRocRegister(std::ostream& Stream) {
     uint16_t val = _dtc_i->Dtc()->ReadROCRegister(DTC_Link_ID(link),reg,timeout_ms);
     odb_i->SetUInt16(h_cmd_par,"value",val);
     
-    Stream << " -- read_roc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
+    Stream << " -- read_roc_register: link:" << link << " reg:0x" << std::hex << reg << " val:0x" << val << std::dec;
   }
   catch (...) {
     Stream << " -- ERROR : coudn't read ROC register ... BAIL OUT";

@@ -1,0 +1,6 @@
+cd /Mu2e
+rm Commands
+mkdir Commands
+cd    Commands
+load  v001/frontends/odb/Mu2e/Commands/Commands.json
+exit
