@@ -65,11 +65,11 @@ int TEqTrkDtc::DigiRW(std::ostream& Stream) {
     
   int  link        = odb_i->GetInteger(h_cmd,"link");
 
-  par.rw           = odb_i->GetInteger(h_cmd_par,"rw");         //
-  par.hvcal        = odb_i->GetInteger(h_cmd_par,"hvcal");      //
-  par.address      = odb_i->GetInteger(h_cmd_par,"address");    //
-  par.data[0]      = odb_i->GetInteger(h_cmd_par,"data[0]"); //
-  par.data[1]      = odb_i->GetInteger(h_cmd_par,"data[1]"); //
+  par.rw           = odb_i->GetUInt16 (h_cmd_par,"rw");         //
+  par.hvcal        = odb_i->GetUInt16 (h_cmd_par,"hvcal");      //
+  par.address      = odb_i->GetUInt16 (h_cmd_par,"address");    //
+  par.data[0]      = odb_i->GetUInt16 (h_cmd_par,"data[0]"); //
+  par.data[1]      = odb_i->GetUInt16 (h_cmd_par,"data[1]"); //
   
   int  print_level = odb_i->GetInteger(h_cmd_par,"print_level");
    
