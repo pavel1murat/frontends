@@ -19,12 +19,14 @@
 // stored in the TRACKER command
 // perhaps do not need passing the CmdParameterPath
 //-----------------------------------------------------------------------------
-int TEqTracker::ExecuteDtcCommand(const std::string& Cmd) {
+int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
   int rc(0);
-  
-  TLOG(TLVL_DEBUG) << "--- START TEqTracker::" << __func__ << " Cmd:" << Cmd; 
 
   OdbInterface* odb_i = OdbInterface::Instance();
+
+  std::string cmd = odb_i->GetString(hTrkCmd,"Name");
+  
+  TLOG(TLVL_DEBUG) << "--- START TEqTracker::" << __func__ << " cmd:" << cmd; 
 
   HNDLE h_trk_cfg   = odb_i->GetTrackerConfigHandle();
   int first_station = odb_i->GetInteger(h_trk_cfg,"FirstStation");
@@ -32,7 +34,7 @@ int TEqTracker::ExecuteDtcCommand(const std::string& Cmd) {
 
   odb_i->SetInteger(h_trk_cfg,"Status",1);
 
-  std::string cmd_parameter_path = odb_i->GetTrackerCmdParameterPath(Cmd);
+  std::string cmd_parameter_path = odb_i->GetTrackerCmdParameterPath(cmd);
 //-----------------------------------------------------------------------------
 // loop over all active DTCs and execute 'PULSER_ON'
 // it might make sense, at initialization stage, to build a list of DTCs assosiated
@@ -59,7 +61,7 @@ int TEqTracker::ExecuteDtcCommand(const std::string& Cmd) {
 //-----------------------------------------------------------------------------
       HNDLE h_dtc_cmd     = odb_i->GetDtcCmdHandle   (node,pcie_addr);
 
-      odb_i->SetString (h_dtc_cmd,"Name"         ,Cmd);
+      odb_i->SetString (h_dtc_cmd,"Name"         ,cmd);
       odb_i->SetString (h_dtc_cmd,"ParameterPath",cmd_parameter_path);
       odb_i->SetInteger(h_dtc_cmd,"link"         ,-1);
       odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);
@@ -70,6 +72,8 @@ int TEqTracker::ExecuteDtcCommand(const std::string& Cmd) {
       odb_i->SetInteger(h_dtc_cmd,"Run"          , 1);
     }
   }
+
+  WaitForCompletion(hTrkCmd,10000); // if needed, could specify the timeout in the command parameters
   
   TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__ << " rc:" << rc;
   return rc;

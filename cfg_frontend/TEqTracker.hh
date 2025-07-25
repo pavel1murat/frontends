@@ -64,7 +64,10 @@ public:
 //-----------------------------------------------------------------------------
   static  void       ProcessCommand   (int hDB, int hKey, void* Info);
 
-  static  int        ExecuteDtcCommand(const std::string& Cmd);
+//-----------------------------------------------------------------------------
+// fanout DTC command to all tracker DTCs and wait for completion
+//-----------------------------------------------------------------------------
+  static  int        ExecuteDtcCommand(HNDLE hCmd);
 
   static  int        PulserOn         (const std::string& CmdParameterPath);
   static  int        PulserOff        (const std::string& CmdParameterPath);

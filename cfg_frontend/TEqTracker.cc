@@ -166,17 +166,18 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "cmd:" << cmd
                    << " cmd_parameter_path:" << cmd_parameter_path;
 
+  if (cmd == "digi_rw") {
+    ExecuteDtcCommand(h_trk_cmd);
+  }
   if      (cmd == "pulser_on"    ) {
-    PulserOn (cmd_parameter_path);
-    WaitForCompletion(h_trk_cmd,10000);
+    ExecuteDtcCommand(h_trk_cmd);
   }
   else if (cmd == "pulser_off"         ) {
-    PulserOff(cmd_parameter_path);
-    WaitForCompletion(h_trk_cmd,10000);
+    //PulserOff(cmd_parameter_path);
+    ExecuteDtcCommand(h_trk_cmd);
   }
-  else if (cmd == "read"         ) {
-    ExecuteDtcCommand("read");
-    WaitForCompletion(h_trk_cmd,10000);
+  else if (cmd == "read") {
+    ExecuteDtcCommand(h_trk_cmd);
   }
   else if (cmd == "panel_print_status") PanelPrintStatus(cmd_parameter_path);
   else if (cmd == "reset_output"      ) ResetOutput();

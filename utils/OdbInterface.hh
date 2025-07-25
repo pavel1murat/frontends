@@ -37,9 +37,6 @@ public:
   int         GetEventMode            (HNDLE h_RunConf); //
   int         GetOnSpill              (HNDLE h_RunConf);
 
-                                        // 'HostLabel' - short, w/o the domain name
-  std::string GetCmdConfigPath        (std::string& HostLabel, std::string& EqName);
-
   HNDLE       GetDaqConfigHandle      (HNDLE h_RunConf = -1);
   
   int         GetHostConfHandle       (const std::string& Host, HNDLE h_RunConf = -1);
@@ -70,9 +67,24 @@ public:
   std::string GetCfoRunPlan           (HNDLE h_CFO);
 
   int         GetCfoSleepTime         (HNDLE h_CFO);
+//-----------------------------------------------------------------------------
+// commands
+//------------------------------------------------------------------------------
+                                        // 'HostLabel' - short, w/o the domain name
+  std::string GetCmdConfigPath        (std::string& HostLabel, std::string& EqName); // ???? what is this ???
 
+  HNDLE       GetCommandHandle        (const std::string& Subsystem);
+  int         GetCommand_Run          (HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
+  std::string GetCommand_Name         (HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
+  std::string GetCommand_ParameterPath(HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
+  int         GetCommand_Finished     (HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
+
+  void        SetCommand_Finished     (HNDLE h_Cmd, int Val); // retrieve a hopefully fixed attribute
   HNDLE       GetCmdParameterHandle   (HNDLE h_Cmd);
-   
+  std::string GetCmdParameterPath     (HNDLE h_Cmd);
+//-----------------------------------------------------------------------------
+// DTC
+//-----------------------------------------------------------------------------
   HNDLE       GetDtcConfigHandle      (const std::string& Host, int PcieAddr, HNDLE hRunConf = -1);
   HNDLE       GetDtcCmdHandle         (const std::string& Host, int PcieAddr);
   HNDLE       GetDtcCmdParameterHandle(const std::string& Host, int PcieAddr, const std::string& Cmd);
@@ -148,16 +160,6 @@ public:
   int         SetRocID            (HNDLE hLink, std::string& RocID     );
   int         SetRocDesignInfo    (HNDLE hLink, std::string& DesignInfo);
   int         SetRocFwGitCommit   (HNDLE hLink, std::string& Commit    );
-//-----------------------------------------------------------------------------
-// commands
-//------------------------------------------------------------------------------
-  HNDLE       GetCommandHandle        (const std::string& Subsystem);
-  int         GetCommand_Run          (HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
-  std::string GetCommand_Name         (HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
-  std::string GetCommand_ParameterPath(HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
-  int         GetCommand_Finished     (HNDLE h_Cmd);          // retrieve a hopefully fixed attribute
-
-  void        SetCommand_Finished     (HNDLE h_Cmd, int Val); // retrieve a hopefully fixed attribute
 //-----------------------------------------------------------------------------
 // tracker-specific section - all for active configuration
 //------------------------------------------------------------------------------

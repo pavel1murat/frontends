@@ -752,6 +752,11 @@ HNDLE OdbInterface::GetCmdParameterHandle(HNDLE h_Cmd) {
 }
 
 //-----------------------------------------------------------------------------
+std::string OdbInterface::GetCmdParameterPath(HNDLE h_Cmd) {
+  return GetString(h_Cmd,"ParameterPath");
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetCommand_Run(HNDLE h_Cmd) {
   return GetInteger(h_Cmd,"Run");
 }
@@ -759,11 +764,6 @@ int OdbInterface::GetCommand_Run(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetCommand_Name(HNDLE h_Cmd) {
   return GetString(h_Cmd,"Name");
-}
-
-//-----------------------------------------------------------------------------
-std::string OdbInterface::GetCommand_ParameterPath(HNDLE h_Cmd) {
-  return GetString(h_Cmd,"ParameterPath");
 }
 
 //-----------------------------------------------------------------------------
