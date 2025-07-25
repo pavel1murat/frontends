@@ -62,8 +62,9 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   HNDLE h_dtc = odb_i->GetDtcConfigHandle(frontend.name,pcie_addr);
   odb_i->SetInteger(h_dtc,"Status",1);
   
-  std::string cmd            = odb_i->GetString(h_cmd,"Name");
-  std::string parameter_path = odb_i->GetString(h_cmd,"ParameterPath");
+  std::string cmd            = odb_i->GetString (h_cmd,"Name");
+  std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
+  int link                   = odb_i->GetInteger(h_cmd,"link");
 //-----------------------------------------------------------------------------
 // this is address of the parameter record
 //-----------------------------------------------------------------------------
@@ -76,7 +77,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   TEqTrkDtc*            eq_dtc = (TEqTrkDtc*) TEquipmentManager::Instance()->_eq_dtc[pcie_addr];
   trkdaq::DtcInterface* dtc_i  = eq_dtc->Dtc_i();
 
-  ss << "--cmd:" << cmd << " pcie_addr:" << dtc_i->PcieAddr(); // << " parameter_path:" << parameter_path;
+  ss << "--cmd:" << cmd << " pcie_addr:" << dtc_i->PcieAddr() << " link:" << link; // << " parameter_path:" << parameter_path;
 //-----------------------------------------------------------------------------
 // CONFIGURE_JA
 //------------------------------------------------------------------------------
