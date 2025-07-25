@@ -36,8 +36,8 @@ public:
 
   int                 MonitoringLevel() { return _monitoringLevel ; }
 
-  void                ResetOutput ();
-  void                WriteOutput (const std::string& Output);
+  int                 ResetOutput ();
+  int                 WriteOutput (const std::string& Output);
 
   void SetName(const char* Name) { _name = Name; }
 

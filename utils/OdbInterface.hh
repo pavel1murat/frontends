@@ -70,6 +70,8 @@ public:
   std::string GetCfoRunPlan           (HNDLE h_CFO);
 
   int         GetCfoSleepTime         (HNDLE h_CFO);
+
+  HNDLE       GetCmdParameterHandle   (HNDLE h_Cmd);
    
   HNDLE       GetDtcConfigHandle      (const std::string& Host, int PcieAddr, HNDLE hRunConf = -1);
   HNDLE       GetDtcCmdHandle         (const std::string& Host, int PcieAddr);
@@ -160,8 +162,8 @@ public:
 // tracker-specific section - all for active configuration
 //------------------------------------------------------------------------------
   HNDLE       GetTrackerCmdHandle     ();
-  std::string GetTrackerCmdParameterPath  (std::string& Cmd);
-  HNDLE       GetTrackerCmdParameterHandle(std::string& Cmd);
+  std::string GetTrackerCmdParameterPath  (const std::string& Cmd);
+  HNDLE       GetTrackerCmdParameterHandle(const std::string& Cmd);
   HNDLE       GetTrackerConfigHandle  ();
   HNDLE       GetTrackerStationHandle (int Station);
   HNDLE       GetTrackerPlaneHandle   (int Station, int Plane);

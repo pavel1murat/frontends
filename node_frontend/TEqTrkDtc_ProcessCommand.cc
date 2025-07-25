@@ -49,14 +49,19 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
                    << " frontend.name:" << frontend.name;
 
   std::string cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
-  // midas::odb o_dtc_cmd(dtc_cmd_buf_path);
+
                                         // should 0 or 1
   int run = odb_i->GetInteger(h_cmd,"Run");
   if (run == 0) {
     TLOG(TLVL_DEBUG) << "self inflicted, return";
     return;
   }
-
+//-----------------------------------------------------------------------------
+// get DTC config handle and set the DTC busy status
+//-----------------------------------------------------------------------------
+  HNDLE h_dtc = odb_i->GetDtcConfigHandle(frontend.name,pcie_addr);
+  odb_i->SetInteger(h_dtc,"Status",1);
+  
   std::string cmd            = odb_i->GetString(h_cmd,"Name");
   std::string parameter_path = odb_i->GetString(h_cmd,"ParameterPath");
 //-----------------------------------------------------------------------------
@@ -75,9 +80,10 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // CONFIGURE_JA
 //------------------------------------------------------------------------------
+  int cmd_rc(0);
   if      (cmd == "configure_ja") {
     try {
-      dtc_i->ConfigureJA();             // use defaults from the dtc_i settings
+      cmd_rc = dtc_i->ConfigureJA();             // use defaults from the dtc_i settings
     }
     catch(...) {
       TLOG(TLVL_ERROR) << "coudn't execute DtcInterface::ConfigureJA ... BAIL OUT";
@@ -90,31 +96,31 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at dump_settings";
  
-    eq_dtc->DumpSettings(ss);
+    cmd_rc = eq_dtc->DumpSettings(ss);
   }
   else if (cmd == "find_alignment") {
-    eq_dtc->FindAlignment(ss);
+    cmd_rc = eq_dtc->FindAlignment(ss);
   }
   else if (cmd == "get_key") {
 //-----------------------------------------------------------------------------
 // GET KEY ... TODO
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->GetKey(ss);
+    cmd_rc = eq_dtc->GetKey(ss);
   }
   else if (cmd == "get_roc_design_info") {
 //-----------------------------------------------------------------------------
 // get ROC design info - print output of 3 separate commands together
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->GetRocDesignInfo(ss);
+    cmd_rc = eq_dtc->GetRocDesignInfo(ss);
   }
   else if (cmd == "init_readout") {
 //-----------------------------------------------------------------------------
 // get ROC design info - print output of 3 separate commands together
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->InitReadout(ss);
+    cmd_rc = eq_dtc->InitReadout(ss);
   }
   else if (cmd == "digi_rw") {
 //-----------------------------------------------------------------------------
@@ -122,7 +128,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
     ss << std::endl;  // ################ 
 
-    eq_dtc->DigiRW(ss);
+    cmd_rc = eq_dtc->DigiRW(ss);
   }
   else if (cmd == "hard_reset") {
 //-----------------------------------------------------------------------------
@@ -139,14 +145,14 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
   else if (cmd == "load_thresholds") {
     ss << std::endl;
-    eq_dtc->LoadThresholds(ss);
+    cmd_rc = eq_dtc->LoadThresholds(ss);
   }
 //-----------------------------------------------------------------------------
 // MEASURE_THRESHOLDS
 //-----------------------------------------------------------------------------
   else if (cmd == "measure_thresholds") {
     ss << std::endl;
-    eq_dtc->MeasureThresholds(ss);
+    cmd_rc = eq_dtc->MeasureThresholds(ss);
   }
 //-----------------------------------------------------------------------------
 // // PRINT ROC STATUS
@@ -170,7 +176,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   else if (cmd == "print_roc_status") {
     ss << std::endl;
     try {
-      eq_dtc->PrintRocStatus(ss);
+      cmd_rc = eq_dtc->PrintRocStatus(ss);
     }
     catch (...) { ss << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
   }  
@@ -179,14 +185,14 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // PULSER_OFF
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->PulserOff(ss);
+    cmd_rc = eq_dtc->PulserOff(ss);
   }
   else if (cmd == "pulser_on") {
 //-----------------------------------------------------------------------------
 // PULSER_ON
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->PulserOn(ss);
+    cmd_rc = eq_dtc->PulserOn(ss);
   }
   else if (cmd == "rates") {
 //-----------------------------------------------------------------------------
@@ -195,7 +201,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at rates";
  
-    eq_dtc->Rates(ss);
+    cmd_rc = eq_dtc->Rates(ss);
   }
   else if (cmd == "read") {
 //-----------------------------------------------------------------------------
@@ -205,48 +211,48 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   }
   else if (cmd == "read_ddr") {
     ss << std::endl;
-    eq_dtc->ReadDDR(ss);
+    cmd_rc = eq_dtc->ReadDDR(ss);
   }
   else if (cmd == "read_ddr") {
 //-----------------------------------------------------------------------------
 // read DDR
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->ReadDDR(ss);
+    cmd_rc = eq_dtc->ReadDDR(ss);
   }
   else if (cmd == "read_ilp") {
 //-----------------------------------------------------------------------------
 // read ILP
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->ReadIlp(ss);
+    cmd_rc = eq_dtc->ReadIlp(ss);
   }
   else if (cmd == "read_register") {
 //-----------------------------------------------------------------------------
 // read ILP
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->ReadRegister(ss);
+    cmd_rc = eq_dtc->ReadRegister(ss);
   }
   else if (cmd == "read_roc_register") {
 //-----------------------------------------------------------------------------
 // read ILP
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->ReadRocRegister(ss);
+    cmd_rc = eq_dtc->ReadRocRegister(ss);
   }
   else if (cmd == "read_spi") {
 //-----------------------------------------------------------------------------
 // get formatted SPI output for a given ROC
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->ReadSpi(ss);
+    cmd_rc = eq_dtc->ReadSpi(ss);
   }
   else if (cmd == "reset_output") {
-    eq_dtc->ResetOutput();
+    cmd_rc = eq_dtc->ResetOutput();
   }
   else if (cmd == "reset_roc") {
-    eq_dtc->ResetRoc(ss);
+    cmd_rc = eq_dtc->ResetRoc(ss);
   }
 //-----------------------------------------------------------------------------
 // RESET ROC
@@ -255,7 +261,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at set_caldaq";
  
-     eq_dtc->SetCalDac(ss);
+     cmd_rc = eq_dtc->SetCalDac(ss);
   }
 //-----------------------------------------------------------------------------
 // LOASET_THRESHOLDS
@@ -279,14 +285,14 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // read ILP
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->WriteRegister(ss);
+    cmd_rc = eq_dtc->WriteRegister(ss);
   }
   else if (cmd == "write_roc_register") {
 //-----------------------------------------------------------------------------
 // WRITE_ROC_REGISTER
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    eq_dtc->WriteRocRegister(ss);
+    cmd_rc = eq_dtc->WriteRocRegister(ss);
   }
   else {
     ss << " ERROR: Unknown command:" << cmd;
@@ -295,13 +301,17 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // write output to the equipment log - need to revert the line order 
 //-----------------------------------------------------------------------------
-  eq_dtc->WriteOutput(ss.str());
+  cmd_rc = eq_dtc->WriteOutput(ss.str());
   
 //-----------------------------------------------------------------------------
 // done, avoid second call - leave "Run" = 1;, before setting it to 1 again,
 // need to make sure that "Finished" = 1
 //-----------------------------------------------------------------------------
   odb_i->SetInteger(h_cmd,"Finished",1);
+//-----------------------------------------------------------------------------
+// and set the DTC status
+//-----------------------------------------------------------------------------
+  odb_i->SetInteger(h_dtc,"Status",cmd_rc);
   
-  TLOG(TLVL_DEBUG) << "-- END TEqTrkDtc::" << __func__;
+  TLOG(TLVL_DEBUG) << "-- END TEqTrkDtc::" << __func__ << " cmd_rc:" << cmd_rc;
 }

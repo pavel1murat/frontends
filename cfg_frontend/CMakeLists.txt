@@ -28,6 +28,7 @@ cet_make_exec(NAME trk_cfg_frontend
   SOURCE
   trk_cfg_frontend.cc
   TEqTracker.cc
+  TEqTracker_ExecuteDtcCommand.cc
   TEqTracker_PulserOn.cc
   TEqTracker_PulserOff.cc
   TEqTracker_PanelPrintStatus.cc

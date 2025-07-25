@@ -12,7 +12,8 @@
 #define  TRACE_NAME "TEqTracker"
 
 //-----------------------------------------------------------------------------
-void TEqTracker::PulserOff(const std::string& CmdParameterPath) {
+int TEqTracker::PulserOff(const std::string& CmdParameterPath) {
+  int rc(0);
   std::string  cmd("pulser_off");
                   
   TLOG(TLVL_DEBUG) << "--- START TEqTracker::" << __func__; 
@@ -73,5 +74,6 @@ void TEqTracker::PulserOff(const std::string& CmdParameterPath) {
       odb_i->SetInteger(h_dtc_cmd,"Run"     ,1);
     }
   }
-  TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__; 
+  TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__ << " rc:" << rc;
+  return rc;
 }

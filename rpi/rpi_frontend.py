@@ -57,15 +57,39 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
         It should return either a `midas.event.Event` or None if we shouldn't write an event
         """
         # self.client.msg("readout_func called")
-        lv_data = []
+        v48 = []
+        i48 = []
+        v06 = []
+        i06 = []
+        vhv = []
+        ihv = []
+        
         try:
-            supply = PowerSupplyServerConnection('localhost', 12000)
+            ps = PowerSupplyServerConnection('localhost', 12000)
+#------------------------------------------------------------------------------
+# LV
+#------------------------------------------------------------------------------
             for channel in range(6):
-                supply.EnableLowVoltage(channel)
-                time.sleep(1)
-                readback = supply.QueryPowerVoltage(channel)
+                # assume all LV channels are ON
+                # ps.EnableLowVoltage(channel)
+                # time.sleep(1)
+                x = ps.QueryPowerVoltage(channel)
                 # print(f'channel:{channel} readback:{readback}')
-                lv_data.append(readback);
+                v48.append(x);
+                x = ps.QueryPowerCurrent(channel)
+                i48.append(x);
+                x = ps.QuerySwitchingVoltage(channel)
+                v06.append(x);
+                x = ps.QuerySwitchingCurrent(channel)
+                i06.append(x);
+#------------------------------------------------------------------------------
+# HV
+#------------------------------------------------------------------------------
+            for channel in range(12):
+                x = ps.QueryWireVoltage(channel)
+                vhv.append(x);
+                x = ps.QueryWireCurrent(channel)
+                ihv.append(x);
 #------------------------------------------------------------------------------
 # In this example, we just make a simple event with one bank.
 # Create a bank (called "LV00") which in this case will store 4 floats
@@ -80,10 +104,19 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
         except:
             self.client.message('ERROR: failed to connect to HVLV server',1);
             for channel in range(6):
-                lv_data.append(-1.);
-            
+                v48.append(-1.);
+                i48.append(-1.);
+                v06.append(-1.);
+                i06.append(-1.);
+                vhv.append(-1.);
+                ihv.append(-1.);
+#------------------------------------------------------------------------------
+# done, send data to ODB
+#------------------------------------------------------------------------------
+        data = v48+i48+v06+i06+vhv+ihv;
+        
         event = midas.event.Event()
-        event.create_bank("LV00", midas.TID_FLOAT, lv_data)
+        event.create_bank("LVHV", midas.TID_FLOAT, data)
 
         return event # None #  event
 

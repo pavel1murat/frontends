@@ -1,5 +1,34 @@
 LIBRARY trk_control_roc_library
 
+comment "------------------------------------------------------------------"
+comment " to be executed for all enabled  DTC links"
+comment " call trk_control_roc_read, adc_mode, enable_pulser, num_samples, num_lookback"
+comment "------------------------------------------------------------------"
+SUBROUTINE trk_control_roc_read
+
+  comment "define command and its parameters"
+  
+  odbset "/Mu2e/Commands/Tracker/Name"         , "read"
+  odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/read"
+
+  ODBSUBDIR /Mu2e/Commands/Tracker/read
+    ODBSET adc_mode          , $1
+    ODBSET enable_pulser     , $2
+    ODBSET num_samples       , $3
+    ODBSET num_lookback      , $4
+  ENDODBSUBDIR
+
+  comment "set command to be executed"
+   
+  odbset            "/Mu2e/Commands/Tracker/Finished", 0 , 0
+  odbset            "/Mu2e/Commands/Tracker/Run"     , 1 , 1
+
+  comment "wait until execution is finished"
+  
+  wait   ODBValue , "/Mu2e/Commands/Tracker/Finished", > , 0
+  odbset            "/Mu2e/Commands/Tracker/Run"     , 0 , 0
+ENDSUBROUTINE
+
 comment "-------------------------------------------------------------------------------------------------"
 comment " to be executed for all enabled DTC links"
 comment " call trk_control_roc_pulser_off,  $first_channel_mask,  $pulser_delay, $duty_cycle, $print_level"
@@ -13,7 +42,6 @@ SUBROUTINE trk_control_roc_pulser_on
   odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/pulser_on"
 
   ODBSUBDIR /Mu2e/Commands/Tracker/pulser_on
-    ODBSET link              , -1
     ODBSET first_channel_mask, $1
     ODBSET pulser_delay      , $2
     ODBSET duty_cycle        , $3
@@ -43,7 +71,6 @@ SUBROUTINE trk_control_roc_pulser_off
   odbset "/Mu2e/Commands/Tracker/ParameterPath", "/Mu2e/Commands/Tracker/pulser_off"
 
   ODBSUBDIR "/Mu2e/Commands/Tracker/pulser_off"
-    ODBSET link              , -1
     ODBSET print_level       , $1
   ENDODBSUBDIR
 

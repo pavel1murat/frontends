@@ -16,7 +16,8 @@
 #define  TRACE_NAME "TEqTracker"
 
 //-----------------------------------------------------------------------------
-void TEqTracker::PanelPrintStatus(const std::string& CmdParameterPath) {
+int TEqTracker::PanelPrintStatus(const std::string& CmdParameterPath) {
+  int rc(0);
   TLOG(TLVL_DEBUG) << "--- START"; 
 
   OdbInterface* odb_i = OdbInterface::Instance();
@@ -72,6 +73,7 @@ void TEqTracker::PanelPrintStatus(const std::string& CmdParameterPath) {
   HNDLE h_cmd = odb_i->GetHandle(0,"/Mu2e/Commands/Tracker");
   odb_i->SetInteger(h_cmd,"Finished",1);
   
-  TLOG(TLVL_DEBUG) << "--- END"; 
+  TLOG(TLVL_DEBUG) << "--- END: rc:" << rc; 
 
+  return rc;
 }

@@ -166,7 +166,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "cmd:" << cmd
                    << " cmd_parameter_path:" << cmd_parameter_path;
 
-  if      (cmd == "pulser_on"          ) {
+  if      (cmd == "pulser_on"    ) {
     PulserOn (cmd_parameter_path);
     WaitForCompletion(h_trk_cmd,10000);
   }
@@ -174,16 +174,22 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
     PulserOff(cmd_parameter_path);
     WaitForCompletion(h_trk_cmd,10000);
   }
-  else if (cmd == "panel_print_status" ) PanelPrintStatus(cmd_parameter_path);
-  else if (cmd == "reset_output"       ) ResetOutput();
-  else if (cmd == "reset_station_lv"   ) ResetStationLV(cmd_parameter_path);
+  else if (cmd == "read"         ) {
+    ExecuteDtcCommand("read");
+    WaitForCompletion(h_trk_cmd,10000);
+  }
+  else if (cmd == "panel_print_status") PanelPrintStatus(cmd_parameter_path);
+  else if (cmd == "reset_output"      ) ResetOutput();
+  else if (cmd == "reset_station_lv"  ) ResetStationLV(cmd_parameter_path);
   else {
     TLOG(TLVL_ERROR) << "unknown command:" << cmd;
   }
 
-  int finished = odb_i->GetInteger(h_trk_cmd,"Finished");
+  int finished = odb_i->GetInteger(h_trk_cmd,"Finished"  );
+  int rc       = odb_i->GetInteger(h_trk_cmd,"ReturnCode");
   
-  TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__ << " finished::" << finished; 
+  TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__ << " finished:" << finished << " rc:" << rc;
+  return;
 }
 
 //-----------------------------------------------------------------------------
@@ -248,6 +254,6 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd, int TimeoutMs) {
   odb_i->SetInteger(h_trk_cfg,"Status"  ,0);
   odb_i->SetInteger(h_Cmd    ,"Finished",1);
 
-  TLOG(TLVL_DEBUG) << "--- END:" << __func__; 
+  TLOG(TLVL_DEBUG) << "--- END:" << __func__ << " n_not_finished:" << n_not_finished; 
   return n_not_finished;
 }
