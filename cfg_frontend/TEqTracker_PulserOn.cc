@@ -19,7 +19,8 @@
 // stored in the TRACKER command
 // perhaps do not need passing the CmdParameterPath
 //-----------------------------------------------------------------------------
-void TEqTracker::PulserOn(const std::string& CmdParameterPath) {
+int TEqTracker::PulserOn(const std::string& CmdParameterPath) {
+  int rc(0);
   std::string cmd("pulser_on");
   
   TLOG(TLVL_DEBUG) << "--- START TEqTracker::" << __func__; 
@@ -61,12 +62,11 @@ void TEqTracker::PulserOn(const std::string& CmdParameterPath) {
 //-----------------------------------------------------------------------------
 // pass address of parameters stored in the tracker command tree
 //-----------------------------------------------------------------------------
-      HNDLE h_dtc_cmd     = odb_i->GetDtcCmdHandle(node,pcie_addr);
+      HNDLE h_dtc_cmd     = odb_i->GetDtcCmdHandle   (node,pcie_addr);
 
       odb_i->SetString (h_dtc_cmd,"Name"         ,"pulser_on");
       odb_i->SetString (h_dtc_cmd,"ParameterPath",trk_cmd_parameter_path);
       odb_i->SetInteger(h_dtc_cmd,"link"         ,-1);
-      odb_i->SetInteger(h_dtc_cmd,"Status"       , 1); // busy
       odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);
       odb_i->SetInteger(h_dtc_cmd,"Finished"     , 0);
 //-----------------------------------------------------------------------------
@@ -76,5 +76,6 @@ void TEqTracker::PulserOn(const std::string& CmdParameterPath) {
     }
   }
   
-  TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__; 
+  TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__ << " rc:" << rc;
+  return rc;
 }

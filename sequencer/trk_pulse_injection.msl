@@ -12,9 +12,16 @@ ODBSET "/Mu2e/ActiveRunConfiguration/DAQ/CFO/EventWindowSize", 1000
 ODBSET "/Mu2e/ActiveRunConfiguration/DAQ/CFO/SleepTimeMs"    ,  500
 
 RUNDESCRIPTION "pulse injection run"
-PARAM runs, "aaaaa", 3
+PARAM runs, "aaaaa", 8
 
-run_duration       = 10
+comment "can do 1,12 or 2,25"
+adc_mode          =  0
+enable_pulser     =  0
+num_samples       =  2
+num_lookback      = 25
+call trk_control_roc_read, $adc_mode, $enable_pulser, $num_samples, $num_lookback
+
+run_duration       = 60
 end_pause          =  5
 first_channel_mask =  1
 

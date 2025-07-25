@@ -50,7 +50,7 @@ int TMu2eEqBase::ReadMetrics() {
 }
 
 //-----------------------------------------------------------------------------
-void TMu2eEqBase::ResetOutput() {
+int TMu2eEqBase::ResetOutput() {
   TLOG(TLVL_DEBUG) << "--- START"; 
 
   std::ofstream output_file;
@@ -62,11 +62,12 @@ void TMu2eEqBase::ResetOutput() {
   // midas::odb o_cmd("/Mu2e/Commands/Tracker");
   // o_cmd["Finished"] = 1;
   
-  TLOG(TLVL_DEBUG) << "--- END"; 
+  TLOG(TLVL_DEBUG) << "--- END";
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
-void TMu2eEqBase::WriteOutput(const std::string& Output) {
+int TMu2eEqBase::WriteOutput(const std::string& Output) {
   TLOG(TLVL_DEBUG) << "--- START"; 
 
   std::vector<std::string> vs = splitString(Output,'\n');
@@ -82,4 +83,5 @@ void TMu2eEqBase::WriteOutput(const std::string& Output) {
   output_file.close();
   
   TLOG(TLVL_DEBUG) << "--- END"; 
+  return 0;
 }

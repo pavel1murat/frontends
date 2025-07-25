@@ -59,13 +59,17 @@ public:
   virtual TMFeResult HandlePauseRun     (int RunNumber);
   virtual TMFeResult HandleResumeRun    (int RunNumber);
   virtual TMFeResult HandleStartAbortRun(int RunNumber);
-  
-  static  void       ProcessCommand(int hDB, int hKey, void* Info);
+//-----------------------------------------------------------------------------
+// this is MIDAS callback
+//-----------------------------------------------------------------------------
+  static  void       ProcessCommand   (int hDB, int hKey, void* Info);
 
-  static  void       PulserOn        (const std::string& CmdParameterPath);
-  static  void       PulserOff       (const std::string& CmdParameterPath);
-  static  void       PanelPrintStatus(const std::string& CmdParameterPath);
-  static  void       ResetOutput();
+  static  int        ExecuteDtcCommand(const std::string& Cmd);
+
+  static  int        PulserOn         (const std::string& CmdParameterPath);
+  static  int        PulserOff        (const std::string& CmdParameterPath);
+  static  int        PanelPrintStatus (const std::string& CmdParameterPath);
+  static  int        ResetOutput();
   static  TMFeResult ResetStationLV  (const std::string& CmdParameterPath);
 
   static  int        WaitForCompletion (HNDLE h_CMD, int TimeoutMs);

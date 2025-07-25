@@ -746,6 +746,12 @@ HNDLE OdbInterface::GetCommandHandle(const std::string& Subsystem) {
 }
 
 //-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetCmdParameterHandle(HNDLE h_Cmd) {
+  std::string parameter_path = GetString(h_Cmd,"ParameterPath");
+  return GetHandle(0,parameter_path);
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetCommand_Run(HNDLE h_Cmd) {
   return GetInteger(h_Cmd,"Run");
 }
@@ -848,14 +854,14 @@ HNDLE OdbInterface::GetTrackerCmdHandle() {
 //-----------------------------------------------------------------------------
 // in most cases, but not always, parameter path = "/Mu2e/Commands/Tracker"+"/"+Cmd
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetTrackerCmdParameterHandle(std::string& Cmd) {
+HNDLE OdbInterface::GetTrackerCmdParameterHandle(const std::string& Cmd) {
   HNDLE       h_cmd = GetHandle(0,"/Mu2e/Commands/Tracker");
   std::string path  = GetString(h_cmd,"ParameterPath");
   return GetHandle(0,path);
 }
 
 //-----------------------------------------------------------------------------
-std::string OdbInterface::GetTrackerCmdParameterPath(std::string& Cmd) {
+std::string OdbInterface::GetTrackerCmdParameterPath(const std::string& Cmd) {
   std::string path = std::format("/Mu2e/Commands/Tracker/{}",Cmd);
   return path;
 }

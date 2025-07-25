@@ -15,7 +15,8 @@
 #define  TRACE_NAME "TEqTracker"
 
 //-----------------------------------------------------------------------------
-void TEqTracker::ResetOutput() {
+int TEqTracker::ResetOutput() {
+  int rc;
   TLOG(TLVL_DEBUG) << "--- START"; 
 
   std::ofstream output_file;
@@ -27,6 +28,6 @@ void TEqTracker::ResetOutput() {
   midas::odb o_cmd("/Mu2e/Commands/Tracker");
   o_cmd["Finished"] = 1;
   
-  TLOG(TLVL_DEBUG) << "--- END"; 
-
+  TLOG(TLVL_DEBUG) << "--- END rc:" << rc; 
+  return rc;
 }
