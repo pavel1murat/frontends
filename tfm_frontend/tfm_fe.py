@@ -296,7 +296,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 # what is this function - may be very useful !!
 #------------------------------------------------------------------------------
     def should_stop_run(self):
-        return self._stop_run;
+        return self.client.stop_run();
 
 
     def send_message(self, message, message_type = midas.MT_INFO, facility="midas"):
@@ -398,6 +398,8 @@ class TfmFrontend(midas.frontend.FrontendBase):
         rc = 0;
         if   (cmd_name.upper() == 'CONFIGURE'):
             rc = self.process_cmd_configure(parameter_path);
+        elif (cmd_name.upper() == 'STOP_RUN'):
+            rc = self.client.stop_run(True);
         elif (cmd_name.upper() == 'GET_STATE'):
             rc = self.process_cmd_get_state(parameter_path);
         elif (cmd_name.upper() == 'RESET_OUTPUT'):

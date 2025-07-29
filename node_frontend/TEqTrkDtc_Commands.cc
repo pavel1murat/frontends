@@ -191,20 +191,21 @@ int TEqTrkDtc::GetRocDesignInfo(std::ostream& Stream) {
 
 
 //-----------------------------------------------------------------------------
+// 'roc_readout_mode' should be taken from the DAQ readout configuration
+// 'emulate_cfo'      - from the DTC configuration
+//-----------------------------------------------------------------------------
 int TEqTrkDtc::InitReadout(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  //  HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"init_readout");
-  HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
+  HNDLE         h_dtc     = odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE         h_daq     = odb_i->GetDaqConfigHandle();
+  
+  uint32_t roc_readout_mode = odb_i->GetInteger(h_daq,"RocReadoutMode");
 
   try {
-    uint32_t emulate_cfo      = odb_i->GetInteger(h_cmd_par,"emulate_cfo"     );
-    uint32_t roc_readout_mode = odb_i->GetInteger(h_cmd_par,"roc_readout_mode");
-    
-    _dtc_i->InitReadout(emulate_cfo,roc_readout_mode);
+    _dtc_i->InitReadout(-1,roc_readout_mode);
 
-    Stream << "DTC:" << _dtc_i->PcieAddr() << " emulate_cfo:" << emulate_cfo
+    Stream << "DTC:" << _dtc_i->PcieAddr() << " emulate_cfo:" << _dtc_i->EmulateCfo()
            << " roc_readout_mode:" << roc_readout_mode << " init readout OK";
   }
   catch (...) {

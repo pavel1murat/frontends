@@ -490,16 +490,20 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
   }
   catch (...) {
     TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " DTC EXCEPTION ";
-    cm_msg(MERROR,_artdaqLabel.data(),Form("event: %10li subevents.size():%i DTC EXCEPTION",ev_counter(),sz));
+    cm_msg(MERROR,_artdaqLabel.data(),Form("event: %10li DTC EXCEPTION subevents.size():%i ",ev_counter(),sz));
   }
 
   TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
                      << " event:" << ev_counter()
                      << " sz:" << sz;
 //-----------------------------------------------------------------------------
-// in case of a null read, add an empty ARTDAQ fragment
+// in case of a null read, add an empty ARTDAQ fragment,
+// on a second thought, try to stop the run by sending an "alarm" message
 //-----------------------------------------------------------------------------
   if (sz <= 0) {
+    std::string msg = std::format("{} event:{} ZERO PAYLOAD (n_subevents=0)",__func__,ev_counter());
+    message("alarm", msg);
+
     cm_msg(MERROR, _artdaqLabel.data(),Form("event: %10li subevents.size():%i",ev_counter(),sz));
     TLOG(TLVL_ERROR) << "event:" << ev_counter() << " subevents.size():" << sz;
     
