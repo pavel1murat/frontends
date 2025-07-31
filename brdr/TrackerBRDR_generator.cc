@@ -381,6 +381,7 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
   for (int i=0; i<6; i++) {
     RocDataHeaderPacket_t* rdh = (RocDataHeaderPacket_t*) roc;
     roc_nb[i] = rdh->byteCount;
+    int pc    = rdh->packetCount;
     if (_dtc_i->LinkEnabled(i)) {
       if (rdh->error_code()) {
 //-----------------------------------------------------------------------------
@@ -391,9 +392,9 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 //-----------------------------------------------------------------------------
 // buffer overflow - make it a warning
 //-----------------------------------------------------------------------------
-          std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{}",
-                                        ev_counter(),i,rdh->error_code(),roc_nb[i]);
-          cm_msg(MINFO, _artdaqLabel.data(),msg.data());
+          std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+          // cm_msg(MINFO, _artdaqLabel.data(),msg.data());
           TLOG(TLVL_WARNING) << _artdaqLabel.data() << ": " << msg;
         }
         else if (rdh->error_code() == 0x8) {
@@ -401,11 +402,19 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 // timeout - definitely an error
 //-----------------------------------------------------------------------------
           nerr += 1;
-          std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{}",
-                                        ev_counter(),i,rdh->error_code(),roc_nb[i]);
-          cm_msg(MERROR, _artdaqLabel.data(),msg.data());
+          std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+          // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
           TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
         }
+      }
+
+      if ((rdh->packetCount+1)*16 != rdh->byteCount) { 
+        std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} != (NPACKETS:{}+1)*16",
+                                      ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+                                      
+        _dtc_i->PrintBuffer((void*) rdh, (rdh->byteCount+16)/2,&std::cout);
+        TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
       }
     }
     else {
@@ -577,6 +586,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
         TLOG(TLVL_ERROR) << "label:" << _artdaqLabel
                          << " zero length read, event:" << ev_counter();
+        
         message("alarm", _artdaqLabel+"::ReadData::ERROR event="+std::to_string(ev_counter())+" nbytes=0") ;
       }
     }
