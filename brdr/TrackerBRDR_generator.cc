@@ -407,6 +407,16 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
           // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
           TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
         }
+        else if (rdh->error_code() == 0x18) {
+//-----------------------------------------------------------------------------
+// timeout - definitely an error
+//-----------------------------------------------------------------------------
+          nerr += 1;
+          std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+          // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
+          TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
+        }
       }
 
       if ((rdh->packetCount+1)*16 != rdh->byteCount) { 
@@ -510,7 +520,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 // on a second thought, try to stop the run by sending an "alarm" message
 //-----------------------------------------------------------------------------
   if (sz <= 0) {
-    std::string msg = std::format("{} event:{} ZERO PAYLOAD (n_subevents=0)",__func__,ev_counter());
+    std::string msg = std::format("{} event:{} ZERO PAYLOAD (n_subevents=0) action:stop_run",__func__,ev_counter());
     message("alarm", msg);
 
     cm_msg(MERROR, _artdaqLabel.data(),Form("event: %10li subevents.size():%i",ev_counter(),sz));
