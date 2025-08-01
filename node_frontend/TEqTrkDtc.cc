@@ -208,6 +208,8 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
 // can afford printing every time - once per run
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::BeginRun(HNDLE H_RunConf) {
+  int rc(0);
+    
   TLOG(TLVL_DEBUG) << "-- START: DTC" << _dtc_i->PcieAddr() << ":" << _dtc_i;
 
   int   event_mode        = _odb_i->GetEventMode     (H_RunConf);
@@ -228,11 +230,11 @@ int TEqTrkDtc::BeginRun(HNDLE H_RunConf) {
     // 2025-01-19 PM dtc_i->Dtc()->HardReset();
         // 2025-01-19 PM dtc_i->ResetLinks(0,1);
                                         // InitReadout performs some soft resets, ok for now
-    _dtc_i->InitReadout();
+    rc = _dtc_i->InitReadout();
   }
   
-  TLOG(TLVL_DEBUG) << "-- END";
-  return 0;
+  TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
+  return rc;
 }
 
 //-----------------------------------------------------------------------------

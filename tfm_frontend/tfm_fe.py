@@ -26,7 +26,7 @@ from frontends.utils.runinfodb import RuninfoDB
 #------------------------------------------------------------------------------
 class TfmEquipment(midas.frontend.EquipmentBase):
     def __init__(self, client):
-        TRACE.TRACE(TRACE.TLVL_LOG,":001: --- START",TRACE_NAME)
+        TRACE.TRACE(TRACE.TLVL_DBG,"-- START",TRACE_NAME)
 #------------------------------------------------------------------------------
 # Define the "common" settings of a frontend. These will appear in
 # /Equipment/MyPeriodicEquipment/Common. 
@@ -250,7 +250,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 #
 #---v--------------------------------------------------------------------------
     def end_of_run(self, run_number):
-
+        TRACE.TRACE(TRACE.TLVL_DBG,f'-- START: self.use_runinfo_db:{self.use_runinfo_db}')
         if (self.use_runinfo_db):
 #------------------------------------------------------------------------------
 # register beginning of the STOP transition
@@ -262,7 +262,6 @@ class TfmFrontend(midas.frontend.FrontendBase):
                 TRACE.ERROR("failed to register beginning of the END_RUN transition")
 
         self._fm.do_stop_running()
-        TRACE.TRACE(TRACE.TLVL_LOG,"001:END_RUN")
 
         if (self.use_runinfo_db):
 #------------------------------------------------------------------------------
@@ -278,6 +277,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         self.set_all_equipment_status("Finished", "greenLight")
         self.client.msg("Frontend has seen end of run number %d" % run_number)
 
+        TRACE.TRACE(TRACE.TLVL_DBG,"-- END")
         return midas.status_codes["SUCCESS"]
 
 #------------------------------------------------------------------------------
@@ -291,13 +291,6 @@ class TfmFrontend(midas.frontend.FrontendBase):
         self._stop_run = True;
         self._fm.shutdown();
         TRACE.TRACE(TRACE.TLVL_LOG,"002: DONE")
-
-#------------------------------------------------------------------------------
-# what is this function - may be very useful !!
-#------------------------------------------------------------------------------
-    def should_stop_run(self):
-        return self.client.stop_run();
-
 
     def send_message(self, message, message_type = midas.MT_INFO, facility="midas"):
         """
@@ -379,8 +372,10 @@ class TfmFrontend(midas.frontend.FrontendBase):
         """
         callback : 
         """
-        TRACE.TRACE(TRACE.TLVL_DEBUG,f'path:{path}',TRACE_NAME);
-        run = self.client.odb_get(self.cmd_top_path+'/Run')
+        run      = self.client.odb_get(self.cmd_top_path+'/Run' )
+        cmd_name = self.client.odb_get(self.cmd_top_path+'/Name')
+        
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'path:{path} cmd_name:{cmd_name} run:{run}',TRACE_NAME);
         if (run != 1):
 #-------^----------------------------------------------------------------------
 # likely, self-resetting the request
@@ -388,7 +383,6 @@ class TfmFrontend(midas.frontend.FrontendBase):
             TRACE.TRACE(TRACE.TLVL_WARNING,f'{self.cmd_top_path}/Run:{run}, BAIL OUT',TRACE_NAME);
             return
 #-------v----------------------------------------------------------------------
-        cmd_name       = self.client.odb_get(self.cmd_top_path+'/Name')
         parameter_path = self.client.odb_get(self.cmd_top_path+'/ParameterPath')
 #------------------------------------------------------------------------------
 # mark TFM as busy

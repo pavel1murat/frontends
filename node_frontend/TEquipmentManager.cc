@@ -153,15 +153,23 @@ TMFeResult TEquipmentManager::HandleBeginRun(int RunNumber)  {
   int    handle_begin_run = _odb_i->GetInteger(_h_daq_host_conf,"Frontend/HandleBeginRun");
 
   TLOG(TLVL_DEBUG) << " handle_begin_run:" << handle_begin_run;
-
+  int rc(0);
+  
   if (handle_begin_run) {
     for (int i=0; i<2; i++) {
-      if (_eq_dtc[i]) _eq_dtc[i]->BeginRun(_h_active_run_conf);
+      if (_eq_dtc[i]) {
+        // begin run returns either 0 (success) or a negative number
+        rc -= _eq_dtc[i]->BeginRun(_h_active_run_conf);
+      }
     }
   }
-  TLOG(TLVL_DEBUG) << "DONE";
   
-  return TMFeOk();
+  TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
+
+  if (rc == 0) return TMFeOk();
+  else {
+    return TMFeResult(1,"failed to initialize DTC readout");
+  }
 };
 
 //-----------------------------------------------------------------------------
