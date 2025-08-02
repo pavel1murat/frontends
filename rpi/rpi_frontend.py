@@ -63,6 +63,7 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
         i06 = []
         vhv = []
         ihv = []
+        pcb = []
         
         try:
             ps = PowerSupplyServerConnection('localhost', 12000)
@@ -91,6 +92,13 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
                 x = ps.QueryWireCurrent(channel)
                 ihv.append(x);
 #------------------------------------------------------------------------------
+# PCB temp and pico current
+#------------------------------------------------------------------------------
+            x = ps.QueryPcbTemp();
+            pcb.append(x)
+            x = ps.QueryPicoCurrent();
+            pcb.append(x)
+#------------------------------------------------------------------------------
 # In this example, we just make a simple event with one bank.
 # Create a bank (called "LV00") which in this case will store 4 floats
 # data can be a list, a tuple or a numpy array.
@@ -108,12 +116,17 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
                 i48.append(-1.);
                 v06.append(-1.);
                 i06.append(-1.);
+                
+            for channel in range(12):
                 vhv.append(-1.);
                 ihv.append(-1.);
+
+            pcb.append(-1.);
+            pcb.append(-1.);
 #------------------------------------------------------------------------------
 # done, send data to ODB
 #------------------------------------------------------------------------------
-        data = v48+i48+v06+i06+vhv+ihv;
+        data = v48+i48+v06+i06+vhv+ihv+pcb;
         
         event = midas.event.Event()
         event.create_bank("LVHV", midas.TID_FLOAT, data)
