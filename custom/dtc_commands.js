@@ -132,7 +132,7 @@ function dtc_clear_output() {
 // the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
 // TEquipmentTracker will finally update /Finished
 //-----------------------------------------------------------------------------
-function dtc_command_set_odb(cmd) {
+function dtc_command_set_odb(cmd,logfile) {
 
   let p0 = '/Mu2e/Commands/DAQ/Nodes/'+g_hostname+'/DTC'+g_pcie;
 
@@ -181,13 +181,13 @@ function dtc_command_set_odb(cmd) {
     done = finished;
   };
   
-  displayFile('trkdtc.log', 'output_window');
+  displayFile(logfile, 'output_window');
 }
 
 //-----------------------------------------------------------------------------
 function dtc_reset_output(element) {
-//  clear_window(element)
-  dtc_command_set_odb("reset_output")
+  //  clear_window(element)
+  dtc_command_set_odb("reset_output",'trkdtc.log')
 }
 
 // //-----------------------------------------------------------------------------

@@ -61,7 +61,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
 # or None (if we shouldn't write an event).
 #------------------------------------------------------------------------------
     def readout_func(self):
-        TRACE.TRACE(TRACE.TLVL_LOG,":001: --- START",TRACE_NAME)
+        TRACE.TRACE(TRACE.TLVL_DBG+1,":001: -- START",TRACE_NAME)
         # In this example, we just make a simple event with one bank.
 
         # event = midas.event.Event()
@@ -71,7 +71,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
         # data = [1,2,3,4,5,6,TRACE.TLVL_LOG,8]
         # event.create_bank("MYBK", midas.TID_INT, data)
 
-        TRACE.TRACE(TRACE.TLVL_LOG,":002: --- END",TRACE_NAME)
+        TRACE.TRACE(TRACE.TLVL_DBG+1,"-- END",TRACE_NAME)
         return None;        # event
 
 #------------------------------------------------------------------------------
