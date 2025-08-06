@@ -276,7 +276,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // SOFT RESET
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    TLOG(TLVL_DEBUG) << "arrived at set_caldaq";
+    TLOG(TLVL_DEBUG) << "arrived at soft_reset";
  
     try         { dtc_i->Dtc()->SoftReset(); ss << "soft reset OK" << std::endl; }
     catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }

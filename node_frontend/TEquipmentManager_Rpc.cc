@@ -68,7 +68,8 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
       pcie_addr = j1.at("pcie");
       link      = j1.at("roc" );
       eq        = _eq_dtc[pcie_addr];
-      TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr << " eq:" << eq << " _eq_dtc[0]:0x" << std::hex << _eq_dtc[0];
+      TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr << " eq:" << eq
+                       << " _eq_dtc[" << pcie_addr << "]:0x" << std::hex << _eq_dtc[pcie_addr];
     }
     else if (eq_type == "artdaq") {
                                         // perhaps some additional parameters to parse
@@ -129,7 +130,7 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
 // for DTC, in most cases need the link to be specified
 //-----------------------------------------------------------------------------
   if (eq->Name().find("DTC") == 0) {
-    odb_i->SetInteger(h_cmd,"Link",link);
+    odb_i->SetInteger(h_cmd,"link",link);
   }
   // and , finally, trigger the execution
   odb_i->SetInteger(h_cmd,"Run"          ,1);

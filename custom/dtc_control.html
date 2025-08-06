@@ -97,10 +97,10 @@
               <input type=button value='write DTC register'  onClick='dtc_command("write_register")'>
             </td>
             <td>
-              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Register" data-odb-editable="1" data-format="%x"></div>
+              <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_register/register" data-odb-editable="1" data-format="%x"></div>
             </td>
             <td>
-              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_register/Value"    data-odb-editable="1" data-format="%x"></div>
+              <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_register/value"    data-odb-editable="1" data-format="%x"></div>
             </td>
           </tr>
           <tr>
@@ -110,10 +110,10 @@
               <input type=button value='read &nbsp DTC register'    onClick='dtc_command("read_register")'>
             </td>
             <td>
-              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Register" data-odb-editable="1" data-format="%x"></div>
+              <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_register/register" data-odb-editable="1" data-format="%x"></div>
             </td>
             <td>
-              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_register/Value" data-format="%x"></div>
+              <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_register/value" data-format="%x"></div>
             </td>
           </tr>
         </tbody>

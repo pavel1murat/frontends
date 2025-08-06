@@ -71,9 +71,9 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
 // defined in ODB
 //-----------------------------------------------------------------------------
   uint32_t required_dtc_fw_version = _odb_i->GetDtcFwVersion(H_RunConf);
-
   uint32_t dtc_fw_version          = _dtc_i->ReadRegister(0x9004);
-  if (dtc_fw_version != required_dtc_fw_version) {
+
+  if ((required_dtc_fw_version != 0) and (dtc_fw_version != required_dtc_fw_version)) {
     TLOG(TLVL_ERROR) << "dtc_fw_version:" << std::hex << dtc_fw_version
                      << " is different from required version:" << required_dtc_fw_version
                      << " BAIL OUT";
