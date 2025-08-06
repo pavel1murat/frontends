@@ -16,6 +16,8 @@ function choose_dtc_id(evt, dtc_id) {
   
   if (dtc_id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
   console.log('g_pcie=',g_pcie);
+
+  createTable();
 }
 //-----------------------------------------------------------------------------      
 function choose_roc_id(evt, roc_id) {

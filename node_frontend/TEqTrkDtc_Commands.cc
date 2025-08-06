@@ -824,6 +824,8 @@ int TEqTrkDtc::ReadRegister(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::ReadRocRegister(std::ostream& Stream) {
   
+  TLOG(TLVL_DEBUG) << "-- START";
+
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   //  HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"read_roc_register");
@@ -831,6 +833,7 @@ int TEqTrkDtc::ReadRocRegister(std::ostream& Stream) {
 
   int link        = odb_i->GetInteger(h_cmd    ,"link"    );
   uint16_t reg    = odb_i->GetUInt16 (h_cmd_par,"register");
+  TLOG(TLVL_DEBUG) << "link:" << link << " reg:" << reg;
 //-----------------------------------------------------------------------------
 // ROC registers are 16-bit
 //-----------------------------------------------------------------------------
@@ -844,7 +847,7 @@ int TEqTrkDtc::ReadRocRegister(std::ostream& Stream) {
   catch (...) {
     Stream << " -- ERROR : coudn't read ROC register ... BAIL OUT";
   }
-
+  TLOG(TLVL_DEBUG) << "-- END";
   return 0;
 }
 

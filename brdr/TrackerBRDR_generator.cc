@@ -100,7 +100,7 @@ namespace mu2e {
     std::vector<uint16_t>                 _fragment_ids;       // handled by CommandableGenerator,
                                                                //  but not a data member there
     std::string                           _sFragmentType;
-    int                                   _debugLevel;
+    int                                   _debug_level;
     size_t                                _nEventsDbg;
     int                                   _pcieAddr;
     int                                   _linkMask;           // from ODB
@@ -212,7 +212,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   , _lastReportTime    (std::chrono::steady_clock::now())
   , _fragment_ids      (ps.get<std::vector<uint16_t>>   ("fragment_ids"       , std::vector<uint16_t>()))  // 
   , _sFragmentType     (ps.get<std::string>             ("fragmentType"       ,    "DTCEVT"))  // 
-  , _debugLevel        (ps.get<int>                     ("debugLevel"         ,           0))
+  , _debug_level        (ps.get<int>                     ("debugLevel"         ,           0))
   , _nEventsDbg        (ps.get<size_t>                  ("nEventsDbg"         ,         100))
   , _readData          (ps.get<int>                     ("readData"           ,           1))  // 
   , _printFreq         (ps.get<int>                     ("printFreq"          ,         100))  // 
@@ -297,10 +297,12 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   HNDLE hdtc    = odb_i->GetHandle(_hBoardreader,"DTC");
   _pcieAddr     = odb_i->GetDtcPcieAddress(hdtc);
   _linkMask     = odb_i->GetLinkMask      (hdtc);
+  _debug_level   = odb_i->GetInteger(_hBoardreader,"debug_level");
 
   TLOG(TLVL_DEBUG+1) << "label:"             << _artdaqLabel
                      << " pcie_addr(ODB):"   << _pcieAddr
-                     << " link mask(ODB):0x" << std::hex << _linkMask;
+                     << " link mask(ODB):0x" << std::hex << _linkMask
+                     << " _debug_level:"      << std::dec << _debug_level;
   
   TLOG(TLVL_DEBUG+1) << "label:"               << _artdaqLabel
                      << " active_run_conf:"    << active_run_conf
@@ -384,38 +386,49 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
     int pc    = rdh->packetCount;
     if (_dtc_i->LinkEnabled(i)) {
       if (rdh->error_code()) {
+        if (_debug_level != 0) {
 //-----------------------------------------------------------------------------
-// some kind of an error 
-//-----------------------------------------------------------------------------
-        err_code |= 0x1;
-        if (rdh->error_code() == 0x10) {
-//-----------------------------------------------------------------------------
-// buffer overflow - make it a warning
+// if debug_level != 0, always generate diagnostics
 //-----------------------------------------------------------------------------
           std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
                                         ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
           // cm_msg(MINFO, _artdaqLabel.data(),msg.data());
-          TLOG(TLVL_WARNING) << _artdaqLabel.data() << ": " << msg;
+          TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
         }
-        else if (rdh->error_code() == 0x8) {
+        else {
+//-----------------------------------------------------------------------------
+// specific errors - always
+//-----------------------------------------------------------------------------
+          err_code |= 0x1;
+          if (rdh->error_code() == 0x10) {
+//-----------------------------------------------------------------------------
+// buffer overflow - make it a warning
+//-----------------------------------------------------------------------------
+            std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+            // cm_msg(MINFO, _artdaqLabel.data(),msg.data());
+            TLOG(TLVL_WARNING) << _artdaqLabel.data() << ": " << msg;
+          }
+          else if (rdh->error_code() == 0x8) {
 //-----------------------------------------------------------------------------
 // timeout - definitely an error
 //-----------------------------------------------------------------------------
-          nerr += 1;
-          std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+            nerr += 1;
+            std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
                                         ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
-          // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
-          TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
-        }
-        else if (rdh->error_code() == 0x18) {
+            // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
+            TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
+          }
+          else if (rdh->error_code() == 0x18) {
 //-----------------------------------------------------------------------------
 // timeout - definitely an error
 //-----------------------------------------------------------------------------
-          nerr += 1;
-          std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
-                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
-          // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
-          TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
+            nerr += 1;
+            std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                          ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+            // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
+            TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
+          }
         }
       }
 
@@ -550,9 +563,9 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
       int           nb     = ev->GetSubEventByteCount();
       nbytes              += nb;
       uint64_t      ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
-
+      
       tstamp               = ew_tag;  // hack ?? may be not
-        
+      
       TLOG(TLVL_DEBUG+1) << "label:"      << _artdaqLabel
                          << " dtc_block:" << i
                          << " nb:"        << nb
@@ -561,7 +574,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
         artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::DTCEVT, tstamp);
         int event_size = nb+sizeof(DTCLib::DTC_EventHeader);
         frag->resizeBytes(event_size);
-      
+        
         DTCLib::DTC_EventHeader* hdr = (DTCLib::DTC_EventHeader*) frag->dataBegin();
         hdr->inclusive_event_byte_count = event_size;
         hdr->num_dtcs                   = 1;
@@ -581,7 +594,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
         uint64_t ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
 
-        if ((_debugLevel > 0) and (ev_counter() < _nEventsDbg)) { 
+        if ((_debug_level > 0) and (ev_counter() < _nEventsDbg)) { 
           TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
                              << " subevent:" << i
                              << " EW tag:" << ew_tag
