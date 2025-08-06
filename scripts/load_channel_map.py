@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 #------------------------------------------------------------------------------
-# PM: load channel map to ODB
+# PM: load channel map for active run configuration to ODB
 # all channels except those specified in the file named
 #
-#  $MU2E_DAQ_DIR/config/tracker/station_00/channel_map/channel_map.json
+#  $MU2E_DAQ_DIR/config/tracker/station_00/{thresholds_dir}/channel_map.json
+#
+# the value of {thresholds_dir} is defined by
+#
+#    odb_path=/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration/ThresholdsDir
 #
 # are presumed good. The present file format:
 #[
@@ -80,20 +84,25 @@ class LoadChannelMap:
                 # print('-- appended:',v);
         return results;
 
+#------------------------------------------------------------------------------
+# different good channel maps for different thresholds
+# location: $thresholds_dir/channel_map.json
 #---v--------------------------------------------------------------------------
     def load_channel_map(self,station):
-    
+
         logger.info("Initializing : load_channel_map")
 
         node            = socket.gethostname().split('.')[0];
         experiment_name = "test_025";
         client          = midas.client.MidasClient("load_channel_map",node,experiment_name,None)
 
+        ro_cfg_path     = '/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration';
+        thresholds_dir  = client.odb_get(ro_cfg_path+'/ThresholdsDir');
 
         station_path = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{station:02d}'
         print(station_path);
 
-        fn = f'config/tracker/station_{station:02d}/channel_map/channel_map.json';
+        fn = f'config/tracker/station_{station:02d}/{thresholds_dir}/channel_map.json';
         print (f'-------------- opening file:{fn}')
         
         with open(fn, 'r') as file:
