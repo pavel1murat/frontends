@@ -23,7 +23,7 @@
       function createTable() {
         const urlParams = new URLSearchParams(window.location.search);
         g_hostname      = urlParams.get('hostname') || 'none';  // 
-        const pcie      = urlParams.get('pcie') || '0'   ;  //
+        if (g_pcie == -1) { g_pcie = parseInt(urlParams.get('pcie')) || 0; } ;
 
         let title       = document.getElementById('table-title');
         title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
@@ -41,8 +41,8 @@
             </td>
             <td>
               <div class="tab">
-                <button class="tablinks" id="dtc0" onclick="choose_dtc_id(event,'dtc0')">PCIE:0</button>
-                <button class="tablinks" id="dtc1" onclick="choose_dtc_id(event,'dtc1')">PCIE:1</button>
+                <button class="dtctabs" id="dtc0" onclick="update_dtc_id(event,'dtc0')">PCIE:0</button>
+                <button class="dtctabs" id="dtc1" onclick="update_dtc_id(event,'dtc1')">PCIE:1</button>
               </div>
             </td>
             <td colspan=4>
@@ -259,12 +259,17 @@
         </tbody>
         `;      
 //-----------------------------------------------------------------------------
-//  end
-//-----------------------------------------------------------------------------
+//  end, define active DTC tab
+//----------------------------------------------------------------------------
+        const el = document.getElementById('dtc'+g_pcie.toString());
+        if (el) {
+          el.focus();
+          el.className += " active";
+          console.log('g_pcie=',g_pcie);
+        }
       }
       
       document.addEventListener("DOMContentLoaded", createTable);
-      // choose_roc_id('DOMContentLoaded','roc0')
     </script>
   </head>
   <!--
@@ -395,7 +400,7 @@
     Local Variables:
     tab-width: 8
     c-basic-offset: 2
-    js-indent-level: 2
+    js-indent-level: 0
     indent-tabs-mode: nil
     End:
   -->

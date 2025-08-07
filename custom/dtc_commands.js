@@ -2,23 +2,27 @@
 // the hostname should be the same within the scope of this script
 //-----------------------------------------------------------------------------
 let g_hostname = 'undefined';
-let g_pcie     = 0;
+let g_pcie     = -1;             // assumed to be a number
 let g_roc      = 0;
 //-----------------------------------------------------------------------------      
 function choose_dtc_id(evt, dtc_id) {
-  var i, tablinks;
-  tablinks = document.getElementsByClassName("tablinks");
-  for (i=0; i<tablinks.length; i++) {
-    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  var i, dtctabs;
+  dtctabs = document.getElementsByClassName("dtctabs");
+  for (i=0; i<dtctabs.length; i++) {
+    dtctabs[i].className = dtctabs[i].className.replace(" active", "");
   }
   document.getElementById(dtc_id).style.display = "block";
   evt.currentTarget.className += " active";
   
   if (dtc_id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
   console.log('g_pcie=',g_pcie);
-
+}
+//-----------------------------------------------------------------------------      
+function update_dtc_id(evt, dtc_id) {
+  choose_dtc_id(evt,dtc_id);
   createTable();
 }
+
 //-----------------------------------------------------------------------------      
 function choose_roc_id(evt, roc_id) {
   var i, roctabs;
