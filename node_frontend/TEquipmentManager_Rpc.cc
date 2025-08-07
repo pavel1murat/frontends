@@ -92,15 +92,15 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
 //-----------------------------------------------------------------------------
 // start forming response
 //-----------------------------------------------------------------------------
-  response  = "cmd:";
-  response += cmd;
-  response += " args:";
-  response += args;
+  response  = "";
+  // response += cmd;
+  // response += " args:";
+  // response += args;
 //-----------------------------------------------------------------------------
 // a single place to make sure that the pointer to the EqDTC is OK
 //-----------------------------------------------------------------------------
   if (eq == nullptr) {
-    ss << " EQ:" << eq_type << " is not enabled";
+    ss << "EQ:" << eq_type << " is not enabled";
     response += ss.str();
     TLOG(TLVL_ERROR) << response;
     return TMFeErrorMessage(response);
@@ -138,14 +138,7 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
 
   response += " passed for execution";
   
-  return TMFeOk();
-
-  response += ss.str();
-
   TLOG(TLVL_DEBUG) << "-- END: response:" << response;
-
-  ss.str("");
-
   return TMFeOk();
 }
 

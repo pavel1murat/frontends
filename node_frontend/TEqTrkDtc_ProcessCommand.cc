@@ -116,13 +116,6 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     cmd_rc = eq_dtc->GetRocDesignInfo(ss);
   }
-  else if (cmd == "init_readout") {
-//-----------------------------------------------------------------------------
-// get ROC design info - print output of 3 separate commands together
-//-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq_dtc->InitReadout(ss);
-  }
   else if (cmd == "digi_rw") {
 //-----------------------------------------------------------------------------
 // CONTROL_ROC_DIGI_RW
@@ -133,13 +126,20 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   }
   else if (cmd == "hard_reset") {
 //-----------------------------------------------------------------------------
-// SOFT RESET
+// HARD RESET
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    TLOG(TLVL_DEBUG) << "arrived at hard reset";
+    // ss << std::endl;
+    TLOG(TLVL_DEBUG) << "arrived at hard_reset";
  
-    try         { dtc_i->Dtc()->HardReset(); ss << "hard reset OK" << std::endl; }
+    try         { dtc_i->Dtc()->HardReset(); ss << "hart reset OK" << std::endl; }
     catch (...) { ss << "ERROR : coudn't hard reset the DTC ... BAIL OUT" << std::endl; }
+  }
+  else if (cmd == "init_readout") {
+//-----------------------------------------------------------------------------
+// init_readout
+//-----------------------------------------------------------------------------
+    // ss << std::endl;
+    cmd_rc = eq_dtc->InitReadout(ss);
   }
 //-----------------------------------------------------------------------------
 // LOAD_THRESHOLDS
@@ -237,9 +237,8 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   }
   else if (cmd == "read_roc_register") {
 //-----------------------------------------------------------------------------
-// read ILP
+// read ROC register
 //-----------------------------------------------------------------------------
-    ss << std::endl;
     cmd_rc = eq_dtc->ReadRocRegister(ss);
   }
   else if (cmd == "read_spi") {
@@ -275,10 +274,9 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // SOFT RESET
 //-----------------------------------------------------------------------------
-    ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at soft_reset";
  
-    try         { dtc_i->Dtc()->SoftReset(); ss << "soft reset OK" << std::endl; }
+    try         { dtc_i->Dtc()->SoftReset(); ss << " soft reset OK" << std::endl; }
     catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }
   }
   else if (cmd == "write_register") {
@@ -292,7 +290,6 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // WRITE_ROC_REGISTER
 //-----------------------------------------------------------------------------
-    ss << std::endl;
     cmd_rc = eq_dtc->WriteRocRegister(ss);
   }
   else {

@@ -206,11 +206,11 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
   try {
     rc = _dtc_i->InitReadout(-1,roc_readout_mode);
 
-    Stream << "DTC:" << _dtc_i->PcieAddr() << " emulate_cfo:" << _dtc_i->EmulateCfo()
+    Stream << " emulate_cfo:" << _dtc_i->EmulateCfo()
            << " roc_readout_mode:" << roc_readout_mode << " rc:" << rc;
   }
   catch (...) {
-    Stream << "ERROR : coudn't init readout DTC:" << _dtc_i->PcieAddr();
+    Stream << "ERROR : coudn't init DTC readout";
   }
   
   return rc;
@@ -221,7 +221,6 @@ int TEqTrkDtc::FindAlignment(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  //  HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"find_alignment");
   HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
 
   int link        = odb_i->GetInteger(h_cmd,"link"       );
@@ -822,6 +821,9 @@ int TEqTrkDtc::ReadRegister(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
+// assume that link != -1 (read only one ROC), thus don't inject '\n'
+// the rest is printed by _ProcessComand
+//-----------------------------------------------------------------------------
 int TEqTrkDtc::ReadRocRegister(std::ostream& Stream) {
   
   TLOG(TLVL_DEBUG) << "-- START";
@@ -842,10 +844,10 @@ int TEqTrkDtc::ReadRocRegister(std::ostream& Stream) {
     uint16_t val = _dtc_i->Dtc()->ReadROCRegister(DTC_Link_ID(link),reg,timeout_ms);
     odb_i->SetUInt16(h_cmd_par,"value",val);
     
-    Stream << " -- read_roc_register: link:" << link << " reg:0x" << std::hex << reg << " val:0x" << val << std::dec;
+    Stream << " reg:0x" << std::hex << reg << " val:0x" << val << std::dec;
   }
   catch (...) {
-    Stream << " -- ERROR : coudn't read ROC register ... BAIL OUT";
+    Stream << " -- ERROR : coudn't read ROC register:0x" << std::hex << reg << " ... BAIL OUT";
   }
   TLOG(TLVL_DEBUG) << "-- END";
   return 0;
@@ -1143,10 +1145,10 @@ int TEqTrkDtc::WriteRocRegister(std::ostream& Stream) {
   try {
     int timeout_ms(150);
     _dtc_i->Dtc()->WriteROCRegister(DTC_Link_ID(link),reg,val,false,timeout_ms);
-    Stream << " -- write_roc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
+    Stream << " register:0x" << std::hex << reg << " val:0x" << val << std::dec;
   }
   catch (...) {
-    Stream << "ERROR : coudn't write ROC register ... BAIL OUT" << std::endl;
+    Stream << " ERROR : coudn't write ROC register:" << std::hex << reg << " ... BAIL OUT" << std::endl;
   }
 
   return 0;
