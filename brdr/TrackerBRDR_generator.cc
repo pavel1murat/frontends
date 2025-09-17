@@ -221,8 +221,8 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   
 {
   _fragmentType = mu2e::toFragmentType(_sFragmentType);
-  TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel << " CONSTRUCTOR (1) readData:" << _readData
-                     << " fragmentType:" << _sFragmentType << ":" << int(_fragmentType);
+  TLOG(TLVL_INFO) << "label:" << _artdaqLabel << " CONSTRUCTOR (1) readData:" << _readData
+                   << " fragmentType:" << _sFragmentType << ":" << int(_fragmentType);
 //-----------------------------------------------------------------------------
 // the BR interface should not be changing any settings, just read events
 // DTC is already initialized by the frontend, don't change anything !
@@ -232,14 +232,26 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 //-----------------------------------------------------------------------------
   _midas_host = getenv("MIDAS_SERVER_HOST");
   
+  TLOG(TLVL_INFO) << "_midas_host:" << _midas_host;
+
   char host_name[100], exp_name[100];
   cm_get_environment(host_name, sizeof(host_name), exp_name, sizeof(exp_name));
   _exptName = exp_name;
 
-  int status = cm_connect_experiment(_midas_host.data(), _exptName.data(), _artdaqLabel.data(),NULL);
+  TLOG(TLVL_INFO) << "_exptName:" << _exptName;
+
+  int ntries = 0;
+  int status(0);
+  while (ntries < 10) {
+    status = cm_connect_experiment(_midas_host.data(), _exptName.data(), _artdaqLabel.data(),NULL);
+    if (status == CM_SUCCESS) break;
+    TLOG(TLVL_WARNING) << "label: " << _artdaqLabel << " _midas_host:" << _midas_host
+                       << " connection attempt:" << ntries << " has failed";
+    ntries += 1;
+  }
   if (status != CM_SUCCESS) {
     cm_msg(MERROR, _artdaqLabel.data(),
-           "Cannot connect to experiment \'%s\' on host \'%s\', status %d",
+           "Cannot connect to experiment \'%s\' on host \'%s\' 10 tiems, status %d",
            exp_name,_midas_host.data(),status);
     TLOG(TLVL_ERROR) << "label: " << _artdaqLabel
                      << " ERROR: failed to connect to MIDAS on host:" << _midas_host << " . BAIL OUT";
@@ -400,7 +412,7 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 // specific errors - always
 //-----------------------------------------------------------------------------
           err_code |= 0x1;
-          if (rdh->error_code() == 0x10) {
+          if (rdh->error_code() & 0x10) {
 //-----------------------------------------------------------------------------
 // buffer overflow - make it a warning
 //-----------------------------------------------------------------------------
@@ -409,7 +421,7 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
             // cm_msg(MINFO, _artdaqLabel.data(),msg.data());
             TLOG(TLVL_WARNING) << _artdaqLabel.data() << ": " << msg;
           }
-          else if (rdh->error_code() == 0x8) {
+          else if (rdh->error_code() & 0x8) {
 //-----------------------------------------------------------------------------
 // timeout - definitely an error
 //-----------------------------------------------------------------------------
@@ -419,13 +431,23 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
             // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
             TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
           }
-          else if (rdh->error_code() == 0x18) {
+          else if (rdh->error_code() & 0x20) {
 //-----------------------------------------------------------------------------
-// timeout - definitely an error
+// 
 //-----------------------------------------------------------------------------
             nerr += 1;
             std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
-                                          ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+            // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
+            TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
+          }
+          else if (rdh->error_code() & 0x40) {
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+            nerr += 1;
+            std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
             // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
             TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
           }
