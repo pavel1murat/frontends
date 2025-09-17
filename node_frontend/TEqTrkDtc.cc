@@ -93,6 +93,7 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
     _dtc_i->fEventMode      = _odb_i->GetEventMode        (H_RunConf);
     _dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode   (H_RunConf);
     _dtc_i->fJAMode         = _odb_i->GetJAMode           (H_Dtc);
+    _dtc_i->fRocLaneMask    = _odb_i->GetUInt32           (H_Dtc,"RocLaneMask");
 
     TLOG(TLVL_DEBUG) << "is_crv:"            << _dtc_i->fIsCrv
                      << " dtc_fw_version:0x" << std::hex << dtc_fw_version
@@ -100,7 +101,8 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
                      << " roc_readout_mode:" << _dtc_i->fRocReadoutMode
                      << " sample_edge_mode:" << _dtc_i->fSampleEdgeMode
                      << " event_mode:"       << _dtc_i->fEventMode
-                     << " emulate_cfo:"      << _dtc_i->fEmulateCfo;
+                     << " emulate_cfo:"      << _dtc_i->fEmulateCfo
+                     << " roc_lane_mask:0x"  << std::hex << _dtc_i->fRocLaneMask      ;
 //-----------------------------------------------------------------------------
 // loop over links, redefine the enabled link mask (also in ODB)
 // also store in ODB IDs of the ROCs
