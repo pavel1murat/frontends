@@ -196,14 +196,20 @@ int TEqTrkDtc::GetRocDesignInfo(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::InitReadout(std::ostream& Stream) {
   int rc(0);
-  
+
+  TLOG(TLVL_DEBUG) << "-- START";
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_dtc     = odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_daq     = odb_i->GetDaqConfigHandle();
   
   uint32_t roc_readout_mode = odb_i->GetInteger(h_daq,"RocReadoutMode");
+  uint32_t roc_lane_mask    = odb_i->GetUInt32(h_dtc,"RocLaneMask");
+
+  TLOG(TLVL_DEBUG) << "roc_readout_mode:" << roc_readout_mode
+                   << " roc_lane_mask:0x" << std::hex << roc_lane_mask;
 
   try {
+    _dtc_i->SetRocLaneMask(roc_lane_mask);
     rc = _dtc_i->InitReadout(-1,roc_readout_mode);
 
     Stream << " emulate_cfo:" << _dtc_i->EmulateCfo()
@@ -213,6 +219,7 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
     Stream << "ERROR : coudn't init DTC readout";
   }
   
+  TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
   return rc;
 }
 
