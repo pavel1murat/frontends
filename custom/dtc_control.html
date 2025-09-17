@@ -235,6 +235,20 @@
         <tr>
           <td colspan>
             <input type=button value='get design info'  onClick='dtc_command("get_roc_design_info")'>
+            <div class="dropup">
+              <input type=button class="dropbtn" value='find_thresholds'>
+              <div class="dropup-content">
+                <div onClick='dtc_load_cmd_parameters("find_thresholds")'> Load Parameters </div>
+                <div onClick='dtc_command("find_thresholds")'            > Run             </div>
+              </div>
+            </div>
+            <div class="dropup">
+              <input type=button class="dropbtn" value='program_roc'>
+              <div class="dropup-content">
+                <div onClick='dtc_load_cmd_parameters("program_roc")'> Load Parameters </div>
+                <div onClick='dtc_command("program_roc")'            > Run             </div>
+              </div>
+            </div>
 <!--
             <input type=button value='get ID'           onClick='dtc_command("get_roc_id")'>
             <input type=button value='get GIT commit'   onClick='dtc_command("get_roc_fw_git_commit")'>
