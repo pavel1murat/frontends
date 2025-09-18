@@ -104,6 +104,13 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   else if (cmd == "find_alignment") {
     cmd_rc = eq_dtc->FindAlignment(ss);
   }
+  else if (cmd == "find_thresholds") {
+//-----------------------------------------------------------------------------
+// FIND_THRESHOLDS
+//-----------------------------------------------------------------------------
+    ss << std::endl;
+    cmd_rc = eq_dtc->FindThresholds(ss);
+  }
   else if (cmd == "get_key") {
 //-----------------------------------------------------------------------------
 // GET KEY ... TODO
@@ -189,6 +196,13 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
     ss << std::endl;
     cmd_rc = eq_dtc->PulserOff(ss);
+  }
+  else if (cmd == "program_roc") {
+//-----------------------------------------------------------------------------
+// PROGRAM_ROC
+//-----------------------------------------------------------------------------
+    ss << std::endl;
+    cmd_rc = eq_dtc->ProgramRoc(ss);
   }
   else if (cmd == "pulser_on") {
 //-----------------------------------------------------------------------------

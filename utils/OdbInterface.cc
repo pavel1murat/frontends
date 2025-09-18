@@ -169,6 +169,23 @@ int OdbInterface::GetArray(HNDLE hDir, const char* Key, int DataType, void* Data
 }
 
 //-----------------------------------------------------------------------------
+float OdbInterface::GetFloat(HNDLE hDir, const char* Key) {
+  int   rc(0);
+  float res;
+  int   sz = sizeof(float);
+
+  rc = db_get_value(_hDB, hDir, Key, &res, &sz, TID_FLOAT, FALSE);
+  if (rc != DB_SUCCESS) {
+    KEY dbkey;
+    db_get_key(_hDB,hDir,&dbkey);
+    TLOG(TLVL_ERROR) << "cant find key:" << Key << " in hDir:" << dbkey.name << "(" << hDir << ")";
+    res = -9999;
+  }
+  TLOG(TLVL_DEBUG+1) << "key:" << Key << " value:" << res;
+
+  return res;
+}
+//-----------------------------------------------------------------------------
 int OdbInterface::GetInteger(HNDLE hDir, const char* Key) {
   int rc(0), res;
   int sz = sizeof(int);

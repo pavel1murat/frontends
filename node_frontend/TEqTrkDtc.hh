@@ -63,12 +63,14 @@ public:
   int         DigiRW           (std::ostream& Stream);
   int         DumpSettings     (std::ostream& Stream);
   int         FindAlignment    (std::ostream& Stream);
+  int         FindThresholds   (std::ostream& Stream);
   int         GetKey           (std::ostream& Stream);
   int         GetRocDesignInfo (std::ostream& Stream);
   int         InitReadout      (std::ostream& Stream);
   int         LoadThresholds   (std::ostream& Stream);   // load thresholds from disk to ODB
   int         MeasureThresholds(std::ostream& Stream);
   int         PrintRocStatus   (std::ostream& Stream);
+  int         ProgramRoc       (std::ostream& Stream);
   int         PulserOff        (std::ostream& Stream);
   int         PulserOn         (std::ostream& Stream);
   int         Rates            (std::ostream& Stream);
