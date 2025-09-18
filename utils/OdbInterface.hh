@@ -126,6 +126,7 @@ public:
   int         GetKey              (HNDLE hConf, KEY* Key);
   HNDLE       GetParent           (HNDLE hConf);
 
+  float       GetFloat            (HNDLE hConf, const char* Key);
   uint16_t    GetUInt16           (HNDLE hConf, const char* Key);
   
   uint32_t    GetUInt32           (HNDLE hConf, const char* Key);
