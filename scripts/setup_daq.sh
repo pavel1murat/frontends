@@ -14,6 +14,7 @@ fi
 export       HOSTNAME=`hostname -s`
 export       DAQ_USER_STUB=${USER}_`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`
 export      DAQ_OUTPUT_TOP=/scratch/mu2e/$DAQ_USER_STUB
+export        RAW_DATA_DIR=$DAQ_OUTPUT_TOP/data
 
 export SPACK_DISABLE_LOCAL_CONFIG=true
 source $MU2E_DAQ_DIR/spack/share/spack/setup-env.sh

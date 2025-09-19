@@ -533,7 +533,7 @@ int TEqTrkDtc::Rates(std::ostream& Stream) {
 
   uint16_t              rates_ch_mask[6]; // cached masks from the RATES command ODB record
 
-  TLOG(TLVL_DEBUG) << "--- START";
+  TLOG(TLVL_DEBUG) << "-- START";
   
   OdbInterface* odb_i      = OdbInterface::Instance();
   HNDLE         h_run_conf = odb_i->GetActiveRunConfigHandle();
@@ -709,10 +709,14 @@ int TEqTrkDtc::Rates(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::Read(std::ostream& Stream) {
   
+  TLOG(TLVL_DEBUG) << "-- START";
+
   OdbInterface* odb_i      = OdbInterface::Instance();
   HNDLE         h_run_conf = odb_i->GetActiveRunConfigHandle();
   std::string   conf_name  = odb_i->GetRunConfigName(h_run_conf);
 
+  TLOG(TLVL_DEBUG) << "conf_name:" << conf_name;
+  
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   //  std::string   cmd_name  = odb_i->GetString(h_cmd,"Name");
   HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
@@ -751,6 +755,7 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
         continue;
       }
     }
+    TLOG(TLVL_DEBUG) << "use_panel_channel_mask:" << use_panel_channel_mask;
     if (use_panel_channel_mask == 0) {
 //-----------------------------------------------------------------------------
 // use masks stored in the command ODB record
@@ -766,6 +771,7 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
       std::string  panel_path = std::format("/Mu2e/RunConfigurations/{:s}/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
                                             conf_name.data(),_host_label.data(),_dtc_i->PcieAddr(),lnk);
+      TLOG(TLVL_DEBUG) << "panel_path:" << panel_path;
       midas::odb   odb_panel(panel_path);
       for (int i=0; i<96; ++i) {
         int on_off = odb_panel["ch_mask"][i];
@@ -803,6 +809,8 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
       Stream << "ERROR : coudn't execute ControlRoc_Read for link:" << lnk << " ... BAIL OUT" << std::endl;
     }
   }
+  
+  TLOG(TLVL_DEBUG) << "-- END";
   return 0;
 }
 

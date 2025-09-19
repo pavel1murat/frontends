@@ -17,8 +17,8 @@
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "trk_cfg_frontend"
 
-#include "cfg_frontend/TEqTracker.hh"
-#include "utils/utils.hh"
+#include "frontends/trk_cfg_frontend/TEqTracker.hh"
+#include "frontends/utils/utils.hh"
 
 //-----------------------------------------------------------------------------
 class TrackerCfgFrontend: public TMFrontend {

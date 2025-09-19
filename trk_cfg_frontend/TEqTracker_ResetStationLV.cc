@@ -8,7 +8,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "frontends/cfg_frontend/TEqTracker.hh"
+#include "frontends/trk_cfg_frontend/TEqTracker.hh"
 #include "utils/utils.hh"
 
 #include "TRACE/tracemf.h"
@@ -30,7 +30,7 @@ TMFeResult TEqTracker::ResetStationLV(const std::string& CmdParameterPath) {
   HNDLE h_cmd_par = odb_i->GetHandle(0,CmdParameterPath);
   int station     = odb_i->GetInteger(h_cmd_par,"station");
 //-----------------------------------------------------------------------------
-// figure out the station RPI and passh the command to the RPI
+// figure out the station RPI and pass the command to the RPI
 //-----------------------------------------------------------------------------
   std::string station_config_path = std::format("{}/Station_{:02d}",tracker_config_path,station);
   HNDLE       h_station    = odb_i->GetHandle(0,station_config_path);

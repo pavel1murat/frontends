@@ -41,10 +41,10 @@ cet_make_exec(NAME trk_cfg_frontend
 )
 
 install(PROGRAMS
-        mu2e_config_fe.py
+        # mu2e_config_fe.py
         DESTINATION bin)
 
 # install_fhicl(SUBDIRS fcl)
 # install_headers()
-# install_source()
+# instalsource()
 
