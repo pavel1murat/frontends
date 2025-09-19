@@ -88,15 +88,19 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
 #------------------------------------------------------------------------------
             for channel in range(12):
                 x = ps.QueryWireVoltage(channel)
+                if (x == b'\x08'): x = 0.0
                 vhv.append(x);
                 x = ps.QueryWireCurrent(channel)
+                if (x == b'\x08'): x = 0.0
                 ihv.append(x);
 #------------------------------------------------------------------------------
 # PCB temp and pico current
 #------------------------------------------------------------------------------
             x = ps.QueryPcbTemp();
+            if (x == b'\x08'): x = 0.0
             pcb.append(x)
             x = ps.QueryPicoCurrent();
+            if (x == b'\x08'): x = 0.0
             pcb.append(x)
 #------------------------------------------------------------------------------
 # In this example, we just make a simple event with one bank.
@@ -110,7 +114,7 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
 # for each midas TID_xxx type is shown in the `midas.tid_np_formats` dict.
 #------------------------------------------------------------------------------
         except:
-            self.client.message('ERROR: failed to connect to HVLV server',1);
+            self.client.message('ERROR: failed to connect to LVHV server',1);
             for channel in range(6):
                 v48.append(-1.);
                 i48.append(-1.);
@@ -127,7 +131,8 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
 # done, send data to ODB
 #------------------------------------------------------------------------------
         data = v48+i48+v06+i06+vhv+ihv+pcb;
-        
+
+        print (f'-- readout_func: write event out. data:{data}..');
         event = midas.event.Event()
         event.create_bank("LVHV", midas.TID_FLOAT, data)
 
