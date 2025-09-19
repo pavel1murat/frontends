@@ -5,7 +5,7 @@
 
 #include "odbxx.h"
 
-#include "frontends/cfg_frontend/TEqTracker.hh"
+#include "frontends/trk_cfg_frontend/TEqTracker.hh"
 #include "utils/utils.hh"
 
 #include "TRACE/tracemf.h"

@@ -2,7 +2,7 @@
 // equipment name is the short node name, i.e. 'mu2edaq22'
 //////////////////////////////////////////////////////////////////////////////
 #include <format>
-#include "frontends/cfg_frontend/TEqTracker.hh"
+#include "frontends/trk_cfg_frontend/TEqTracker.hh"
 #include "utils/utils.hh"
 
 #include "odbxx.h"

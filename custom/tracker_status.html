@@ -41,7 +41,35 @@
         com_table.innerHTML = `
         <thead>
           <tr>
-            <td colspan=15> <div class="mtableheader">Tracker Control Commands </div></td>
+            <td>
+              <div class="mtableheader">Tracker Control Commands</div>
+            </td>
+            <td> station select:</td>
+            <td colspan=12>
+              <div class="tab">
+                <button class="trk_station_tabs" id='st_00' onclick="choose_station_id(event,'st_00')">ST_00</button>
+                <button class="trk_station_tabs" id='st_01' onclick="choose_station_id(event,'st_01')">ST_01</button>
+                <button class="trk_station_tabs" id='st_02' onclick="choose_station_id(event,'st_02')">ST_02</button>
+                <button class="trk_station_tabs" id='st_03' onclick="choose_station_id(event,'st_03')">ST_03</button>
+                <button class="trk_station_tabs" id='st_04' onclick="choose_station_id(event,'st_04')">ST_04</button>
+                <button class="trk_station_tabs" id='st_05' onclick="choose_station_id(event,'st_05')">ST_05</button>
+                <button class="trk_station_tabs" id='st_05' onclick="choose_station_id(event,'st_05')">ST_05</button>
+                <button class="trk_station_tabs" id='st_06' onclick="choose_station_id(event,'st_06')">ST_06</button>
+                <button class="trk_station_tabs" id='st_07' onclick="choose_station_id(event,'st_07')">ST_07</button>
+                <button class="trk_station_tabs" id='st_08' onclick="choose_station_id(event,'st_08')">ST_08</button>
+                <button class="trk_station_tabs" id='st_09' onclick="choose_station_id(event,'st_09')">ST_09</button>
+                <button class="trk_station_tabs" id='st_10' onclick="choose_station_id(event,'st_10')">ST_10</button>
+                <button class="trk_station_tabs" id='st_11' onclick="choose_station_id(event,'st_11')">ST_11</button>
+                <button class="trk_station_tabs" id='st_12' onclick="choose_station_id(event,'st_12')">ST_12</button>
+                <button class="trk_station_tabs" id='st_13' onclick="choose_station_id(event,'st_13')">ST_13</button>
+                <button class="trk_station_tabs" id='st_14' onclick="choose_station_id(event,'st_14')">ST_14</button>
+                <button class="trk_station_tabs" id='st_15' onclick="choose_station_id(event,'st_15')">ST_15</button>
+                <button class="trk_station_tabs" id='st_15' onclick="choose_station_id(event,'st_15')">ST_15</button>
+                <button class="trk_station_tabs" id='st_16' onclick="choose_station_id(event,'st_16')">ST_16</button>
+                <button class="trk_station_tabs" id='st_17' onclick="choose_station_id(event,'st_17')">ST_17</button>
+                <button class="trk_station_tabs" id='st_18' onclick="choose_station_id(event,'st_18')"> ALL </button>
+              </div>
+            </td>
           </tr>
         </thead>
         <tbody></tbody>`;
@@ -55,9 +83,10 @@
       c2.innerHTML = `
                <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
                <input type=button value='load channel map'  onClick='dtc_command("load_channels_map")'>
-               <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>`;
+               <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>
+               <input type=button value='reset_station_lv'  onClick='dtc_command("reset_station_lv")'>`;
     
-      c2.colSpan = 5;
+      c2.colSpan = 6;
       r1.appendChild(c2);
       com_table_tbody.appendChild(r1);
 

@@ -57,12 +57,13 @@ include(BuildPlugins)
 # subdirectories
 #------------------------------------------------------------------------------
 add_subdirectory(utils)
-add_subdirectory(cfg_frontend)
+add_subdirectory(brdr)
+add_subdirectory(mu2e_cfg_frontend)
+add_subdirectory(trk_cfg_frontend)
 add_subdirectory(cfo_frontend)
 add_subdirectory(node_frontend)
 add_subdirectory(tfm_frontend)
 add_subdirectory(test)
-add_subdirectory(brdr)
 add_subdirectory(mepcis)
 # Data
 
