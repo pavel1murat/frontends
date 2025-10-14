@@ -965,6 +965,26 @@ int TEqTrkDtc::ReadDDR(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
+int TEqTrkDtc::RebootMcu(std::ostream& Stream) {
+  int rc(0);
+  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/reboot_mcu");
+
+  HNDLE         h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
+  std::string   cmd_name  = _odb_i->GetString(h_cmd,"Name");
+
+  int link         = _odb_i->GetInteger(h_cmd    ,"link"       ); // o["link"       ];
+
+  //  int print_level  = o["print_level"];
+  
+  rc = _dtc_i->RebootMcu(link);
+
+  if (rc == 0) Stream << " -- reboot_mcu OK";
+  else         Stream << " -- ERROR: failed reboot_mcu link:" << link << " rc:" << rc << std::endl;
+  
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 int TEqTrkDtc::ResetRoc(std::ostream& Stream) {
   int rc(0);
   midas::odb o   ("/Mu2e/Commands/Tracker/DTC/reset_roc");

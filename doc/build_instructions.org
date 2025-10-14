@@ -1,6 +1,6 @@
 #+startup:fold -*- buffer-read-only:t -*- 
 * ------------------------------------------------------------------------------
-* installation under spack                                               
+* installation under spack                                                   
 - last update: <2025-04-28 Thu> - versions are time-dependent
   fermi 0.23: remotes/origin/v0.23.0-fermi
   spack 0.23: tags/v0.23.0
@@ -107,6 +107,16 @@ spack concretize -f
 spack install
 #+end_src
 
+* installing MIDAS on RPI                                                    
+- need to disable PostgreSQL
+#+begin_src
+git clone https://bitbucket.org/tmidas/midas --recurse-submodules
+mkdir build
+cd build
+cmake ../midas -DNO_PGSQL=true -DCMAKE_INSTALL_PREFIX=/opt/midas
+make
+sudo make install
+#+end_src
 * ROOT interface to mu2e-pcie-utils    validated <2025-04-17 Thu>            
 - ROOT interface library is not available by default, you have to build it
 - mu2e-pcie-utils depends on artdaq-core-mu2e
