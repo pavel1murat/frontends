@@ -248,6 +248,9 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     cmd_rc = eq_dtc->ReadSpi(ss);
   }
+  else if (cmd == "reboot_mcu") {
+    cmd_rc = eq_dtc->RebootMcu(ss);
+  }
   else if (cmd == "reset_output") {
     cmd_rc = eq_dtc->ResetOutput();
   }

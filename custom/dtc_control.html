@@ -249,9 +249,10 @@
                 <div onClick='dtc_command("program_roc")'            > Run             </div>
               </div>
             </div>
+            <input type=button value='reboot MCU'         onClick='dtc_command("reboot_mcu")'>
 <!--
-            <input type=button value='get ID'           onClick='dtc_command("get_roc_id")'>
-            <input type=button value='get GIT commit'   onClick='dtc_command("get_roc_fw_git_commit")'>
+            <input type=button value='get ID'             onClick='dtc_command("get_roc_id")'>
+            <input type=button value='get GIT commit'     onClick='dtc_command("get_roc_fw_git_commit")'>
 -->
           </td>
           <td><input type=button value='read &nbsp ROC register' onClick='dtc_command("read_roc_register")'></td>

@@ -167,6 +167,22 @@ file:elog.org::/configuration/
 * [[file:rocs.org][ROCs]]
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=19095][mu2e-19095]] : Mu2e beam timing
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=37376&filename=20220922_DAQNodes.pdf][mu2e-37376]] : DAQ node configuration in the DAQ room                        
+* mu2e DTC driver with dkms                                                  
+#+begin_src
+cd /usr/src
+git clone https://github.com/mu2e/mu2e-pcie-utils mu2e-pcie-utils-4.00.00
+cd mu2e-pcie-utils-4.00.00
+git checkout v4_00_00
+cd ..
+dkms build mu2e-pcie-utils/4.00.00     # this is the naming convention
+dkms autoinstall                       # this also installs the startup script to /etc/modules-load.d/
+[root@mu2edaq24 src]# lsmod | grep mu2e
+mu2e                  638976  0
+TRACE                 290816  1 mu2e
+[root@mu2edaq24 src]# ls -al /dev/mu2e*
+crw-rw-rw- 1 root root 234, 0 Oct  1 12:08 /dev/mu2e0
+crw-rw-rw- 1 root root 234, 1 Oct  1 12:08 /dev/mu2e1
+#+end_src
 * [[file:ots.org][ots]]                                                                        
 * [[file:trace.org][TRACE]]
 * troubleshooting                                                            

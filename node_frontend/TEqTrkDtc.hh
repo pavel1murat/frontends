@@ -73,12 +73,13 @@ public:
   int         PulserOn         (std::ostream& Stream);
   int         Rates            (std::ostream& Stream);
   int         Read             (std::ostream& Stream);
+  int         ReadDDR          (std::ostream& Stream);
   int         ReadIlp          (std::ostream& Stream);
   int         ReadRegister     (std::ostream& Stream);
   int         ReadRocRegister  (std::ostream& Stream);
   int         ReadSpi          (std::ostream& Stream);
   int         ResetRoc         (std::ostream& Stream);
-  int         ReadDDR          (std::ostream& Stream);
+  int         RebootMcu        (std::ostream& Stream);
   int         SetCalDac        (std::ostream& Stream);
   int         SetThresholds    (std::ostream& Stream);  // ODB --> preamps
   int         WriteRocRegister (std::ostream& Stream);
