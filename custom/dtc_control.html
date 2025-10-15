@@ -25,6 +25,7 @@
         g_hostname      = urlParams.get('hostname') || 'none';  // 
         if (g_pcie == -1) { g_pcie = parseInt(urlParams.get('pcie')) || 0; } ;
 
+        document.title = 'DTC@'+g_hostname;
         let title       = document.getElementById('table-title');
         title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
 //-----------------------------------------------------------------------------
@@ -288,7 +289,7 @@
     </script>
   </head>
   <!--
-      it seems to be convenient to have the large scale topology defined in HTML
+      it seems to be convenient to have the high-level topology defined in HTML
       and use javascript to fill internal details
       P.M.: having show_facilities etc here is important
    -->
