@@ -901,10 +901,8 @@ int TEqTrkDtc::ReadIlp(std::ostream& Stream) {
 int TEqTrkDtc::ReadSpi(std::ostream& Stream) {
   int rc(0);
 
-  OdbInterface* odb_i        = OdbInterface::Instance();
-  HNDLE h_cmd                = odb_i->GetDtcCmdHandle(HostLabel(),_dtc_i->PcieAddr());
-  // std::string parameter_path = odb_i->GetString(h_cmd,"ParameterPath");
-  // HNDLE h_cmd_par            = odb_i->GetHandle(h_cmd,parameter_path);
+  OdbInterface* odb_i     = OdbInterface::Instance();
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(HostLabel(),_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
 
   int link         = odb_i->GetInteger(h_cmd    ,"link"       ); // o["link"       ];
@@ -919,6 +917,8 @@ int TEqTrkDtc::ReadSpi(std::ostream& Stream) {
                                         // need formatted printout for all ROCs
       trkdaq::TrkSpiData_t spi[6];
       for (int i=0; i<6; i++) {
+                                        // to print
+        link = i;
         if (_dtc_i->LinkEnabled(i)) {
           _dtc_i->ControlRoc_ReadSpi_1(&spi[i],i,0,Stream);
         }
@@ -928,7 +928,13 @@ int TEqTrkDtc::ReadSpi(std::ostream& Stream) {
     }
   }
   catch (...) {
-    Stream << "ERROR : coudn't read SPI ... BAIL OUT" << std::endl;
+//-----------------------------------------------------------------------------
+// send an error message and print 
+//-----------------------------------------------------------------------------
+    std::string msg = std::format("TEqTrkDtc::{}: ERROR reading ROC SPI dtc:{} link:{}",
+                                  __func__,_dtc_i->PcieAddr(),link);
+    cm_msg(MERROR, HostLabel().data(),msg.data());    
+    Stream << msg << " on " << HostLabel() << std::endl;
     rc = -1;
   }
 

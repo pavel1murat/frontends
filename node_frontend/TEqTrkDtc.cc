@@ -291,6 +291,7 @@ int TEqTrkDtc::InitVarNames() {
   odb_dtc["RegData"] = dtc_reg_data;
 //-----------------------------------------------------------------------------
 // loop over the ROCs and create names for each of them
+// add to the ROC (per-panel) data the key and the ILP (pressure/temp) readout
 //-----------------------------------------------------------------------------
   for (int ilink=0; ilink<6; ilink++) { 
      
@@ -298,6 +299,18 @@ int TEqTrkDtc::InitVarNames() {
     for (int k=0; k<trkdaq::TrkSpiDataNWords; k++) {
       char var_name[32];
       sprintf(var_name,"rc%i%i#%s",pcie_addr,ilink,trkdaq::DtcInterface::SpiVarName(k));
+      roc_var_names.push_back(var_name);
+    }
+      
+    for (int k=0; k<trkdaq::TrkKeyDataNWords; k++) {
+      char var_name[32];
+      sprintf(var_name,"rc%i%i#%s",pcie_addr,ilink,trkdaq::DtcInterface::KeyVarName(k));
+      roc_var_names.push_back(var_name);
+    }
+      
+    for (int k=0; k<trkdaq::TrkIlpDataNWords; k++) {
+      char var_name[32];
+      sprintf(var_name,"rc%i%i#%s",pcie_addr,ilink,trkdaq::DtcInterface::IlpVarName(k));
       roc_var_names.push_back(var_name);
     }
       
@@ -459,18 +472,56 @@ int TEqTrkDtc::ReadMetrics() {
           for (int iw=0; iw<trkdaq::TrkSpiDataNWords; iw++) {
             roc_spi.emplace_back(spi.Data(iw));
           }
-              
+//-----------------------------------------------------------------------------
+// read key data
+//-----------------------------------------------------------------------------
+          std::vector<uint16_t> key_data;
+          int print_level(0);
+          rc = _dtc_i->ControlRoc_GetKey(key_data,ilink,print_level);
+          if (rc == 0) {
+            // for now, do it 'brute force' way, improve later
+            float temp     = float(key_data[0])/4096.*3300./10;
+            float v2p5     = float(key_data[1])/4096*3.355;
+            float v5p1     = float(key_data[2])/4096.*3.355*2;
+            float dcdctemp = float(key_data[3])/4096*3300/10;
+
+            roc_spi.emplace_back(temp);
+            roc_spi.emplace_back(v2p5);
+            roc_spi.emplace_back(v5p1);
+            roc_spi.emplace_back(dcdctemp);
+          }
+          else {
+            for (int i=0; i<trkdaq::TrkKeyDataNWords; i++) roc_spi.emplace_back(-1.);
+          }
+//-----------------------------------------------------------------------------
+// read ILP data
+//-----------------------------------------------------------------------------
+          std::vector<uint16_t> ilp_data;
+          rc = _dtc_i->ControlRoc_ReadIlp(ilp_data,ilink,print_level);
+          if (rc == 0) {
+            int   ilp_id   = ilp_data[0];
+            float temp     = float(ilp_data[1])/100.;
+            float pressure = float(int(ilp_data[3]) << 16 | int(ilp_data[2]))/524288.;
+            roc_spi.emplace_back(float(ilp_id));
+            roc_spi.emplace_back(temp);
+            roc_spi.emplace_back(pressure);
+          }
+          else {
+            for (int i=0; i<trkdaq::TrkIlpDataNWords; i++) roc_spi.emplace_back(-1.);
+          }
+          
           char buf[100];
           sprintf(buf,"rc%i%i",_dtc_i->PcieAddr(),ilink);
             
           midas::odb xx = {{buf,{1.0f}}};
           xx.connect(node_eq_path+"/Variables");
-              
-          xx[buf].resize(trkdaq::TrkSpiDataNWords);
+
+          int nw = trkdaq::TrkSpiDataNWords+trkdaq::TrkKeyDataNWords+trkdaq::TrkIlpDataNWords;
+          xx[buf].resize(nw);
           xx[buf] = roc_spi;
               
           TLOG(TLVL_DEBUG+1) << "ROC:" << ilink
-                             << " saved N(SPI) words:" << trkdaq::TrkSpiDataNWords;
+                             << " saved N(SPI+KEY+ILP) words:" << nw;
         }
         else {
           TLOG(TLVL_ERROR)   << "failed to read SPI, DTC:" << _dtc_i->PcieAddr() << " ROC:" << ilink;

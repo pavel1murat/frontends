@@ -16,23 +16,6 @@ using namespace std;
 #define  TRACE_NAME "TEquipmentManager"
 
 //-----------------------------------------------------------------------------
-namespace ns {
-
-  struct parameters {
-    int pcie;
-  };
-
-  void to_json(json& j, const parameters& p) {
-    j = json{ {"pcie", p.pcie} };
-  }
-  
-  void from_json(const json& j, parameters& p) {
-    j.at("pcie").get_to(p.pcie);
-  }
-} // namespace ns
-
-
-//-----------------------------------------------------------------------------
 // this function needs to define which type of equipment is being talked to and forward
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::string& response) {
@@ -53,42 +36,45 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
 // so far : only PCIE address
 // so parse parametrers : expect a string in JSON format, like '{"pcie":1}' 
 //-----------------------------------------------------------------------------
-  int pcie_addr(-1), link(-1);
-  std::string eq_type;
-
-  TMu2eEqBase* eq (nullptr);
+  int            pcie_addr(-1), link(-1);
+  std::string    eq_type;
+  TMu2eEqBase*   eq (nullptr);
   
+  json j1;
   try {
-    json j1 = json::parse(args);
-    TLOG(TLVL_DEBUG) << "json string:" << j1;
-    
-    // equipment type is always defined, the rest parameters depend on it
-    eq_type        = j1.at("eq_type" );
-    if (eq_type == "dtc") {
-      pcie_addr = j1.at("pcie");
-      link      = j1.at("roc" );
-      eq        = _eq_dtc[pcie_addr];
-      TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr << " eq:" << eq
-                       << " _eq_dtc[" << pcie_addr << "]:0x" << std::hex << _eq_dtc[pcie_addr];
-    }
-    else if (eq_type == "artdaq") {
-                                        // perhaps some additional parameters to parse
-      eq = _eq_artdaq;
-    }
-    else if (eq_type == "disk") {
-                                        // perhaps some additional parameters to parse
-      eq = _eq_disk;
-    }
-    else {
-      TLOG(TLVL_ERROR) << "undefined eq_type:" << eq_type;
-      throw std::runtime_error("undefined eq_type:"+eq_type);
-    }      
+    TLOG(TLVL_DEBUG) << "PM before parsing json args:" << args;
+    j1 = nlohmann::json::parse(args);
   }
-  catch(...) {
+  catch(const std::exception& e) {
     std::string msg("couldn't parse json:");
-    TLOG(TLVL_ERROR) << msg << args;
+    TLOG(TLVL_ERROR) << msg << " err:" << e.what();
     return TMFeErrorMessage(msg+args);
   }
+    
+  TLOG(TLVL_DEBUG) << "PM: done parsing";
+  
+  // equipment type is always defined, the rest parameters depend on it
+  eq_type        = j1.at("eq_type");
+  if (eq_type == "dtc") {
+    pcie_addr = j1.at("pcie");
+    link      = j1.at("roc" );
+    eq        = _eq_dtc[pcie_addr];
+    TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr << " eq:" << eq
+                     << " _eq_dtc[" << pcie_addr << "]:0x" << std::hex << _eq_dtc[pcie_addr];
+  }
+  else if (eq_type == "artdaq") {
+    // perhaps some additional parameters to parse
+    eq = _eq_artdaq;
+  }
+  else if (eq_type == "disk") {
+    // perhaps some additional parameters to parse
+    eq = _eq_disk;
+  }
+  else {
+    TLOG(TLVL_ERROR) << "undefined eq_type:" << eq_type;
+    throw std::runtime_error("undefined eq_type:"+eq_type);
+  }
+  TLOG(TLVL_DEBUG) << "just a checkpoint";
 //-----------------------------------------------------------------------------
 // start forming response
 //-----------------------------------------------------------------------------

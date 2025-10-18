@@ -131,6 +131,7 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
 // multiple options, but for now leave as is
 //-----------------------------------------------------------------------------
   _diagLevel     = _odb_i->GetInteger(_h_frontend_conf,"DiagLevel");
+  TLOG(TLVL_DEBUG) << "_diagLevel:"  << _diagLevel;
 
   EqSetStatus("Started...", "white");
   fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
@@ -139,6 +140,7 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
   InitArtdaq();
   InitDisk  ();
   
+  TLOG(TLVL_DEBUG) << "-- END";
   return TMFeOk();
 }
 

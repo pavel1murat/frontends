@@ -7,6 +7,38 @@
 //-----------------------------------------------------------------------------
 // works interactively
 //-----------------------------------------------------------------------------
+namespace ns {
+  struct parameters {
+    std::string eq_type;
+    int         pcie;
+    int         roc;
+  };
+  
+  void to_json(nlohmann::json& j, const parameters& p) {
+    j = nlohmann::json{ {"eq_type", p.eq_type}, {"pcie", p.pcie},{"roc", p.roc} };
+  }
+  
+  void from_json(const nlohmann::json& j, parameters& p) {
+    try {
+      j.at("eq_type").get_to(p.eq_type);
+      j.at("pcie").get_to(p.pcie);
+      j.at("roc").get_to(p.roc);
+    }
+    catch (const nlohmann::json::exception& e) {
+      std::cerr << "JSON parsing error: " << e.what() << std::endl;
+      throw;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+int test_json_002(const char* String = "{\"eq_type\":\"dtc\",\"pcie\":0,\"roc\":0}") {
+
+  nlohmann::json j1 = nlohmann::json::parse(String);
+  std::cout << "eq_type:" << j1.at("eq_type") << " pcie:" << j1.at("pcie") << " roc:" << j1.at("roc") << std::endl;
+  return 0;
+}
+
 int test_json_003(const char* Filename) {
   
   std::ifstream ifs(Filename);

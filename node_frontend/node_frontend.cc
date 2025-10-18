@@ -18,6 +18,7 @@
 #define  TRACE_NAME "node_frontend"
 
 #include "node_frontend/TEquipmentManager.hh"
+#include "utils/OdbInterface.hh"
 #include "utils/utils.hh"
 
 //-----------------------------------------------------------------------------
@@ -70,8 +71,13 @@ public:
 //-----------------------------------------------------------------------------
 NodeFrontend::NodeFrontend() : TMFrontend() {
 
-  std::string hostname = get_short_host_name("");
-  // fName  = hostname+"_fe";
+  // OdbInterface* odb_i = OdbInterface::Instance();
+
+  // HNDLE h_run_conf = odb_i->GetActiveRunConfigHandle();
+  
+  // std::string local_subnet = odb_i->GetString(h_run_conf,"DAQ/LocalSubnet");
+  // this is the name on a public network (w/o '-ctrl' and such) used as a label
+  std::string hostname = get_short_host_name(""); // local_subnet.data());
   fName  = hostname;
   FeSetName(fName.data());
   
@@ -102,11 +108,11 @@ int main(int argc, char* argv[]) {
 
   NodeFrontend fe;
 
-  // FeMain calls FeInit - at this point connection to the experiment happens
+  // FeMain calls FeInit, and at that point connection to the experiment happens
   // this is too late for equipment to be initialized in the constructor
-  //   - however, after connecting, FeInit calls FeInitEquipments which loops
-  //     over equipment pieces and calls EqInit function for each of them
-  // and after that goes into the FeMainLoop
+  // - however, after connecting, FeInit calls FeInitEquipments which loops
+  //   over equipment pieces and calls EqInit function for each of them
+  //   and after that enters the FeMainLoop
   // in the end, it calls TMFE::Disconnect which calls cm_disconnect_experiment 
   return fe.FeMain(argc,argv);
 }
