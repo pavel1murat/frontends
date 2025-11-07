@@ -11,14 +11,16 @@ fi
 #------------------------------------------------------------------------------
 # ensure uniform (short) interpretation of the hostname
 #------------------------------------------------------------------------------
-export       HOSTNAME=`hostname -s`
+export      HISTTIMEFORMAT="%d/%m/%y %T "
+export            HOSTNAME=`hostname -s`
 export       DAQ_USER_STUB=${USER}_`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`
 export      DAQ_OUTPUT_TOP=/scratch/mu2e/$DAQ_USER_STUB
 export        RAW_DATA_DIR=$DAQ_OUTPUT_TOP/data
 
+unset SPACK_ROOT
 export SPACK_DISABLE_LOCAL_CONFIG=true
 source $MU2E_DAQ_DIR/spack/share/spack/setup-env.sh
-spack env activate $spack_env # murat tdaq
+spack env activate $spack_env   # murat tdaq
 export  SPACK_VIEW=$SPACK_ENV/.spack-env/view
 
                   namestub=${USER}_`pwd | awk -F / '{print $NF}'` # example: mu2etrk_pasha_028
@@ -67,6 +69,6 @@ export TFM_CONFIG_DIR=$MU2E_DAQ_DIR/config/artdaq
 export             PATH=$PATH:$MU2E_DAQ_DIR/config/scripts
 export       PYTHONPATH=$SPACK_VIEW/python
 export MU2E_SEARCH_PATH=$SPACK_ENV:/cvmfs/mu2e.opensciencegrid.org/DataFiles
-export  FHICL_FILE_PATH=$FHICL_FILE_PATH:$SPACK_ENV
+export  FHICL_FILE_PATH=$SPACK_ENV:$FHICL_FILE_PATH
 export  LD_LIBRARY_PATH=$SPACK_VIEW/lib
 return 0
