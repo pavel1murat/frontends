@@ -18,8 +18,9 @@
 mkdir pasha_404
 cd pasha_404
 unset SPACK_ROOT
-git clone https://github.com/spack/spack.git
-cd spack; git checkout v0.23.1; cd ..
+#  git clone https://github.com/spack/spack.git
+# cd spack; git checkout v0.23.1; cd ..
+git clone https://github.com/mu2e/spack.git
 export SPACK_DISABLE_LOCAL_CONFIG=true
 source spack/share/spack/setup-env.sh
 env_name=v001                                # replace v001 with your own name, i.e. 'v001'
@@ -28,12 +29,17 @@ spack env activate $env_name
 ln -s spack/var/spack/environments/$env_name
 #------------------------------------------------------------------------------
 # repositories
+# fnal_art   : Eric  uses   commit ddeec355 from Mar 31 2025
+#              here, we use commit 8df014c3 from May 22 2025￼
+# scd_recipes: Eric  uses   commit e9c8cc8  from Apr 08 2025  
+#              here, we use commit c0328997 from May 22 2025
+# conclusion : ok
 #------------------------------------------------------------------------------
 mkdir spack-repos
 pushd spack-repos
 git clone https://github.com/FNALssi/fnal_art.git
 cd fnal_art; git checkout 8df014c32544bc72f9d27e39b0d190a5a2a03e91 ; cd ..;
-git clone https://github.com/marcmengel/scd_recipes.git
+git clone https://github.com/fnal-fife/scd_recipes.git
 cd scd_recipes; git checkout c0328997e3f48b0b1341f8ea7ebacea95f9b7472 ; cd ..;
 git clone https://github.com/art-daq/artdaq-spack.git
 git clone https://github.com/Mu2e/mu2e-spack.git
@@ -60,7 +66,7 @@ spack compiler find                # add GCC to the list of compilers
 # after that ;
 #------------------------------------------------------------------------------
 spack add py-psycopg2              # python interface to postgresql
-spack add emacs+X # the rest is for spack 1.0 ... %gcc@13.1.0 gui=x11
+spack add emacs gui=x11 # the rest is for spack 1.0 ... %gcc@13.1.0 gui=x11
 
 spack add elog@2024-09-25
                                      # there is a midas link problem with +postgres investigate
