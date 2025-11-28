@@ -33,18 +33,16 @@ cet_make_exec(NAME      node_frontend
               SOURCE    node_frontend.cc
                         TEquipmentManager.cc
                         TEquipmentManager_Rpc.cc
-                        TEqCrvDtc.cc
                         TEqArtdaq.cc
                         TEqDisk.cc
 #
                         TEqTrkDtc.cc
                         TEqTrkDtc_Commands.cc
-#                        TEqTrkDtc_Commands_LoadThresholds.cc
-#                        TEqTrkDtc_Commands_MeasureThresholds.cc
-#                        TEqTrkDtc_Commands_Rates.cc
-#                        TEqTrkDtc_Commands_Read.cc
-#                        TEqTrkDtc_Commands_SetThresholds.cc
                         TEqTrkDtc_ProcessCommand.cc
+#
+                        TEqCrvDtc.cc
+                        TEqCrvDtc_Commands.cc
+                        TEqCrvDtc_ProcessCommand.cc
 
                         TMu2eEqBase.cc
 

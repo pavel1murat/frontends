@@ -70,3 +70,20 @@ int test_odb_path() {
   cm_disconnect_experiment();
   return 0;
 }
+
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+int test_get_string(const char* Experiment="tracker") {
+
+  cm_connect_experiment(NULL, Experiment, "test_get_string",NULL);
+
+  OdbInterface* odb_i = OdbInterface::Instance();
+
+  std::string data_dir = odb_i->GetString(0,"/Logger/Data dir");
+
+  std::cout << "data_dir:" << data_dir << std::endl;
+  
+  cm_disconnect_experiment();
+  return 0;
+}

@@ -4,6 +4,7 @@
 #include "OdbInterface.hh"
 #include "utils/utils.hh"
 #include <format>
+#include <boost/algorithm/string.hpp>
 
 OdbInterface* OdbInterface::_instance(nullptr);
 
@@ -315,15 +316,17 @@ int OdbInterface::GetCfoEventMode(HNDLE hCFO) {
 }
 
 //-----------------------------------------------------------------------------
-// 'SkipDtcInit' flag is defined in ODB at "$run_conf/DAQ/SkipDtcInit",
-// the policy is assumed to be the same for all DTCs in the configuration
+// different subdetectors , i.e. tracker and CRV, use different DTC firmware versions
 //-----------------------------------------------------------------------------
-uint32_t OdbInterface::GetDtcFwVersion(HNDLE h_RunConf) {
-  const char* key{"DAQ/DtcFwVersion"};
+uint32_t OdbInterface::GetDtcFwVersion(HNDLE h_RunConf, const char* Subsystem) {
+  std::string det = Subsystem;
+  boost::algorithm::to_lower(det);
+  
+  std::string key = "DAQ/DtcFwVersion/"+det;  // i.e. "DAQ/DtcFwVersion/tracker"
   
   uint32_t  data(0);
   int   sz = sizeof(data);
-  if (db_get_value(_hDB, h_RunConf, key, &data, &sz, TID_UINT32, FALSE) == DB_SUCCESS) {
+  if (db_get_value(_hDB, h_RunConf, key.data(), &data, &sz, TID_UINT32, FALSE) == DB_SUCCESS) {
     return data;
   }
   else {
