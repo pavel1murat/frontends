@@ -1,0 +1,24 @@
+diff --git a/var/spack/repos/builtin/packages/gdk-pixbuf/package.py b/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
+index 0807eebd93..42394183ec 100644
+--- a/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
++++ b/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
+@@ -12,7 +12,8 @@ class GdkPixbuf(MesonPackage):
+ 
+     homepage = "https://gitlab.gnome.org/GNOME/gdk-pixbuf"
+     git = "https://gitlab.gnome.org/GNOME/gdk-pixbuf"
+-    url = "https://gitlab.gnome.org/GNOME/gdk-pixbuf/-/archive/2.40.0/gdk-pixbuf-2.40.0.tar.gz"
++#    url = "https://gitlab.gnome.org/GNOME/gdk-pixbuf/-/archive/2.40.0/gdk-pixbuf-2.40.0.tar.gz"
++    url = "https://download.gnome.org/sources/gdk-pixbuf/2.42/gdk-pixbuf-2.42.12.tar.xz"
+ 
+     # Falling back to the gitlab source since the mirror here seems to be broken
+     # url = "https://ftp.acc.umu.se/pub/gnome/sources/gdk-pixbuf/2.40/gdk-pixbuf-2.40.0.tar.xz"
+@@ -21,7 +22,8 @@ class GdkPixbuf(MesonPackage):
+ 
+     license("LGPL-2.1-or-later", checked_by="wdconinc")
+ 
+-    version("2.42.12", sha256="d41966831b3d291fcdfe31f683bea4b3f03241d591ddbe550b5db873af3da364")
++#    version("2.42.12", sha256="d41966831b3d291fcdfe31f683bea4b3f03241d591ddbe550b5db873af3da364")
++    version("2.42.12", sha256="b9505b3445b9a7e48ced34760c3bcb73e966df3ac94c95a148cb669ab748e3c7")
+     # https://nvd.nist.gov/vuln/detail/CVE-2022-48622
+     version(
+         "2.42.10",

@@ -45,8 +45,9 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
 
   TLOG(TLVL_DEBUG) << "-- START: H_RunConf:" << H_RunConf << " H_Dtc:" << H_Dtc;
   
-  _h_dtc   = H_Dtc;
-  _logfile = "/home/mu2etrk/test_stand/experiments/test_025/trkdtc.log"; // TODO: to come from config
+  _h_dtc               = H_Dtc;
+  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+  _logfile             = std::format("{}/trkdtc.log",data_dir);
 
   int dtc_enabled      = _odb_i->GetEnabled       (H_Dtc);
   int pcie_addr        = _odb_i->GetDtcPcieAddress(H_Dtc);
@@ -64,22 +65,19 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
   TLOG(TLVL_DEBUG) << "link_mask:0x" << std::hex << link_mask << " pcie_addr:" << pcie_addr;
   
   _dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
-  _dtc_i->fIsCrv     = 0;
+  std::string subsystem = _odb_i->GetString(H_Dtc,"Subsystem");
   _dtc_i->fSubsystem = mu2edaq::kTracker;
 //-----------------------------------------------------------------------------
 // start from checking the DTC FW verion and comparing it to the required one -
 // defined in ODB
 //-----------------------------------------------------------------------------
-  uint32_t required_dtc_fw_version = _odb_i->GetDtcFwVersion(H_RunConf);
+  uint32_t required_dtc_fw_version = _odb_i->GetDtcFwVersion(H_RunConf,subsystem.data());
   uint32_t dtc_fw_version          = _dtc_i->ReadRegister(0x9004);
 
   if ((required_dtc_fw_version != 0) and (dtc_fw_version != required_dtc_fw_version)) {
     TLOG(TLVL_ERROR) << "dtc_fw_version:" << std::hex << dtc_fw_version
                      << " is different from required version:" << required_dtc_fw_version
                      << " BAIL OUT";
-
-    // TODO - constructor shouldn't return anything, but still want a message
-    // return TMFeErrorMessage(std::format("wrong DTC FW version:{:x}",dtc_fw_version));
   }
   else {
     _dtc_i->fPcieAddr       = pcie_addr;
@@ -95,8 +93,8 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
     _dtc_i->fJAMode         = _odb_i->GetJAMode           (H_Dtc);
     _dtc_i->fRocLaneMask    = _odb_i->GetUInt32           (H_Dtc,"RocLaneMask");
 
-    TLOG(TLVL_DEBUG) << "is_crv:"            << _dtc_i->fIsCrv
-                     << " dtc_fw_version:0x" << std::hex << dtc_fw_version
+    TLOG(TLVL_DEBUG) << "subsystem:"         << subsystem
+                     << std::format(" dtc_fw_version:0x{:08x}",dtc_fw_version)
                      << " _readout_mode:"    << std::dec << _dtc_i->fRocReadoutMode
                      << " roc_readout_mode:" << _dtc_i->fRocReadoutMode
                      << " sample_edge_mode:" << _dtc_i->fSampleEdgeMode

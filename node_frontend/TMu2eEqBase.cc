@@ -3,6 +3,7 @@
 #include "utils/utils.hh"
 #include "utils/OdbInterface.hh"
 #include "node_frontend/TMu2eEqBase.hh"
+#include <format>
 
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "TMu2eEqBase"
@@ -51,11 +52,16 @@ int TMu2eEqBase::ReadMetrics() {
 
 //-----------------------------------------------------------------------------
 int TMu2eEqBase::ResetOutput() {
-  TLOG(TLVL_DEBUG) << "--- START"; 
+  TLOG(TLVL_DEBUG) << "--- START _logfile:" << _logfile; 
 
   std::ofstream output_file;
   output_file.open(_logfile,std::ofstream::trunc);
-  output_file.close();
+  if (not output_file.is_open()) {
+    TLOG(TLVL_ERROR) << std::format("failed to open _logfile:{} in ofstream::trunc mode",_logfile); 
+  }
+  else {
+    output_file.close();
+  }
 
   //  ss_sleep(100);
 
@@ -68,19 +74,23 @@ int TMu2eEqBase::ResetOutput() {
 
 //-----------------------------------------------------------------------------
 int TMu2eEqBase::WriteOutput(const std::string& Output) {
-  TLOG(TLVL_DEBUG) << "--- START"; 
+  TLOG(TLVL_DEBUG) << "--- START: _logfile:" << _logfile << " Output size:" << Output.length(); 
 
   std::vector<std::string> vs = splitString(Output,'\n');
   
   std::ofstream output_file;
   output_file.open(_logfile.data(),std::ios::app);
-
-  int ns = vs.size();
-  for (int i=ns-1; i>=0; i--) {
-    output_file << vs[i] << std::endl;
+  if (not output_file.is_open()) {
+    TLOG(TLVL_ERROR) << std::format("failed to open _logfile:{} in ios::app mode",_logfile); 
   }
-
-  output_file.close();
+  else {
+    int ns = vs.size();
+    for (int i=ns-1; i>=0; i--) {
+      output_file << vs[i] << std::endl;
+      TLOG(TLVL_DEBUG+1) << vs[i];
+    }
+    output_file.close();
+  }
   
   TLOG(TLVL_DEBUG) << "--- END"; 
   return 0;

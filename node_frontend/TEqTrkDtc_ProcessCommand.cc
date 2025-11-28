@@ -48,7 +48,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
                    << " pcie_addr:" << pcie_addr
                    << " frontend.name:" << frontend.name;
 
-  std::string cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
+  //  std::string cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
 
                                         // should 0 or 1
   int run = odb_i->GetInteger(h_cmd,"Run");

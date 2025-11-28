@@ -112,4 +112,8 @@ echo 1 > /sys/bus/pci/devices/0000\:04\:00.0/remove
 echo 1 > /sys/bus/pci/devices/0000\:05\:00.0/remove
 echo 1 > /sys/bus/pci/rescan
 #+end_src
+- in MC2, that is done by a script which, under the hood, is doing essentially the same - remove and rescan
+#+begin_src
+  sudo /home/mu2ehwdev/reset_PCIe_AL9.sh
+#+end_src
 * ------------------------------------------------------------------------------

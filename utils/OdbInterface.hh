@@ -44,7 +44,7 @@ public:
   HNDLE       GetHostArtdaqConfHandle (HNDLE h_RunConf, const std::string& Host);
 
   int         GetSkipDtcInit          (HNDLE h_RunConf);
-  uint32_t    GetDtcFwVersion         (HNDLE h_RunConf);
+  uint32_t    GetDtcFwVersion         (HNDLE h_RunConf, const char* Subsystem);
 //-----------------------------------------------------------------------------
 // CFO supports up to 8 timing chains, so dimension of NDTCs array should be at least 8
 // NDTCs[i] : number of DTCs in i-th timing chain

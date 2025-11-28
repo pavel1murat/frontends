@@ -98,7 +98,7 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
 //-----------------------------------------------------------------------------
   std::string cmd_path = odb_i->GetCmdConfigPath(_host_label,eq->Name());
   HNDLE       h_cmd    = odb_i->GetHandle(0,cmd_path);
-  TLOG(TLVL_DEBUG) << "cmd_path:" << cmd_path << " h_cmd:" << h_cmd << "eq->Name():" << eq->Name();
+  TLOG(TLVL_DEBUG) << "cmd_path:" << cmd_path << " h_cmd:" << h_cmd << " eq->Name():" << eq->Name();
 //-----------------------------------------------------------------------------
 // is the assumption that the parameter path is always local OK ?
 //-----------------------------------------------------------------------------

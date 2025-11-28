@@ -1,7 +1,7 @@
 #+startup:fold -*- buffer-read-only:t -*- 
 * ------------------------------------------------------------------------------
 * installation under spack                                                   
-- last update: <2025-04-28 Thu> - versions are time-dependent
+- last update: <2025-11-24 Thu> - versions are time-dependent
   fermi 0.23: remotes/origin/v0.23.0-fermi
   spack 0.23: tags/v0.23.0
 - do not use spack v1.0
@@ -18,9 +18,10 @@
 mkdir pasha_404
 cd pasha_404
 unset SPACK_ROOT
-#  git clone https://github.com/spack/spack.git
+# git clone https://github.com/spack/spack.git
 # cd spack; git checkout v0.23.1; cd ..
 git clone https://github.com/mu2e/spack.git
+pushd spack; git checkout eflumerf/FixPerlPackageStash ; popd
 export SPACK_DISABLE_LOCAL_CONFIG=true
 source spack/share/spack/setup-env.sh
 env_name=v001                                # replace v001 with your own name, i.e. 'v001'
@@ -29,65 +30,115 @@ spack env activate $env_name
 ln -s spack/var/spack/environments/$env_name
 #------------------------------------------------------------------------------
 # repositories
-# fnal_art   : Eric  uses   commit ddeec355 from Mar 31 2025
-#              here, we use commit 8df014c3 from May 22 2025￼
-# scd_recipes: Eric  uses   commit e9c8cc8  from Apr 08 2025  
-#              here, we use commit c0328997 from May 22 2025
-# conclusion : ok
 #------------------------------------------------------------------------------
 mkdir spack-repos
 pushd spack-repos
 git clone https://github.com/FNALssi/fnal_art.git
 cd fnal_art; git checkout 8df014c32544bc72f9d27e39b0d190a5a2a03e91 ; cd ..;
-git clone https://github.com/fnal-fife/scd_recipes.git
+git clone https://github.com/marcmengel/scd_recipes.git
 cd scd_recipes; git checkout c0328997e3f48b0b1341f8ea7ebacea95f9b7472 ; cd ..;
 git clone https://github.com/art-daq/artdaq-spack.git
 git clone https://github.com/Mu2e/mu2e-spack.git
 git clone https://github.com/pavel1murat/spack_packages murat-spack
 for d in `ls` ; do echo $d; spack repo add $d ; done
 popd
-#------------------------------------------------------------------------------
-# now fix the recipes:                          
-#------------------------------------------------------------------------------
-#  artdaq-spack/packages/art-suite (@s132)
-
-#        depends_on("libxml2@2.9")
-        depends_on("libxml2")
-#        depends_on("root@6.30.06 +http+mlp+root7+spectrum+tmva+tmva-sofie cxxstd=20", when="+root")
-        depends_on("root@6.32.06 +http+mlp+root7+spectrum+tmva+tmva-sofie cxxstd=20", when="+root")
-#------------------------------------------------------------------------------
+#+end_src
+# ------------------------------------------------------------------------------
+# to handle (a spack/Eric of a spack 0.23 error?) declare gcc @11.5.0 as a package
+# in ~/.spack/bootstrap/config/packages.yaml
+# otherwise, it doesn't concretize
+# ------------------------------------------------------------------------------
+#+begin_src
+packages:
+  gcc:
+    externals:
+    - spec: gcc@11.5.0 languages='c,c++,fortran'
+      prefix: /usr
+      extra_attributes:
+        compilers:
+          c: /usr/bin/gcc
+          cxx: /usr/bin/g++
+          fortran: /usr/bin/gfortran
+#+end_src
+# ------------------------------------------------------------------------------
 # keep using gcc 13.1.0 , problems otherwise
-#------------------------------------------------------------------------------
-spack add gcc@13.1.0
-spack concretize -f
-spack install
-spack compiler find                # add GCC to the list of compilers
+# concretize --deprecated is a key
+# ------------------------------------------------------------------------------
+#+begin_src
+spack --deprecated add gcc@13.1.0 arch=linux-almalinux9-x86_64_v3 +binutils 
+spack concretize -f --deprecated
+spack --deprecated install gcc@13.1.0
+spack compiler find                # add gcc@13.1.0 to the list of compilers
+#+end_src
+# ------------------------------------------------------------------------------
+# a this point copy spack/etc/spack/upstreams.yaml from where it is....
+# or may write a script making the upstreams file starting from /mu2e/spack_areas
+# ------------------------------------------------------------------------------
+cp ~mu2ecrv/ots_v8_00_00/spack/etc/spack/upstreams.yaml $SPACK_ROOT/etc/spack/.
 #------------------------------------------------------------------------------
 # after that ;
-#------------------------------------------------------------------------------
-spack add py-psycopg2              # python interface to postgresql
-spack add emacs gui=x11 # the rest is for spack 1.0 ... %gcc@13.1.0 gui=x11
+# a) rust needs /usr/lib64/pkgconfig to be included, and for some reason it is not included
+# b) patch recipes: gdk-pixbuf, fhicl-cpp, and geant4
+# can this be avoided by configuring packages ?
+# ------------------------------------------------------------------------------
+#+begin_src
+  patch < frontends/scripts/gdk-pixbuf-recipe.patch
+# when prompted give the file name:  spack/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
+  patch < frontends/scripts/fhicl-cpp-recipe.patch
+# when prompted give the file name:  spack-repos/fnal_art/packages/fhicl-cpp/package.py
+  patch < frontends/scripts/geant4-recipe.patch
+# when prompted give the file name:  spack/var/spack/repos/builtin/packages/geant4/package.py
+#+end_src
+# ------------------------------------------------------------------------------
+# c) create env variable pointing to the view (MIDAS needs that)
+#    midas+sqlite fails on the first pass, suceeds on the second, w/o any changes ... why ???
+#    just do it twice....
+# ------------------------------------------------------------------------------
+export      SPACK_VIEW=$PWD/$env_name/.spack-env/view
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib64/pkgconfig
+
+spack add py-psycopg2                # python interface to postgresql
+spack add emacs%gcc@13.1.0 gui=x11   # if toolkit=gtk, problems with egl in MC2 
 
 spack add elog@2024-09-25
-                                     # there is a midas link problem with +postgres investigate
-# spack add midas@2025-04-25+sqlite  #  +postgresql - link problems with postgres
-spack add     midas@2025-05-03+sqlite
-spack develop midas@2025-05-03+sqlite
-spack concretize -f                          # success
+                                       # there is a midas link problem with +postgres investigate
+spack add     midas@2025-05-03 +sqlite # +postgresql - link problems with postgres
+spack develop midas@2025-05-03 +sqlite
+spack concretize -f                    # success
 spack install
 #------------------------------------------------------------------------------
 # artdaq may be needed by artdaq-core-mu2e-develop, choose one with minimal dependencies
 # development packages
 # otsdaq-mu2e-tracker/2025 has the build of FEInterfaces, the only part which depends on otsdaq, disabled
 #------------------------------------------------------------------------------
-spack add     artdaq@develop
-spack add     artdaq-core-mu2e@develop
-spack develop artdaq-core-mu2e@develop
-# 2025-05-04: for now, don't forget merge the fix with the added accessor ...
-pushd $env_name/artdaq-core-mu2e ; git merge origin/pasha/ewtag  ; popd ;
+# problem with the concretization of *-suite packages (art-suite, artdaq-suite , otsdaq-suite
+# for the time being, manually comment out all dependencies on those for the following recipes
+# mu2e-spack/*/package.py
+# artdaq-spack/*/package.py
+#------------------------------------------------------------------------------
+spack add root@6.32.06+http+mlp+postgres+root7+sqlite+spectrum+tmva+tmva-sofie cxxstd=20
+spack add hep-concurrency    cxxstd=20
+spack add cetlib             cxxstd=20
+spack add fhicl-cpp@4.19.02  cxxstd=20   # after fixing the recipe
+spack add messagefacility    cxxstd=20
+spack add canvas             cxxstd=20
+spack add canvas-root-io     cxxstd=20
+spack add art-root-io        cxxstd=20
+spack add boost iostreams=true
+spack add art                cxxstd=20
 
 spack add     mu2e-pcie-utils@develop
 spack develop mu2e-pcie-utils@develop
+
+spack concretize -f
+spack install
+# <-------------------------------------------------------- we're here
+# spack add     artdaq@develop
+# spack add     artdaq-core-mu2e@develop
+# spack develop artdaq-core-mu2e@develop
+# 2025-05-04: for now, don't forget merge the fix with the added accessor ...
+# pushd $env_name/artdaq-core-mu2e ; git merge origin/pasha/ewtag  ; popd ;
+# need geant4 11.3.2
 
 spack add     Offline@develop
 spack develop Offline@develop
@@ -104,10 +155,9 @@ spack develop frontends@main
 
 #  pushd $env_name/otsdaq-mu2e-stm     ; git fetch --all; git checkout stm_develop; popd ;
 
-# 2025-07-08 PM: libxml@2.9 no longer exists
-
-fn=spack-repos/artdaq-spack/packages/art-suite/package.py
-cat $fn | sed 's/libxml2@2.9"/libxml2@2.13:"/' >| $fn
+# not needed w/o *-suites   # 2025-07-08 PM: libxml@2.9 no longer exists
+# fn=spack-repos/artdaq-spack/packages/art-suite/package.py
+# cat $fn | sed 's/libxml2@2.9"/libxml2@2.13:"/' >| $fn
 
 spack concretize -f
 spack install

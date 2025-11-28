@@ -2,6 +2,8 @@
 # ------------------------------------------------------------------------------
 # development news
 # ------------------------------------------------------------------------------
+** <2025-11-27 Thu> make DAQ/DtcFwVersion a directory, with separate fw versions
+   for tracker and CRV
 ** <2025-03-01 Sat>
 - DQM functional again with ROOT 6.32.08 +http7+webgui
 - add prototype of the custom page to access the DQM histograms - still raw
