@@ -23,13 +23,13 @@
 //-----------------------------------------------------------------------------
 // main function defining the page contents
 //-----------------------------------------------------------------------------
-    function loadPage() {
-      const urlParams = new URLSearchParams(window.location.search);
-      g_hostname      = urlParams.get('hostname') || 'none';  // 
-      g_process       = urlParams.get('process' ) || 'none';  // 
+  function loadPage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    g_hostname      = urlParams.get('hostname') || 'none';  // 
+    g_process       = urlParams.get('process' ) || 'none';  // 
       
-      let title       = document.getElementById('table-title');
-      title.innerHTML = '&nbsp;&nbsp;&nbsp;'+g_process+'@'+g_hostname+' status page';
+    let title       = document.getElementById('table-title');
+    title.innerHTML = '&nbsp;&nbsp;&nbsp;'+g_process+'@'+g_hostname+' status page';
 //-----------------------------------------------------------------------------
 //  create ROC commands table
 //-----------------------------------------------------------------------------
@@ -110,113 +110,89 @@
 //-----------------------------------------------------------------------------
 //  fill ARTDAQ commands table
 //-----------------------------------------------------------------------------
-      const artdaq_table     = document.getElementById('artdaq_table');
+    const artdaq_table     = document.getElementById('artdaq_table');
 
-      artdaq_table.innerHTML = `
-      <tbody>
-        <tr>
-          <td> <div class="mtableheader" colspan=2> ARTDAQ processes </div> </td> 
-          <td colspan=3>
-          <div class="tab">
-          <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">BR01</button>
-          <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">BR02</button>
-          <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">EB01</button>
-          <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">EB02</button>
-          <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">EB97</button>
-          <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">DL01</button>
-          <button class="roctabs" id='roc6' onclick="choose_roc_id(event,'roc6')">DS01</button>
-          </div>
-          </td>
-        </tr>
-        <tr>
-          <td colspan=2>
-            <div class="dropup">
-              <input type=button class="dropbtn" value='control_ROC_read'>
-              <div class="dropup-content">
-<!--
-                <a href="#">Load Parameters 1</a>
-                <a href="#">Run 1</a>
--->
-                <div onClick='dtc_load_control_roc_read_parameters()'> Load Parameters </div>
-                <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
-              </div>
-            </div>
-<!--
-            <div class="dropup">
-              <input type=button class="dropbtn" value='control_ROC_digi_rw'>
-              <div class="dropup-content">
-                <a href="#">Load Parameters 1</a>
-                <a href="#">Run 1</a>
-                <div onClick='dtc_load_control_roc_digi_rw_parameters()'> Load Parameters </div>
-                <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
-              </div>
-            </div>
--->
-          </td>
-<!-- 
-          <td> <div> Register </div> </td>
-          <td> <div> Value    </div> </td>
--->
-        </tr>
-
-      <tr>
-        <td>
-          <input type=button value='print FCL file' onClick='artdaq_command("print_fcl_file")'>
-          <input type=button value='write FCL file' onClick='artdaq_command("print_fcl_file")'>
-          <input type=button value='read metrics'   onClick='artdaq_command("read_metrics")'>
-          <input type=button value='load ODB fcl'   onClick='artdaq_load_odb_fcl("x")'>
-        </td>
-<!-- 
-        <td>
-          <input type=button value='write ROC register' onClick='dtc_command("write_roc_register")'>
-        </td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
-        </td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Value" data-odb-editable="1"  data-format="%x"></div>
-        </td>
--->
-      <tr>
-        <td colspan>
-        </td>
-<!---
-        <td><input type=button value='read ROC register' onClick='dtc_command("read_roc_register")'></td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
-        </td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Value" data-format="%x"></div>
-        </td>
---> 
-      </tr>
-      </tbody>
-    `;      
+    artdaq_table.innerHTML = `<tbody></tbody>`;
+    const tbody = artdaq_table.querySelector('tbody');
+    const row1  = document.createElement("tr");
+    row1.innerHTML = `<td> <div class="mtableheader" colspan=2> ARTDAQ processes </div> </td>`;
+    td1 = document.createElement("td");
+    td1.colSpan = 3;
+    div1 = document.createElement("div");
+    div1.class = "tab";
 //-----------------------------------------------------------------------------
-//  fill process parameters table
+// loop over the ARTDAQ processes and add their tabs
 //-----------------------------------------------------------------------------
-      const process_params_table     = document.getElementById('process_params');
-      process_params_table.innerHTML = '';
+    const processes_path   = '/Mu2e/ActiveRunConfiguration/DAQ/Nodes/'+g_hostname+'/Artdaq';
+    mjsonrpc_db_get_values([processes_path]).then(function (rpc) {
+      let nodesp  = rpc.result.data[0];
+      let keys    = Object.keys(nodesp);
+      let values  = Object.values(nodesp);
+      let entries = Object.entries(nodesp);
+      
+      nkeys = keys.length;
+      for (let i = 1; i < nkeys; i+=2) {
+        let key = keys[i];
+        if (key.toUpperCase().startsWith("ENABLED") || key.toUpperCase().startsWith("STATUS")) { continue; }
+        const btn = document.createElement("button");
+        btn.setAttribute("class","roctabs");
+        btn.setAttribute("id"   ,"roc${i}");
+        btn.setAttribute("onclick","choose_roc_id(event,'roc${i}')");
+        btn.innerHTML = key;
+        div1.appendChild(btn);
+      };
+    });
+    
+    td1.appendChild(div1);
+    row1.appendChild(td1);
+    tbody.appendChild(row1);
+    
+    tbody.insertAdjacentHTML("beforeend",`
+    <tr>
+      <td colspan=2>
+        <input type=button value='load parameters'  onClick='artdaq_load_parameters()'>
+        <div class="dropup">
+          <input type=button class="dropbtn" value='generate_fcl'>
+          <div class="dropup-content"> 
+            <div onClick='tfm_load_parameters_generate_fcl()' > Load Parameters </div>
+            <div onClick='tfm_command_set_odb("generate_fcl")'> Run             </div>
+        </div>
+      </td>
+    </tr>
+    
+    <tr>
+    <td colspan=4>
+    <input type=button value='print FCL file' onClick='artdaq_command("print_fcl_file")'>
+    <input type=button value='write FCL file' onClick='artdaq_command("print_fcl_file")'>
+    <input type=button value='read metrics'   onClick='artdaq_command("read_metrics")'>
+    <input type=button value='load ODB fcl'   onClick='artdaq_load_odb_fcl("x")'>
+    </td>
+    </tr>`
+    );
+    //-----------------------------------------------------------------------------
+    //  fill process parameters table
+    //-----------------------------------------------------------------------------
+    const process_params_table     = document.getElementById('process_params');
+    process_params_table.innerHTML = '';
       odb_browser('process_params',`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/Artdaq/${g_process}`,0);
-//-----------------------------------------------------------------------------
-//  end
-//-----------------------------------------------------------------------------
-//      const history_url = 'artdaq_process_status.html?cmd=History&group=mu2edaq22&panel=ARTDAQ_DataRate'
-//      fetch_url(history_url,'history_table');
-    }
-//-----------------------------------------------------------------------------
-// loadPage is the function doing the job
-//-----------------------------------------------------------------------------
-    document.addEventListener("DOMContentLoaded", loadPage);
+    //-----------------------------------------------------------------------------
+    //  end
+    //-----------------------------------------------------------------------------
+    //      const history_url = 'artdaq_process_status.html?cmd=History&group=mu2edaq22&panel=ARTDAQ_DataRate'
+    //      fetch_url(history_url,'history_table');
+  }
+  //-----------------------------------------------------------------------------
+  // loadPage is the function doing the job
+  //-----------------------------------------------------------------------------
+  document.addEventListener("DOMContentLoaded", loadPage);
   </script>
   </head>
 <!-- ------------------------------------------------------------------------------
-     here the HTML structure starts
      it seems to be convenient to have the large scale topology in HtML and use
-     javascript to fill hte details
-     her is the high-level structure of the page - menus on hte left, output window - on the right
+     javascript to fill the details
+     here is the high-level structure of the page - menus on hte left, output window - on the right
   ------------------------------------------------------------------------------  -->
-  <body class="mcss" onload="mhttpd_init('node_status');">
+  <body class="mcss" onload="mhttpd_init('artdaq_process_control');">   <!-- parameter of mhttpd_init is printed in the page title -->
     <div id="mheader"></div>
     <div id="msidenav"></div>
     <div id="mmain">
@@ -225,11 +201,6 @@
         <h3 id="table-title">Process Name... </h3>
         
         <div class="column"> <!-- column gets pushed to the left -->
-
-<!-- ------------------ Table content is generated dynamically
-          <table class="mtable" id="roc_commands"> 
-          </table>
- -->
 
           <table class="mtable" id="artdaq_table">  <!-- Table content is generated dynamically -->
           </table>
@@ -249,18 +220,14 @@
           <div id="content"> 
           </div>
         </div>
-
+        
       </div>
     </div>
   </body>
 </html>
 <!--
-    emacs
-    Local Variables:
-    mode: HTML+
-    tab-width: 8
-    c-basic-offset: 2
-    js-indent-level: 0
-    indent-tabs-mode: nil
-    End:
-  -->
+     emacs
+     Local Variables:
+     mode: web
+     End:
+-->
