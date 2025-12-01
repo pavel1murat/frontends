@@ -91,6 +91,13 @@ function tfm_load_parameters_generate_fcl() {
   odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/generate_fcl',0);
 }
       
+//-----------------------------------------------------------------------------
+function tfm_load_parameters_print_fcl() {
+  const table     = document.getElementById('cmd_params');
+  table.innerHTML = '';
+  odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/print_fcl',0);
+}
+      
 
 // ${ip.toString().padStart(2,'0')
 //    emacs

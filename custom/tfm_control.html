@@ -37,119 +37,121 @@
       const tfm_table     = document.getElementById('tfm_table');
 
       tfm_table.innerHTML = `
-      <tbody>
-        <tr>
-          <td> <div class="mtableheader" colspan=2> Trigger Farm Manager (TFM) </div> </td> 
-          <td colspan=3>
-          <div class="tab">
-          <button class="roctabs" id='br01' onclick="choose_roc_id(event,'br01')">BR01</button>
-          <button class="roctabs" id='br02' onclick="choose_roc_id(event,'br02')">BR02</button>
-          <button class="roctabs" id='eb01' onclick="choose_roc_id(event,'eb01')">EB01</button>
-          <button class="roctabs" id='dl01' onclick="choose_roc_id(event,'dl01')">DL01</button>
-          <button class="roctabs" id='ds01' onclick="choose_roc_id(event,'ds01')">DS01</button>
-          </div>
-          </td>
-        </tr>
-        <tr>
-          <td colspan=2>
-            <div class="dropup">
-              <input type=button class="dropbtn" value='get_state'>
-              <div class="dropup-content">
-                <div onClick='tfm_load_parameters_get_state()'  > Load Parameters </div>
-                <div onClick='tfm_command_set_odb("get_state")' > Run             </div>
+        <tbody>
+          <tr>
+            <td> <div class="mtableheader" colspan=2> Trigger Farm Manager (TFM) </div> </td> 
+            <td colspan=3>
+              <div class="tab">
+                <button class="roctabs" id='br01' onclick="choose_roc_id(event,'br01')">BR01</button>
+                <button class="roctabs" id='br02' onclick="choose_roc_id(event,'br02')">BR02</button>
+                <button class="roctabs" id='eb01' onclick="choose_roc_id(event,'eb01')">EB01</button>
+                <button class="roctabs" id='dl01' onclick="choose_roc_id(event,'dl01')">DL01</button>
+                <button class="roctabs" id='ds01' onclick="choose_roc_id(event,'ds01')">DS01</button>
               </div>
-            </div>
-            <div class="dropup">
-              <input type=button class="dropbtn" value='generate_fcl'>
-              <div class="dropup-content">
-                <div onClick='tfm_load_parameters_generate_fcl()'     > Load Parameters </div>
-                <div onClick='tfm_command_set_odb("tfm_generate_fcl")'> Run             </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan=2>
+              <input type=button value='load parameters'  onClick='tfm_load_parameters()'>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='get_state'>
+                <div class="dropup-content">
+                  <div onClick='tfm_load_parameters_get_state()'  > Load Parameters </div>
+                  <div onClick='tfm_command_set_odb("get_state")' > Run             </div>
+                </div>
               </div>
-            </div>
-          </td>
-          <td colspan=2></td>
-        </tr>
-
-      <tr>
-        <td><input type=button value='load parameters'  onClick='tfm_load_parameters()'            > </td>
-        <td><input type=button value='get state'        onClick='tfm_command_set_odb("get_state")' > </td>
-        <td><input type=button value='clear output'     onClick='tfm_clear_window("output_window")'> </td>
-        <td colspan=4></td>
-      </tbody>
-    `;      
-//-----------------------------------------------------------------------------
-//  fill node frontend table
-//-----------------------------------------------------------------------------
+              <div class="dropup">
+                <input type=button class="dropbtn" value='generate_fcl'>
+                <div class="dropup-content">
+                  <div onClick='tfm_load_parameters_generate_fcl()'     > Load Parameters </div>
+                  <div onClick='tfm_command_set_odb("tfm_generate_fcl")'> Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='print_fcl'>
+                <div class="dropup-content">
+                  <div onClick='tfm_load_parameters_print_fcl()' > Load Parameters </div>
+                  <div onClick='tfm_command_set_odb("print_fcl")'> Run             </div>
+                </div>
+              </div>
+              <input type=button value='reset output'     onClick='tfm_clear_window("output_window")'>
+            </td>
+          </tr>
+        </tbody>
+      `;      
+      //-----------------------------------------------------------------------------
+      //  fill node frontend table
+      //-----------------------------------------------------------------------------
       const frontend_table     = document.getElementById('frontend_table');
 
       frontend_table.innerHTML = `
-      <tbody>
-        <tr>
-          <td> <div class="mtableheader" colspan=2> ARTDAQ process </div> </td> 
-          <td colspan=3>
-          <div class="tab">
-          <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
-          <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
-          <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
-          <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
-          <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
-          <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
-          <button class="roctabs" id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
-          </div>
-          </td>
-        </tr>
-        <tr>
-          <td colspan=2>
-            <div class="dropup">
-              <input type=button class="dropbtn" value='control_ROC_read'>
-              <div class="dropup-content">
-                <div onClick='dtc_load_control_roc_read_parameters()'> Load Parameters </div>
-                <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
+        <tbody>
+          <tr>
+            <td> <div class="mtableheader" colspan=2> ARTDAQ process </div> </td> 
+            <td colspan=3>
+              <div class="tab">
+                <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
+                <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
+                <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
+                <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
+                <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
+                <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
+                <button class="roctabs" id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
               </div>
-            </div>
-            <div class="dropup">
-              <input type=button class="dropbtn" value='control_ROC_digi_rw'>
-              <div class="dropup-content">
-                <div onClick='dtc_load_control_roc_digi_rw_parameters()'> Load Parameters </div>
-                <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan=2>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='control_ROC_read'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_control_roc_read_parameters()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
+                </div>
               </div>
-            </div>
-          </td>
-          <td> <div> Register </div> </td>
-          <td> <div> Value    </div> </td>
-        </tr>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='control_ROC_digi_rw'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_control_roc_digi_rw_parameters()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_digi_rw")'   > Run             </div>
+                </div>
+              </div>
+            </td>
+            <td> <div> Register </div> </td>
+            <td> <div> Value    </div> </td>
+          </tr>
 
-      <tr>
-        <td>
-          <input type=button value='reset ROC'        onClick='dtc_command("reset_roc")'>
-          <input type=button value='print ROC status' onClick='dtc_command("print_roc_status")'>
-          <input type=button value='read SPI'         onClick='dtc_command("read_spi")'>
-        </td>
-        <td>
-          <input type=button value='write ROC register' onClick='dtc_command("write_roc_register")'>
-        </td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
-        </td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Value" data-odb-editable="1"  data-format="%x"></div>
-        </td>
-      <tr>
-        <td colspan>
-        </td>
-        <td><input type=button value='read ROC register' onClick='dtc_command("read_roc_register")'></td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
-        </td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Value" data-format="%x"></div>
-        </td>
-      </tr>
-      </tbody>
-    `;      
-//-----------------------------------------------------------------------------
-//  fill TFM parameters table
-//-----------------------------------------------------------------------------
+          <tr>
+            <td>
+              <input type=button value='reset ROC'        onClick='dtc_command("reset_roc")'>
+              <input type=button value='print ROC status' onClick='dtc_command("print_roc_status")'>
+              <input type=button value='read SPI'         onClick='dtc_command("read_spi")'>
+            </td>
+            <td>
+              <input type=button value='write ROC register' onClick='dtc_command("write_roc_register")'>
+            </td>
+            <td>
+              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
+            </td>
+            <td>
+              <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/write_roc_register/Value" data-odb-editable="1"  data-format="%x"></div>
+            </td>
+            <tr>
+              <td colspan>
+              </td>
+              <td><input type=button value='read ROC register' onClick='dtc_command("read_roc_register")'></td>
+              <td>
+                <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Register" data-odb-editable="1" data-format="%x"></div>
+              </td>
+              <td>
+                <div class="modbvalue" data-odb-path="/Mu2e/Commands/Tracker/DTC/read_roc_register/Value" data-format="%x"></div>
+              </td>
+            </tr>
+        </tbody>
+      `;      
+      //-----------------------------------------------------------------------------
+      //  fill TFM parameters table
+      //-----------------------------------------------------------------------------
       const tfm_params_table     = document.getElementById('cmd_params');
       tfm_params_table.innerHTML = '';
       odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Tfm`,0);
@@ -268,10 +270,6 @@
 <!--
     emacs
     Local Variables:
-    mode: HTML+
-    tab-width: 8
-    c-basic-offset: 2
-    js-indent-level: 0
-    indent-tabs-mode: nil
+    mode: web
     End:
   -->

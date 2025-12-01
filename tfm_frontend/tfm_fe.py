@@ -154,11 +154,10 @@ class TfmFrontend(midas.frontend.FrontendBase):
         
         TRACE.TRACE(TRACE.TLVL_LOG,"004: tfm instantiated, self.use_runinfo_db=%i"%(self.use_runinfo_db))
 
-        process = subprocess.Popen(['cat', os.getenv('MIDAS_EXPTAB')],
-                                   stdout=subprocess.PIPE, 
-                                   stderr=subprocess.PIPE)
+        cmd=f"cat {os.getenv('MIDAS_EXPTAB')} | awk -v expt={os.getenv('MIDAS_EXPT_NAME')} '{{if ($1==expt) {{print $2}} }}'"
+        process = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
         stdout, stderr = process.communicate();
-        self.message_fn = stdout.decode('utf-8').split()[1]+'/tfm.log';
+        self.message_fn = stdout.decode('utf-8').split()[0]+'/tfm.log';
 #------------------------------------------------------------------------------
 # runinfo DB related stuff
 #-------v----------------------------------------------------------------------
@@ -345,7 +344,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         rc = 0;
         
         rpc_port = self._fm.rpc_port();
-        tfm_url = f'http://mu2edaq22-ctrl.fnal.gov:{rpc_port}';
+        tfm_url = f'http://mu2edaq22-ctrl.fnal.gov:{rpc_port}';   ## TODO - fix URL
         s   = xmlrpc.client.ServerProxy(tfm_url)
         res = s.get_state("daqint")
         
@@ -361,6 +360,54 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
 #        self.send_message(message,midas.MT_DEBUG,"tfm");
         self.client.msg(message,0,"tfm");
+        return rc;
+    
+#------------------------------------------------------------------------------
+    def process_cmd_generate_fcl(self,parameter_path):
+        rc = 0;
+        
+        TRACE.TRACE(TRACE.TLVL_INFO,f'-- START: TO BE IMPLEMENTED',TRACE_NAME);
+
+        par      = self.client.odb_get(parameter_path);
+        run_conf = par["run_conf"];
+        host     = par["host"    ];
+        process  = par["process" ];
+
+        TRACE.TRACE(TRACE.TLVL_INFO,f'-- END: run_conf:{run_conf} host:{host} process:{process}',TRACE_NAME);
+        return rc;
+    
+#------------------------------------------------------------------------------
+# FCL file is defined by the run configuration and the process, host is not needed
+# usual steps:
+# 1. set state to BUSY  (1:yellow)
+# 2. print fcl file to tfm.log
+# 3. set state to READY (0:green)
+#------------------------------------------------------------------------------
+    def process_cmd_print_fcl(self,parameter_path):
+        rc = 0;
+        
+        TRACE.TRACE(TRACE.TLVL_INFO,f'-- START: parameter_path:{parameter_path}',TRACE_NAME);
+
+        ppath    = parameter_path+'/print_fcl'
+        par      = self.client.odb_get(ppath);
+        run_conf = par["run_conf"];
+        host     = par["host"    ];
+        process  = par["process" ];
+
+        fcl_file = os.getenv("MU2E_DAQ_DIR")+f'/config/{run_conf}/{process}.fcl'
+        
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'fcl_file:{fcl_file} logfile:{self.message_fn}',TRACE_NAME);
+#------------------------------------------------------------------------------
+# remember that MIDAS displays the logfile in the reverse order
+#------------------------------------------------------------------------------
+        with open(fcl_file) as f:
+            lines = f.readlines();
+            with open(self.message_fn,"a") as logfile:
+                for line in reversed(lines):
+                    logfile.write(line)
+
+
+        TRACE.TRACE(TRACE.TLVL_INFO,f'-- END',TRACE_NAME);
         return rc;
     
 #-------v-----------------------------------------------------------------------
@@ -394,8 +441,12 @@ class TfmFrontend(midas.frontend.FrontendBase):
             rc = self.process_cmd_configure(parameter_path);
         elif (cmd_name.upper() == 'STOP_RUN'):
             rc = self.client.stop_run(True);
+        elif (cmd_name.upper() == 'GENERATE_FCL'):
+            rc = self.process_cmd_generate_fcl(parameter_path);
         elif (cmd_name.upper() == 'GET_STATE'):
             rc = self.process_cmd_get_state(parameter_path);
+        elif (cmd_name.upper() == 'PRINT_FCL'):
+            rc = self.process_cmd_print_fcl(parameter_path);
         elif (cmd_name.upper() == 'RESET_OUTPUT'):
             rc = self.process_cmd_reset_output(parameter_path);
 #------------------------------------------------------------------------------
