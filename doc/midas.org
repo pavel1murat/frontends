@@ -13,6 +13,9 @@ MIDAS_EXPTAB=/home/mu2etrk/test_stand/pasha_031/config/midas/test_025.exptab
 MIDASSYS=/home/mu2etrk/test_stand/pasha_031/spack/var/spack/environments/murat/.spack-env/view
 MIDAS_EXPT_NAME=test_025
 #+end_quote 
+** ODB records to be updated manually                                        
+- "Logger/Data dir" :
+- "Custom/Path"
 ** elog                                                                      
 *** built-in elog                                                            
 - The built-in elog data are stored in the directory defined by the "/Logger/Elog dir" ODB key. 
