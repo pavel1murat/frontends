@@ -32,6 +32,6 @@ else
     cmd=$cmd"; source setup_daq.sh"
     cmd=$cmd"; $frontend -h $midas_host"
 #    cmd=$cmd"&"
-    if [ $verbose != 0 ] ; then echo ssh -KX mu2etrk@$remote_node.fnal.gov $cmd ; fi
-    ssh -KX mu2etrk@$remote_node.fnal.gov  $cmd
+    if [ $verbose != 0 ] ; then echo ssh -KX $USER@$remote_node.fnal.gov $cmd ; fi
+    ssh -KX $USER@$remote_node.fnal.gov  $cmd
 fi
