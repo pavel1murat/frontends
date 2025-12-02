@@ -363,17 +363,42 @@ class TfmFrontend(midas.frontend.FrontendBase):
         return rc;
     
 #------------------------------------------------------------------------------
+# generate fcl's for a given number of artdaq processes for a given run configuration
+# host    = 'all' : generate FCL's for all hosts
+# process = 'all' : generate FCLs for all processes
+#------------------------------------------------------------------------------
     def process_cmd_generate_fcl(self,parameter_path):
         rc = 0;
         
-        TRACE.TRACE(TRACE.TLVL_INFO,f'-- START: TO BE IMPLEMENTED',TRACE_NAME);
+        TRACE.TRACE(TRACE.TLVL_INFO,f'-- START: parameter_path:{parameter_path}',TRACE_NAME);
 
-        par      = self.client.odb_get(parameter_path);
-        run_conf = par["run_conf"];
-        host     = par["host"    ];
-        process  = par["process" ];
+        ppath          = parameter_path+'/generate_fcl'
+        par            = self.client.odb_get(ppath);
+        run_conf       = par["run_conf"];
+        host           = par["host"    ];
+        artdaq_process = par["process" ];
+        diag_level     = par["print_level"];
 
-        TRACE.TRACE(TRACE.TLVL_INFO,f'-- END: run_conf:{run_conf} host:{host} process:{process}',TRACE_NAME);
+        cmd=os.getenv('MU2E_DAQ_DIR')+f'/config/scripts/generate_artdaq_fcl.py --run_conf={run_conf} --host={host} --process={artdaq_process} --diag_level={diag_level}';
+        p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True,text=True)
+        stdout, stderr = p.communicate();
+#------------------------------------------------------------------------------
+# write output
+#------------------------------------------------------------------------------
+        lines = stdout.split('\n');
+        with open(self.message_fn,"a") as logfile:
+            for line in reversed(lines):
+                    logfile.write(line+'\n')
+#------------------------------------------------------------------------------
+# write error output, if any
+#------------------------------------------------------------------------------
+        if (stderr != ''):
+            lines = stderr.split('\n');
+            with open(self.message_fn,"a") as logfile:
+                for line in reversed(lines):
+                    logfile.write(line+"\n")
+
+        TRACE.TRACE(TRACE.TLVL_INFO,f'-- END: run_conf:{run_conf} host:{host} process:{artdaq_process}',TRACE_NAME);
         return rc;
     
 #------------------------------------------------------------------------------

@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 #------------------------------------------------------------------------------
-# source: frontends/scripts/generate_artdaq_fcl.py
-# call: ./test_generate_artdaq_fcl.py [--diag_level=1] --run_conf=tracker_mc2 --host=mu2e-trk-01 --process=br01
-#       if 'host' is not defined, generates FCL files for all enabled hosts included into the configuration
-#       if 'process; is not defined, generate FCL files for all processes
-# output FCL files are stored in $MU2E_DAQ_DIR/config/{run_conf}
-# protection against errors: previous version of an FCL file 'aaa.fcl' is copied into 'aaa.fcl.save' 
+# load thresholds / gains from json to ODB
 #------------------------------------------------------------------------------
 # import subprocess, shutil, datetime
 import sys, string, getopt, glob, os, time, re, array
@@ -34,7 +29,7 @@ class GenerateArtdaqFcl:
     def Print(self,Name,level,Message):
         if (level > self.diag_level): return 0;
         now = time.strftime('%Y/%m/%d %H:%M:%S',time.localtime(time.time()))
-        message = now+' GenerateArtdaqFcl::'+Name+': '+Message
+        message = now+' [ GenerateArtdaqFcl::'+Name+' ] '+Message
         print(message)
 
 #------------------------------------------------------------------------------
@@ -68,9 +63,9 @@ class GenerateArtdaqFcl:
             elif (key == '--run_conf'):  # defines the output directory
                 self.run_conf = val
 
-        self.Print(name,1,f'run_conf = {self.run_conf}')
-        self.Print(name,1,f'process  = {self.process}' )
-        self.Print(name,1,f'verbose  = {self.diag_level}')
+        self.Print(name,1,'run_conf  = %s' % self.run_conf)
+        self.Print(name,1,'process   = %s' % self.process)
+        self.Print(name,1,'verbose   = %s' % self.diag_level)
 
 #        if (self.fProject == None) :
 #            self.Print(name,0,'Error: Project not defined - exiting !')
@@ -97,13 +92,12 @@ class GenerateArtdaqFcl:
 # print dictionary
 #------------------------------------------------------------------------------
     def print_dict(self,dictionary,offset=''):
-        indent = '    ';
         for key,val in dictionary.items(): 
             self.Print('print_dict',1, f'  {offset} key:{key} val:{val}')
             if (key == 'Enabled') or (key == 'Status') : continue;
             if isinstance(val,dict):
                 print(f'{offset}{key}: {{');
-                self.print_dict(val,offset+indent)
+                self.print_dict(val,offset+'  ')
                 print(f'{offset}}}');
             else:
                 if (isinstance(val,str)):
@@ -112,77 +106,28 @@ class GenerateArtdaqFcl:
                     print(f'{offset}{key}: {val}');
 
 #------------------------------------------------------------------------------
-# if the key starts from '$', it is an abbreviation: in this case,
-# the length of the ARTDAQ key is > 32, so the ODB key needs to be substituted
-#------------------------------------------------------------------------------
-    def checked_key(self,key):
-        k = key;
-        if (k[0] == '$'):
-            print(f'--- key:{key} - to be substituted')
-            dict_path = f'/Mu2e/RunConfigurations/{self.run_conf}/DAQ/FclTemplates/Dictionary'
-            d         = self.client.odb_get(dict_path)
-            k         = d[key];
-
-        return k
-        
-#------------------------------------------------------------------------------
 # write single FCL to an already open file
 # 'pname' - artdaq process label , for example, 'br01'
 #------------------------------------------------------------------------------
     def write_fcl(self,file,artdaqLabel,fcl_template,offset=''):
-        indent = '    ';
-        for key,val in fcl_template.items(): 
-            self.Print('write_fcl',1, f'  {offset} key:{key} val:{val}')
-            if (key == 'Enabled') or (key == 'Status') : continue;
-            if isinstance(val,dict):
-                k = self.checked_key(key);
-                file.write(f'{offset}{k}: {{\n');
-                self.write_fcl(file,artdaqLabel,val,offset+'  ')
-                file.write(f'{offset}}}\n');
-            else:
+            for key,val in fcl_template.items(): 
+                self.Print('print_dict',1, f'  {offset} key:{key} val:{val}')
+                if (key == 'Enabled') or (key == 'Status') : continue;
+                if isinstance(val,dict):
+                    file.write(f'{offset}{key}: {{\n');
+                    self.write_fcl(file,artdaqLabel,val,offset+'  ')
+                    file.write(f'{offset}}}\n');
+                else:
+                    if (isinstance(val,str)):
 #------------------------------------------------------------------------------
 # for a boardreader, its artdaqLabel is defined by the process label
-# also, constrain the artdaq process name to be the same as the label
 #------------------------------------------------------------------------------
-                if (key == "artdaqLabel"):
-                    file.write(f'{offset}{key}: {artdaqLabel}\n');
-                if (key == "process_name"):
-                    file.write(f'{offset}{key}: {artdaqLabel}\n');
-                else:
-#------------------------------------------------------------------------------
-# check whether the key itself is too long and needs to be substituted
-# if it it too long, it starts from a '$' sign
-#-------------------v----------------------------------------------------------
-                    k        = self.checked_key(key)
-                    real_val = val;
-                    if   (isinstance(val,bool)):
-#---------------------------^--------------------------------------------------
-# Python 'True' and 'False' start from a capitals, can't use automated conversion
-#-----------------------v----------------------------------------------
-                        if (val == True): real_val = 'true'
-                        else            : real_val = 'false'
-                        file.write(f'{offset}{k}: {real_val}\n');
-                    elif (isinstance(val,str)):
-                        if (val[0] == '['):
-#-----------------------^--------------------------------------------------
-# not a string, but an array, write it out 
-#---------------------------v----------------------------------------------
-                            file.write(f'{offset}{k}: [');
-                            s = val[1:len(val)-1]
-                            real_val = []
-                            words = s.split(',')
-                            nw    = len(words);
-                            for i in range(nw):
-                                w = words[i].strip()
-                                if (w != ''): file.write(f' {w}');
-                                if (i < nw-1): file.write(', ')
-                                else         : file.write(' ')
-                                
-                            file.write(f']\n');
+                        if (key == "artdaqLabel"):
+                            file.write(f'{offset}{key}: "{artdaqLabel}"\n');
                         else:
-                            file.write(f'{offset}{k}: {real_val}\n');
+                            file.write(f'{offset}{key}: "{val}"\n');
                     else:
-                        file.write(f'{offset}{k}: {real_val}\n');
+                        file.write(f'{offset}{key}: {val}\n');
 
 #------------------------------------------------------------------------------
 # print statistics reported by a given artdaq process
@@ -200,7 +145,7 @@ class GenerateArtdaqFcl:
         # print(f'------------- daq_nodes_dir:\n{daq_nodes_dir}')
 
         for host,params in daq_nodes_dir.items():
-            self.Print('generate_fcl',1,f'-- host:{host:12} enabled:{params["Enabled"]} status:{params["Status"]}');
+            self.Print('generate_fcl',1,f'---- host:{host:12} enabled:{params["Enabled"]} status:{params["Status"]}');
             if ((self.host    != 'all') and (self.host   != host )): continue;
             
             if (params["Enabled"] == 0):                             continue
@@ -210,7 +155,7 @@ class GenerateArtdaqFcl:
             for pname,proc in artdaq.items():
                 if ((self.process != 'all') and (self.process != pname)): continue;
                 if ((pname == "Enabled") or (pname == "Status")):    continue;
-                self.Print('generate_fcl',1,f'-- pname:{pname}');
+                self.Print('generate_fcl',1,f'     ---- pname:{pname}');
                 if (proc['Enabled'] == 0):                           continue;
                 
                 fcl_template_name = proc['fcl_template']
