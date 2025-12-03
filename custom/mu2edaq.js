@@ -85,8 +85,8 @@ function artdaq_process_control(hostname,process) {
 //-----------------------------------------------------------------------------
 // redirects to the node page
 //-----------------------------------------------------------------------------
-function node_status(hostname) {
-  window.location.href = `node_status.html?hostname=${hostname}`;
+function node_control(hostname) {
+  window.location.href = `node_control.html?hostname=${hostname}`;
 }
 
 //-----------------------------------------------------------------------------
@@ -125,9 +125,5 @@ function sleep(ms) {
 
 // emacs
 // Local Variables:
-// mode: js
-// tab-width: 8
-// c-basic-offset: 2
-// js-indent-level: 0
-// indent-tabs-mode: nil
+// mode: web
 // End:

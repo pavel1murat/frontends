@@ -5,35 +5,42 @@ let g_hostname = 'undefined';
 let g_pcie     = -1;             // assumed to be a number
 let g_roc      = 0;
 //-----------------------------------------------------------------------------      
-function choose_dtc_id(evt, dtc_id) {
+// DTC id = 'dtc0' or 'dtc1'
+//-----------------------------------------------------------------------------
+function choose_dtc_id(evt, id) {
   var i, dtctabs;
   dtctabs = document.getElementsByClassName("dtctabs");
+  // reset all tabs
   for (i=0; i<dtctabs.length; i++) {
     dtctabs[i].className = dtctabs[i].className.replace(" active", "");
   }
-  document.getElementById(dtc_id).style.display = "block";
+  document.getElementById(id).style.display = "block";
   evt.currentTarget.className += " active";
   
-  if (dtc_id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
+  if (id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
   console.log('g_pcie=',g_pcie);
 }
-//-----------------------------------------------------------------------------      
-function update_dtc_id(evt, dtc_id) {
-  choose_dtc_id(evt,dtc_id);
+//-----------------------------------------------------------------------------
+// 'createTable' is a function loading the DTC control page
+//-----------------------------------------------------------------------------
+function update_dtc_id(evt, id) {
+  choose_dtc_id(evt,id);
   createTable();
 }
 
 //-----------------------------------------------------------------------------      
-function choose_roc_id(evt, roc_id) {
+// ROC id = 'roc${i'
+//-----------------------------------------------------------------------------
+function choose_roc_id(evt, id) {
   var i, roctabs;
   roctabs = document.getElementsByClassName("roctabs");
   for (i=0; i<roctabs.length; i++) {
     roctabs[i].className = roctabs[i].className.replace(" active", "");
   }
-  document.getElementById(roc_id).style.display = "block";
+  document.getElementById(id).style.display = "block";
   evt.currentTarget.className += " active";
   
-  g_roc = Number(roc_id.charAt(3)); // forth character: 'rocX'
+  g_roc = Number(id.charAt(3)); // forth character: 'rocX'
   // -1: all ROCs
   if (g_roc == 6) {g_roc = -1};
   console.log('g_roc=',g_roc);
@@ -254,8 +261,5 @@ function dtc_load_cmd_parameters(cmd) {
       
 //    emacs
 //    Local Variables:
-//    tab-width: 8
-//    c-basic-offset: 2
-//    js-indent-level: 0
-//    indent-tabs-mode: nil
+//    mode: web
 //    End:
