@@ -26,6 +26,23 @@ let g_process     = null;                // artdaq component
 //   });
 // }
 // 
+
+//-----------------------------------------------------------------------------
+function choose_artdaq_process_id(evt, btn_id) {
+  var i, tabs;
+  tabs = document.getElementsByClassName("artdaq_process_tabs");
+  for (i=0; i<roctabs.length; i++) {
+    tabs[i].className = tabs[i].className.replace(" active", "");
+  }
+  document.getElementById(btn_id).style.display = "block";
+  evt.currentTarget.className += " active";
+  
+  g_artdaq_pid = Number(btn_id);   // not sure what it stands for
+  // -1: all processes
+  // if (g_artdaq_pid == 6) {g_roc = -1};
+  console.log('g_artdaq_pid=',g_artdaq_pid);
+}
+
 //-----------------------------------------------------------------------------
 function artdaq_command(cmd) {
   let msg = { "client_name":g_hostname,
