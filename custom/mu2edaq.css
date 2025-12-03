@@ -74,6 +74,14 @@ body {
     background: #bdb;
 }
 
+#node_tabs {
+    padding   : 10px;
+    height    : 440px;
+    width     : 600px; /*60% ;*/ /* 600px; */
+    overflow  : auto;
+    background: #bdb;
+}
+
 #content {
 /*  margin: 40%; */
 /*  height: 300px; */

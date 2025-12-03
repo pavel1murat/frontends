@@ -2,7 +2,27 @@
 // the hostname should be the same within the scope of this script
 // global variables
 //-----------------------------------------------------------------------------
-// let g_hostname = 'undefined';
+let g_node = 0;   // integer index of the active node
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------      
+// node id = 'nodeXXX' - provide for 1000 nodes
+//-----------------------------------------------------------------------------
+function choose_node_id(evt, id) {
+  var i, roctabs;
+  tabs = document.getElementsByClassName("nodetabs");
+  for (i=0; i<tabs.length; i++) {
+    tabs[i].className = tabs[i].className.replace(" active", "");
+  }
+  document.getElementById(id).style.display = "block";
+  evt.currentTarget.className += " active";
+
+  let num    = id.substring(4,7);
+  g_node = Number(num); // parse the number out of 'nodeXXX'
+  console.log('g_node=',g_node);
+}
+
+
 //-----------------------------------------------------------------------------
 // and this one updates ODB
 // the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
@@ -102,8 +122,5 @@ function tfm_load_parameters_print_fcl() {
 // ${ip.toString().padStart(2,'0')
 //    emacs
 //    Local Variables:
-//    tab-width: 8
-//    c-basic-offset: 2
-//    js-indent-level: 0
-//    indent-tabs-mode: nil
+//    mode: web
 //    End:
