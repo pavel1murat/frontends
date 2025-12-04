@@ -182,9 +182,9 @@
 //-----------------------------------------------------------------------------
 //  fill node parameters table
 //-----------------------------------------------------------------------------
-      const node_params_table     = document.getElementById('node_params');
-      node_params_table.innerHTML = '';
-      odb_browser('node_params',`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}`,0);
+      const node_table     = document.getElementById('node_table');
+      node_table.innerHTML = '';
+      odb_browser('node_table',`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}`,0);
 //-----------------------------------------------------------------------------
 // end of loadPage
 //-----------------------------------------------------------------------------
@@ -215,7 +215,7 @@
           <table class="mtable" id="artdaq_table">  <!-- Table content is generated dynamically -->
           </table>
           
-          <table class="mtable" id="node_params">    <!-- Table content is generated dynamically -->
+          <table class="mtable" id="node_table">    <!-- Table content is generated dynamically -->
           </table>
           
         </div>

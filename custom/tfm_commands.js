@@ -5,7 +5,17 @@
 let g_node    = 1;   // integer index of the active node
 let g_process = 0;
 //-----------------------------------------------------------------------------
-
+// could think of having a cmd.name and cmd.title, but in absense of pointers 
+// that could complicate things
+//-----------------------------------------------------------------------------
+class Command {
+  constructor(name,table_id,parameter_root) {
+    this.name           = name;
+    this.table_id       = table_id;
+    this.parameter_path = parameter_root+'/'+name;
+  }
+}
+  
 //-----------------------------------------------------------------------------      
 // node id = 'nodeXXX' - provide for 1000 nodes
 //-----------------------------------------------------------------------------
@@ -64,7 +74,7 @@ function tfm_choose_artdaq_process_id(evt, id) {
 // the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
 // TEquipmentTracker will finally update /Finished
 //-----------------------------------------------------------------------------
-function tfm_command_set_odb(cmd) {
+function tfm_command_set_odb(cmd, path) {
   
   var paths=["/Mu2e/Commands/DAQ/Tfm/Name",
              "/Mu2e/Commands/DAQ/Tfm/ParameterPath",
@@ -112,9 +122,58 @@ function tfm_command_set_odb(cmd) {
   displayFile('tfm.log', 'output_window');
 }
 
+
+//-----------------------------------------------------------------------------
+// load table with the DTC parameters
+//-----------------------------------------------------------------------------
+function tfm_load_table(table_id,odb_path) {
+  const table     = document.getElementById(table_id);
+  table.innerHTML = '';
+  odb_browser(table_id,odb_path,0);
+}
+
+//-----------------------------------------------------------------------------
+function tfm_make_simple_button(cmd) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.name;
+  btn.onclick = function() { tfm_load_table(cmd.table_id,cmd.parameter_path) ; }
+  return btn;
+}
+
+//-----------------------------------------------------------------------------
+function tfm_make_dropup_button(cmd) {
+  let btn    = document.createElement('div');
+  btn.className = 'dropup';
+
+  let inp       = document.createElement('input');
+  inp.type      = 'button';
+  inp.className = 'dropbtn';
+  inp.value     = cmd.name;
+  btn.appendChild(inp);
+
+  let d1       = document.createElement('div');
+  d1.className = 'dropup-content';
+
+  const d1_1   = document.createElement('div');
+  d1_1.innerHTML = 'Load Parameters'
+  d1_1.onclick   = function() { tfm_load_table(cmd.table_id,cmd.parameter_path)};
+  d1.appendChild(d1_1);
+
+  const d1_2   = document.createElement('div');
+  d1_2.innerHTML = 'Run'
+  d1_2.onclick   = function() { tfm_command_set_odb(cmd.name,cmd.parameter_path)};
+
+  d1.appendChild(d1_2);
+
+  btn.appendChild(d1);
+  return btn;
+}
+
+
 //-----------------------------------------------------------------------------
 function tfm_get_state(element) {
-//  clear_window(element)
+  //  clear_window(element)
   tfm_command_set_odb("get_state")
 }
 
@@ -127,33 +186,33 @@ function tfm_clear_window(element) {
 //-----------------------------------------------------------------------------
 // load table with the DTC parameters
 //-----------------------------------------------------------------------------
-function tfm_load_parameters() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Tfm`,0);
-}
-
+//function tfm_load_parameters() {
+//  const table     = document.getElementById('cmd_params');
+//  table.innerHTML = '';
+//  odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Tfm`,0);
+//}
+//
 //-----------------------------------------------------------------------------
-function tfm_load_parameters_get_state() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/get_state',0);
-}
-      
+// function tfm_load_parameters_get_state() {
+//   const table     = document.getElementById('cmd_params');
+//   table.innerHTML = '';
+//   odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/get_state',0);
+// }
+//       
 //-----------------------------------------------------------------------------
-function tfm_load_parameters_generate_fcl() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/generate_fcl',0);
-}
-      
+// function tfm_load_parameters_generate_fcl() {
+//   const table     = document.getElementById('cmd_params');
+//   table.innerHTML = '';
+//   odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/generate_fcl',0);
+// }
+//       
 //-----------------------------------------------------------------------------
-function tfm_load_parameters_print_fcl() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/print_fcl',0);
-}
-      
+// function tfm_load_parameters_print_fcl() {
+//   const table     = document.getElementById('cmd_params');
+//   table.innerHTML = '';
+//   odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/print_fcl',0);
+// }
+//       
 
 // ${ip.toString().padStart(2,'0')
 //    emacs
