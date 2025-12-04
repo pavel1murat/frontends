@@ -2,14 +2,26 @@
 // the hostname should be the same within the scope of this script
 // global variables
 //-----------------------------------------------------------------------------
-let g_node = 0;   // integer index of the active node
+let g_node    = 1;   // integer index of the active node
+let g_process = 0;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------      
 // node id = 'nodeXXX' - provide for 1000 nodes
 //-----------------------------------------------------------------------------
-function choose_node_id(evt, id) {
-  var i, roctabs;
+function tfm_get_node_name(index) {
+
+  let tabs = document.getElementsByClassName("nodetabs");
+  let node_name = tabs[index-1].innerHTML.toLowerCase();
+
+  return node_name;
+}
+
+//-----------------------------------------------------------------------------      
+// node id = 'nodeXXX' - provide for 1000 nodes
+//-----------------------------------------------------------------------------
+function tfm_choose_node_id(evt, id) {
+  var i, tabs;
   tabs = document.getElementsByClassName("nodetabs");
   for (i=0; i<tabs.length; i++) {
     tabs[i].className = tabs[i].className.replace(" active", "");
@@ -22,7 +34,31 @@ function choose_node_id(evt, id) {
   console.log('g_node=',g_node);
 }
 
+//-----------------------------------------------------------------------------
+// 'createTable' is a function loading the DTC control page
+//-----------------------------------------------------------------------------
+function tfm_update_node_id(evt, id) {
+  tfm_choose_node_id(evt,id);
+  updateNodeTable(g_node);
+}
 
+
+//-----------------------------------------------------------------------------      
+// node id = 'nodeXXX' - provide for 1000 nodes
+//-----------------------------------------------------------------------------
+function tfm_choose_artdaq_process_id(evt, id) {
+  var i, tabs;
+  tabs = document.getElementsByClassName("process_tabs");
+  for (i=0; i<tabs.length; i++) {
+    tabs[i].className = tabs[i].className.replace(" active", "");
+  }
+  document.getElementById(id).style.display = "block";
+  evt.currentTarget.className += " active";
+
+  let num   = id.substring(13,14);
+  g_process = Number(num);           // parse number out of 'process_btn_XX'
+  console.log('g_node=',g_node);
+}
 //-----------------------------------------------------------------------------
 // and this one updates ODB
 // the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
@@ -34,7 +70,7 @@ function tfm_command_set_odb(cmd) {
              "/Mu2e/Commands/DAQ/Tfm/ParameterPath",
              "/Mu2e/Commands/DAQ/Tfm/Finished",
              "/Mu2e/Commands/DAQ/Tfm/get_state/print_level",
-            ];
+  ];
   
   mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/DAQ/Tfm",0,1]).then(function(rpc) {
     result=rpc.result;	      
