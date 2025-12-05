@@ -95,7 +95,7 @@
             // node Cell
             const nodeCell = document.createElement("td");
             let   hostname = keys[i];
-            nodeCell.innerHTML = `<button onclick="node_control('${hostname}')">${hostname}</button>`;
+            nodeCell.innerHTML = `<button onclick="tfm_control('${hostname}')">${hostname}</button>`;
             let path = nodes_path+'/'+hostname;
             set_colors(path,nodeCell);
             // Poll for updates
