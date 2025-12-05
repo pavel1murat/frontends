@@ -21,7 +21,7 @@
   // the hostname (nodename) should be the same within the scope of this script
   //-----------------------------------------------------------------------------
   function updateNodeTable(node_index) {
-    node_name = tfm_get_node_name(g_node);
+    const node_name            = tfm_get_node_name(g_node);
     const node_table           = document.getElementById('node_table');
     node_table.innerHTML       = '';
     node_table.node_name       = node_name;
@@ -33,13 +33,17 @@
     let process_list=[] ;
     sleep(1000);
     mjsonrpc_db_get_values(paths).then(function(rpc) {
-      let list      = rpc.result.data[0];
-      console.log('list=',list);
-      for (const key in list) {
-        if (key.endsWith("/name")) {
-          let label = list[key].toUpperCase();
-          if ((label != "ENABLED") && (label != "STATUS")) {
-            process_list.push(list[key]);
+      let artdaq      = rpc.result.data[0];
+      console.log('artdaq=',artdaq);
+      if (artdaq.enabled == 1) {
+        /* loop over the artdaq items */
+        for (const key in artdaq) {
+          if (key.indexOf('/') >= 0) { continue; }
+          if ((key.toUpperCase() == 'STATUS') || (key.toUpperCase() == 'ENABLED')) {continue;}
+          // artdaq process
+          const p = artdaq[key];
+          if (p.enabled) {
+            process_list.push(key);
           }
         }
       }
@@ -75,16 +79,20 @@
       td2 = document.createElement('td');
       td2.colspan = 2;
 
-      let cmd     = new Command('load parameters','cmd_params','/Mu2e/ActiveRunConfiguration/Artdaq/Tfm/'+node_table.node_name);
+      let odb_conf_path = '/Mu2e/Commands/DAQ/Nodes/'+node_table.node_name;
+      let cmd     = new Command('load_parameters','cmd_params',odb_conf_path);
       let btn     = tfm_make_simple_button(cmd);
       td2.appendChild(btn);
 
-      cmd     = new Command('get_status','cmd_params','/Mu2e/ActiveRunConfiguration/Artdaq/'+node_table.node_name);
+      let odb_param_path = '/Mu2e/Commands/DAQ/Nodes/'+node_table.node_name+'/Artdaq';
+      cmd     = new Command('get_status','cmd_params',odb_param_path);
       btn     = tfm_make_simple_button(cmd);
       td2.appendChild(btn);
 
-      cmd     = new Command('print fcl','cmd_params','/Mu2e/ActiveRunConfiguration/Artdaq/'+node_table.node_name);
-      btn     = tfm_make_simple_button(cmd);
+      // still, command in executed by TFM - parameters need to be stored in '/Mu2e/ActiveRunConfiguration/DAQ/Tfm'
+      let odb_tfm_path = '/Mu2e/Commands/DAQ/Tfm';
+      cmd     = new Command('print_fcl','cmd_params',odb_tfm_path);
+      btn     = tfm_make_exec_button_par(cmd);
       td2.appendChild(btn);
 
       tr2.appendChild(td2);
@@ -113,101 +121,156 @@
     tfm_table.innerHTML = '';
       
     tfm_tbody = document.createElement('tbody');
-    tfm_tbody.innerHTML = `
-      <tr>
-        <td> <div class="mtableheader" colspan=2> Trigger Farm Manager (TFM) </div> </td>
-      </tr>
-      
-      <tr>
-        <td colspan=20>
-          <div class="tab">
-            <button class="nodetabs" id='node001' onclick="tfm_update_node_id(event,'node001')">MU2E-DL-01</button>
-          </div>
-        </td>
-      </tr>
-      
-      <tr>
-        <td colspan=20>
-          <div class="tab">
-            <button class="nodetabs" id='node002' onclick="tfm_update_node_id(event,'node002')">MU2E-TRK-01</button>
-            <button class="nodetabs" id='node003' onclick="tfm_update_node_id(event,'node003')">MU2E-TRK-02</button>
-            <button class="nodetabs" id='node004' onclick="tfm_update_node_id(event,'node004')">MU2E-TRK-03</button>
-            <button class="nodetabs" id='node005' onclick="tfm_update_node_id(event,'node005')">MU2E-TRK-04</button>
-            <button class="nodetabs" id='node006' onclick="tfm_update_node_id(event,'node006')">MU2E-TRK-05</button>
-            <button class="nodetabs" id='node007' onclick="tfm_update_node_id(event,'node007')">MU2E-TRK-06</button>
-            <button class="nodetabs" id='node008' onclick="tfm_update_node_id(event,'node008')">MU2E-TRK-07</button>
-            <button class="nodetabs" id='node009' onclick="tfm_update_node_id(event,'node009')">MU2E-TRK-08</button>
-            <button class="nodetabs" id='node010' onclick="tfm_update_node_id(event,'node010')">MU2E-TRK-09</button>
-          </div>
-        </td>
-      </tr>
-      
-      <tr>
-        <td colspan=10>
-          <div class="tab">
-            <button class="nodetabs" id='node011' onclick="tfm_update_node_id(event,'node011')">MU2E-TRK-10</button>
-            <button class="nodetabs" id='node012' onclick="tfm_update_node_id(event,'node012')">MU2E-TRK-11</button>
-            <button class="nodetabs" id='node013' onclick="tfm_update_node_id(event,'node013')">MU2E-TRK-12</button>
-            <button class="nodetabs" id='node014' onclick="tfm_update_node_id(event,'node014')">MU2E-TRK-13</button>
-            <button class="nodetabs" id='node015' onclick="tfm_update_node_id(event,'node015')">MU2E-TRK-14</button>
-            <button class="nodetabs" id='node016' onclick="tfm_update_node_id(event,'node016')">MU2E-TRK-15</button>
-            <button class="nodetabs" id='node017' onclick="tfm_update_node_id(event,'node017')">MU2E-TRK-16</button>
-            <button class="nodetabs" id='node018' onclick="tfm_update_node_id(event,'node018')">MU2E-TRK-17</button>
-            <button class="nodetabs" id='node019' onclick="tfm_update_node_id(event,'node019')">MU2E-TRK-18</button>
-          </div>
-        </td>
-      </tr>
-    `;
-    let tr2 = document.createElement('tr');
-    
-    let td2     = document.createElement('td');
-    td2.colspan = 2;
+    tr1 = document.createElement('tr');
+    tr1.innerHTML ='<td> <div class="mtableheader" colspan=2> Trigger Farm Manager (TFM) </div> </td>';
 
-    let cmd      = new Command('load_parameters','cmd_params','/Mu2e/ActiveRunConfiguration/DAQ/Tfm');
-    let btn      = tfm_make_simple_button(cmd);
-    td2.appendChild(btn);
+    const  paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes",];
+    mjsonrpc_db_get_values(paths).then(function(rpc) {
+      let list_of_nodes  = rpc.result.data[0];
+
+      let row     = null;
+      let td      = null;
+      let div     = null;
+      let node_id = 0;
+      let nnodes  = 0;
+      
+      let new_row = 1;
+      for (const key in list_of_nodes) {
+        if (key.indexOf('/') >= 0) { continue; }
+        const node_name = key;
+        const node      = list_of_nodes[key];
+        if (new_row) {
+          row = document.createElement('tr');
+          td  = document.createElement('td');
+          td.colspan = 20;
+          
+          div = document.createElement('div');
+          div.className = 'tab';
+          td.appendChild(div);
+          row.appendChild(td);
+          new_row = 0;
+        }
+        
+        let btn = document.createElement('button');
+        btn.className = 'nodetabs';
+        if (node.enabled == 0) btn.className += ' disabled';
+        btn.id        = 'node'+node_id.toString().padStart(3,'0');
+        btn.onclick   = function() { tfm_update_node_id(event,btn.id); }
+        btn.innerHTML = node_name;
+        div.appendChild(btn);
+        
+        nnodes += 1;
+        
+        if ((node_name == 'mu2e-dl-01') || (nnodes >= 9)) {
+          tfm_tbody.appendChild(row);
+          
+          // start new row
+          nnodes  = 0;
+          new_row = 1;
+        }
+        node_id += 1;
+      }
+      
+      if (nnodes > 0) {
+        tfm_tbody.appendChild(row);
+      }
+//-----------------------------------------------------------------------------
+// now come commands
+//-----------------------------------------------------------------------------
+      let tr2 = document.createElement('tr');
+    
+      let td2     = document.createElement('td');
+      td2.colspan = 2;
+
+      let cmd      = new Command('load_parameters','cmd_params','/Mu2e/ActiveRunConfiguration/DAQ/Tfm');
+      let btn      = tfm_make_simple_button(cmd);
+      td2.appendChild(btn);
     //-----------------------------------------------------------------------------
     // create a "get_state" drop-button
     //-----------------------------------------------------------------------------
-    cmd = new Command('get_state','cmd_params'   ,'/Mu2e/Commands/DAQ/Tfm');
-    btn = tfm_make_dropup_button(cmd);
-    td2.appendChild(btn);
+      cmd = new Command('get_state','cmd_params'   ,'/Mu2e/Commands/DAQ/Tfm');
+      btn = tfm_make_dropup_button(cmd);
+      td2.appendChild(btn);
+      
+      cmd  = new Command('generate_fcl','cmd_params','/Mu2e/Commands/DAQ/Tfm');
+      let btn1 = tfm_make_dropup_button(cmd);
+      td2.appendChild(btn1);
+      
+      cmd  = new Command('print_fcl','cmd_params','/Mu2e/Commands/DAQ/Tfm');
+      let btn2 = tfm_make_dropup_button(cmd);
+      td2.appendChild(btn2);
     
-    cmd  = new Command('generate_fcl','cmd_params','/Mu2e/Commands/DAQ/Tfm');
-    let btn1 = tfm_make_dropup_button(cmd);
-    td2.appendChild(btn1);
-    
-    cmd  = new Command('print_fcl','cmd_params','/Mu2e/Commands/DAQ/Tfm');
-    let btn2 = tfm_make_dropup_button(cmd);
-    td2.appendChild(btn2);
-    
-    // and the last simple action button not using ODB
-    let  inp2    = document.createElement('input');
-    inp2.type    = 'button'
-    inp2.value   = 'reset output'
-    inp2.onclick = function() { tfm_clear_window('output_window') ; }
-
-    td2.appendChild(inp2);
-
-    tr2.appendChild(td2);
-
-    tfm_tbody.appendChild(tr2);
-    tfm_table.appendChild(tfm_tbody);
-    //-----------------------------------------------------------------------------
-    //  fill node table
-    //-----------------------------------------------------------------------------
-    updateNodeTable(g_node);
-    //-----------------------------------------------------------------------------
-    //  fill TFM parameters table
-    //-----------------------------------------------------------------------------
-    const tfm_params_table     = document.getElementById('cmd_params');
-    tfm_params_table.innerHTML = '';
-  
-    odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Tfm`,0);
+      // and the last action button not using ODB
+      cmd  = new Command('reset_output','cmd_params','/Mu2e/Commands/DAQ/Tfm');
+      let btn3 = tfm_make_exec_button(cmd);
+      
+      td2.appendChild(btn3);
+      
+      tr2.appendChild(td2);
+      
+      tfm_tbody.appendChild(tr2);
+      tfm_table.appendChild(tfm_tbody);
+      //-----------------------------------------------------------------------------
+      //  fill node table
+      //-----------------------------------------------------------------------------
+      updateNodeTable(g_node);
+      //-----------------------------------------------------------------------------
+      //  fill TFM parameters table
+      //-----------------------------------------------------------------------------
+      const tfm_params_table     = document.getElementById('cmd_params');
+      tfm_params_table.innerHTML = '';
+      
+      odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Tfm`,0);
+    }).catch(function(error) {
+      mjsonrpc_error_alert(error);
+    });
     //-----------------------------------------------------------------------------
     //  end
     //-----------------------------------------------------------------------------
-  }
+  }    
+
+  //     tfm_tbody.innerHTML = `
+  // 
+  //       <tr>
+  //         <td colspan=20>
+  //           <div class="tab">
+  //             <button class="nodetabs" id='node001' onclick="tfm_update_node_id(event,'node001')">MU2E-DL-01</button>
+  //           </div>
+  //         </td>
+  //       </tr>
+  //       
+  //       <tr>
+  //         <td colspan=20>
+  //           <div class="tab">
+  //             <button class="nodetabs" id='node002' onclick="tfm_update_node_id(event,'node002')">MU2E-TRK-01</button>
+  //             <button class="nodetabs" id='node003' onclick="tfm_update_node_id(event,'node003')">MU2E-TRK-02</button>
+  //             <button class="nodetabs" id='node004' onclick="tfm_update_node_id(event,'node004')">MU2E-TRK-03</button>
+  //             <button class="nodetabs" id='node005' onclick="tfm_update_node_id(event,'node005')">MU2E-TRK-04</button>
+  //             <button class="nodetabs" id='node006' onclick="tfm_update_node_id(event,'node006')">MU2E-TRK-05</button>
+  //             <button class="nodetabs" id='node007' onclick="tfm_update_node_id(event,'node007')">MU2E-TRK-06</button>
+  //             <button class="nodetabs" id='node008' onclick="tfm_update_node_id(event,'node008')">MU2E-TRK-07</button>
+  //             <button class="nodetabs" id='node009' onclick="tfm_update_node_id(event,'node009')">MU2E-TRK-08</button>
+  //             <button class="nodetabs" id='node010' onclick="tfm_update_node_id(event,'node010')">MU2E-TRK-09</button>
+  //           </div>
+  //         </td>
+  //       </tr>
+  //       
+  //       <tr>
+  //         <td colspan=10>
+  //           <div class="tab">
+  //             <button class="nodetabs" id='node011' onclick="tfm_update_node_id(event,'node011')">MU2E-TRK-10</button>
+  //             <button class="nodetabs" id='node012' onclick="tfm_update_node_id(event,'node012')">MU2E-TRK-11</button>
+  //             <button class="nodetabs" id='node013' onclick="tfm_update_node_id(event,'node013')">MU2E-TRK-12</button>
+  //             <button class="nodetabs" id='node014' onclick="tfm_update_node_id(event,'node014')">MU2E-TRK-13</button>
+  //             <button class="nodetabs" id='node015' onclick="tfm_update_node_id(event,'node015')">MU2E-TRK-14</button>
+  //             <button class="nodetabs" id='node016' onclick="tfm_update_node_id(event,'node016')">MU2E-TRK-15</button>
+  //             <button class="nodetabs" id='node017' onclick="tfm_update_node_id(event,'node017')">MU2E-TRK-16</button>
+  //             <button class="nodetabs" id='node018' onclick="tfm_update_node_id(event,'node018')">MU2E-TRK-17</button>
+  //             <button class="nodetabs" id='node019' onclick="tfm_update_node_id(event,'node019')">MU2E-TRK-18</button>
+  //           </div>
+  //         </td>
+  //       </tr>
+
   //-----------------------------------------------------------------------------
   // loadPage is the function doing the job
   //-----------------------------------------------------------------------------
@@ -218,7 +281,7 @@
      here the HTML structure starts
      it seems to be convenient to have the large scale topology in HtML and use
      javascript to fill hte details
-     her is the high-level structure of the page - menus on hte left, output window - on the right
+     her is the high-level structure of the page - menus on the left, output window - on the right
   ------------------------------------------------------------------------------  -->
   <body class="mcss" onload="mhttpd_init('tfm_control'); show_facilities(); msg_load();">
     <div id="mheader"></div>

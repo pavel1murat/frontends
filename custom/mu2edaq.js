@@ -44,7 +44,7 @@ function clear_window(element_id) {
 }
 
 //-----------------------------------------------------------------------------
-function displayFile(filePath, elementId) {
+function displayFile_old(filePath, elementId) {
 //  // const fs = require('fs');
 //  try {
 //    const response = await fetch(filePath);
@@ -64,6 +64,22 @@ function displayFile(filePath, elementId) {
   if (xmlhttp.status==200) {
     document.getElementById(elementId).textContent = xmlhttp.responseText;
   }
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+function displayFile(filePath, elementId) {
+
+  var result = null;
+  fetch(filePath)
+    .then(response => response.text())
+    .then(text => {
+      document.getElementById(elementId).textContent = text;
+    })
+    .catch(err => {
+      console.error("Error loading file:", err);
+    });
+  
   return result;
 }
 

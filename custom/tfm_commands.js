@@ -2,17 +2,22 @@
 // the hostname should be the same within the scope of this script
 // global variables
 //-----------------------------------------------------------------------------
-let g_node    = 1;   // integer index of the active node
-let g_process = 0;
+// import * as fs   from 'fs/promises'
+// import * as path from 'path'
+
+let g_node     = 1;             // integer index of the active node
+let g_process  = 0;
 //-----------------------------------------------------------------------------
 // could think of having a cmd.name and cmd.title, but in absense of pointers 
 // that could complicate things
+// parameter_path points to the path where the name, parameter_path, and Finished
+// should be stored
 //-----------------------------------------------------------------------------
 class Command {
-  constructor(name,table_id,parameter_root) {
+  constructor(name,table_id,parameter_path) {
     this.name           = name;
     this.table_id       = table_id;
-    this.parameter_path = parameter_root+'/'+name;
+    this.parameter_path = parameter_path;
   }
 }
   
@@ -21,8 +26,15 @@ class Command {
 //-----------------------------------------------------------------------------
 function tfm_get_node_name(index) {
 
+  let node_name = null;
   let tabs = document.getElementsByClassName("nodetabs");
-  let node_name = tabs[index-1].innerHTML.toLowerCase();
+  for (let i=0; i<tabs.length; i++) {
+    let node_index = Number(tabs[i].id.substring(4,7));
+    if (node_index == index) {
+      node_name = tabs[i].innerText;
+      break;
+    }
+  }
 
   return node_name;
 }
@@ -52,7 +64,6 @@ function tfm_update_node_id(evt, id) {
   updateNodeTable(g_node);
 }
 
-
 //-----------------------------------------------------------------------------      
 // node id = 'nodeXXX' - provide for 1000 nodes
 //-----------------------------------------------------------------------------
@@ -69,6 +80,51 @@ function tfm_choose_artdaq_process_id(evt, id) {
   g_process = Number(num);           // parse number out of 'process_btn_XX'
   console.log('g_node=',g_node);
 }
+
+//-----------------------------------------------------------------------------      
+// node id = 'nodeXXX' - provide for 1000 nodes
+//-----------------------------------------------------------------------------
+function tfm_get_artdaq_process_label(id) {
+
+  let   label = "undefined";
+  const eid   = 'process_btn_'+id.toString().padStart(2,'0');
+  const tabs  = document.getElementsByClassName("process_tabs");
+  
+  for (let i=0; i<tabs.length; i++) {
+    if (tabs[i].id == eid) {
+      label = tabs[i].innerText;
+      break;
+    }
+  }
+//  g_process = Number(num);           // parse number out of 'process_btn_XX'
+//  console.log('g_node=',g_node);
+  return label;
+}
+
+
+//-----------------------------------------------------------------------------
+function tfm_get_odb_object(path) {
+  let result = null;
+  mjsonrpc_db_get_values([path]).then(function(rpc) {
+    result      = rpc.result.data[0];
+  }).catch(function(error) {
+    mjsonrpc_error_alert(error);
+  });
+  return result;
+};
+
+//-----------------------------------------------------------------------------
+async function tfm_get_list_of_nodes() {
+  const  paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes",];
+  let    result = null;
+  mjsonrpc_db_get_values(paths).then(function(rpc) {
+    result      = rpc.result.data[0];
+  }).catch(function(error) {
+    mjsonrpc_error_alert(error);
+  });
+  return result;
+};
+
 //-----------------------------------------------------------------------------
 // and this one updates ODB
 // the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
@@ -76,19 +132,19 @@ function tfm_choose_artdaq_process_id(evt, id) {
 //-----------------------------------------------------------------------------
 function tfm_command_set_odb(cmd, path) {
   
-  var paths=["/Mu2e/Commands/DAQ/Tfm/Name",
-             "/Mu2e/Commands/DAQ/Tfm/ParameterPath",
-             "/Mu2e/Commands/DAQ/Tfm/Finished",
-             "/Mu2e/Commands/DAQ/Tfm/get_state/print_level",
+  var paths=[path+'/Name',
+             path+'/ParameterPath',
+             path+'/Finished',
+             path+'/Run',
   ];
   
-  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/DAQ/Tfm",0,1]).then(function(rpc) {
+  mjsonrpc_db_paste(paths, [cmd,path+'/'+cmd,0,1]).then(function(rpc) {
     result=rpc.result;	      
 
     // 'Run' is set to 1 , then tfm_frontend is called
 
-    var paths=["/Mu2e/Commands/DAQ/Tfm/Run"];
-  
+   var paths=[ path ];
+
     mjsonrpc_db_paste(paths, [1]).then(function(rpc) {
       result=rpc.result;	      
       // tfm_frontend waits till command completes and always returns,
@@ -119,9 +175,8 @@ function tfm_command_set_odb(cmd, path) {
   };
   
   // I wonder if this line is needed at all....
-  displayFile('tfm.log', 'output_window');
+  displayFile('tfm.log', 'messageFrame');
 }
-
 
 //-----------------------------------------------------------------------------
 // load table with the DTC parameters
@@ -142,6 +197,55 @@ function tfm_make_simple_button(cmd) {
 }
 
 //-----------------------------------------------------------------------------
+function tfm_make_exec_button(cmd) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.name;
+  btn.onclick = function() { tfm_command_set_odb(cmd.name,cmd.parameter_path) ; }
+  return btn;
+}
+
+//-----------------------------------------------------------------------------
+// how does one know the parameter values ? - assume that print_level and
+// run_configuration have already been defined, so only need to set the hostname
+// and the artdaq process label
+// cmd.parameter_path points to the parameter root directory (Name,ParameterPath,etc) 
+//-----------------------------------------------------------------------------
+function tfm_load_pars_and_execute(cmd) {
+  // step 1 : load parameters
+  let ppath = cmd.parameter_path+'/'+cmd.name;
+
+  let node_name     = tfm_get_node_name(g_node);
+  let process_label = tfm_get_artdaq_process_label(g_process);
+  
+  var paths=[ppath+'/host',
+             ppath+'/process',
+  ];
+  
+  mjsonrpc_db_paste(paths, [node_name,process_label]).then(function(rpc) {
+    result=rpc.result;	      
+    
+    // OK, ODB parameters set, now execute
+    
+    tfm_command_set_odb(cmd.name,cmd.parameter_path);
+    
+  }).catch(function(error) {
+    mjsonrpc_error_alert(error);
+  });
+}
+
+//-----------------------------------------------------------------------------
+// this buttom sets all parameters in ODB and then executes - different onclick method
+//-----------------------------------------------------------------------------
+function tfm_make_exec_button_par(cmd) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.name;
+  btn.onclick = function() { tfm_load_pars_and_execute(cmd) ; }
+  return btn;
+}
+
+//-----------------------------------------------------------------------------
 function tfm_make_dropup_button(cmd) {
   let btn    = document.createElement('div');
   btn.className = 'dropup';
@@ -157,7 +261,7 @@ function tfm_make_dropup_button(cmd) {
 
   const d1_1   = document.createElement('div');
   d1_1.innerHTML = 'Load Parameters'
-  d1_1.onclick   = function() { tfm_load_table(cmd.table_id,cmd.parameter_path)};
+  d1_1.onclick   = function() { tfm_load_table(cmd.table_id,cmd.parameter_path+'/'+cmd.name)};
   d1.appendChild(d1_1);
 
   const d1_2   = document.createElement('div');
@@ -178,41 +282,10 @@ function tfm_get_state(element) {
 }
 
 //-----------------------------------------------------------------------------
-function tfm_clear_window(element) {
+function tfm_reset_output(element) {
 //  clear_window(element)
   tfm_command_set_odb("reset_output")
 }
-
-//-----------------------------------------------------------------------------
-// load table with the DTC parameters
-//-----------------------------------------------------------------------------
-//function tfm_load_parameters() {
-//  const table     = document.getElementById('cmd_params');
-//  table.innerHTML = '';
-//  odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Tfm`,0);
-//}
-//
-//-----------------------------------------------------------------------------
-// function tfm_load_parameters_get_state() {
-//   const table     = document.getElementById('cmd_params');
-//   table.innerHTML = '';
-//   odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/get_state',0);
-// }
-//       
-//-----------------------------------------------------------------------------
-// function tfm_load_parameters_generate_fcl() {
-//   const table     = document.getElementById('cmd_params');
-//   table.innerHTML = '';
-//   odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/generate_fcl',0);
-// }
-//       
-//-----------------------------------------------------------------------------
-// function tfm_load_parameters_print_fcl() {
-//   const table     = document.getElementById('cmd_params');
-//   table.innerHTML = '';
-//   odb_browser('cmd_params','/Mu2e/Commands/DAQ/Tfm/print_fcl',0);
-// }
-//       
 
 // ${ip.toString().padStart(2,'0')
 //    emacs
