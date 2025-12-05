@@ -104,6 +104,7 @@ spack add elog@2024-09-25
                                        # there is a midas link problem with +postgres investigate
 spack add     midas@2025-05-03 +sqlite # +postgresql - link problems with postgres
 spack develop midas@2025-05-03 +sqlite
+spack add     node-js
 spack concretize -f                    # success
 spack install
 #------------------------------------------------------------------------------

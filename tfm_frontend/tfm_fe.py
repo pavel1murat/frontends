@@ -413,7 +413,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         
         TRACE.TRACE(TRACE.TLVL_INFO,f'-- START: parameter_path:{parameter_path}',TRACE_NAME);
 
-        ppath    = parameter_path+'/print_fcl'
+        ppath    = parameter_path; ##            +'/print_fcl'
         par      = self.client.odb_get(ppath);
         run_conf = par["run_conf"];
         host     = par["host"    ];
