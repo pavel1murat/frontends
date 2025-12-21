@@ -163,11 +163,19 @@ file:elog.org::/configuration/
 * [[file:dtc.org][DTC]]
 * [[file:elog.org][elog]]
 * runinfo database (PostgreSQL)                                              
-* [[file:firmware.org][firmware]]
+* [[file:programming_dtc.org][programming DTC]]
 * [[file:rocs.org][ROCs]]
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=19095][mu2e-19095]] : Mu2e beam timing
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/RetrieveFile?docid=37376&filename=20220922_DAQNodes.pdf][mu2e-37376]] : DAQ node configuration in the DAQ room                        
-* mu2e DTC driver with dkms                                                  
+- north racks
+|---+---+--------------+-------------|
+|   |   | mu2e-trk-10  | mu2e-trk-08 |
+|   |   | mu2e-trk-09  | mu2e-trk-07 |
+|   |   | mu2e-calo-13 | mu2e-trk-06 |
+|   |   | mu2e-calo-14 | mu2e-trk-05 |
+|---+---+--------------+-------------|
+
+* building mu2e DTC driver with dkms                                         
 #+begin_src
 cd /usr/src
 git clone https://github.com/mu2e/mu2e-pcie-utils mu2e-pcie-utils-4.00.00
@@ -185,6 +193,26 @@ crw-rw-rw- 1 root root 234, 1 Oct  1 12:08 /dev/mu2e1
 #+end_src
 * [[file:ots.org][ots]]                                                                        
 * [[file:trace.org][TRACE]]
+* tracker plane/panel slot indexing in the DAQ code
+- station slots 0,2,4,etc
+|-------------------------+-----------+-----------+-------------------------+-----------+-----------|
+| geography               | DAQ plane | DAQ panel | geography               | DAQ plane | DAQ panel |
+| station slots 0,2,4,... |           |           | station slots 1,3,5,... |           |           |
+|-------------------------+-----------+-----------+-------------------------+-----------+-----------|
+| U plane U key  4        |         0 |         0 | U plane U key  2        |         0 |         0 |
+| U plane U key  8        |         0 |         1 | U plane U key  6        |         0 |         1 |
+| U plane U key 12        |         0 |         2 | U plane U key 10        |         0 |         2 |
+| U plane D key  4        |         0 |         3 | U plane D key  2        |         0 |         3 |
+| U plane D key  8        |         0 |         4 | U plane D key  6        |         0 |         4 |
+| U plane D key 12        |         0 |         5 | U plane D key 10        |         0 |         5 |
+|-------------------------+-----------+-----------+-------------------------+-----------+-----------|
+| D plane U key  2        |         1 |         0 | D plane U key  4        |         1 |         0 |
+| D plane U key  6        |         1 |         1 | D plane U key  8        |         1 |         1 |
+| D plane U key 10        |         1 |         2 | D plane U key 12        |         1 |         2 |
+| D plane D key  2        |         1 |         3 | D plane D key  4        |         1 |         3 |
+| D plane D key  6        |         1 |         4 | D plane D key  8        |         1 |         4 |
+| D plane D key 10        |         1 |         5 | D plane D key 12        |         1 |         5 |
+|-------------------------+-----------+-----------+-------------------------+-----------+-----------|
 * troubleshooting                                                            
 ** TFM frontend doesn't start up                                             
 - start it interactively, check that the PG DB connection is established
