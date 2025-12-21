@@ -1,7 +1,7 @@
 #+startup:fold
 # ------------------------------------------------------------------------------
 # this section describes the hardware configuration
-# of the Mu2e DAQ. at this point - just beginning
+# of the Mu2e DAQ. at this point - just the beginning
 # ------------------------------------------------------------------------------
 * [[https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=4097][mu2e-4097  :]] DTC user manual (primary source of information) 
 * How to powercycle a DTC card w/o rebooting the whole computer              
@@ -21,7 +21,7 @@ crw-rw-rw- 1 root root 244, 1 Aug 27 19:51 /dev/mu2e1
 root@mu2edaq09:/home/mu2etrk/test_stand/pasha_018>exit
 exit
 #+end_src 
-* DTCs       : two cards per node, mounted as /dev/mu2e0 and /dev/mu2e0      
+* DTCs       : two cards per node, seen as /dev/mu2e0 and /dev/mu2e0         
 #+begin_src 
 mu2etrk@mu2edaq09:~/test_stand/pasha_005>ll -al /dev/mu2e
 crw-rw-rw- 1 root root 244, 0 Mar 16 18:29 /dev/mu2e0
@@ -32,19 +32,19 @@ crw-rw-rw- 1 root root 244, 1 Mar 16 18:29 /dev/mu2e1
   - if undefined, DTCLIB_DTC = 0
   - export DTCLIB_DTC=1 # use the /dev/mu2e1
 * DTC registers of relevance                                                 
-* ------------------------------------------------------------------------------
-*      0x9004 : FPGA firmware date  
-*      0x9010 : FPGA temperature                                             
+** -----------------------------------------------------------------------------
+**     0x9004 : FPGA firmware date  
+**     0x9010 : FPGA temperature                                             
        T(C) = (ADC code)*503.975/4096 - 273.15
-*      0x9014 : FPGA VCCINT voltage                                          
+**     0x9014 : FPGA VCCINT voltage                                          
        V(V) = (ADC code)/4095*3. , nominal : 1V
-*      0x9018 : FPGA VCCAUX voltage                                          
+**     0x9018 : FPGA VCCAUX voltage                                          
        V(V) = (ADC code)/4095*3. , nominal : 1V
-*      0x901C : FPGA VCCBRAM voltage                                         
+**     0x901C : FPGA VCCBRAM voltage                                         
        V(V) = (ADC code)/4095*3. , nominal : 1V       
-*      0x9100 : DTC status                                                   
+**     0x9100 : DTC status                                                   
   - 0x40808404 : successfull 'mu2e_util  -q 5 -N -D 200 -n 3 test2'
-*      0x9118 : SERDES reset                                                 
+**     0x9118 : SERDES reset                                                 
 |-----+------+---------+------------------------------|
 | bit | Mode | default | description                  |
 |-----+------+---------+------------------------------|
@@ -83,7 +83,7 @@ crw-rw-rw- 1 root root 244, 1 Mar 16 18:29 /dev/mu2e1
 |-----+------+---------+------------------------------|
 Setting a SERDES Reset bit high places the given link SERDES 
 and data buffers into a reset state
-*      0x9140 : SERDES lock status register                                  
+**     0x9140 : SERDES lock status register                                  
 |------+------+----------+-------------|
 |  bit | Mode |  default | description |
 |------+------+----------+-------------|
@@ -104,8 +104,8 @@ mu2etrk@mu2edaq09:~/test_stand/pasha_015>my_cntl read 0x9140
 0x00000011
 sts=0
 #+end_quote 
-*      0x9150 : 
-*      0x9158 : EVB configuration register                                   
+**     0x9150 : 
+**     0x9158 : EVB configuration register                                   
 |-------+------+---------+---------------------------------------|
 |   bit | Mode | default | description                           |
 |-------+------+---------+---------------------------------------|
@@ -116,15 +116,14 @@ sts=0
 | 16-22 | rw   |       0 | number of EVB input buffers           |
 | 23-31 | ro   |       0 | reserved                              |
 |-------+------+---------+---------------------------------------|
-*      0x91a8 : CFO emulation heartbeat interval timer preset                
-  - time interval between two event window markers in units of 25ns
-** example                                                                   
+**     0x91a8 : CFO emulation heartbeat interval timer preset                
+- time interval between two event window markers in units of 25ns            
 #+begin_src  
 echo "Enabling EWM with 25.6 us internal"
 my_cntl write 0x91a8 0x400
 echo "0x91a8 set to "`my_cntl read 0x91a8`
 #+end_src 
-* TODO 0x91c4 :                                                              
+** TODO 0x91c4 :                                                              
   - at which point the value is changing ? - see below
 |-------+------+----------+---------------------------------------------|
 |  Bits | Mode | Defaults | Description                                 |
@@ -151,7 +150,7 @@ mu2etrk@mu2edaq09:~/test_stand/pasha_015>my_cntl read 0x91c4
 sts=0
 #+end_src 
 
-*      0x91c8 : DebugPacketType                                              
+**     0x91c8 : DebugPacketType                                              
 |-------+------+---------+-------------------|
 |   bit | Mode | default | description       |
 |-------+------+---------+-------------------|
@@ -164,7 +163,7 @@ sts=0
   enable/disable debug mode in readout requests 
   bit 16: 0:disable, 1:enable 
   for buffer_test : 0x00000000
-*      0x9374 : input buffer error flag                                      
+**     0x9374 : input buffer error flag                                      
 |-------+------+---------+---------------------------------|
 |   bit | Mode | default | description                     |
 |-------+------+---------+---------------------------------|
@@ -179,37 +178,37 @@ sts=0
 |       |      |         |                                 |
 |-------+------+---------+---------------------------------|
 
-*      0x9500 : SERDES RX Character Not In Table Error Count Link 0          
+**     0x9500 : SERDES RX Character Not In Table Error Count Link 0          
        Counts the number of times the SERDES RX received an illegal 8b-10b character 
        since the last time the counter was reset. 
        The counter is reset by writing any value to it.
-*      0x9520 : SERDES RX disparity error count  Link 0          
-*      0x9630 : TX Data Request Packet Count Link 0
-*      0x9634 : TX Data Request Packet Count Link 1
-*      0x9638 : TX Data Request Packet Count Link 2
-*      0x963c : TX Data Request Packet Count Link 3
-*      0x9640 : TX Data Request Packet Count Link 4
-*      0x9644 : TX Data Request Packet Count Link 5
-*      0x9648 - 0x964c : reserved
-*      0x9650 : TX Heartbeat Packet Count Link 0
-*      0x9654 : TX Heartbeat Packet Count Link 1
-*      0x9658 : TX Heartbeat Packet Count Link 2
-*      0x965c : TX Heartbeat Packet Count Link 3
-*      0x9660 : TX Heartbeat Packet Count Link 4
-*      0x9664 : TX Heartbeat Packet Count Link 5
-*      0x9668 - 0x966c : reserved
-*      0x9670 : RX Data Header Packet Count Link 0
-*      0x9674 : RX Data Header Packet Count Link 1
-*      0x9678 : RX Data Header Packet Count Link 2
-*      0x967c : RX Data Header Packet Count Link 3
-*      0x9680 : RX Data Header Packet Count Link 4
-*      0x9684 : RX Data Header Packet Count Link 5
-*      0x9690 : RX Data Packet Count Link 0
-*      0x9694 : RX Data Packet Count Link 1
-*      0x9698 : RX Data Packet Count Link 2
-*      0x969c : RX Data Packet Count Link 3
-*      0x96a0 : RX Data Packet Count Link 4
-*      0x96a4 : RX Data Packet Count Link 5
+**     0x9520 : SERDES RX disparity error count  Link 0          
+**     0x9630 : TX Data Request Packet Count Link 0
+**     0x9634 : TX Data Request Packet Count Link 1
+**     0x9638 : TX Data Request Packet Count Link 2
+**     0x963c : TX Data Request Packet Count Link 3
+**     0x9640 : TX Data Request Packet Count Link 4
+**     0x9644 : TX Data Request Packet Count Link 5
+**     0x9648 - 0x964c : reserved
+**     0x9650 : TX Heartbeat Packet Count Link 0
+**     0x9654 : TX Heartbeat Packet Count Link 1
+**     0x9658 : TX Heartbeat Packet Count Link 2
+**     0x965c : TX Heartbeat Packet Count Link 3
+**     0x9660 : TX Heartbeat Packet Count Link 4
+**     0x9664 : TX Heartbeat Packet Count Link 5
+**     0x9668 - 0x966c : reserved
+**     0x9670 : RX Data Header Packet Count Link 0
+**     0x9674 : RX Data Header Packet Count Link 1
+**     0x9678 : RX Data Header Packet Count Link 2
+**     0x967c : RX Data Header Packet Count Link 3
+**     0x9680 : RX Data Header Packet Count Link 4
+**     0x9684 : RX Data Header Packet Count Link 5
+**     0x9690 : RX Data Packet Count Link 0
+**     0x9694 : RX Data Packet Count Link 1
+**     0x9698 : RX Data Packet Count Link 2
+**     0x969c : RX Data Packet Count Link 3
+**     0x96a0 : RX Data Packet Count Link 4
+**     0x96a4 : RX Data Packet Count Link 5
 * ------------------------------------------------------------------------------
 * back to [[file:frontends.org][frontends]]
 * ------------------------------------------------------------------------------

@@ -44,6 +44,9 @@ for d in `ls` ; do echo $d; spack repo add $d ; done
 popd
 #+end_src
 # ------------------------------------------------------------------------------
+# comment out everything *-suite related in mu2e and artdaq recipes
+# packages involved:
+#
 # to handle (a spack/Eric of a spack 0.23 error?) declare gcc @11.5.0 as a package
 # in ~/.spack/bootstrap/config/packages.yaml
 # otherwise, it doesn't concretize
@@ -75,11 +78,25 @@ spack compiler find                # add gcc@13.1.0 to the list of compilers
 # or may write a script making the upstreams file starting from /mu2e/spack_areas
 # ------------------------------------------------------------------------------
 cp ~mu2ecrv/ots_v8_00_00/spack/etc/spack/upstreams.yaml $SPACK_ROOT/etc/spack/.
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # after that ;
 # a) rust needs /usr/lib64/pkgconfig to be included, and for some reason it is not included
+# ------------------------------------------------------------------------------
+# c) create env variable pointing to the view (MIDAS needs that)
+#    midas+sqlite fails on the first pass, suceeds on the second, w/o any changes ... why ???
+#    just do it twice....
+# ------------------------------------------------------------------------------
+export      SPACK_VIEW=$PWD/$env_name/.spack-env/view
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib64/pkgconfig
+
+# spack add     node-js
+spack concretize -f                    # success
+spack install
+#------------------------------------------------------------------------------
 # b) patch recipes: gdk-pixbuf, fhicl-cpp, and geant4
-# can this be avoided by configuring packages ?
+# gdk-pixbuf recipe needs to be patched before the emacs installation
+# however in the very beginning the repos/builtin doesn't exist
+# can this be avoided by configuring the packages ?
 # ------------------------------------------------------------------------------
 #+begin_src
   patch < frontends/scripts/gdk-pixbuf-recipe.patch
@@ -90,24 +107,19 @@ cp ~mu2ecrv/ots_v8_00_00/spack/etc/spack/upstreams.yaml $SPACK_ROOT/etc/spack/.
 # when prompted give the file name:  spack/var/spack/repos/builtin/packages/geant4/package.py
 #+end_src
 # ------------------------------------------------------------------------------
-# c) create env variable pointing to the view (MIDAS needs that)
-#    midas+sqlite fails on the first pass, suceeds on the second, w/o any changes ... why ???
-#    just do it twice....
+# or this should also work - beter instead
 # ------------------------------------------------------------------------------
-export      SPACK_VIEW=$PWD/$env_name/.spack-env/view
-export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib64/pkgconfig
+#+begin_src
+patch -i $env_name/frontends/scripts/gdk-pixbuf-recipe.patch -o spack/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
+patch -i $env_name/frontends/scripts/fhicl-cpp-recipe.patch  -o spack-repos/fnal_art/packages/fhicl-cpp/package.py
+patch -i frontends/scripts/geant4-recipe.patch               -o spack/var/spack/repos/builtin/packages/geant4/package.py
 
-spack add py-psycopg2                # python interface to postgresql
-spack add emacs%gcc@13.1.0 gui=x11   # if toolkit=gtk, problems with egl in MC2 
-
-spack add elog@2024-09-25
-                                       # there is a midas link problem with +postgres investigate
-spack add     midas@2025-05-03 +sqlite # +postgresql - link problems with postgres
-spack develop midas@2025-05-03 +sqlite
-spack add     node-js
+#+end_src
+# ------------------------------------------------------------------------------
+spack add emacs%gcc@13.1.0 gui=x11     # if toolkit=gtk, problems with egl in MC2 
 spack concretize -f                    # success
 spack install
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # artdaq may be needed by artdaq-core-mu2e-develop, choose one with minimal dependencies
 # development packages
 # otsdaq-mu2e-tracker/2025 has the build of FEInterfaces, the only part which depends on otsdaq, disabled
@@ -116,6 +128,7 @@ spack install
 # for the time being, manually comment out all dependencies on those for the following recipes
 # mu2e-spack/*/package.py
 # artdaq-spack/*/package.py
+# however otsdaq-mu2e-tracker 
 #------------------------------------------------------------------------------
 spack add root@6.32.06+http+mlp+postgres+root7+sqlite+spectrum+tmva+tmva-sofie cxxstd=20
 spack add hep-concurrency    cxxstd=20
@@ -127,42 +140,42 @@ spack add canvas-root-io     cxxstd=20
 spack add art-root-io        cxxstd=20
 spack add boost iostreams=true
 spack add art                cxxstd=20
+spack add artdaq-daqinterface            # need mopup_shmem
 
 spack add     mu2e-pcie-utils@develop
 spack develop mu2e-pcie-utils@develop
 
-spack concretize -f
-spack install
-# <-------------------------------------------------------- we're here
-# spack add     artdaq@develop
-# spack add     artdaq-core-mu2e@develop
-# spack develop artdaq-core-mu2e@develop
-# 2025-05-04: for now, don't forget merge the fix with the added accessor ...
-# pushd $env_name/artdaq-core-mu2e ; git merge origin/pasha/ewtag  ; popd ;
+# spack concretize -f
+# spack install
+
 # need geant4 11.3.2
 
-spack add     Offline@develop
+spack add     geant4@11.3.2   cxxstd=20
+spack add     Offline@develop cxxstd=20
 spack develop Offline@develop
 
 spack add     otsdaq-mu2e-tracker@develop
 spack develop otsdaq-mu2e-tracker@develop
 pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2025       ; popd ;
 
+spack add elog@2024-09-25
+                                       # there is a midas link problem with +postgres investigate
+spack add     midas@2025-05-03 +sqlite # +postgresql - link problems with postgres
+spack develop midas@2025-05-03 +sqlite
+
 spack add     tfm@main
 spack develop tfm@main
-
+#                                  frontends depends on otsdaq-mu2e-tracker
 spack add     frontends@main
 spack develop frontends@main
 
+spack add py-psycopg2                # python interface to postgresql
 #  pushd $env_name/otsdaq-mu2e-stm     ; git fetch --all; git checkout stm_develop; popd ;
 
-# not needed w/o *-suites   # 2025-07-08 PM: libxml@2.9 no longer exists
-# fn=spack-repos/artdaq-spack/packages/art-suite/package.py
-# cat $fn | sed 's/libxml2@2.9"/libxml2@2.13:"/' >| $fn
+# not needed w/o *-suites
 
 spack concretize -f
 spack install
-#+end_src
 
 * installing MIDAS on RPI                                                    
 - need to disable PostgreSQL

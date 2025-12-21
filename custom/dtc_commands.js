@@ -194,7 +194,8 @@ function dtc_command_set_odb(cmd,logfile) {
     done = finished;
   };
   
-  displayFile(logfile, 'output_window');
+//  displayFile(logfile, 'output_window');
+  displayFile(logfile, 'messageFrame');
 }
 
 //-----------------------------------------------------------------------------
