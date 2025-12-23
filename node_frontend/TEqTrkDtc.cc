@@ -71,13 +71,16 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
 // start from checking the DTC FW verion and comparing it to the required one -
 // defined in ODB
 //-----------------------------------------------------------------------------
-  uint32_t required_dtc_fw_version = _odb_i->GetDtcFwVersion(H_RunConf,subsystem.data());
-  uint32_t dtc_fw_version          = _dtc_i->ReadRegister(0x9004);
+  uint32_t required_fw_version = _odb_i->GetDtcFwVersion(H_RunConf,subsystem.data());
+  uint32_t fw_version          = _dtc_i->ReadRegister(0x9004);
 
-  if ((required_dtc_fw_version != 0) and (dtc_fw_version != required_dtc_fw_version)) {
-    TLOG(TLVL_ERROR) << "dtc_fw_version:" << std::hex << dtc_fw_version
-                     << " is different from required version:" << required_dtc_fw_version
-                     << " BAIL OUT";
+  if ((required_fw_version != 0) and (fw_version != required_fw_version)) {
+    std::string msg = std::format("DTC{}@{} has fw version:0x{:08x} different from required version:0x{:08x}",
+                                  _dtc_i->PcieAddr(),HostLabel(),fw_version,required_fw_version);
+    TLOG(TLVL_ERROR) << msg;
+                                        // and send an error message
+    cm_msg(MERROR, __func__,msg.data());
+                                    
   }
   else {
     _dtc_i->fPcieAddr       = pcie_addr;
@@ -94,7 +97,7 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
     _dtc_i->fRocLaneMask    = _odb_i->GetUInt32           (H_Dtc,"RocLaneMask");
 
     TLOG(TLVL_DEBUG) << "subsystem:"         << subsystem
-                     << std::format(" dtc_fw_version:0x{:08x}",dtc_fw_version)
+                     << std::format(" fw_version:0x{:08x}",fw_version)
                      << " _readout_mode:"    << std::dec << _dtc_i->fRocReadoutMode
                      << " roc_readout_mode:" << _dtc_i->fRocReadoutMode
                      << " sample_edge_mode:" << _dtc_i->fSampleEdgeMode
