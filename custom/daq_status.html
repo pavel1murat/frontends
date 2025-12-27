@@ -15,7 +15,7 @@
 //-----------------------------------------------------------------------------
 // main function doing the job - defines internals of this page
 //-----------------------------------------------------------------------------
-      function loadPage() {
+      async function loadPage() {
         const urlParams    = new URLSearchParams(window.location.search);
 //-----------------------------------------------------------------------------
 // CFO and TFM status table
@@ -30,6 +30,17 @@
 
         // TFM cell
         const tfm_odb_path = `/Mu2e/ActiveRunConfiguration/DAQ/Tfm`;
+
+        let xx = null;
+        await mjsonrpc_db_get_values(['/Mu2e/ActiveRunConfiguration/DAQ']).then(function (rpc) {
+          let res = rpc.result.data[0];
+          if (res != null) {
+            xx = 1;
+          }
+        }).catch(function (error) {console.error("Error fetching values:", error); });
+        
+        const xx1 = xx;
+        
         const tfm_cell = document.createElement("td");
         tfm_cell.innerHTML = `<button onclick="tfm_control()">TFM</button>`;
         tfm_cell.colSpan = 1;
@@ -79,16 +90,16 @@
         const nodes_path   = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes`;
         
         let nnodes = 1;
-        mjsonrpc_db_get_values([nodes_path]).then(function (rpc) {
+        await mjsonrpc_db_get_values([nodes_path]).then(function (rpc) {
           let nodesp  = rpc.result.data[0];
-          let keys    = Object.keys(nodesp);
-          let values  = Object.values(nodesp);
+          let keys    = Object.keys   (nodesp);
+          let values  = Object.values (nodesp);
           let entries = Object.entries(nodesp);
 
           nkeys = keys.length;
           for (let i = 1; i < nkeys; i+=2) {
 //-----------------------------------------------------------------------------
-// create a row
+// create a row for nodes
 //-----------------------------------------------------------------------------
             const row = document.createElement("tr");
             
@@ -96,28 +107,38 @@
             const nodeCell = document.createElement("td");
             let   hostname = keys[i];
             nodeCell.innerHTML = `<button onclick="tfm_control('${hostname}')">${hostname}</button>`;
-            let path = nodes_path+'/'+hostname;
-            set_colors(path,nodeCell);
+            let node_path = nodes_path+'/'+hostname;
+            set_colors(node_path,nodeCell);
             // Poll for updates
-            setInterval(() => {set_colors(path,nodeCell);},2000);
+            setInterval(() => {set_colors(node_path,nodeCell);},2000);
 
             row.appendChild(nodeCell);
             const artdaq_path = nodes_path+'/'+hostname+'/Artdaq';
 //-----------------------------------------------------------------------------
-// two cells for two DTCs
+// two cells for two DTCs, one or even both could be absent
 //-----------------------------------------------------------------------------
             for (let idtc=0; idtc<2; idtc++) {
               const cell = document.createElement("td");
               cell.className = "status-cell";
-              cell.innerHTML = `<button onclick="dtc_control('${hostname}',${idtc})">DTC${idtc}</button>`;
-                
-              // Load initial values and set up polling for updates
-                
-              const path     = nodes_path+'/'+hostname+`/DTC${idtc}`;
-                
-              // set colors and poll for updates
-              set_colors(path,cell);
-              setInterval(() => {set_colors(path,cell);},2000);
+              // check if the DTC exists
+              const dtc_id   = 'DTC'+idtc;
+              const dtc_path = node_path+'/'+dtc_id;
+              let exists     = null;                 // odb_path_exists(node_path,dtc_id);
+
+              mjsonrpc_db_get_values([dtc_path]).then(function (rpc) {
+                let res = rpc.result.data[0];
+                set_colors(dtc_path,cell);
+                if (res != null) {
+                  exists = 1;
+                  cell.innerHTML = `<button onclick="dtc_control('${hostname}',${idtc})">DTC${idtc}</button>`;
+                  
+                  // Load initial values and set up polling for updates
+                  // set colors and poll for updates
+                  setInterval(() => {set_colors(dtc_path,cell);},2000);
+                }
+              }).catch(function (error) {
+                console.error("Error fetching values:", error);
+              });
               
               row.appendChild(cell);
             }

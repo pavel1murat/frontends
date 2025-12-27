@@ -12,7 +12,9 @@ remote_node=$1
 local_node=`hostname -s`
 
 frontend=node_frontend
-local_subnet=`odbedit -c 'ls /Mu2e/ActiveRunConfiguration/DAQ/' | grep PrivateSubnet | awk '{print $2}'`
+local_subnet=`odbedit -q -c 'ls -v /Mu2e/ActiveRunConfiguration/DAQ/PrivateSubnet'`
+
+if [ $verbose != 0 ] ; then echo LINENO:$LINENO local_subnet:$local_subnet ; fi
 
 function hostname_on_subnet() {
     ifconfig -a | grep $1 | awk '{print $2}' | nslookup | grep -v ipmi | head -n 1 | \
@@ -22,7 +24,7 @@ function hostname_on_subnet() {
 # midas_host=mu2edaq09-ctrl.fnal.gov
 midas_host=`hostname_on_subnet $local_subnet`
 
-echo LINENO=$LINENO verbose=$verbose remote_mode=$remote_node
+echo LINENO:$LINENO verbose=$verbose remote_mode=$remote_node midas_host:$midas_host
 
 if   [ $remote_node == $local_node ] ; then
     $frontend -h $midas_host &

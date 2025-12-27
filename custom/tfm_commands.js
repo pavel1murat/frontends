@@ -7,19 +7,7 @@
 
 let g_node     = 1;             // integer index of the active node
 let g_process  = 0;
-//-----------------------------------------------------------------------------
-// could think of having a cmd.name and cmd.title, but in absense of pointers 
-// that could complicate things
-// parameter_path points to the path where the name, parameter_path, and Finished
-// should be stored
-//-----------------------------------------------------------------------------
-class Command {
-  constructor(name,table_id,parameter_path) {
-    this.name           = name;
-    this.table_id       = table_id;
-    this.parameter_path = parameter_path;
-  }
-}
+let g_run_conf = 'undefined'
   
 //-----------------------------------------------------------------------------      
 // node id = 'nodeXXX' - provide for 1000 nodes
@@ -211,18 +199,20 @@ function tfm_make_exec_button(cmd) {
 // and the artdaq process label
 // cmd.parameter_path points to the parameter root directory (Name,ParameterPath,etc) 
 //-----------------------------------------------------------------------------
-function tfm_load_pars_and_execute(cmd) {
+async function tfm_load_pars_and_execute(cmd) {
   // step 1 : load parameters
   let ppath = cmd.parameter_path+'/'+cmd.name;
 
-  let node_name     = tfm_get_node_name(g_node);
-  let process_label = tfm_get_artdaq_process_label(g_process);
+  let node_name       = tfm_get_node_name(g_node);
+  let process_label   = tfm_get_artdaq_process_label(g_process);
+  let active_run_conf = await odb_get_active_run_conf_name();
   
   var paths=[ppath+'/host',
              ppath+'/process',
+             ppath+'/run_conf',
   ];
   
-  mjsonrpc_db_paste(paths, [node_name,process_label]).then(function(rpc) {
+  mjsonrpc_db_paste(paths, [node_name,process_label,active_run_conf]).then(function(rpc) {
     result=rpc.result;	      
     
     // OK, ODB parameters set, now execute

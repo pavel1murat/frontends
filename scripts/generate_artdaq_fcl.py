@@ -4,6 +4,7 @@
 #------------------------------------------------------------------------------
 # import subprocess, shutil, datetime
 import sys, string, getopt, glob, os, time, re, array
+from   pathlib import Path
 # import json
 # import xmlrpc.client
 # import inspect, logging
@@ -171,8 +172,11 @@ class GenerateArtdaqFcl:
                 config_dir = os.path.expandvars(self.client.odb_get('/Mu2e/ConfigDir'))+f'/{self.run_conf}'
                 self.Print('generate_fcl',1,f'config_dir:{config_dir}');
                 fcl_fn = f'{config_dir}/{pname}.fcl'
-                cmd    = f'cp {fcl_fn} {fcl_fn}.save'
-                os.system(cmd)
+                fpath = Path(fcl_fn)
+                if (fpath.exists()):
+                    # FHICL file exists, save it
+                    cmd    = f'cp {fcl_fn} {fcl_fn}.save'
+                    os.system(cmd)
 #---------------^--------------------------------------------------------------
 # step 2: generate new fcl and save it, error handling to be added
 #---------------v--------------------------------------------------------------
