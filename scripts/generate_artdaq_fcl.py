@@ -120,11 +120,16 @@ class GenerateArtdaqFcl:
                     file.write(f'{offset}}}\n');
                 else:
                     if (isinstance(val,str)):
+                        if (key == 'artdaqLabel'):
 #------------------------------------------------------------------------------
 # for a boardreader, its artdaqLabel is defined by the process label
 #------------------------------------------------------------------------------
-                        if (key == "artdaqLabel"):
                             file.write(f'{offset}{key}: "{artdaqLabel}"\n');
+                        elif (key == 'process_name'):
+                            file.write(f'{offset}{key}: "{artdaqLabel}"\n');
+#------------------------------------------------------------------------------
+# process_name comes from the process name
+#------------------------------------------------------------------------------
                         else:
                             file.write(f'{offset}{key}: "{val}"\n');
                     else:
