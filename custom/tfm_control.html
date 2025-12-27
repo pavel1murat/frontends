@@ -78,7 +78,9 @@
       tr2 = document.createElement('tr');
       td2 = document.createElement('td');
       td2.colspan = 2;
-
+//-----------------------------------------------------------------------------
+// Command is defined in mu2edaq.js
+//-----------------------------------------------------------------------------
       let odb_conf_path = '/Mu2e/Commands/DAQ/Nodes/'+node_table.node_name;
       let cmd     = new Command('load_parameters','cmd_params',odb_conf_path);
       let btn     = tfm_make_simple_button(cmd);
@@ -95,6 +97,11 @@
       btn     = tfm_make_exec_button_par(cmd);
       td2.appendChild(btn);
 
+      // would like to set some parameters in ODB
+      cmd     = new Command('generate_fcl','cmd_params',odb_tfm_path);
+      btn     = tfm_make_exec_button_par(cmd);
+      td2.appendChild(btn);
+
       tr2.appendChild(td2);
 
       node_table_tbody.appendChild(tr2);
@@ -108,12 +115,10 @@
 //-----------------------------------------------------------------------------
 // main function defining the page contents
 //-----------------------------------------------------------------------------
-  function loadPage() {
+function loadPage() {
     const urlParams = new URLSearchParams(window.location.search);
-    g_hostname      = urlParams.get('hostname') || 'none';  // 
-    
-//      let title       = document.getElementById('table-title');
-//      title.innerHTML = '&nbsp;&nbsp;&nbsp;'+g_hostname+' status page';
+    g_hostname      = urlParams.get('hostname') || 'none';  //
+    g_run_conf      = odb_get_active_run_conf_name();
 //-----------------------------------------------------------------------------
 //  fill TFM table
 //-----------------------------------------------------------------------------
@@ -229,51 +234,9 @@
     //-----------------------------------------------------------------------------
   }    
 
-  //     tfm_tbody.innerHTML = `
-  // 
-  //       <tr>
-  //         <td colspan=20>
-  //           <div class="tab">
-  //             <button class="nodetabs" id='node001' onclick="tfm_update_node_id(event,'node001')">MU2E-DL-01</button>
-  //           </div>
-  //         </td>
-  //       </tr>
-  //       
-  //       <tr>
-  //         <td colspan=20>
-  //           <div class="tab">
-  //             <button class="nodetabs" id='node002' onclick="tfm_update_node_id(event,'node002')">MU2E-TRK-01</button>
-  //             <button class="nodetabs" id='node003' onclick="tfm_update_node_id(event,'node003')">MU2E-TRK-02</button>
-  //             <button class="nodetabs" id='node004' onclick="tfm_update_node_id(event,'node004')">MU2E-TRK-03</button>
-  //             <button class="nodetabs" id='node005' onclick="tfm_update_node_id(event,'node005')">MU2E-TRK-04</button>
-  //             <button class="nodetabs" id='node006' onclick="tfm_update_node_id(event,'node006')">MU2E-TRK-05</button>
-  //             <button class="nodetabs" id='node007' onclick="tfm_update_node_id(event,'node007')">MU2E-TRK-06</button>
-  //             <button class="nodetabs" id='node008' onclick="tfm_update_node_id(event,'node008')">MU2E-TRK-07</button>
-  //             <button class="nodetabs" id='node009' onclick="tfm_update_node_id(event,'node009')">MU2E-TRK-08</button>
-  //             <button class="nodetabs" id='node010' onclick="tfm_update_node_id(event,'node010')">MU2E-TRK-09</button>
-  //           </div>
-  //         </td>
-  //       </tr>
-  //       
-  //       <tr>
-  //         <td colspan=10>
-  //           <div class="tab">
-  //             <button class="nodetabs" id='node011' onclick="tfm_update_node_id(event,'node011')">MU2E-TRK-10</button>
-  //             <button class="nodetabs" id='node012' onclick="tfm_update_node_id(event,'node012')">MU2E-TRK-11</button>
-  //             <button class="nodetabs" id='node013' onclick="tfm_update_node_id(event,'node013')">MU2E-TRK-12</button>
-  //             <button class="nodetabs" id='node014' onclick="tfm_update_node_id(event,'node014')">MU2E-TRK-13</button>
-  //             <button class="nodetabs" id='node015' onclick="tfm_update_node_id(event,'node015')">MU2E-TRK-14</button>
-  //             <button class="nodetabs" id='node016' onclick="tfm_update_node_id(event,'node016')">MU2E-TRK-15</button>
-  //             <button class="nodetabs" id='node017' onclick="tfm_update_node_id(event,'node017')">MU2E-TRK-16</button>
-  //             <button class="nodetabs" id='node018' onclick="tfm_update_node_id(event,'node018')">MU2E-TRK-17</button>
-  //             <button class="nodetabs" id='node019' onclick="tfm_update_node_id(event,'node019')">MU2E-TRK-18</button>
-  //           </div>
-  //         </td>
-  //       </tr>
-
-  //-----------------------------------------------------------------------------
-  // loadPage is the function doing the job
-  //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// loadPage is the function doing the job
+//-----------------------------------------------------------------------------
   document.addEventListener("DOMContentLoaded", loadPage);
   </script>
   </head>

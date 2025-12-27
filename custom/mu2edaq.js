@@ -1,4 +1,19 @@
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// could think of having a cmd.name and cmd.title, but in absense of pointers 
+// that could complicate things
+// parameter_path points to the path where the name, parameter_path, and Finished
+// should be stored
+//-----------------------------------------------------------------------------
+class Command {
+  constructor(name,table_id,parameter_path) {
+    this.name           = name;
+    this.table_id       = table_id;
+    this.parameter_path = parameter_path;
+  }
+}
+
+//-----------------------------------------------------------------------------
 // common javascript functions
 // DAQ colors. Each element has 'Enabled' and 'Status' field
 //-----------------------------------------------------------------------------
@@ -44,30 +59,6 @@ function clear_window(element_id) {
 }
 
 //-----------------------------------------------------------------------------
-function displayFile_old(filePath, elementId) {
-//  // const fs = require('fs');
-//  try {
-//    const response = await fetch(filePath);
-//    if (!response.ok) {
-//      throw new Error(`HTTP error! status: ${response.status}`);
-//    }
-//    const text = await response.text();
-//    document.getElementById(elementId).textContent = text;
-//  } catch (error) {
-//    document.getElementById(elementId).textContent = 'Error: ' + error.message;
-  //  }
-
-  var result = null;
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", filePath, false);
-  xmlhttp.send();
-  if (xmlhttp.status==200) {
-    document.getElementById(elementId).textContent = xmlhttp.responseText;
-  }
-  return result;
-}
-
-//-----------------------------------------------------------------------------
 function displayFile(filePath, elementId) {
 
   var result = null;
@@ -84,6 +75,45 @@ function displayFile(filePath, elementId) {
 }
 
 //-----------------------------------------------------------------------------
+// not sure this function works - may need more debugging (or the way I tried to use it
+// was wrong
+//-----------------------------------------------------------------------------
+function odb_path_exists(path,key) {
+  let exists     = null;
+  const p    = path+'/'+key;
+  mjsonrpc_db_get_values([p]).then(
+    function (rpc) {
+      let res = rpc.result.data[0];
+      if (res != null) {
+        exists = 1;
+      }
+      return exists;
+    }
+  ).catch(function (error) {
+    console.error("Error fetching values:", error);
+  });
+}
+
+//-----------------------------------------------------------------------------
+// not sure this function works - may need more debugging (or the way I tried to use it
+// was wrong
+//-----------------------------------------------------------------------------
+async function odb_get_active_run_conf_name() {
+  const p    = '/Mu2e/ActiveRunConfiguration/Name';
+  rpc = await mjsonrpc_db_get_values([p]);
+  let res = rpc.result.data[0];
+  return res;
+  
+//   await mjsonrpc_db_get_values([p]).then(function (rpc) {
+//     let res = rpc.result.data[0];
+//     return res;
+//   }).catch(function (error) {
+//     console.error("Error fetching values:", error);
+//   });
+}
+
+//-----------------------------------------------------------------------------
+// CONTROL PAGES
 // redirects browser to the DTC control page
 // may need to decide which particular DTC type
 //-----------------------------------------------------------------------------
