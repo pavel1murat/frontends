@@ -81,7 +81,7 @@
 //-----------------------------------------------------------------------------
 // Command is defined in mu2edaq.js
 //-----------------------------------------------------------------------------
-      let odb_conf_path = '/Mu2e/Commands/DAQ/Nodes/'+node_table.node_name;
+      let odb_conf_path = '/Mu2e/ActiveRunConfiguration/DAQ/Nodes/'+node_table.node_name;
       let cmd     = new Command('load_parameters','cmd_params',odb_conf_path);
       let btn     = tfm_make_simple_button(cmd);
       td2.appendChild(btn);

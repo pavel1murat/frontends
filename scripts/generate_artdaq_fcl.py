@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #------------------------------------------------------------------------------
-# load thresholds / gains from json to ODB
+# generates FCL for a given artdaq process
 #------------------------------------------------------------------------------
 # import subprocess, shutil, datetime
 import sys, string, getopt, glob, os, time, re, array
@@ -110,13 +110,20 @@ class GenerateArtdaqFcl:
 # write single FCL to an already open file
 # 'pname' - artdaq process label , for example, 'br01'
 #------------------------------------------------------------------------------
-    def write_fcl(self,file,artdaqLabel,fcl_template,offset=''):
-            for key,val in fcl_template.items(): 
-                self.Print('print_dict',1, f'  {offset} key:{key} val:{val}')
+    def write_fcl(self,file,artdaqLabel,fcl_template,key_dict,offset=''):
+            for key,val in fcl_template.items():
+                k_key = key;
+                self.Print('write_fcl',1, f'  {offset} key:{key} val:{val}')
+#------------------------------------------------------------------------------
+# skip 'Enabled' and 'Status' - those are purely internal.. do we need to do that ?
+#------------------------------------------------------------------------------
                 if (key == 'Enabled') or (key == 'Status') : continue;
+                if (key[0] == '$'):
+                    # substitute key with the dictionary value (the word is lnger 32 chars)
+                    k_key = key_dict[key];
                 if isinstance(val,dict):
-                    file.write(f'{offset}{key}: {{\n');
-                    self.write_fcl(file,artdaqLabel,val,offset+'  ')
+                    file.write(f'{offset}{k_key}: {{\n');
+                    self.write_fcl(file,artdaqLabel,val,key_dict,offset+'  ')
                     file.write(f'{offset}}}\n');
                 else:
                     if (isinstance(val,str)):
@@ -124,16 +131,16 @@ class GenerateArtdaqFcl:
 #------------------------------------------------------------------------------
 # for a boardreader, its artdaqLabel is defined by the process label
 #------------------------------------------------------------------------------
-                            file.write(f'{offset}{key}: "{artdaqLabel}"\n');
+                            file.write(f'{offset}{k_key}: "{artdaqLabel}"\n');
                         elif (key == 'process_name'):
-                            file.write(f'{offset}{key}: "{artdaqLabel}"\n');
+                            file.write(f'{offset}{k_key}: "{artdaqLabel}"\n');
 #------------------------------------------------------------------------------
 # process_name comes from the process name
 #------------------------------------------------------------------------------
                         else:
-                            file.write(f'{offset}{key}: "{val}"\n');
+                            file.write(f'{offset}{k_key}: "{val}"\n');
                     else:
-                        file.write(f'{offset}{key}: {val}\n');
+                        file.write(f'{offset}{k_key}: {val}\n');
 
 #------------------------------------------------------------------------------
 # print statistics reported by a given artdaq process
@@ -186,10 +193,13 @@ class GenerateArtdaqFcl:
 # step 2: generate new fcl and save it, error handling to be added
 #---------------v--------------------------------------------------------------
                 fcl_template_path = f'/Mu2e/RunConfigurations/{self.run_conf}/DAQ/FclTemplates/{fcl_template_name}'
+                key_dict_path     = f'/Mu2e/RunConfigurations/{self.run_conf}/DAQ/FclTemplates/Dictionary'
                 self.Print('generate_fcl',1,f'fcl_template_path:{fcl_template_path}')
                 fcl_template      = self.client.odb_get(fcl_template_path)
+                key_dict          = self.client.odb_get(key_dict_path);
+                self.Print('generate_fcl',1,f'key_dict:{key_dict}');
                 with open(fcl_fn, "w") as f:
-                    self.write_fcl(f,pname,fcl_template)
+                    self.write_fcl(f,pname,fcl_template,key_dict)
                     
         return;
     
