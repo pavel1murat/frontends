@@ -493,11 +493,11 @@ if __name__ == "__main__":
     TRACE.TRACE(TRACE.TLVL_LOG,"000: TRACE.Instance : %s"%TRACE.Instance,TRACE_NAME)
     with TfmFrontend() as fe:
         # breakpoint()
-        TRACE.TRACE(TRACE.TLVL_LOG,"001: in the loop",TRACE_NAME)
+        TRACE.LOG("001: in the loop",TRACE_NAME)
         fe.run()
-        TRACE.TRACE(TRACE.TLVL_LOG,"002: after frontend::run",TRACE_NAME)
+        TRACE.LOG("002: after frontend::run",TRACE_NAME)
         
 
-    TRACE.TRACE(TRACE.TLVL_LOG,"003: DONE, exiting")
+    TRACE.LOG("003: DONE, exiting")
 
         

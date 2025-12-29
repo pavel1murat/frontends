@@ -78,38 +78,38 @@ function displayFile(filePath, elementId) {
 // not sure this function works - may need more debugging (or the way I tried to use it
 // was wrong
 //-----------------------------------------------------------------------------
-function odb_path_exists(path,key) {
-  let exists     = null;
+async function odb_path_exists(path,key) {
+  let exists = null;
   const p    = path+'/'+key;
-  mjsonrpc_db_get_values([p]).then(
-    function (rpc) {
-      let res = rpc.result.data[0];
-      if (res != null) {
-        exists = 1;
-      }
-      return exists;
+  try {
+    let rpc    = await mjsonrpc_db_get_values([p]);
+    let res    = rpc.result.data[0];
+    if (res != null) {
+      exists = 1;
     }
-  ).catch(function (error) {
+  }
+  catch (error) {
     console.error("Error fetching values:", error);
-  });
+  };
+  return exists;
 }
 
 //-----------------------------------------------------------------------------
 // not sure this function works - may need more debugging (or the way I tried to use it
 // was wrong
+// in case of failure, returns null
 //-----------------------------------------------------------------------------
 async function odb_get_active_run_conf_name() {
-  const p    = '/Mu2e/ActiveRunConfiguration/Name';
-  rpc = await mjsonrpc_db_get_values([p]);
-  let res = rpc.result.data[0];
-  return res;
-  
-//   await mjsonrpc_db_get_values([p]).then(function (rpc) {
-//     let res = rpc.result.data[0];
-//     return res;
-//   }).catch(function (error) {
-//     console.error("Error fetching values:", error);
-//   });
+  const p = '/Mu2e/ActiveRunConfiguration/Name';
+  try {
+    let rpc = await mjsonrpc_db_get_values([p]);
+    let res = rpc.result.data[0];
+    return res;
+  }
+  catch (error) {
+    console.error('failed to get /Mu2e/ActiveRunConfiguration/Name ');
+    return null;
+  }
 }
 
 //-----------------------------------------------------------------------------
