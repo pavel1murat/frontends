@@ -359,25 +359,20 @@ int TEqTrkDtc::FindThresholds(std::ostream& Stream ) {
 
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
+  int rc(0);
+  
   TLOG(TLVL_DEBUG) << "-- START";
 
   OdbInterface* odb_i  = OdbInterface::Instance();
   
-  HNDLE h_cmd          = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  // std::string cmd_name = odb_i->GetString(h_cmd,"Name");
-  // HNDLE h_cmd_par      = odb_i->GetHandle(h_cmd,cmd_name);
-  HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
+  HNDLE h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
 
   int link        = odb_i->GetInteger(h_cmd    ,"link"       );
   
   int doit        = odb_i->GetInteger(h_cmd_par,"doit"       );
   int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
   
-  TLOG(TLVL_DEBUG) << "-- checkpoint 0.1";
-
-  TLOG(TLVL_DEBUG) << "-- checkpoint 0.2 Link:" << link
-                   << " PcieAddr:" << _dtc_i->PcieAddr();
-
   int lnk1 = link;
   int lnk2 = lnk1+1;
   if (link == -1) {
@@ -385,7 +380,7 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
     lnk2 = 6;
   }
 
-  TLOG(TLVL_DEBUG) << "-- check 1";
+  TLOG(TLVL_DEBUG) << std::format(" checkpoint 0.1 PcieAddr:{} lnk1:{} lnk2:{} print_level:0x{:04x}",_dtc_i->PcieAddr(),lnk1,lnk2,print_level);
 //-----------------------------------------------------------------------------
 // this could be universal,
 // with the definition of DetectorElement being subsystem-dependent
@@ -394,8 +389,8 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
   std::string config_dir = odb_i->GetConfigDir();
     
-  HNDLE h_tracker = odb_i->GetHandle(0,"/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration");
-  std::string thresholds_dir = odb_i->GetString(h_tracker,"ThresholdsDir");
+  HNDLE h_tracker = odb_i->GetHandle(0,"/Mu2e/ActiveRunConfiguration/Tracker");
+  std::string thresholds_dir = odb_i->GetString(h_tracker,"ReadoutConfiguration/ThresholdsDir");
 
   std::string  dtc_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}",
                                       _host_label.data(),_dtc_i->fPcieAddr);
@@ -403,37 +398,38 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
   HNDLE h_dtc = odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr()); // Handle(0,dtc_path);
   odb_i->SetStatus(h_dtc,1);
 
-  TLOG(TLVL_DEBUG) << "-- check 1.1 dtc_path:" << dtc_path
-                   << " thresholds_dir:" << thresholds_dir;
+  TLOG(TLVL_DEBUG) << std::format(" check 1.1 dtc_path:{} thresholds_dir:{}",dtc_path,thresholds_dir);
   
   for (int lnk=lnk1; lnk<lnk2; lnk++) {
+    int link_rc(0);
 
     Stream << " -- link:" << lnk;
+    std::string  panel_path = std::format("{:s}/Link{:d}/DetectorElement",dtc_path.data(),lnk);
     
+    TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path;
+
+    HNDLE h_panel          = odb_i->GetHandle(0,panel_path);
+    std::string panel_name = odb_i->GetString(h_panel,"Name");
+    int mnid               = atoi(panel_name.substr(2).data());
+    int sdir               = (mnid/10)*10;
+
+    TLOG(TLVL_DEBUG) << std::format("check 1.3 panel_name:{} mnid:{:03d} sdir:{}",panel_name,mnid,sdir);
+
     try {
-      std::string  panel_path = std::format("{:s}/Link{:d}/DetectorElement",dtc_path.data(),lnk);
-    
-      TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path;
-
-      HNDLE h_panel          = odb_i->GetHandle(0,panel_path);
-      std::string panel_name = odb_i->GetString(h_panel,"Name");
-      
-      int mnid = atoi(panel_name.substr(2).data());
-      int sdir = (mnid/10)*10;
-
-      TLOG(TLVL_DEBUG) << "-- check 1.3 panel_name:" << panel_name << " sdir:" << sdir;
+      link_rc = 1;
 
       int station = odb_i->GetInteger(h_panel,"Station");
       TLOG(TLVL_DEBUG) << "-- check 1.4 station:" << station;
+      link_rc = 2;
       
       std::string fn = std::format("{:}/tracker/station_{:02d}/{:s}/{:s}.json",
                                    config_dir.data(),station,thresholds_dir.data(),panel_name.data());
     
       TLOG(TLVL_DEBUG) << "-- check 1.5 fn:" << fn;
+      link_rc = 3;
 
       std::ifstream ifs(fn);
       nlohmann::json jf = nlohmann::json::parse(ifs);
-    
     
       if (print_level > 1) {
         Stream << std::endl;
@@ -441,6 +437,8 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
         Stream << "---------------------------------" << std::endl;
       }
     
+      link_rc = 4;
+
       uint16_t thr_cal[96], thr_hv[96], gain_cal[96], gain_hv[96];
 
       odb_i->GetArray(h_panel,"thr_cal" ,TID_WORD,thr_cal ,96);
@@ -448,6 +446,8 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
       odb_i->GetArray(h_panel,"gain_cal",TID_WORD,gain_cal,96);
       odb_i->GetArray(h_panel,"gain_hv" ,TID_WORD,gain_hv ,96);
       
+      link_rc = 5;
+
       for (auto& elm : jf.items()) {
         nlohmann::json val = elm.value();
         uint16_t ich       = val["channel"  ];
@@ -476,23 +476,26 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
         }
       }
       
+      link_rc = 6;
       odb_i->SetArray(h_panel,"thr_cal" ,TID_WORD,thr_cal ,96);
       odb_i->SetArray(h_panel,"thr_hv"  ,TID_WORD,thr_hv  ,96);
       odb_i->SetArray(h_panel,"gain_cal",TID_WORD,gain_cal,96);
       odb_i->SetArray(h_panel,"gain_hv" ,TID_WORD,gain_hv ,96);
       
-      Stream << " SUCCESS" << std::endl;
+      Stream << std::format(" SUCCESS, panel_name:{}\n",panel_name);
     }
     catch (...) {
-      Stream << " ERROR" << std::endl;
+      Stream << std::format(" ERROR, panel_name:{} link_rc:{}\n",panel_name,link_rc);
+      TLOG(TLVL_ERROR) << "link:" << lnk << " panel_name:" << panel_name << " link_rc:" << link_rc;
+      rc -= 1;
     }
   }
                                       
   odb_i->SetStatus(h_dtc,0);
   
-  TLOG(TLVL_DEBUG) << "-- END";
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
 
-  return 0;
+  return rc;
 }
 
 //-----------------------------------------------------------------------------

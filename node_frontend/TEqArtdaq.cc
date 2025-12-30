@@ -66,7 +66,7 @@ TEqArtdaq::TEqArtdaq(const char* Name) : TMu2eEqBase() {
 // boardreaders start from 10000+1000*partition+100+1;
 // init XML RPC            10000+1000*partition+11
 //-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG) << "-- START";
+  TLOG(TLVL_DEBUG) << std::format("-- START _host_label:{}",_host_label);
 //-----------------------------------------------------------------------------
 // read ARTDAQ configuration from ODB
 //-----------------------------------------------------------------------------
