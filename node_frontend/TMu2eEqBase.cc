@@ -10,11 +10,13 @@
 
 //-----------------------------------------------------------------------------
 TMu2eEqBase::TMu2eEqBase() {
+  TLOG(TLVL_DEBUG) << "-- START"; 
   
   _odb_i                      = OdbInterface::Instance();
   _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
   std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
   std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
+  TLOG(TLVL_DEBUG) << std::format(" private_subnet:{} public_subnet:{}",private_subnet,public_subnet); 
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
 // nodes/DTC's to be monitored 
@@ -24,6 +26,7 @@ TMu2eEqBase::TMu2eEqBase() {
   _full_host_name  = get_full_host_name (private_subnet.data());
   _h_daq_host_conf = _odb_i->GetHostConfHandle(_host_label);
   _monitoringLevel = 0;
+  TLOG(TLVL_DEBUG) << std::format("-- END _host_label:{} _full_host_name:{}",_host_label,_full_host_name); 
 }
 
 //-----------------------------------------------------------------------------

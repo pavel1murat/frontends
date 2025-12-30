@@ -1,7 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
+// test_json_003: test reading a thresholds file
 ///////////////////////////////////////////////////////////////////////////////
 #include <iostream>
+#include <format>
 #include <fstream>
 #include "nlohmann/json.hpp"
 //-----------------------------------------------------------------------------
@@ -39,6 +40,9 @@ int test_json_002(const char* String = "{\"eq_type\":\"dtc\",\"pcie\":0,\"roc\":
   return 0;
 }
 
+//-----------------------------------------------------------------------------
+// test reading a thresholds file
+//-----------------------------------------------------------------------------
 int test_json_003(const char* Filename) {
   
   std::ifstream ifs(Filename);
@@ -50,7 +54,7 @@ int test_json_003(const char* Filename) {
     int gain = o["gain"];
     int thr  = o["threshold"];
     std::string type = o["type"];
-    std::cout << ich << " " << gain << " " << std::setw(3) << thr << " " << type << std::endl;;
+    std::cout << std::format("{:2d} {:3d} {:3d} {}\n",ich,gain,thr,type);
   }
   
   return 0;
