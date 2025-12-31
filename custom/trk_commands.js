@@ -1,24 +1,16 @@
 //-----------------------------------------------------------------------------
-// the hostname should be the same within the scope of this script
-//-----------------------------------------------------------------------------
-let g_hostname = 'undefined';
-let g_station  = 0;
-let g_plane    = 0;
-let g_panel    = 0;
-let g_mnid     = 0;
-
-//-----------------------------------------------------------------------------
+// global variables which names start with 'g_' are defined in global_variables.js
+// which needs to included before this script
 // messages go to tracker.log
 //-----------------------------------------------------------------------------
 function trk_panel_control(is, iplane, ipanel, mnid) {
-    window.location.href = `trk_panel_control.html?station=${is}&plane=${iplane}&panel=${ipanel}&mnid=${mnid}&facility=tracker`;
+    window.location.href = `trk_station_control.html?station=${is}&plane=${iplane}&panel=${ipanel}&mnid=${mnid}&facility=tracker`;
 }
 
 //-----------------------------------------------------------------------------      
 function trk_choose_station_id(evt, station_id) {
-  var i, tabs;
-  tabs = document.getElementsByClassName("trk_station_tab");
-  for (i=0; i<tabs.length; i++) {
+  let tabs = document.getElementsByClassName("trk_station_tab");
+  for (let i=0; i<tabs.length; i++) {
     tabs[i].className = tabs[i].className.replace(" active", "");
   }
   elid = 'trk_station_'+station_id;

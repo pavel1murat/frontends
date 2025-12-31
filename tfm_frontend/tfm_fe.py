@@ -120,7 +120,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         self.cmd_top_path            = "/Mu2e/Commands/DAQ/Tfm"
         self.tfm_odb_path            = "/Mu2e/ActiveRunConfiguration/DAQ/Tfm"
 
-        TRACE.TRACE(TRACE.TLVL_LOG,f":0014: artdaq_partition_number={self.artdaq_partition_number}")
+        TRACE.INFO(f':0014: artdaq_partition_number={self.artdaq_partition_number}')
 
         config_path                  = "/Mu2e/RunConfigurations/"+self.config_name;
         self.use_runinfo_db          = self.client.odb_get(config_path+'/UseRunInfoDB')
@@ -128,11 +128,11 @@ class TfmFrontend(midas.frontend.FrontendBase):
         self.artdaq_delay_ms         = self.client.odb_get(self.tfm_odb_path+'/artdaq_delay_ms')
 
         mu2e_config_dir              = os.path.expandvars(self.client.odb_get("/Mu2e/ConfigDir"));
-        config_dir                   = mu2e_config_dir+'/'+self.config_name;
+        artdaq_config_dir            = mu2e_config_dir+'/artdaq';
 
-        TRACE.TRACE(TRACE.TLVL_LOG,f":0015:config_dir={config_dir} use_runinfo_db={self.use_runinfo_db} rpc_host={self.tfm_rpc_host}")
+        TRACE.INFO(f":0015:artdaq_config_dir={artdaq_config_dir} use_runinfo_db={self.use_runinfo_db} rpc_host={self.tfm_rpc_host}")
 
-        os.environ["TFM_SETUP_FHICLCPP"] = f"{config_dir}/.setup_fhiclcpp"
+        os.environ["TFM_SETUP_FHICLCPP"] = f"{artdaq_config_dir}/.setup_fhiclcpp"
 
         self.tfm_logfile = self.get_logfile(self.output_dir)
         os.environ["TFM_LOGFILE"       ] = self.tfm_logfile
@@ -140,17 +140,17 @@ class TfmFrontend(midas.frontend.FrontendBase):
 # redefine STDOUT
 #------------------------------------------------------------------------------
         sys.stdout  = open(self.tfm_logfile, 'w')
-        TRACE.TRACE(TRACE.TLVL_LOG,"0016: after get_logfile")
+        TRACE.INFO("0016: after get_logfile")
 #------------------------------------------------------------------------------
 # You can add equipment at any time before you call `run()`, but doing
 # it in __init__() seems logical.
 #-------v----------------------------------------------------------------------
         self.add_equipment(TfmEquipment(self.client))
-        TRACE.TRACE(TRACE.TLVL_LOG,"003: equipment added , config_dir=%s"%(config_dir))
+        TRACE.INFO(f'003: equipment added',TRACE_NAME)
 
-        self._fm   = farm_manager.FarmManager(odb_client=self.client,
-                                              config_dir=config_dir,
-                                              rpc_host  =self.tfm_rpc_host);
+        self._fm   = farm_manager.FarmManager(odb_client       =self.client,
+                                              artdaq_config_dir=artdaq_config_dir,
+                                              rpc_host         =self.tfm_rpc_host);
         
         TRACE.TRACE(TRACE.TLVL_LOG,"004: tfm instantiated, self.use_runinfo_db=%i"%(self.use_runinfo_db))
 
