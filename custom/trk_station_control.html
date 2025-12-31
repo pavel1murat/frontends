@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <link   rel="stylesheet" href="midas.css">
+    <link id="favicon" rel="shortcut icon" type="image/png" href="favicon.png" />
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
+    <script src="odbbrowser.js"></script>
+    
+    <link   rel="stylesheet" href="mu2edaq.css">
+    
+    <!--
+         <link   rel="stylesheet" href="tracker.css">
+    -->    
+
+    <script srs="global_variables.js"></script>
+    <script src="mu2edaq.js"></script>
+    <script src="trk_commands.js"></script>
+    
+    <title>StationControl</title>
+    
+    <script>
+    
+    //-----------------------------------------------------------------------------
+    function loadPanelControlTable() {
+        const panel_cmd_table     = document.getElementById('panel_commands');
+
+      panel_cmd_table.innerHTML = `
+        <tbody>
+          <tr>
+            <td> <div class="mtableheader" colspan=2> Panel MN${g_mnid.toString().padStart(3,'0')} controls </div> </td> 
+            <td colspan=4>
+              <div class="tab">
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan=2>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='read'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_read()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='pulser_on'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_pulser_on()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_pulser_on")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='pulser_off'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_pulser_off()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='rates'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='set_thresholds'>
+                <div class="dropup-content">
+                  <div onClick='dtc_load_parameters_control_roc_set_thresholds()'> Load Parameters </div>
+                  <div onClick='dtc_command("dtc_control_roc_set_thresholds")'   > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='load_thresholds'>
+                <div class="dropup-content">
+                  <div onClick='trk_panel_load_cmd_parameters("load_thresholds")' > Load Parameters </div>
+                  <div onClick='trk_panel_command_set_odb("load_thresholds")'     > Run             </div>
+                </div>
+              </div>
+              <div class="dropup">
+                <input type=button class="dropbtn" value='load_channel_map'>
+                <div class="dropup-content">
+                  <div onClick='trk_panel_load_cmd_parameters("load_channel_map")' > Load Parameters </div>
+                  <div onClick='trk_panel_command_set_odb("load_channel_map")'> Run             </div>
+                </div>
+              </div>
+            </td>
+            </td>
+          </tr>
+
+          <!--  --------------------------------------------  -->
+          <tr>
+            <td>
+              <input type=button value='load parameters'    onClick='trk_panel_load_parameters(${g_station},${g_plane},${g_panel})'>
+              <input type=button value='measure thresholds' onClick='trk_panel_command_set_odb("measure_thresholds")'>
+              <input type=button value='print status'       onClick='trk_panel_command_set_odb("panel_print_status")'>
+            </td>
+          </tr>
+          <!--  --------------------------------------------  -->
+          <tr>
+            <td colspan>
+            </td>
+          </tr>
+          <!---------------------------------------------- this row is temporarily commented out
+          <tr>
+            <td colspan=4>
+              <div class="dropup">
+              </div>
+            </td>
+          </tr>
+          --------------------------------------------  -->
+        </tbody>
+      `;      
+    }
+
+//-----------------------------------------------------------------------------
+    async function trk_update_panel_id(event,panel_id) {
+      await trk_choose_panel_id(event, panel_id);
+      loadPanelControlTable();
+    }
+    
+//-----------------------------------------------------------------------------
+    function loadStationControlTable() {
+      const station_cmd_table     = document.getElementById('station_commands');
+
+      // reset  plane and panel IDs
+      
+      g_plane        = 0;
+      g_panel        = 0;
+      
+      const plane1   = 2*g_station;
+      const plane2   = 2*g_station+1;
+      
+      station_cmd_table.innerHTML = `
+        <thead>
+
+          <tr>
+            <td colspan=9> <div class="mtableheader">Station ${g_station} controls: MN`+g_mnid.toString().padStart(3,'0')+` (${g_station}:${g_plane}:${g_panel})</div> </td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="tab">
+                <button class="trk_plane_tab" id="trk_plane_0" onclick="trk_choose_plane_id(event,'${plane1}')">plane:${plane1}</button>
+              </div>
+            </td>
+            <td colspan> <div class="tab" id="trk_panel_tabs_0"></div></td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="tab">
+                <button class="trk_plane_tab" id="trk_plane_1" onclick="trk_choose_plane_id(event,'${plane2}')">plane:${plane2}</button>
+              </div>
+            </td>
+            <td colspan> <div class="tab" id="trk_panel_tabs_1"></div></td>
+          </tr>
+        </thead>
+
+        <tbody>                                                                        
+          <tr>
+            <td colspan=2>
+              <input type=button value='load parameters'  onClick='trk_station_load_parameters(${g_station})'>
+                <div class="dropup">
+                  <input type=button class="dropbtn" value='init readout'>
+                  <div class="dropup-content">
+                    <div onClick='dtc_load_parameters_init_readout()'     > Load Parameters </div>
+                    <div onClick='trk_command_set_odb("trk_init_readout")'> Run             </div>
+                  </div>
+                </div>
+              <input type=button value='print status' onClick='trk_command_set_odb("trk_station_print_status")'>
+              <input type=button value='reset output' onClick='trk_reset_output   ("output_window")'           >
+
+      <!--
+                                                      <input type=button value='reset LV'     onClick='trk_station_command_set_odb("reset_station_lv")'>
+      -->
+              <div class="dropup">
+                <input type=button class="dropbtn" value='reset LV'>
+                <div class="dropup-content">
+                  <div onClick='trk_load_parameters_reset_station_lv(${g_station})' > Load Parameters </div>
+                  <div onClick='trk_station_command_set_odb("reset_station_lv")'> Run             </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+            `;
+      
+      //-----------------------------------------------------------------------------
+      // create panel buttons
+      //-----------------------------------------------------------------------------
+
+      const station_path  = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${g_station.toString().padStart(2,'0')}`;
+
+      for (let pln=0; pln<2; pln++) {
+        const div_panel_tabs = document.getElementById("trk_panel_tabs_"+pln.toString());
+        const paths = [];
+        for (let ip=0; ip<6; ip++) {
+// find out the panel MNID
+          const panel_odb_path = station_path+'/Plane_'+pln.toString().padStart(2,'0')+'/Panel_'+ip.toString().padStart(2,'0');
+          const mnid_path      = panel_odb_path+`/Name`;
+          paths.push(mnid_path);
+        }
+        
+        mjsonrpc_db_get_values(paths).then( function (rpc) {
+          // mnid is an integer
+          for (let ip=0;ip<6; ip++) {
+            const panel_name = rpc.result.data[ip];
+            const mnid       = parseInt(panel_name.substring(2));
+            // choosing the panel ID should also redraw the panel control table
+            div_panel_tabs.innerHTML += `<button class="trk_panel_tab" id='${panel_name}' onclick="trk_update_panel_id(event,'${panel_name}')">${panel_name}</button>`
+          };
+        });
+      };
+    }
+
+//-----------------------------------------------------------------------------
+    function trk_update_station_id(event,station_id) {
+      trk_choose_station_id(event, station_id);
+      loadStationControlTable();
+    }
+    
+//-----------------------------------------------------------------------------
+// main function: loadPage
+//-----------------------------------------------------------------------------
+
+    function loadPage() {
+      const urlParams  = new URLSearchParams(window.location.search);
+      
+      g_hostname = urlParams.get('hostname') || 'none';  // 
+      g_station  = urlParams.get("station" ) || "0";     // defined in trk_commands.js
+      g_plane    = urlParams.get("plane"   ) || "0";
+      g_panel    = urlParams.get("panel"   ) || "0";
+      g_mnid     = parseInt(urlParams.get("mnid"    )) || 0;
+      
+      const tracker_path  = `/Mu2e/ActiveRunConfiguration/Tracker`;
+      
+      let title        = document.getElementById('table-title');
+      title.innerHTML  = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
+      //-----------------------------------------------------------------------------
+      //  create tracker commands table
+      //-----------------------------------------------------------------------------
+      const tracker_cmd_table     = document.getElementById('tracker_commands');
+      tracker_cmd_table.innerHTML = `
+        <thead>
+          <tr>
+            <td colspan=9> <div class="mtableheader">Tracker controls</div></td>
+          </tr>
+          <tr>
+            <td> Zstation:</td>
+            <td colspan=4>
+              <div class="tab" id="trk_station_tabs"> </div></td>
+          </tr>
+        </thead>
+
+        <tbody>
+        </tbody>
+      `;
+
+//------------------------------------------------------------------------------
+// create station tabs
+//-----------------------------------------------------------------------------
+      
+      let first_station  = -1;
+      let last_station   = -1;
+      const p1 = tracker_path+`/FirstStation`;
+      const p2 = tracker_path+`/LastStation`;
+      mjsonrpc_db_get_values([p1, p2]).then(function (rpc) {
+        first_station = parseInt(rpc.result.data[0]);
+        last_station  = parseInt(rpc.result.data[1]);
+        const div_station_tabs = document.getElementById("trk_station_tabs");
+        for (let is=first_station; is<last_station+1; is++) {
+          let iss = is.toString().padStart(2,'0');
+          div_station_tabs.innerHTML += `<button class="trk_station_tab" id='trk_station_${is}' onclick="trk_update_station_id(event,'${is}')">${iss}</button>`
+        };
+      }).catch(function(error) {
+        mjsonrpc_error_alert(error);
+      });
+      
+//-----------------------------------------------------------------------------
+// create station control table
+//-----------------------------------------------------------------------------
+
+      loadStationControlTable();
+
+//-----------------------------------------------------------------------------
+//  create panel control table
+//-----------------------------------------------------------------------------
+
+      loadPanelControlTable();
+      
+//-----------------------------------------------------------------------------
+//  end
+//-----------------------------------------------------------------------------
+    }
+      
+    document.addEventListener("DOMContentLoaded", loadPage);
+    // choose_roc_id('DOMContentLoaded','roc0')
+    </script>
+  </head>
+  
+  <!--
+      it seems to be convenient to have the large scale topology defined in HTML
+      and use javascript to fill internal details
+      P.M.: having show_facilities etc here is important
+   -->
+  <body class="mcss" onload="mhttpd_init('trk_control'); show_facilities(); msg_load();">
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+    <div id="mmain">
+    
+      <!-- ---------------- are they needed? and the output field ----------------  -->
+      
+      <div class="row">
+        <h2 id="table-title">Panel Controls</h2>
+        
+        <div class="column"> <!-- gets pushed to the left -->
+          
+          <table class="mtable" id="tracker_commands">  <!-- Table content is generated dynamically -->
+          </table>
+          
+          <table class="mtable" id="station_commands">  <!-- Table content is generated dynamically -->
+          </table>
+          
+          <table class="mtable" id="panel_commands">  <!-- Table content is generated dynamically -->
+          </table>
+          
+          <table class="mtable" id="cmd_params">    <!-- Table content is generated dynamically -->
+          </table>
+        </div>
+        
+        <div class="column"; style="width:55%"> <!-- gets pushed to the left -->
+          <!--    ------------------------- this is the output window  -->
+          <table >
+            <tr>
+              <td id="navigationFacilitiesButtons"></td>
+            </tr>
+          </table>
+        
+          <table class="mtable" id="messageTable" ">
+            <tr>
+              <td class="select">
+                <label for="nameFilter">Filter: </label>
+
+                <input type="text" id="nameFilter" placeholder="Program Name" title="Please enter a program name">
+              
+                <select id="typeFilter" title="Please select a message type">
+                  <option value="">- all -</option>
+                  <option>INFO</option>
+                  <option>ERROR</option>
+                  <option>USER</option>
+                  <option>LOG</option>
+                  <option>TALK</option>
+                </select>
+              
+                <input type="text" id="timeFilter" placeholder="Time (hh:mm:ss)" title="Please select a time to search">
+                <input type="text" id="textFilter" placeholder="Search Text" title="Please enter some search text">
+
+                <select id="timeRangeFilter" title="We will search the file from the current time into the past">
+                  <option>24 h</option>
+                  <option>48 h</option>
+                  <option>72 h</option>
+                  <option>7 d</option>
+                  <option>30 d</option>
+                </select>
+                <button class="mbutton" id="filterBtn">Filter</button>
+              
+                <select id="recentsDropdown">
+                  <option value="">Select a recent filter</option>
+                </select>
+
+              </td>
+            </tr>
+
+            <tr>
+              <td class="select">
+                <div class="mmessagebox mfont" id="messageFrame"><h1 class="mtableheader"> Messages</h1></div>
+              </td>
+            </tr>
+          </table>
+          
+          <div id="loadingOverlay"
+               style="  display: none;
+                      position: fixed;
+                      top: 0;
+                      left: 0;
+                      width: 100%;
+                      <!--
+                      height: 100%;
+                      -->
+                      height: 600px;
+                      background-color: rgba(128, 128, 128, 0.8);
+                      color: white;
+                      font-size: 24px;
+                      align-items: center;
+                      justify-content: center;
+                      z-index: 1000;">
+            Searching messages... Mouse Click to stop.
+          </div>
+          
+        </div>
+        
+        <div id="dlgError" class="dlgFrame">
+          <div class="dlgTitlebar">Error message</div>
+          <div class="dlgPanel">
+            <div id="dlgErrorText">Dialog Contents</div>
+            <br />
+            <button class="dlgButton" onClick="dlgHide('dlgError')">Close</button>
+          </div>
+        </div>
+        
+        <script src="messages.js"></script>
+
+      </div>
+    </div>
+  </body>
+</html>
+
+<!--
+    emacs
+    Local Variables:
+    mode: web
+    End:
+  -->
