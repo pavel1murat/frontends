@@ -403,7 +403,7 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
   for (int lnk=lnk1; lnk<lnk2; lnk++) {
     int link_rc(0);
 
-    Stream << " -- link:" << lnk;
+    Stream << std::format("-- link:()",lnk);
     std::string  panel_path = std::format("{:s}/Link{:d}/DetectorElement",dtc_path.data(),lnk);
     
     TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path;
@@ -429,6 +429,15 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
       link_rc = 3;
 
       std::ifstream ifs(fn);
+      
+      if (not ifs.is_open()) {
+        std::string msg = std::format("failed to open file:{}\n",fn);
+        TLOG(TLVL_ERROR) << msg;
+        Stream << "ERROR: " << msg; 
+        rc -= 1;
+        continue;
+      }
+      
       nlohmann::json jf = nlohmann::json::parse(ifs);
     
       if (print_level > 1) {

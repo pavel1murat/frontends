@@ -13,8 +13,10 @@ fi
 #------------------------------------------------------------------------------
 export      HISTTIMEFORMAT="%d/%m/%y %T "
 export            HOSTNAME=`hostname -s`
+export       DATA_DIR_STUB=`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`
 export       DAQ_USER_STUB=${USER}_`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`
-export      DAQ_OUTPUT_TOP=/scratch/mu2e/$DAQ_USER_STUB
+# 
+export      DAQ_OUTPUT_TOP=/scratch/mu2e/$USER/data_$DATA_DIR_STUB
 export        RAW_DATA_DIR=$DAQ_OUTPUT_TOP/data
 
 unset SPACK_ROOT
@@ -22,16 +24,21 @@ export SPACK_DISABLE_LOCAL_CONFIG=true
 source $MU2E_DAQ_DIR/spack/share/spack/setup-env.sh
 spack env activate $spack_env   # murat tdaq
 export  SPACK_VIEW=$SPACK_ENV/.spack-env/view
+#------------------------------------------------------------------------------
+# build in the env area, not on /tmp
+#------------------------------------------------------------------------------
+export         TMP=$SPACK_ENV/build
+export      TMPDIR=$SPACK_ENV/build
 
                   namestub=${USER}_`pwd | awk -F / '{print $NF}'` # example: mu2etrk_pasha_028
-export TFM_FHICL_DIRECTORY=$MU2E_DAQ_DIR/config
+# export TFM_FHICL_DIRECTORY=$MU2E_DAQ_DIR/config  # no longer needed
 
             export TFM_DIR=$SPACK_ENV/tfm
       export FRONTENDS_DIR=$SPACK_END/frontends
 
            export MIDASSYS=$SPACK_VIEW
-    export MIDAS_EXPT_NAME=test_025
-    export    MIDAS_EXPTAB=$PWD/config/midas/$MIDAS_EXPT_NAME.exptab
+    export MIDAS_EXPT_NAME=tracker
+    export    MIDAS_EXPTAB=$PWD/config/midas/mc2.exptab
 
 # P.M. need to get rid of ARTDAQ_PARTITION_NUMBER here, not there yet
 export    ARTDAQ_PARTITION_NUMBER=11
@@ -40,14 +47,14 @@ export           ARTDAQ_BASE_PORT=10000
 #------------------------------------------------------------------------------
 # STM specific variables
 #------------------------------------------------------------------------------
-export STM_HPGE_SW_IP="127.0.0.2" # HPGe (CH0) UDP IP address (send)
-export STM_LABR_SW_IP="127.0.0.3" # LaBr (CH1) UDP IP address (send)
+export   STM_HPGE_SW_IP="127.0.0.2" # HPGe (CH0) UDP IP address (send)
+export   STM_LABR_SW_IP="127.0.0.3" # LaBr (CH1) UDP IP address (send)
 export STM_HPGE_SW_PORT=10010 # HPGe (CH0) UDP IP port (send)
 export STM_LABR_SW_PORT=10012 # LaBr (CH1) UDP IP port (send)
 #------------------------------------------------------------------------------
 # TRACE - some defaults
 #------------------------------------------------------------------------------
-export                TRACE_FILE=/tmp/trace_file.$DAQ_USER_STUB.`spack env status | awk '{print $NF}'`
+export                TRACE_FILE=/tmp/trace_file.$USER.`spack env status | awk '{print $NF}'`
 export            TRACE_LIMIT_MS=0,50,50
 export              TRACE_MSGMAX=0        # Activating TRACE
 
@@ -71,4 +78,5 @@ export       PYTHONPATH=$SPACK_VIEW/python
 export MU2E_SEARCH_PATH=$SPACK_ENV:/cvmfs/mu2e.opensciencegrid.org/DataFiles
 export  FHICL_FILE_PATH=$SPACK_ENV:$FHICL_FILE_PATH
 export  LD_LIBRARY_PATH=$SPACK_VIEW/lib
+
 return 0

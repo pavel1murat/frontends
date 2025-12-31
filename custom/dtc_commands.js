@@ -1,10 +1,5 @@
 //-----------------------------------------------------------------------------
-// the hostname should be the same within the scope of this script
-//-----------------------------------------------------------------------------
-let g_hostname = 'undefined';
-let g_pcie     = -1;             // assumed to be a number
-let g_roc      = 0;
-//-----------------------------------------------------------------------------      
+// global variables which names start with 'g_' are defined in global_variables.js
 // DTC id = 'dtc0' or 'dtc1'
 //-----------------------------------------------------------------------------
 function choose_dtc_id(evt, id) {
