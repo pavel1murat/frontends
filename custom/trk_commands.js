@@ -39,7 +39,8 @@ function trk_choose_plane_id(evt, plane_id) {
 }
 
 //-----------------------------------------------------------------------------      
-function trk_choose_panel_id(evt, panel_id) {
+async function trk_choose_panel_id(evt, panel_id) {
+
   var i, tabs;
   tabs = document.getElementsByClassName("trk_panel_tab");
   for (i=0; i<tabs.length; i++) {
@@ -51,34 +52,32 @@ function trk_choose_panel_id(evt, panel_id) {
   evt.currentTarget.className += " active";
   
   g_mnid = parseInt(panel_id.substring(2));
-//-----------------------------------------------------------------------------
-// after that, need to redefine geo indices
-  //-----------------------------------------------------------------------------
-  var x1 = Number(panel_id.charAt(2))*100;
-  var x2 = x1.toString();
-  var x  = x2.padStart(3,'0');
-  var panel_path = '/Mu2e/ActiveRunConfiguration/Tracker/PanelMap/'+x+'/'+panel_id+'/Panel';
-  var paths=[panel_path+'/GeoStation', panel_path+'/GeoPlane', panel_path+'/GeoPanel'];
-  let station = -1;
-  let plane   = -1;
-  let panel   = -1;
-  mjsonrpc_db_get_values(paths).then(function(rpc) {
-    station = rpc.result.data[0];
-    plane   = rpc.result.data[1];
-    panel   = rpc.result.data[2];
-
-//    trk_choose_station_id(evt,station)
-//    trk_choose_plane_id  (evt,plane  )
-    g_station = station;
-    g_plane   = plane;
-    g_panel   = panel;
-  }).catch(function(error) {
-    mjsonrpc_error_alert(error);
-  });
-
   
+//-----------------------------------------------------------------------------
+// after that, may need to redefine the plane, station stays the same
+//-----------------------------------------------------------------------------
+  var x1 = Number(panel_id.charAt(2))*100 + Number(panel_id.charAt(3))*10;
+  var x  = x1.toString().padStart(3,'0');
+  
+  var path = '/Mu2e/ActiveRunConfiguration/Tracker/PanelMap/'+x+'/'+panel_id+'/Panel/slot_id';
+  
+  try {
+    const rpc = await mjsonrpc_db_get_values([path]);
+    slot_id = rpc.result.data[0];
 
-  console.log('g_panel=',g_mnid);
+//    g_station = station;
+    let plane = Math.trunc(slot_id/10);
+    g_plane   = plane%2;
+    g_panel   = slot_id-plane*10;
+  }
+  catch(error) {
+  //  g_station = -1;
+    g_plane   = -1;
+    g_panel   = -1;
+
+    mjsonrpc_error_alert(error);
+  };
+  console.log('g_panel=',g_mnid,' g_plane:',g_plane,' g_station:',g_station);
 }
 
 //-----------------------------------------------------------------------------
@@ -338,8 +337,5 @@ function trk_load_parameters_init_readout() {
 // ${ip.toString().padStart(2,'0')
 //    emacs
 //    Local Variables:
-//    tab-width: 8
-//    c-basic-offset: 2
-//    js-indent-level: 2
-//    indent-tabs-mode: nil
+//    mode: web
 //    End:
