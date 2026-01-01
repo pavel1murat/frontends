@@ -13,6 +13,16 @@ class Command {
   }
 }
 
+class Command_A {
+  constructor(title,name,func,table_id,parameter_path) {
+    this.title          = title;
+    this.name           = name;
+    this.func           = func;
+    this.table_id       = table_id;
+    this.parameter_path = parameter_path;
+  }
+}
+
 //-----------------------------------------------------------------------------
 // common javascript functions
 // DAQ colors. Each element has 'Enabled' and 'Status' field
@@ -72,6 +82,15 @@ function displayFile(filePath, elementId) {
     });
   
   return result;
+}
+
+//-----------------------------------------------------------------------------
+// load ODB table corresponding to a given 'odb_path' to HTML table with a given 'table_id'
+//-----------------------------------------------------------------------------
+function odb_load_table(odb_path,table_id) {
+  const table     = document.getElementById(table_id);
+  table.innerHTML = '';
+  odb_browser(table_id,odb_path,0);
 }
 
 //-----------------------------------------------------------------------------
@@ -162,6 +181,31 @@ async function fetch_url(url, divId) {
     console.error("Failed to load page:", error);
     document.getElementById(divId).innerHTML = "<p>Failed to load content.</p>";
   }
+}
+
+//-----------------------------------------------------------------------------
+// the difficult part is to determine in which sequence the parameters should be passed
+// and how many of them are there
+//-----------------------------------------------------------------------------
+function make_load_table_button(cmda) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmda.title;
+//  btn.onclick = function() { odb_load_table(cmda.parameter_path,cmda.table_id) ; }
+  btn.onclick = function() { cmda.func(cmda.parameter_path,cmda.table_id) ; }
+  return btn;
+}
+
+//-----------------------------------------------------------------------------
+// cmda.func takes only one parameter - cmda
+//-----------------------------------------------------------------------------
+function make_set_odb_button(cmda) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmda.title;
+//  btn.onclick = function() { odb_load_table(cmda.parameter_path,cmda.table_id) ; }
+  btn.onclick = function() { cmda.func(cmda) ; }
+  return btn;
 }
 
 //-----------------------------------------------------------------------------

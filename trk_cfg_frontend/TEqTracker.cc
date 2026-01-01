@@ -163,33 +163,26 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   std::string cmd                = odb_i->GetString(h_trk_cmd,"Name");
   std::string cmd_parameter_path = odb_i->GetString(h_trk_cmd,"ParameterPath");
 
-  TLOG(TLVL_DEBUG) << "cmd:" << cmd
-                   << " cmd_parameter_path:" << cmd_parameter_path;
+  TLOG(TLVL_DEBUG) << std::format("cmd:{} cmd.parameter_path:{}",cmd,cmd_parameter_path);
 
-  if (cmd == "digi_rw") {
-    ExecuteDtcCommand(h_trk_cmd);
-  }
-  if      (cmd == "pulser_on"    ) {
-    ExecuteDtcCommand(h_trk_cmd);
-  }
-  else if (cmd == "pulser_off"         ) {
-    //PulserOff(cmd_parameter_path);
-    ExecuteDtcCommand(h_trk_cmd);
-  }
-  else if (cmd == "read") {
-    ExecuteDtcCommand(h_trk_cmd);
-  }
-  else if (cmd == "panel_print_status") PanelPrintStatus(cmd_parameter_path);
-  else if (cmd == "reset_output"      ) ResetOutput();
-  else if (cmd == "reset_station_lv"  ) ResetStationLV(cmd_parameter_path);
+  if      (cmd == "digi_rw"         ) ExecuteDtcCommand(h_trk_cmd);
+  else if (cmd == "pulser_on"       ) ExecuteDtcCommand(h_trk_cmd);
+  else if (cmd == "pulser_off"      ) ExecuteDtcCommand(h_trk_cmd);
+  else if (cmd == "read"            ) ExecuteDtcCommand(h_trk_cmd);
+  else if (cmd == "load_thresholds" ) ExecuteDtcCommand(h_trk_cmd);
+  else if (cmd == "print_status"    ) PanelPrintStatus(cmd_parameter_path);
+  else if (cmd == "reset_output"    ) ResetOutput();
+  else if (cmd == "reset_station_lv") ResetStationLV(cmd_parameter_path); 
   else {
-    TLOG(TLVL_ERROR) << "unknown command:" << cmd;
+    std::string msg = std::format("cmd:{} is not implemented yet",cmd);
+    TLOG(TLVL_ERROR) << msg;
+    cm_msg(MERROR, __func__,msg.data());
   }
 
   int finished = odb_i->GetInteger(h_trk_cmd,"Finished"  );
   int rc       = odb_i->GetInteger(h_trk_cmd,"ReturnCode");
   
-  TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__ << " finished:" << finished << " rc:" << rc;
+  TLOG(TLVL_DEBUG) << std::format("-- END finished:{} rc:{}",finished,rc);
   return;
 }
 

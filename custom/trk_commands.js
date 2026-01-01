@@ -138,41 +138,42 @@ function trk_command_set_odb(cmd) {
 }
 
 //-----------------------------------------------------------------------------
-function trk_panel_command_set_odb(cmd) {
+// input Comamnd_A type, 
+//-----------------------------------------------------------------------------
+async function trk_panel_command_set_odb(cmda) {
   
-  var paths=["/Mu2e/Commands/Tracker/Name",
-             "/Mu2e/Commands/Tracker/ParameterPath",
-             "/Mu2e/Commands/Tracker/Finished",
-             "/Mu2e/Commands/Tracker/"+cmd+"/mnid",
-            ];
-  
-  
-  mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker",0,g_mnid]).then(function(rpc) {
-    result=rpc.result;	      
-    // document.getElementById("wstatus").innerHTML = 'Write status '+rpc.result.status
-
-    // somewhere need to wait till command completes
-
-    var paths=["/Mu2e/Commands/Tracker/Run"];
-  
-    mjsonrpc_db_paste(paths, [1]).then(function(rpc) {
-      result=rpc.result;	      
-      // document.getElementById("wstatus").innerHTML = 'Write status '+rpc.result.status
-      
-      // somewhere need to wait till command completes
-
-    }).catch(function(error) {
-      mjsonrpc_error_alert(error);
-    });
+  //------------------------------------------------------------------------------
+  // set input parameters
+  //------------------------------------------------------------------------------
+  try {
+    const paths=["/Mu2e/Commands/Tracker/Name",
+                 "/Mu2e/Commands/Tracker/ParameterPath",
+                 "/Mu2e/Commands/Tracker/Finished",
+                 "/Mu2e/Commands/Tracker/mnid",
+    ];
     
-  }).catch(function(error) {
+    const rpc = await mjsonrpc_db_paste(paths, [cmda.name,cmda.parameter_path+'/'+cmda.name,0,g_mnid]);
+  }
+  catch(error) {
     mjsonrpc_error_alert(error);
-  });
-  
+  }
+
+  //-----------------------------------------------------------------------------
+  // run command: set Run=1
+  //-----------------------------------------------------------------------------
+  try {
+    const paths=["/Mu2e/Commands/Tracker/Run"];
+    const rpc = await mjsonrpc_db_paste(paths, [1])
+  }
+  catch (error) {
+    mjsonrpc_error_alert(error);
+  };
+
+  // should arrive here only after the command execution has started
   let done = 0;
 
   while(done == 0) {
-      // check whether the command has finished
+    // check whether the command has finished
     var paths=["/Mu2e/Commands/Tracker/Run",
                "/Mu2e/Commands/Tracker/Finished"];
     let run      = 1;
@@ -281,7 +282,16 @@ function trk_command_msg(cmd) {
 }
 
 //-----------------------------------------------------------------------------
-// load table with the Panel parameters
+// load table with the tracekr parameters
+//-----------------------------------------------------------------------------
+function trk_load_parameters(station) {
+  const table     = document.getElementById('cmd_params');
+  table.innerHTML = '';
+  odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/Tracker`,0);
+}
+
+//-----------------------------------------------------------------------------
+// load table with the station parameters
 //-----------------------------------------------------------------------------
 function trk_station_load_parameters(station) {
   const table     = document.getElementById('cmd_params');
