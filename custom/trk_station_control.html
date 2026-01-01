@@ -21,101 +21,113 @@
     <script src="mu2edaq.js"></script>
     <script src="trk_commands.js"></script>
     
-    <title>StationControl</title>
+    <title>TrackerControl</title>
     
     <script>
     
     //-----------------------------------------------------------------------------
     function loadPanelControlTable() {
-        const panel_cmd_table     = document.getElementById('panel_commands');
+      const table      = document.getElementById('panel_commands');
 
-      panel_cmd_table.innerHTML = `
-        <tbody>
-          <tr>
-            <td> <div class="mtableheader" colspan=2> Panel MN${g_mnid.toString().padStart(3,'0')} controls </div> </td> 
-            <td colspan=4>
-              <div class="tab">
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td colspan=2>
-              <div class="dropup">
-                <input type=button class="dropbtn" value='read'>
-                <div class="dropup-content">
-                  <div onClick='dtc_load_parameters_control_roc_read()'> Load Parameters </div>
-                  <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
-                </div>
-              </div>
-              <div class="dropup">
-                <input type=button class="dropbtn" value='pulser_on'>
-                <div class="dropup-content">
-                  <div onClick='dtc_load_parameters_control_roc_pulser_on()'> Load Parameters </div>
-                  <div onClick='dtc_command("dtc_control_roc_pulser_on")'   > Run             </div>
-                </div>
-              </div>
-              <div class="dropup">
-                <input type=button class="dropbtn" value='pulser_off'>
-                <div class="dropup-content">
-                  <div onClick='dtc_load_parameters_control_roc_pulser_off()'> Load Parameters </div>
-                  <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
-                </div>
-              </div>
-              <div class="dropup">
-                <input type=button class="dropbtn" value='rates'>
-                <div class="dropup-content">
-                  <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
-                  <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
-                </div>
-              </div>
-              <div class="dropup">
-                <input type=button class="dropbtn" value='set_thresholds'>
-                <div class="dropup-content">
-                  <div onClick='dtc_load_parameters_control_roc_set_thresholds()'> Load Parameters </div>
-                  <div onClick='dtc_command("dtc_control_roc_set_thresholds")'   > Run             </div>
-                </div>
-              </div>
-              <div class="dropup">
-                <input type=button class="dropbtn" value='load_thresholds'>
-                <div class="dropup-content">
-                  <div onClick='trk_panel_load_cmd_parameters("load_thresholds")' > Load Parameters </div>
-                  <div onClick='trk_panel_command_set_odb("load_thresholds")'     > Run             </div>
-                </div>
-              </div>
-              <div class="dropup">
-                <input type=button class="dropbtn" value='load_channel_map'>
-                <div class="dropup-content">
-                  <div onClick='trk_panel_load_cmd_parameters("load_channel_map")' > Load Parameters </div>
-                  <div onClick='trk_panel_command_set_odb("load_channel_map")'> Run             </div>
-                </div>
-              </div>
-            </td>
-            </td>
-          </tr>
+      table.innerHTML  = '';
+      // table.node_name  = node_name;
 
-          <!--  --------------------------------------------  -->
-          <tr>
-            <td>
-              <input type=button value='load parameters'    onClick='trk_panel_load_parameters(${g_station},${g_plane},${g_panel})'>
-              <input type=button value='measure thresholds' onClick='trk_panel_command_set_odb("measure_thresholds")'>
-              <input type=button value='print status'       onClick='trk_panel_command_set_odb("panel_print_status")'>
-            </td>
-          </tr>
-          <!--  --------------------------------------------  -->
-          <tr>
-            <td colspan>
-            </td>
-          </tr>
-          <!---------------------------------------------- this row is temporarily commented out
-          <tr>
-            <td colspan=4>
-              <div class="dropup">
-              </div>
-            </td>
-          </tr>
-          --------------------------------------------  -->
-        </tbody>
-      `;      
+      let thead     = document.createElement('thead');
+      
+      let tr        = document.createElement('tr');
+
+      let td       = document.createElement('td');
+      td.innerHTML = `<div class="mtableheader" colspan=2> Panel MN${g_mnid.toString().padStart(3,'0')} controls </div>`;
+      td.colspan   = 4;
+
+      tr.appendChild(td);
+      thead.appendChild(tr);
+      table.appendChild(thead);
+
+      // now - the body
+      
+      const tbody  = document.createElement('tbody');
+
+      tr = document.createElement('tr');
+      td = document.createElement('td');
+      td.colspan = 2;
+      td.innerHTML = `
+        <div class="dropup">
+          <input type=button class="dropbtn" value='read'>
+          <div class="dropup-content">
+            <div onClick='dtc_load_parameters_control_roc_read()'> Load Parameters </div>
+            <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
+          </div>
+        </div>
+
+        <div class="dropup">
+          <input type=button class="dropbtn" value='pulser_on'>
+          <div class="dropup-content">
+            <div onClick='dtc_load_parameters_control_roc_pulser_on()'> Load Parameters </div>
+            <div onClick='dtc_command("dtc_control_roc_pulser_on")'   > Run             </div>
+          </div>
+        </div>
+
+        <div class="dropup">
+          <input type=button class="dropbtn" value='pulser_off'>
+          <div class="dropup-content">
+            <div onClick='dtc_load_parameters_control_roc_pulser_off()'> Load Parameters </div>
+            <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
+          </div>
+        </div>
+
+        <div class="dropup">
+          <input type=button class="dropbtn" value='rates'>
+          <div class="dropup-content">
+            <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
+            <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
+          </div>
+        </div>
+      `;
+
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      
+      // second row : non-dropbtn commands      
+
+      let tr2      = document.createElement('tr');
+      let td2      = document.createElement('td');
+      //
+      let stn = g_station.toString().padStart(2,'0');
+      let pln = g_plane.toString().padStart(2,'0');
+      let pnl = g_panel.toString().padStart(2,'0');
+      
+      let cmda = new Command_A('load_parameters','load_parameters',odb_load_table,'cmd_params' ,`/Mu2e/ActiveRunConfiguration/Tracker/Station_${stn}/Plane_${pln}/Panel_${pnl}`);
+      btn = make_load_table_button(cmda);
+      td2.appendChild(btn);
+
+      // trk_panel_command identifies the panel in parameters and sets for execution
+      
+      cmda = new Command_A('load_thresholds'   ,'load_thresholds'   , trk_panel_command_set_odb, 'cmd_params' ,`/Mu2e/Commands/Tracker`);
+      btn = make_set_odb_button(cmda);
+      td2.appendChild(btn);
+
+      cmda = new Command_A('load_channel_masks','load_channel_masks', trk_panel_command_set_odb, 'cmd_params' ,`/Mu2e/Commands/Tracker`);
+      btn = make_set_odb_button(cmda);
+      td2.appendChild(btn);
+
+      cmda = new Command_A('set_thresholds'    ,'set_thresholds'    , trk_panel_command_set_odb, 'cmd_params' ,`/Mu2e/Commands/Tracker`);
+      btn = make_set_odb_button(cmda);
+      td2.appendChild(btn);
+
+      cmda = new Command_A('measure_thresholds','measure_thresholds',trk_panel_command_set_odb,'cmd_params' ,`/Mu2e/Commands/Tracker`);
+      btn = make_load_table_button(cmda);
+      td2.appendChild(btn);
+      //
+      //      cmda = new Command_A('print_status'      ,'panel_print_status'      ,trk_panel_command_set_odb,'cmd_params' ,`/Mu2e/Commands/Tracker`);
+      //      btn = make_load_table_button(cmda);
+      //      td2.appendChild(btn);
+      //
+      tr2.appendChild(td2);
+      tbody.appendChild(tr2);
+
+      table.appendChild(tbody);
+
     }
 
 //-----------------------------------------------------------------------------
@@ -140,13 +152,13 @@
         <thead>
 
           <tr>
-            <td colspan=9> <div class="mtableheader">Station ${g_station} controls: MN`+g_mnid.toString().padStart(3,'0')+` (${g_station}:${g_plane}:${g_panel})</div> </td>
+            <td colspan=9> <div class="mtableheader">Station ${g_station} controls</div> </td>
           </tr>
 
           <tr>
             <td>
               <div class="tab">
-                <button class="trk_plane_tab" id="trk_plane_0" onclick="trk_choose_plane_id(event,'${plane1}')">plane:${plane1}</button>
+                <button class="trk_plane_tab" id="trk_plane_0" onclick="trk_choose_plane_id(event,'${plane1}')">zplane:${plane1}</button>
               </div>
             </td>
             <td colspan> <div class="tab" id="trk_panel_tabs_0"></div></td>
@@ -155,7 +167,7 @@
           <tr>
             <td>
               <div class="tab">
-                <button class="trk_plane_tab" id="trk_plane_1" onclick="trk_choose_plane_id(event,'${plane2}')">plane:${plane2}</button>
+                <button class="trk_plane_tab" id="trk_plane_1" onclick="trk_choose_plane_id(event,'${plane2}')">zplane:${plane2}</button>
               </div>
             </td>
             <td colspan> <div class="tab" id="trk_panel_tabs_1"></div></td>
@@ -259,12 +271,18 @@
         </thead>
 
         <tbody>
+          <tr>
+            <td colspan=2>
+              <input type=button value='load parameters'  onClick='trk_load_parameters()'               >
+              <input type=button value='reset output'     onClick='trk_reset_output   ("output_window")'>
+            </td>
+          </tr>
         </tbody>
       `;
 
-//------------------------------------------------------------------------------
-// create station tabs
-//-----------------------------------------------------------------------------
+      //------------------------------------------------------------------------------
+      // create station tabs
+      //-----------------------------------------------------------------------------
       
       let first_station  = -1;
       let last_station   = -1;
