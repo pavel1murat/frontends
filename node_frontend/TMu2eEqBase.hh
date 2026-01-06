@@ -27,7 +27,7 @@ public:
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  TMu2eEqBase();
+  TMu2eEqBase(const char* Name);
   virtual ~TMu2eEqBase();
 
   std::string&        Name        () { return _name          ; }

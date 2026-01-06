@@ -58,7 +58,7 @@ std::initializer_list<const char*>  DsVarName = {
 #include "node_frontend/TEqArtdaq.hh"
 
 //-----------------------------------------------------------------------------
-TEqArtdaq::TEqArtdaq(const char* Name) : TMu2eEqBase() {
+TEqArtdaq::TEqArtdaq(const char* EqName) : TMu2eEqBase(EqName) {
 //-----------------------------------------------------------------------------
 // get port number used by the TFM, don't assume the farm_manager is running locally
 // the frontend has to have its own xmlrpc URL,
@@ -132,11 +132,29 @@ TEqArtdaq::TEqArtdaq(const char* Name) : TMu2eEqBase() {
   
   _monitoringLevel = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq");
 
-  TLOG(TLVL_DEBUG) << "artdaq _monitoringLevel:" << _monitoringLevel;
+  TLOG(TLVL_DEBUG) << std::format("_monitoringLevel:{}",_monitoringLevel);
 
   InitVarNames();
   
-  _logfile = "/home/mu2etrk/test_stand/experiments/test_025/artdaq.log"; // TODO: to come from config
+//-----------------------------------------------------------------------------
+// hotlinks - start from one function handling both DTCs
+// command processor : 'ProcessCommand' function
+//-----------------------------------------------------------------------------
+  // HNDLE hdb            = _odb_i->GetDbHandle();
+  std::string cmd_path = _odb_i->GetCmdConfigPath(HostLabel(),_name);
+  HNDLE h_cmd          = _odb_i->GetHandle(0,cmd_path.data());
+  HNDLE h_cmd_run      = _odb_i->GetHandle(h_cmd,"Run");
+  
+  TLOG(TLVL_DEBUG) << std::format("before db_open_record: cmd_path:{} h_cmd:{} h_cmd_run:{}",cmd_path,h_cmd,h_cmd_run);
+    
+  if (db_open_record(hdb,h_cmd_run,&_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+    std::string m = std::format("cannot open ARTDAQ hotlink in ODB");
+    cm_msg(MERROR, __func__,m.data());
+    TLOG(TLVL_ERROR) << m;
+  }
+
+  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+  _logfile             = std::format("{}/artdaq.log",data_dir);
   
   TLOG(TLVL_DEBUG) << "-- END";
 }
@@ -408,3 +426,96 @@ int TEqArtdaq::ReadMetrics() {
   return 0;
 }
 
+//-----------------------------------------------------------------------------
+int TEqArtdaq::PrintProcesses(std::ostream& Stream) {
+  int rc;
+  TLOG(TLVL_DEBUG) << "-- START";
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+// an equipment item can process commands sent to it only sequentially
+// however different items can run in parallel
+// also, can run command processing as a detached thread 
+//-----------------------------------------------------------------------------
+void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
+  TLOG(TLVL_DEBUG) << "-- START";
+  // in the end, ProcessCommand should send ss.str() as a message to some log
+  std::stringstream ss;
+
+  OdbInterface* odb_i = OdbInterface::Instance();
+//-----------------------------------------------------------------------------
+// based on the key, figure out own name and the node name
+// - this is the price paid for decoupling
+//-----------------------------------------------------------------------------
+  KEY k;
+  odb_i->GetKey(hKey,&k);
+
+  HNDLE h_cmd = odb_i->GetParent(hKey);
+//-----------------------------------------------------------------------------
+// the command tree is assumed to have a form of .../mu2edaq09/DTC1/'
+// so the frontend name is the same as the host label
+//-----------------------------------------------------------------------------
+  HNDLE h_frontend = odb_i->GetParent(h_cmd);
+  KEY frontend;
+  odb_i->GetKey(h_frontend,&frontend);
+  
+  TLOG(TLVL_DEBUG) << "k.name:" << k.name;
+
+  //  std::string cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
+
+                                        // should be 0 or 1
+  int run = odb_i->GetInteger(h_cmd,"Run");
+  if (run == 0) {
+    TLOG(TLVL_DEBUG) << "self inflicted, return";
+    return;
+  }
+//-----------------------------------------------------------------------------
+// get DTC config handle and set the DTC busy status
+//-----------------------------------------------------------------------------
+  // HNDLE h_dtc = odb_i->GetDtcConfigHandle(frontend.name,pcie_addr);
+  // odb_i->SetInteger(h_dtc,"Status",1);
+  
+  std::string cmd            = odb_i->GetString (h_cmd,"Name");
+  std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
+  //  int link                   = odb_i->GetInteger(h_cmd,"link");
+//-----------------------------------------------------------------------------
+// this is address of the parameter record
+//-----------------------------------------------------------------------------
+  TLOG(TLVL_DEBUG) << "cmd:" << cmd << " parameter_path:" << parameter_path;
+
+  //  HNDLE h_par_path           = odb_i->GetHandle(0,parameter_path);
+//-----------------------------------------------------------------------------
+// should be already defined at this point
+//-----------------------------------------------------------------------------
+  TEqArtdaq*  eq = (TEqArtdaq*) TEquipmentManager::Instance()->_eq_artdaq;
+
+  ss << std::format("host_label:{} host_name:{} cmd:{}",eq->HostLabel(),eq->FullHostName(),cmd);
+//-----------------------------------------------------------------------------
+// PRINT_PROCESSES
+//------------------------------------------------------------------------------
+  int cmd_rc(0);
+  if (cmd == "print_processes") {
+    cmd_rc = eq->PrintProcesses(ss);
+  }
+  else {
+    ss << " ERROR: Unknown command:" << cmd;
+    TLOG(TLVL_ERROR) << ss.str();
+  }
+//-----------------------------------------------------------------------------
+// write output to the equipment log - need to revert the line order 
+//-----------------------------------------------------------------------------
+  cmd_rc = eq->WriteOutput(ss.str());
+  
+//-----------------------------------------------------------------------------
+// done, avoid second call - leave "Run" = 1;, before setting it to 1 again,
+// need to make sure that "Finished" = 1
+//-----------------------------------------------------------------------------
+  odb_i->SetInteger(h_cmd,"Finished",1);
+//-----------------------------------------------------------------------------
+// and set the DTC status
+//-----------------------------------------------------------------------------
+//  odb_i->SetInteger(h_dtc,"Status",cmd_rc);
+  TLOG(TLVL_DEBUG) << "-- END";
+}

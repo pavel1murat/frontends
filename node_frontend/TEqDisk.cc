@@ -20,7 +20,7 @@ using nlohmann::json;
 #define  TRACE_NAME "TEqDisk"
 
 //-----------------------------------------------------------------------------
-TEqDisk::TEqDisk(const char* Name) : TMu2eEqBase() {
+TEqDisk::TEqDisk(const char* EqName) : TMu2eEqBase(EqName) {
   _logfile         = "/home/mu2etrk/test_stand/experiments/test_025/disk.log"; // TODO: to come from config
   _monitoringLevel = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Disk");
 }

@@ -8,13 +8,11 @@
 //-----------------------------------------------------------------------------
 // 'skip_dtc_init' is common for all DTCs, may become obsolete
 //-----------------------------------------------------------------------------
-TEqCrvDtc::TEqCrvDtc(HNDLE H_RunConf, HNDLE H_Dtc) : TMu2eEqBase () {
+TEqCrvDtc::TEqCrvDtc(const char* EqName, HNDLE H_RunConf, HNDLE H_Dtc) : TMu2eEqBase(EqName) {
 
   TLOG(TLVL_DEBUG) << "-- START: H_RunConf:" << H_RunConf << " H_Dtc:" << H_Dtc;
 
   _h_dtc               = H_Dtc;
-  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-  _logfile             = std::format("{}/crvdtc.log",data_dir);
 
   int dtc_enabled      = _odb_i->GetEnabled       (H_Dtc);
   int pcie_addr        = _odb_i->GetDtcPcieAddress(H_Dtc);
@@ -132,6 +130,9 @@ TEqCrvDtc::TEqCrvDtc(HNDLE H_RunConf, HNDLE H_Dtc) : TMu2eEqBase () {
       cm_msg(MERROR, __func__,m.data());
     }
   }
+
+  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+  _logfile             = std::format("{}/crvdtc.log",data_dir);
 
   TLOG(TLVL_DEBUG) << "-- END _logfile:" << _logfile;
 }

@@ -71,14 +71,15 @@ TMFeResult TEquipmentManager::InitDtc() {
     int dtc_enabled       = _odb_i->GetEnabled(h_subkey);
     int pcie_addr         = _odb_i->GetInteger(h_subkey,"PcieAddress");
 
-    TLOG(TLVL_DEBUG) << "subsystem:" << subsystem << " enabled:" << dtc_enabled;
+    TLOG(TLVL_DEBUG) << std::format("subsystem:{} pcie_addr:{} enabled:{}",subsystem,pcie_addr,dtc_enabled);
    
     if (dtc_enabled) {
+      std::string name = std::format("DTC{}",pcie_addr);
       if      (subsystem == "CRV"    ) {
-        _eq_dtc[pcie_addr] = new TEqCrvDtc(_h_active_run_conf,h_subkey);
+        _eq_dtc[pcie_addr] = new TEqCrvDtc(name.data(),_h_active_run_conf,h_subkey);
       }
       else if (subsystem == "TRACKER") {
-        _eq_dtc[pcie_addr]    = new TEqTrkDtc(_h_active_run_conf,h_subkey);
+        _eq_dtc[pcie_addr]    = new TEqTrkDtc(name.data(),_h_active_run_conf,h_subkey);
       }
     }
   }

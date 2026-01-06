@@ -22,6 +22,7 @@
   //-----------------------------------------------------------------------------
   function updateNodeTable(node_index) {
     const node_name            = tfm_get_node_name(g_node);
+    g_hostname                 = node_name;
     const node_table           = document.getElementById('node_table');
     node_table.innerHTML       = '';
     node_table.node_name       = node_name;
@@ -100,6 +101,12 @@
       // would like to set some parameters in ODB
       cmd     = new Command('generate_fcl','cmd_params',odb_tfm_path);
       btn     = tfm_make_exec_button_par(cmd);
+      td2.appendChild(btn);
+
+      // different parameter path
+      odb_tfm_path = '/Mu2e/Commands/DAQ/Nodes/'+g_hostname+'/Artdaq';
+      cmd     = new Command('print_processes','cmd_params',odb_tfm_path);
+      btn     = artdaq_make_exec_button_par(cmd);
       td2.appendChild(btn);
 
       tr2.appendChild(td2);

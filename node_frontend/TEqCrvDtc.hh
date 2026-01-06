@@ -19,7 +19,7 @@ public:
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  TEqCrvDtc(HNDLE H_RunConf, HNDLE HDtc);
+  TEqCrvDtc(const char* Name, HNDLE H_RunConf, HNDLE HDtc);
   ~TEqCrvDtc();
   
   mu2edaq::DtcInterface* Dtc_i() { return _dtc_i; }
