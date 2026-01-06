@@ -29,6 +29,8 @@ public:
   virtual int         ReadMetrics  () override;
 
   int                 PrintProcesses(std::ostream& Stream);
+  int                 ProcessStatus (std::ostream& Stream);
+  int                 Tlvls         (std::ostream& Stream);
   
   static void         ProcessCommand(int hDB, int hKey, void* Info);
   

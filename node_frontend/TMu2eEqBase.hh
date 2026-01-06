@@ -34,6 +34,8 @@ public:
   std::string&        HostLabel   () { return _host_label    ; }
   std::string&        FullHostName() { return _full_host_name; }
 
+  OdbInterface*       Odb_i       () { return _odb_i         ; }
+
   int                 MonitoringLevel() { return _monitoringLevel ; }
 
   int                 ResetOutput ();

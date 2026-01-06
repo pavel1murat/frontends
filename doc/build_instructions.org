@@ -4,7 +4,7 @@
 - last update: <2025-11-24 Thu> - versions are time-dependent
   fermi 0.23: remotes/origin/v0.23.0-fermi
   spack 0.23: tags/v0.23.0
-- do not use spack v1.0
+- do not use spack v1.0, use Eric's version
 - the installation script takes two parameters:
   the created subrirectory name and the name of the created spack environment
 #+begin_src
@@ -28,6 +28,12 @@ env_name=v001                                # replace v001 with your own name, 
 spack env create   $env_name
 spack env activate $env_name
 ln -s spack/var/spack/environments/$env_name
+mkdir $env_name/build
+#------------------------------------------------------------------------------
+# build in $env_build, not in /tmp
+#------------------------------------------------------------------------------
+export         TMP=$SPACK_ENV/build
+export      TMPDIR=$SPACK_ENV/build
 #------------------------------------------------------------------------------
 # repositories
 #------------------------------------------------------------------------------
@@ -52,7 +58,6 @@ popd
 # otherwise, it doesn't concretize
 # ------------------------------------------------------------------------------
 #+begin_src
-packages:
   gcc:
     externals:
     - spec: gcc@11.5.0 languages='c,c++,fortran'
@@ -62,6 +67,29 @@ packages:
           c: /usr/bin/gcc
           cxx: /usr/bin/g++
           fortran: /usr/bin/gfortran
+#+end_src
+# add CPU target to the $spack_env/spack.yaml, also use system-wide krb5, openssl, and opengl
+#+begin_src
+spack:
+  packages:
+    all:
+      require:
+      - target=x86_64_v3
+    krb5:
+      externals:
+      - spec: krb5@1.21.1
+        prefix: /usr
+      buildable: false
+    openssl:
+      externals:
+      - spec: openssl@3.2.2
+        prefix: /usr
+      buildable: false
+    opengl:
+      externals:
+      - spec: opengl@4.5.0
+        prefix: /usr
+      buildable: false
 #+end_src
 # ------------------------------------------------------------------------------
 # keep using gcc 13.1.0 , problems otherwise
@@ -112,7 +140,7 @@ spack install
 #+begin_src
 patch -i $env_name/frontends/scripts/gdk-pixbuf-recipe.patch -o spack/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
 patch -i $env_name/frontends/scripts/fhicl-cpp-recipe.patch  -o spack-repos/fnal_art/packages/fhicl-cpp/package.py
-patch -i frontends/scripts/geant4-recipe.patch               -o spack/var/spack/repos/builtin/packages/geant4/package.py
+patch -i $env_name/frontends/scripts/geant4-recipe.patch     -o spack/var/spack/repos/builtin/packages/geant4/package.py
 
 #+end_src
 # ------------------------------------------------------------------------------

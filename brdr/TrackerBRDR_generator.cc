@@ -279,7 +279,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   _host_label                 = get_short_host_name(public_subnet.data() );
   _full_host_name             = get_full_host_name (private_subnet.data());
 
-  HNDLE h_host_artdaq_conf    = odb_i->GetHostArtdaqConfHandle(h_active_run_conf,_host_label);
+  HNDLE h_host_artdaq_conf    = odb_i->GetArtdaqConfHandle(h_active_run_conf,_host_label);
 
   TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel << " _full_host_name:" << _full_host_name
                      << " , exp_name: " << exp_name

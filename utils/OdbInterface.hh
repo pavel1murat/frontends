@@ -41,7 +41,6 @@ public:
   
   int         GetHostConfHandle       (const std::string& Host, HNDLE h_RunConf = -1);
   int         GetFrontendConfHandle   (HNDLE h_RunConf, const std::string& Host);
-  HNDLE       GetHostArtdaqConfHandle (HNDLE h_RunConf, const std::string& Host);
 
   int         GetSkipDtcInit          (HNDLE h_RunConf);
   uint32_t    GetDtcFwVersion         (HNDLE h_RunConf, const char* Subsystem);
@@ -112,6 +111,12 @@ public:
 //-----------------------------------------------------------------------------
   int         GetRocReadoutMode   (HNDLE hDetConf); 
 
+//-----------------------------------------------------------------------------
+// DAQ, ARTDAQ
+//-----------------------------------------------------------------------------
+  HNDLE       GetArtdaqCmdHandle  (const std::string& Host); // should be short host label
+  HNDLE       GetArtdaqConfHandle (HNDLE h_RunConf, const std::string& Host);
+  
   std::string GetPrivateSubnet    (HNDLE h_RunConf);
   std::string GetPublicSubnet     (HNDLE h_RunConf);
 
