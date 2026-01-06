@@ -41,7 +41,8 @@ function tfm_choose_node_id(evt, id) {
 
   let num    = id.substring(4,7);
   g_node = Number(num); // parse the number out of 'nodeXXX'
-  console.log('g_node=',g_node);
+  g_hostname = tfm_get_node_name(g_node);
+  console.log(`g_node=${g_node} g_hostname:${g_hostname}`);
 }
 
 //-----------------------------------------------------------------------------
@@ -115,55 +116,94 @@ async function tfm_get_list_of_nodes() {
 
 //-----------------------------------------------------------------------------
 // and this one updates ODB
-// the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
-// TEquipmentTracker will finally update /Finished
+// the command parameters record is expected to be in path+${cmd}
 //-----------------------------------------------------------------------------
-function tfm_command_set_odb(cmd, path) {
+async function tfm_command_set_odb(cmd) {
   
-  var paths=[path+'/Name',
-             path+'/ParameterPath',
-             path+'/Finished',
-             path+'/Run',
+  var paths=[cmd.parameter_path+'/Name',
+             cmd.parameter_path+'/ParameterPath',
+             cmd.parameter_path+'/Finished',
+             cmd.parameter_path+'/Run',
   ];
-  
-  mjsonrpc_db_paste(paths, [cmd,path+'/'+cmd,0,1]).then(function(rpc) {
-    result=rpc.result;	      
 
-    // 'Run' is set to 1 , then tfm_frontend is called
-
-   var paths=[ path ];
-
-    mjsonrpc_db_paste(paths, [1]).then(function(rpc) {
-      result=rpc.result;	      
-      // tfm_frontend waits till command completes and always returns,
-      // but with different return codes...
-    }).catch(function(error) {
-      mjsonrpc_error_alert(error);
-    });
-  }).catch(function(error) {
+  try {
+    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,cmd.parameter_path+'/'+cmd.name,0,1]);
+    let result=rpc.result;	      
+  }
+  catch(error) {
     mjsonrpc_error_alert(error);
-  });
+  };
   
   let done = 0;
 
   while(done == 0) {
       // check whether the command has finished
-    var paths=["/Mu2e/Commands/DAQ/Tfm/Run",
-               "/Mu2e/Commands/DAQ/Tfm/Finished"];
+    var paths=[cmd.parameter_path+'/Run', cmd.parameter_path+'/Finished'];
     let run      = 1;
-    let finished = 1;
-    sleep(1000);
-    mjsonrpc_db_get_values(paths).then(function(rpc) {
+    let finished = 0;
+    sleep(500);
+    try {
+      let rpc  = await mjsonrpc_db_get_values(paths);
       run      = rpc.result.data[0];
       finished = rpc.result.data[1];
-    }).catch(function(error) {
+    }
+    catch(error) {
       mjsonrpc_error_alert(error);
-    });
+    };
     done = finished;
   };
   
-  // I wonder if this line is needed at all....
-  displayFile('tfm.log', 'messageFrame');
+  // display the logfile. THis is the only non-generic place
+  // if the command was a struct with the logfile being one of its parameters,
+  // this function became completely generic
+  displayFile('artdaq.log', 'messageFrame');
+}
+
+//-----------------------------------------------------------------------------
+// and this one updates ODB
+// the command parameters record is expected to be in path+${cmd}
+//-----------------------------------------------------------------------------
+async function tfm_command_set_odb_B(cmd) {
+
+  let ppath = cmd.func_parameter_path(g_hostname);
+  
+  var paths=[ppath+'/Name',
+             ppath+'/ParameterPath',
+             ppath+'/Finished',
+             ppath+'/Run',
+  ];
+
+  try { 
+    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,1]);
+    let result=rpc.result;	      
+  }
+  catch(error) {
+    mjsonrpc_error_alert(error);
+  };
+  
+  let done = 0;
+
+  while(done == 0) {
+      // check whether the command has finished
+    var paths=[ppath+'/Run', ppath+'/Finished'];
+    let run      = 1;
+    let finished = 0;
+    sleep(500);
+    try {
+      let rpc = await mjsonrpc_db_get_values(paths);
+      run      = rpc.result.data[0];
+      finished = rpc.result.data[1];
+    }
+    catch(error) {
+      mjsonrpc_error_alert(error);
+    };
+    done = finished;
+  };
+  
+  // display the logfile. THis is the only non-generic place
+  // if the command was a struct with the logfile being one of its parameters,
+  // this function became completely generic
+  displayFile('artdaq.log', 'messageFrame');
 }
 
 //-----------------------------------------------------------------------------
@@ -173,35 +213,6 @@ function tfm_load_table(table_id,odb_path) {
   const table     = document.getElementById(table_id);
   table.innerHTML = '';
   odb_browser(table_id,odb_path,0);
-}
-
-//-----------------------------------------------------------------------------
-function tfm_make_simple_button(cmd) {
-  let btn    = document.createElement('input');
-  btn.type    = 'button'
-  btn.value   = cmd.name;
-  btn.onclick = function() { tfm_load_table(cmd.table_id,cmd.parameter_path) ; }
-  return btn;
-}
-
-//-----------------------------------------------------------------------------
-// not implemented yet, just a placeholder
-//-----------------------------------------------------------------------------
-function artdaq_make_exec_button_par(cmd) {
-  let btn    = document.createElement('input');
-  btn.type    = 'button'
-  btn.value   = cmd.name;
-  btn.onclick = function() { tfm_command_set_odb(cmd.name,cmd.parameter_path) ; }
-  return btn;
-}
-
-//-----------------------------------------------------------------------------
-function tfm_make_exec_button(cmd) {
-  let btn    = document.createElement('input');
-  btn.type    = 'button'
-  btn.value   = cmd.name;
-  btn.onclick = function() { tfm_command_set_odb(cmd.name,cmd.parameter_path) ; }
-  return btn;
 }
 
 //-----------------------------------------------------------------------------
@@ -223,27 +234,17 @@ async function tfm_load_pars_and_execute(cmd) {
              ppath+'/run_conf',
   ];
   
-  mjsonrpc_db_paste(paths, [node_name,process_label,active_run_conf]).then(function(rpc) {
-    result=rpc.result;	      
-    
-    // OK, ODB parameters set, now execute
-    
-    tfm_command_set_odb(cmd.name,cmd.parameter_path);
-    
-  }).catch(function(error) {
+//  mjsonrpc_db_paste(paths, [node_name,process_label,active_run_conf]).then(function(rpc) {
+  mjsonrpc_db_paste(paths, [g_hostname,process_label,active_run_conf]).then(function(rpc) {
+      result=rpc.result;	      
+      
+      // OK, ODB parameters set, now execute
+      
+      tfm_command_set_odb(cmd);
+      
+    }).catch(function(error) {
     mjsonrpc_error_alert(error);
   });
-}
-
-//-----------------------------------------------------------------------------
-// this buttom sets all parameters in ODB and then executes - different onclick method
-//-----------------------------------------------------------------------------
-function tfm_make_exec_button_par(cmd) {
-  let btn    = document.createElement('input');
-  btn.type    = 'button'
-  btn.value   = cmd.name;
-  btn.onclick = function() { tfm_load_pars_and_execute(cmd) ; }
-  return btn;
 }
 
 //-----------------------------------------------------------------------------
@@ -267,7 +268,7 @@ function tfm_make_dropup_button(cmd) {
 
   const d1_2   = document.createElement('div');
   d1_2.innerHTML = 'Run'
-  d1_2.onclick   = function() { tfm_command_set_odb(cmd.name,cmd.parameter_path)};
+  d1_2.onclick   = function() { tfm_command_set_odb(cmd)};
 
   d1.appendChild(d1_2);
 
@@ -275,20 +276,46 @@ function tfm_make_dropup_button(cmd) {
   return btn;
 }
 
-
 //-----------------------------------------------------------------------------
-function tfm_get_state(element) {
-  //  clear_window(element)
-  tfm_command_set_odb("get_state")
+function tfm_make_exec_button(cmd) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.name;
+  btn.onclick = function() { tfm_command_set_odb(cmd) ; }
+  return btn;
 }
 
 //-----------------------------------------------------------------------------
-function tfm_reset_output(element) {
-//  clear_window(element)
-  tfm_command_set_odb("reset_output")
+// input: Command_B
+//-----------------------------------------------------------------------------
+function tfm_make_exec_button_B(cmd) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.name;
+  btn.onclick = function() { cmd.func(cmd) ; }
+  return btn;
 }
 
-// ${ip.toString().padStart(2,'0')
+//-----------------------------------------------------------------------------
+// this buttom sets all parameters in ODB and then executes - different onclick method
+//-----------------------------------------------------------------------------
+function tfm_make_exec_button_par(cmd) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.name;
+  btn.onclick = function() { tfm_load_pars_and_execute(cmd) ; }
+  return btn;
+}
+
+//-----------------------------------------------------------------------------
+function tfm_make_simple_button(cmd) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.name;
+  btn.onclick = function() { tfm_load_table(cmd.table_id,cmd.parameter_path) ; }
+  return btn;
+}
+
 //    emacs
 //    Local Variables:
 //    mode: web

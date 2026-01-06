@@ -23,6 +23,21 @@ class Command_A {
   }
 }
 
+class Command_B {
+  constructor(title,name,func,table_id,func_parameter_path) {
+    this.title               = title;
+    this.name                = name;
+    this.func                = func;
+    this.table_id            = table_id;
+    this.func_parameter_path = func_parameter_path;
+  }
+}
+
+//-----------------------------------------------------------------------------
+function node_artdaq_parameter_path(hostname) {
+  return `/Mu2e/Commands/DAQ/Nodes/${hostname}/Artdaq`;
+}
+
 //-----------------------------------------------------------------------------
 // common javascript functions
 // DAQ colors. Each element has 'Enabled' and 'Status' field

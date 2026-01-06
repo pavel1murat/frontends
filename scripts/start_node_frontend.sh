@@ -13,6 +13,7 @@ local_node=`hostname -s`
 
 frontend=node_frontend
 local_subnet=`odbedit -q -c 'ls -v /Mu2e/ActiveRunConfiguration/DAQ/PrivateSubnet'`
+  midas_port=`odbedit -q -c 'ls -v "/Experiment/Midas server port"'`
 
 if [ $verbose != 0 ] ; then echo LINENO:$LINENO local_subnet:$local_subnet ; fi
 
@@ -23,6 +24,7 @@ function hostname_on_subnet() {
 
 # midas_host=mu2edaq09-ctrl.fnal.gov
 midas_host=`hostname_on_subnet $local_subnet`
+spack_env=`echo $SPACK_ENV | awk -F/ '{print $NF}'`
 
 echo LINENO:$LINENO verbose=$verbose remote_mode=$remote_node midas_host:$midas_host
 
@@ -31,8 +33,8 @@ if   [ $remote_node == $local_node ] ; then
 else
     cmd="export MU2E_DAQ_DIR=$MU2E_DAQ_DIR"
     cmd=$cmd"; cd $MU2E_DAQ_DIR"
-    cmd=$cmd"; source setup_daq.sh"
-    cmd=$cmd"; $frontend -h $midas_host"
+    cmd=$cmd"; source setup_daq.sh $spack_env"
+    cmd=$cmd"; $frontend -h $midas_host:$midas_port"
 #    cmd=$cmd"&"
     if [ $verbose != 0 ] ; then echo ssh -KX $USER@$remote_node.fnal.gov $cmd ; fi
     ssh -KX $USER@$remote_node.fnal.gov  $cmd

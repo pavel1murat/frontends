@@ -4,6 +4,9 @@
 # those are not supposed to use any arguments and use the default spack environment
 #------------------------------------------------------------------------------
 spack_env=v001
+if [ ".$1" != "." ] ; then spack_env=$1 ; fi
+
+echo ... setting up environment $spack_env
 
 if [ -z $MU2E_DAQ_DIR ] ; then
     export MU2E_DAQ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -13,10 +16,10 @@ fi
 #------------------------------------------------------------------------------
 export      HISTTIMEFORMAT="%d/%m/%y %T "
 export            HOSTNAME=`hostname -s`
-export       DATA_DIR_STUB=`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`
+export       DATA_DIR_STUB=`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`_$spack_env
 export       DAQ_USER_STUB=${USER}_`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`
 # 
-export      DAQ_OUTPUT_TOP=/scratch/mu2e/$USER/data_$DATA_DIR_STUB
+export      DAQ_OUTPUT_TOP=/scratch/mu2e/$USER/$DATA_DIR_STUB
 export        RAW_DATA_DIR=$DAQ_OUTPUT_TOP/data
 
 unset SPACK_ROOT
@@ -36,8 +39,12 @@ export      TMPDIR=$SPACK_ENV/build
             export TFM_DIR=$SPACK_ENV/tfm
       export FRONTENDS_DIR=$SPACK_END/frontends
 
-           export MIDASSYS=$SPACK_VIEW
+      export MIDASSYS=$SPACK_VIEW
+if [ $spack_env == "v001" ] ; then 
     export MIDAS_EXPT_NAME=tracker
+elif [ $spack_env == "namitha" ] ; then
+    export MIDAS_EXPT_NAME=namitha
+fi
     export    MIDAS_EXPTAB=$PWD/config/midas/mc2.exptab
 
 # P.M. need to get rid of ARTDAQ_PARTITION_NUMBER here, not there yet

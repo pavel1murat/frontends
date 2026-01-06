@@ -71,7 +71,7 @@ TEqArtdaq::TEqArtdaq(const char* EqName) : TMu2eEqBase(EqName) {
 // read ARTDAQ configuration from ODB
 //-----------------------------------------------------------------------------
   HNDLE hdb           = _odb_i->GetDbHandle();
-  HNDLE h_artdaq_conf = _odb_i->GetHostArtdaqConfHandle(_h_active_run_conf,_host_label);
+  HNDLE h_artdaq_conf = _odb_i->GetArtdaqConfHandle(_h_active_run_conf,_host_label);
   HNDLE h_component;
   KEY   component;
   for (int i=0; db_enum_key(hdb, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
@@ -435,6 +435,42 @@ int TEqArtdaq::PrintProcesses(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
+int TEqArtdaq::ProcessStatus(std::ostream& Stream) {
+  int rc;
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
+  HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
+
+  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+int TEqArtdaq::Tlvls(std::ostream& Stream) {
+  int rc;
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
+  HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
+
+  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+
+  std::string cmd = std::format("trace_cntl tids");
+
+  TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
+  
+  std::string output  = popen_shell_command(cmd);
+
+  Stream << "\n" << output;
+  
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 // an equipment item can process commands sent to it only sequentially
 // however different items can run in parallel
 // also, can run command processing as a detached thread 
@@ -498,6 +534,12 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
   int cmd_rc(0);
   if (cmd == "print_processes") {
     cmd_rc = eq->PrintProcesses(ss);
+  }
+  else if (cmd == "process_status") {
+    cmd_rc = eq->ProcessStatus(ss);
+  }
+  else if (cmd == "tlvls") {
+    cmd_rc = eq->Tlvls(ss);
   }
   else {
     ss << " ERROR: Unknown command:" << cmd;

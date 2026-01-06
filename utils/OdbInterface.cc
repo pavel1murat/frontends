@@ -262,10 +262,16 @@ HNDLE OdbInterface::GetActiveRunConfigHandle() {
 //-----------------------------------------------------------------------------
 // this could become DAQ/Nodes/mu2edaqXXX
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetHostArtdaqConfHandle(HNDLE h_RunConf, const std::string& Host) {
+HNDLE OdbInterface::GetArtdaqConfHandle(HNDLE h_RunConf, const std::string& Host) {
   char key[128];
   sprintf(key,"DAQ/Nodes/%s/Artdaq",Host.data());
   return GetHandle(_hDB,h_RunConf,key);
+}
+
+HNDLE OdbInterface::GetArtdaqCmdHandle(const std::string& Host) {
+  char path[128];
+  sprintf(path,"/Mu2e/Commands/DAQ/Nodes/%s/Artdaq",Host.data());
+  return GetHandle(0,path);
 }
 
 //-----------------------------------------------------------------------------

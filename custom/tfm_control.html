@@ -9,6 +9,8 @@
   <script src="mhttpd.js"></script>
   <script src="filesrw.js"></script>
   <script src="odbbrowser.js"></script>
+  
+  <script src="global_variables.js"></script>
   <script src="mu2edaq.js"></script>
   <script src="tfm_commands.js"></script>
     
@@ -103,10 +105,10 @@
       btn     = tfm_make_exec_button_par(cmd);
       td2.appendChild(btn);
 
-      // different parameter path
+      // note different parameter path
       odb_tfm_path = '/Mu2e/Commands/DAQ/Nodes/'+g_hostname+'/Artdaq';
       cmd     = new Command('print_processes','cmd_params',odb_tfm_path);
-      btn     = artdaq_make_exec_button_par(cmd);
+      btn     = tfm_make_exec_button_par(cmd);
       td2.appendChild(btn);
 
       tr2.appendChild(td2);
@@ -119,6 +121,9 @@
       mjsonrpc_error_alert(error);
     });
   }
+
+
+  
 //-----------------------------------------------------------------------------
 // main function defining the page contents
 //-----------------------------------------------------------------------------
@@ -211,11 +216,15 @@ function loadPage() {
       cmd  = new Command('print_fcl','cmd_params','/Mu2e/Commands/DAQ/Tfm');
       let btn2 = tfm_make_dropup_button(cmd);
       td2.appendChild(btn2);
-    
+      
+      // which logfile the output should go? - tfm.log
+      cmd  = new Command_B('tlvls','tlvls',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path);
+      let btn3 = tfm_make_exec_button_B(cmd);
+      td2.appendChild(btn3);
+      
       // and the last action button not using ODB
       cmd  = new Command('reset_output','cmd_params','/Mu2e/Commands/DAQ/Tfm');
-      let btn3 = tfm_make_exec_button(cmd);
-      
+      btn3 = tfm_make_exec_button(cmd);
       td2.appendChild(btn3);
       
       tr2.appendChild(td2);

@@ -157,7 +157,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         cmd=f"cat {os.getenv('MIDAS_EXPTAB')} | awk -v expt={os.getenv('MIDAS_EXPT_NAME')} '{{if ($1==expt) {{print $2}} }}'"
         process = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
         stdout, stderr = process.communicate();
-        self.message_fn = stdout.decode('utf-8').split()[0]+'/tfm.log';
+        self.message_fn = stdout.decode('utf-8').split()[0]+'/artdaq.log';
 #------------------------------------------------------------------------------
 # runinfo DB related stuff
 #-------v----------------------------------------------------------------------
@@ -405,7 +405,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 # FCL file is defined by the run configuration and the process, host is not needed
 # usual steps:
 # 1. set state to BUSY  (1:yellow)
-# 2. print fcl file to tfm.log
+# 2. print fcl file to artdaq.log
 # 3. set state to READY (0:green)
 #------------------------------------------------------------------------------
     def process_cmd_print_fcl(self,parameter_path):
@@ -475,9 +475,11 @@ class TfmFrontend(midas.frontend.FrontendBase):
         elif (cmd_name.upper() == 'RESET_OUTPUT'):
             rc = self.process_cmd_reset_output(parameter_path);
 #------------------------------------------------------------------------------
-# when done, set state to READY
+# when done, set state to rc; 0=ready)
 #------------------------------------------------------------------------------
-        self.client.odb_set(self.tfm_odb_path+'/Status',0)
+        self.client.odb_set(self.tfm_odb_path+'/Status'  ,rc)
+        self.client.odb_set(self.tfm_odb_path+'/Run'     ,0)
+        self.client.odb_set(self.tfm_odb_path+'/Finished',1)
 
         return
     
