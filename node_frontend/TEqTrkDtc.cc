@@ -33,7 +33,7 @@ namespace {
 };
 
 //-----------------------------------------------------------------------------
-TEqTrkDtc::TEqTrkDtc(const char* Name) : TMu2eEqBase() {
+TEqTrkDtc::TEqTrkDtc(const char* EqName) : TMu2eEqBase(EqName) {
 }
 
 //-----------------------------------------------------------------------------
@@ -41,13 +41,11 @@ TEqTrkDtc::~TEqTrkDtc() {
 }
 
 //-----------------------------------------------------------------------------
-TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
+TEqTrkDtc::TEqTrkDtc(const char* EqName, HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase(EqName) {
 
   TLOG(TLVL_DEBUG) << "-- START: H_RunConf:" << H_RunConf << " H_Dtc:" << H_Dtc;
   
   _h_dtc               = H_Dtc;
-  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-  _logfile             = std::format("{}/trkdtc.log",data_dir);
 
   int dtc_enabled      = _odb_i->GetEnabled       (H_Dtc);
   int pcie_addr        = _odb_i->GetDtcPcieAddress(H_Dtc);
@@ -205,6 +203,10 @@ TEqTrkDtc::TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase() {
       cm_msg(MERROR, __func__,m.data());
     }
   }
+  
+  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+  _logfile             = std::format("{}/trkdtc.log",data_dir);
+
   TLOG(TLVL_DEBUG) << "-- END";
 }
 

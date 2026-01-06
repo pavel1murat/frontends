@@ -185,6 +185,17 @@ function tfm_make_simple_button(cmd) {
 }
 
 //-----------------------------------------------------------------------------
+// not implemented yet, just a placeholder
+//-----------------------------------------------------------------------------
+function artdaq_make_exec_button_par(cmd) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.name;
+  btn.onclick = function() { tfm_command_set_odb(cmd.name,cmd.parameter_path) ; }
+  return btn;
+}
+
+//-----------------------------------------------------------------------------
 function tfm_make_exec_button(cmd) {
   let btn    = document.createElement('input');
   btn.type    = 'button'

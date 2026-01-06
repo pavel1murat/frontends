@@ -9,9 +9,10 @@
 #define  TRACE_NAME "TMu2eEqBase"
 
 //-----------------------------------------------------------------------------
-TMu2eEqBase::TMu2eEqBase() {
-  TLOG(TLVL_DEBUG) << "-- START"; 
-  
+TMu2eEqBase::TMu2eEqBase(const char* EqName) {
+  TLOG(TLVL_DEBUG) << std::format("-- START EqName:{}",EqName); 
+
+  _name                       = EqName;
   _odb_i                      = OdbInterface::Instance();
   _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
   std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);

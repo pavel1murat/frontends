@@ -46,7 +46,7 @@ public:
 // functions
 //-----------------------------------------------------------------------------
   TEqTrkDtc (const char* Name);
-  TEqTrkDtc(HNDLE H_RunConf, HNDLE H_Dtc);
+  TEqTrkDtc (const char* Name, HNDLE H_RunConf, HNDLE H_Dtc);
   ~TEqTrkDtc();
 
   trkdaq::DtcInterface* Dtc_i() { return _dtc_i; }

@@ -28,6 +28,8 @@ public:
   virtual int         InitVarNames () override;
   virtual int         ReadMetrics  () override;
 
+  int                 PrintProcesses(std::ostream& Stream);
+  
   static void         ProcessCommand(int hDB, int hKey, void* Info);
   
 };

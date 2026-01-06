@@ -35,6 +35,16 @@ def test1():
                 processes   = client._odb_enum_key(daq_nodes_hkey);
                 print(f'  processes:{processes}')
 
+def test_003():
+    logger.info("Initializing %s" % "test_003")
+    client = midas.client.MidasClient("test_003", None, "tracker", None)
+   
+    val   = client.odb_get("/Mu2e/ActiveRunConfiguration/DAQ/FclTemplates/br_demo/daq")
+    TRACE.INFO(f'val:{val} len(val):{len(val)} type:{type(val)} dict:{isinstance(val,dict)}')
+
+    val   = client.odb_get("/Mu2e/ActiveRunConfiguration/DAQ/FclTemplates/br_demo/daq/fragment_receiver/fragment_ids")
+    TRACE.INFO(f'val:{val} len(val):{len(val)}')
+
 
 #------------------------------------------------------------------------------
 # plane : 25 : plane_25
@@ -97,16 +107,5 @@ def test2_set_thresholds(plane,panel_name):
 if __name__ == "__main__":
 
 #    test1()
-    test2_set_thresholds(25,'MN261')
-    test2_set_thresholds(25,'MN248')
-    test2_set_thresholds(25,'MN224')
-    test2_set_thresholds(25,'MN262')
-    test2_set_thresholds(25,'MN273')
-    test2_set_thresholds(25,'MN276')
-    
-    test2_set_thresholds(21,'MN253')
-    test2_set_thresholds(21,'MN101')
-    test2_set_thresholds(21,'MN219')
-    test2_set_thresholds(21,'MN213')
-    test2_set_thresholds(21,'MN235')
-    test2_set_thresholds(21,'MN247')
+#    test2_set_thresholds(25,'MN261')
+    test_003();

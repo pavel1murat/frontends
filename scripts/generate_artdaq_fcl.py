@@ -91,6 +91,7 @@ class GenerateArtdaqFcl:
 
 #------------------------------------------------------------------------------
 # print dictionary
+# in ODB everything is an array, watch for those with the length > 1
 #------------------------------------------------------------------------------
     def print_dict(self,dictionary,offset=''):
         for key,val in dictionary.items(): 
@@ -100,11 +101,22 @@ class GenerateArtdaqFcl:
                 print(f'{offset}{key}: {{');
                 self.print_dict(val,offset+'  ')
                 print(f'{offset}}}');
-            else:
-                if (isinstance(val,str)):
+            elif (type(val) is list):
+                nelements = len(val)
+                if (nelements == 1):
                     print(f'{offset}{key}: "{val}"');
                 else:
-                    print(f'{offset}{key}: {val}');
+                    # do not print the last element if it is -1
+                    print(f'{offset}{key}: [ ')
+                    for i in range(nelements-1):
+                        print(f' {val[i]},')
+                    if (val[nelements-1] != -1): print(f' {val[nelenents-1]}')
+                    print(f' ]')
+            elif (type(val) is bool):
+                if (val == True): print(f'{offset}{key}: true');
+                else            : print(f'{offset}{key}: false');
+            else:
+                print(f'{offset}{key}: {val}');
 
 #------------------------------------------------------------------------------
 # write single FCL to an already open file
@@ -113,7 +125,7 @@ class GenerateArtdaqFcl:
     def write_fcl(self,file,artdaqLabel,fcl_template,key_dict,offset=''):
             for key,val in fcl_template.items():
                 k_key = key;
-                self.Print('write_fcl',1, f'  {offset} key:{key} val:{val}')
+                self.Print('write_fcl',1, f'  {offset} key:{key} val:{val} type:{type(val)}')
 #------------------------------------------------------------------------------
 # skip 'Enabled' and 'Status' - those are purely internal.. do we need to do that ?
 #------------------------------------------------------------------------------
@@ -125,21 +137,37 @@ class GenerateArtdaqFcl:
                     file.write(f'{offset}{k_key}: {{\n');
                     self.write_fcl(file,artdaqLabel,val,key_dict,offset+'  ')
                     file.write(f'{offset}}}\n');
-                else:
-                    if (isinstance(val,str)):
-                        if (key == 'artdaqLabel'):
+                elif (type(val) is list):
+                    nelements = len(val)
+                    if (nelements == 1):
+                        file.write(f'{offset}{key}: "{val}"');
+                    else:
+                        # do not print the last element if it is -1
+                        file.write(f'{offset}{key}: [')
+                        for i in range(nelements-1):
+                            if (i == 0): file.write(f' {val[i]}')
+                            else       :  file.write(f', {val[i]}')
+                            if (val[nelements-1] != -1): file.write(f' {val[nelenents-1]}')
+                        file.write(f' ]\n')
+                        
+                elif (type(val) is bool):
+                    if (val == True): file.write(f'{offset}{key}: true\n');
+                    else            : file.write(f'{offset}{key}: false\n');
+                    
+                elif (type(val) is str):
+                    if (key == 'artdaqLabel'):
 #------------------------------------------------------------------------------
 # for a boardreader, its artdaqLabel is defined by the process label
 #------------------------------------------------------------------------------
-                            file.write(f'{offset}{k_key}: "{artdaqLabel}"\n');
-                        elif (key == 'process_name'):
-                            file.write(f'{offset}{k_key}: "{artdaqLabel}"\n');
+                        file.write(f'{offset}{k_key}: "{artdaqLabel}"\n');
+                    elif (key == 'process_name'):
+                        file.write(f'{offset}{k_key}: "{artdaqLabel}"\n');
 #------------------------------------------------------------------------------
 # process_name comes from the process name
 #------------------------------------------------------------------------------
-                        else:
-                            file.write(f'{offset}{k_key}: "{val}"\n');
                     else:
+                        file.write(f'{offset}{k_key}: "{val}"\n');
+                else:
                         file.write(f'{offset}{k_key}: {val}\n');
 
 #------------------------------------------------------------------------------
@@ -181,7 +209,7 @@ class GenerateArtdaqFcl:
 # templates are stored in /Mu2e/RunConfigurations/{self.run_conf}/DAQ/FclTemplates
 # step 1: save existing FCL file
 #---------------v--------------------------------------------------------------
-                config_dir = os.path.expandvars(self.client.odb_get('/Mu2e/ConfigDir'))+f'/{self.run_conf}'
+                config_dir = os.path.expandvars(self.client.odb_get('/Mu2e/ConfigDir'))+f'/artdaq/{self.run_conf}'
                 self.Print('generate_fcl',1,f'config_dir:{config_dir}');
                 fcl_fn = f'{config_dir}/{pname}.fcl'
                 fpath = Path(fcl_fn)
