@@ -70,6 +70,12 @@ function tfm_choose_artdaq_process_id(evt, id) {
   console.log('g_node=',g_node);
 }
 
+
+//-----------------------------------------------------------------------------
+function tfm_cmd_parameter_path(cmd) {
+  return '/Mu2e/Commands/DAQ/Tfm';
+}
+
 //-----------------------------------------------------------------------------      
 // node id = 'nodeXXX' - provide for 1000 nodes
 //-----------------------------------------------------------------------------
@@ -282,6 +288,37 @@ function tfm_make_exec_button(cmd) {
   btn.type    = 'button'
   btn.value   = cmd.name;
   btn.onclick = function() { tfm_command_set_odb(cmd) ; }
+  return btn;
+}
+
+//-----------------------------------------------------------------------------
+// input: Command_B
+//-----------------------------------------------------------------------------
+function tfm_make_dropup_button_B(cmd) {
+  let btn    = document.createElement('div');
+  btn.className = 'dropup';
+
+  let inp       = document.createElement('input');
+  inp.type      = 'button';
+  inp.className = 'dropbtn';
+  inp.value     = cmd.name;
+  btn.appendChild(inp);
+
+  let d1       = document.createElement('div');
+  d1.className = 'dropup-content';
+
+  const d1_1   = document.createElement('div');
+  d1_1.innerHTML = 'Load Parameters'
+  d1_1.onclick   = function() { tfm_load_table(cmd.table_id,cmd.funparameter_path+'/'+cmd.name)};
+  d1.appendChild(d1_1);
+
+  const d1_2   = document.createElement('div');
+  d1_2.innerHTML = 'Run'
+  d1_2.onclick   = function() { cmd.func(cmd)};
+
+  d1.appendChild(d1_2);
+
+  btn.appendChild(d1);
   return btn;
 }
 
