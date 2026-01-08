@@ -147,40 +147,35 @@ async function odb_get_active_run_conf_name() {
 }
 
 //-----------------------------------------------------------------------------
-// CONTROL PAGES
-// redirects browser to the DTC control page
-// may need to decide which particular DTC type
+// REDIRECT BROWSER TO CONTROL PAGES OPENING NEW TABS
 //-----------------------------------------------------------------------------
 function dtc_control(hostname,pcie) {
-  window.location.href = `dtc_control.html?hostname=${hostname}&pcie=${pcie}`;
+//  window.location.href = `dtc_control.html?hostname=${hostname}&pcie=${pcie}`;
+  window.open(`dtc_control.html?hostname=${hostname}&pcie=${pcie}`,'_blank');
 }
 
-//-----------------------------------------------------------------------------
-// redirects browser to the ARTDAQ process control page
 //-----------------------------------------------------------------------------
 function artdaq_process_control(hostname,process) {
-  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}`;
+//  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}`;
+  window.open(`artdaq_process_control.html?hostname=${hostname}&process=${process}`,'_blank');
 }
 
-//-----------------------------------------------------------------------------
-// redirects to the node page
 //-----------------------------------------------------------------------------
 function node_control(hostname) {
-  window.location.href = `node_control.html?hostname=${hostname}`;
+//  window.location.href = `node_control.html?hostname=${hostname}`;
+  window.open(`node_control.html?hostname=${hostname}`,'_blank');
 }
 
-//-----------------------------------------------------------------------------
-// redirects to the TFM page
 //-----------------------------------------------------------------------------
 function tfm_control(hostname) {
-  window.location.href = `tfm_control.html?hostname=${hostname}&facility=tfm`;
+//  window.location.href = `tfm_control.html?hostname=${hostname}&facility=tfm`;
+  window.open(`tfm_control.html?hostname=${hostname}&facility=tfm`,'_blank');
 }
 
 //-----------------------------------------------------------------------------
-// redirects to the CFO page
-//-----------------------------------------------------------------------------
 function cfo_status(hostname) {
-  window.location.href = `cfo_status.html`;
+  // window.location.href = `cfo_status.html`;
+  window.open(`cfo_status.html`,'_blank');
 }
 
 //-----------------------------------------------------------------------------
