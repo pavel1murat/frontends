@@ -91,7 +91,8 @@ cet_make_exec(NAME      get_next_run_number
 
 install(FILES runinfodb.py      DESTINATION python/frontends/utils)
 install(FILES       MidasInterface.hh
-                    OdbInterface.hh 
+                    OdbInterface.hh
+                    utils.hh
         DESTINATION include/frontends/utils)
   
 # install_fhicl(SUBDIRS fcl)
