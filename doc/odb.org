@@ -7,7 +7,7 @@
 - this should be accounted for when using the 'load' command:
 -  one shoudl create a subdirectory, cd to there and only after that load
 -  its contents from an external file
-* run configurations                                                         
+* adding run configurations                                                  
 - run configurations are stored in .json format
 - configurations are allowed to have links, but the links can NOT point
   outside the configuration
@@ -20,7 +20,7 @@ cd conf
 load your_env/frontends/odb/Mu2e/RunConfigurations/conf.json
 exit
 #+end_src
-* subdetector configurations                                                 
+* adding subdetector configurations                                          
 - sometimes one needs to add to a given run configuration a single subdetector 
 - to add definition of the tracker to configuration 'conf'
 #+begin_src
@@ -45,6 +45,19 @@ load mu2edaq11.json
 exit
 #+end_src
 
+* Commands
+- format of commands is common for all run configurations
+- to update commands using odbedit:
+#+begin_src
+> odbedit
+cd /Mu2e
+rm Commands
+mkdir Commands
+cd Commands
+load v001/frontends/odb/Commands/Commands.json
+exit
+#+end_src
+it is assumed that frontends package is checked out to v001/frontends
 * ------------------------------------------------------------------------------
 * back to file:frontends.org
 * ------------------------------------------------------------------------------
