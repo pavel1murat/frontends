@@ -24,12 +24,13 @@ class Command_A {
 }
 
 class Command_B {
-  constructor(title,name,func,table_id,func_parameter_path) {
+  constructor(title,name,func,table_id,func_parameter_path,logfile) {
     this.title               = title;
     this.name                = name;
     this.func                = func;
     this.table_id            = table_id;
     this.func_parameter_path = func_parameter_path;
+    this.logfile             = logfile;
   }
 }
 
@@ -86,7 +87,7 @@ function clear_window(element_id) {
 //-----------------------------------------------------------------------------
 function displayFile(filePath, elementId) {
 
-  var result = null;
+  let result = null;
   fetch(filePath)
     .then(response => response.text())
     .then(text => {

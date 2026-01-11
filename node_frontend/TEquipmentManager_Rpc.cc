@@ -79,9 +79,6 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
 // start forming response
 //-----------------------------------------------------------------------------
   response  = "";
-  // response += cmd;
-  // response += " args:";
-  // response += args;
 //-----------------------------------------------------------------------------
 // a single place to make sure that the pointer to the EqDTC is OK
 //-----------------------------------------------------------------------------

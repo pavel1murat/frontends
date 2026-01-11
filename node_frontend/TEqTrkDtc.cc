@@ -111,6 +111,10 @@ TEqTrkDtc::TEqTrkDtc(const char* EqName, HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eE
       int link_enabled = _odb_i->GetLinkEnabled(H_Dtc,i);
       TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
       if (link_enabled) {
+        if (not _dtc_i->LinkLocked(i)) {
+          TLOG(TLVL_ERROR) << std::format("{}:DTC{} link:{} enabled but not locked",HostLabel(),_dtc_i->PcieAddr(),i);
+          continue;
+        }
         mask |= (1 << 4*i);
 
         std::string roc_id     ("READ_ERROR");
@@ -126,7 +130,7 @@ TEqTrkDtc::TEqTrkDtc(const char* EqName, HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eE
           TLOG(TLVL_DEBUG) << "git_commit:" << git_commit;
         }
         catch(...) {
-          TLOG(TLVL_ERROR) << "cant read link:" << i << " ROC info";
+          TLOG(TLVL_ERROR) << std::format("{}:DTC{}: cant read link:() ROC info",HostLabel(),_dtc_i->PcieAddr(),i);
         }
 //-----------------------------------------------------------------------------
 // 'h_link' points to a subsystem-specific place
@@ -432,6 +436,10 @@ int TEqTrkDtc::ReadMetrics() {
 //-----------------------------------------------------------------------------
     for (int ilink=0; ilink<6; ilink++) {
       if (_dtc_i->LinkEnabled(ilink) == 0) continue;
+      if (not _dtc_i->LinkLocked(ilink)) {
+        TLOG(TLVL_ERROR) << std::format("{}:DTC{} link:{} enabled but not locked",HostLabel(),_dtc_i->PcieAddr(),ilink);
+        continue;
+      }
           
       if (_monitorRocRegisters > 0) {
             

@@ -3,7 +3,7 @@
 // DTC id = 'dtc0' or 'dtc1'
 //-----------------------------------------------------------------------------
 function choose_dtc_id(evt, id) {
-  var i, dtctabs;
+  let i, dtctabs;
   dtctabs = document.getElementsByClassName("dtctabs");
   // reset all tabs
   for (i=0; i<dtctabs.length; i++) {
@@ -27,7 +27,7 @@ function update_dtc_id(evt, id) {
 // ROC id = 'roc${i'
 //-----------------------------------------------------------------------------
 function choose_roc_id(evt, id) {
-  var i, roctabs;
+  let i, roctabs;
   roctabs = document.getElementsByClassName("roctabs");
   for (i=0; i<roctabs.length; i++) {
     roctabs[i].className = roctabs[i].className.replace(" active", "");
@@ -99,18 +99,6 @@ function dtc_command(cmd) {
   mjsonrpc_call("jrpc",msg).then(function(rpc1) {
     let s = rpc1.result.reply
     console.log(s.length);
-//    let y = '<br>'+s.replaceAll(/\n/gi,'<br>').replace(/ /g, '&nbsp;');
-//    
-//    const el = document.getElementById("content");
-//    el.innerHTML += y;
-//    el.style.fontFamily = 'monospace';
-//    // el.scrollIntoView();
-//    const sel = (el || document.body);
-//    sel.scrollTop = sel.scrollHeight;
-//    const scrollToBottom = (id) => {
-//      el.scrollTop = el.scrollHeight;
-//    }
-//    el.classList.toggle('force-redraw');
     
   }).catch(function(error){
     mjsonrpc_error_alert(error);
@@ -129,125 +117,60 @@ function dtc_load_parameters() {
 //-----------------------------------------------------------------------------
 // clear output window
 //-----------------------------------------------------------------------------
-function dtc_clear_output() {
-  const el = document.getElementById("content");
-  el.innerHTML = '';
-  el.classList.toggle('force-redraw');
-}
+//function dtc_clear_output() {
+//  const el = document.getElementById("content");
+//  el.innerHTML = '';
+//  el.classList.toggle('force-redraw');
+//}
 
 //-----------------------------------------------------------------------------
 // and this one updates ODB
 // the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
 // TEquipmentTracker will finally update /Finished
 //-----------------------------------------------------------------------------
-function dtc_command_set_odb(cmd,logfile) {
+async function dtc_command_set_odb(cmd,logfile) {
 
   let p0 = '/Mu2e/Commands/DAQ/Nodes/'+g_hostname+'/DTC'+g_pcie;
 
-  var paths=[p0+'/Name',
-             p0+'/ParameterPath',
-             p0+'/Finished'
-            ];
-  
-  
-  mjsonrpc_db_paste(paths, [cmd,p0,0]).then(function(rpc) {
-    result=rpc.result;	      
-    // document.getElementById("wstatus").innerHTML = 'Write status '+rpc.result.status
+  const paths=[p0+'/Name',
+               p0+'/ParameterPath',
+               p0+'/Finished',
+  ];
 
-    // parameters are set, trigger the execution by setting odb["/Mu2e/Commands/Tracker/Run"] = 1
-
-    var paths=[p0+'/Run'];
-  
-    mjsonrpc_db_paste(paths, [1]).then(function(rpc) {
-      result=rpc.result;	      
-      // document.getElementById("wstatus").innerHTML = 'Write status '+rpc.result.status
+  try {
+    let rpc = await mjsonrpc_db_paste(paths, [cmd,p0,0]);
+    // parameters are set, trigger the execution by setting odb["/Mu2e/Commands/Tracker/Run"] = 1  }
+    try {
+      let rpc = mjsonrpc_db_paste([p0+'/Run'], [1]);
       
-      // javascript does not wait till the command completes
-
-    }).catch(function(error) {
+      // wait till the command is finished, actual wait happens in the frontend
+      let finished = 0;
+      
+      while (finished == 0) {
+        let run      = 1;
+        sleep(1000);
+        try {
+          const paths=[p0+'/Run',p0+'/Finished'];
+          let rpc  = await mjsonrpc_db_get_values(paths);
+          run      = rpc.result.data[0];
+          finished = rpc.result.data[1];
+        }
+        catch(error) {
+          mjsonrpc_error_alert(error);
+        };
+      };
+      
+      displayFile(logfile, 'messageFrame');
+    }
+    catch(error) {
       mjsonrpc_error_alert(error);
-    });
-    
-  }).catch(function(error) {
+    };
+  }
+  catch(error) {
     mjsonrpc_error_alert(error);
-  });
-  
-  let done = 0;
-
-  while(done == 0) {
-      // check whether the command has finished
-    var paths=[p0+'/Run',p0+'/Finished'];
-    let run      = 1;
-    let finished = 1;
-    sleep(1000);
-    mjsonrpc_db_get_values(paths).then(function(rpc) {
-      run      = rpc.result.data[0];
-      finished = rpc.result.data[1];
-    }).catch(function(error) {
-      mjsonrpc_error_alert(error);
-    });
-    done = finished;
   };
-  
-//  displayFile(logfile, 'output_window');
-  displayFile(logfile, 'messageFrame');
 }
 
-//-----------------------------------------------------------------------------
-function dtc_reset_output(element) {
-  //  clear_window(element)
-  dtc_command_set_odb("reset_output",'trkdtc.log')
-}
-
-// //-----------------------------------------------------------------------------
-// function dtc_load_parameters_init_readout() {
-//   const table     = document.getElementById('cmd_params');
-//   table.innerHTML = '';
-//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/init_readout',0);
-// }
-//       
-// //-----------------------------------------------------------------------------
-// function dtc_load_parameters_control_roc_read() {
-//   const table     = document.getElementById('cmd_params');
-//   table.innerHTML = '';
-//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_read',0);
-// }
-//       
-// //-----------------------------------------------------------------------------
-// function dtc_load_parameters_control_roc_digi_rw() {
-//   const table     = document.getElementById('cmd_params');
-//   table.innerHTML = '';
-//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_digi_rw',0);
-// }
-//       
-// //-----------------------------------------------------------------------------
-// function dtc_load_parameters_control_roc_pulser_on() {
-//   const table     = document.getElementById('cmd_params');
-//   table.innerHTML = '';
-//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_pulser_on',0);
-// }
-//       
-// //-----------------------------------------------------------------------------
-// function dtc_load_parameters_control_roc_pulser_off() {
-//   const table     = document.getElementById('cmd_params');
-//   table.innerHTML = '';
-//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_pulser_off',0);
-// }
-//       
-// //-----------------------------------------------------------------------------
-// function dtc_load_parameters_control_roc_rates() {
-//   const table     = document.getElementById('cmd_params');
-//   table.innerHTML = '';
-//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_rates',0);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// function dtc_load_parameters_control_roc_read_ddr() {
-//   const table     = document.getElementById('cmd_params');
-//   table.innerHTML = '';
-//   odb_browser('cmd_params','/Mu2e/Commands/Tracker/DTC/control_roc_read_ddr',0);
-// }
-      
 //-----------------------------------------------------------------------------
 function dtc_load_cmd_parameters(cmd) {
   const table     = document.getElementById('cmd_params');

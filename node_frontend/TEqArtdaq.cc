@@ -450,7 +450,7 @@ int TEqArtdaq::ProcessStatus(std::ostream& Stream) {
 
 //-----------------------------------------------------------------------------
 int TEqArtdaq::Tlvls(std::ostream& Stream) {
-  int rc;
+  int rc(0);
   TLOG(TLVL_DEBUG) << "-- START";
 
   HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
@@ -463,6 +463,35 @@ int TEqArtdaq::Tlvls(std::ostream& Stream) {
   TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
   
   std::string output  = popen_shell_command(cmd);
+
+  Stream << "\n" << output;
+  
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+int TEqArtdaq::Tshow(std::ostream& Stream) {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
+  HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
+
+  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+  // tshow | tdelta -ct 1 -d 1
+
+  // declare -f tshow  : { test -n "${PAGER-}" && trace_cntl show "$@" | $PAGER || trace_cntl show "$@" }
+  // declare -f tdelta : { test -n "${PAGER-}" && { trace_delta "$@" | $PAGER; true } || trace_delta "$@" }
+  
+  // std::string par_tshow ("");
+  // std::string par_tdelta("-ct 1 -d 1");
+  
+  std::string cmd = std::format("trace_cntl show | trace_delta -ct 1 -d 1 | head -n 500");
+
+  TLOG(TLVL_DEBUG) << "cmd=" << cmd;
+  
+  std::string output = popen_shell_command(cmd);
 
   Stream << "\n" << output;
   
@@ -515,7 +544,7 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
   
   std::string cmd            = odb_i->GetString (h_cmd,"Name");
   std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
-  //  int link                   = odb_i->GetInteger(h_cmd,"link");
+  std::string logfile        = odb_i->GetString (h_cmd,"logfile");
 //-----------------------------------------------------------------------------
 // this is address of the parameter record
 //-----------------------------------------------------------------------------
@@ -541,6 +570,9 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
   else if (cmd == "tlvls") {
     cmd_rc = eq->Tlvls(ss);
   }
+  else if (cmd == "tshow") {
+    cmd_rc = eq->Tshow(ss);
+  }
   else {
     ss << " ERROR: Unknown command:" << cmd;
     TLOG(TLVL_ERROR) << ss.str();
@@ -548,7 +580,7 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // write output to the equipment log - need to revert the line order 
 //-----------------------------------------------------------------------------
-  cmd_rc = eq->WriteOutput(ss.str());
+  cmd_rc = eq->WriteOutput(ss.str(),logfile);
   
 //-----------------------------------------------------------------------------
 // done, avoid second call - leave "Run" = 1;, before setting it to 1 again,

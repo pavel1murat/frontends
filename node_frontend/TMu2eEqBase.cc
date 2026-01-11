@@ -77,15 +77,25 @@ int TMu2eEqBase::ResetOutput() {
 }
 
 //-----------------------------------------------------------------------------
-int TMu2eEqBase::WriteOutput(const std::string& Output) {
-  TLOG(TLVL_DEBUG) << "--- START: _logfile:" << _logfile << " Output size:" << Output.length(); 
+// make sure that a command can redirect its output
+int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& Logfile) {
+
+  TLOG(TLVL_DEBUG) << std::format("-- START: _logfile:{} Logfile:{} Output size:{}",_logfile,Logfile,Output.length()); 
 
   std::vector<std::string> vs = splitString(Output,'\n');
+
+  std::string fn = _logfile;
+  if (Logfile != "") {
+    std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+    fn = std::format("{}/{}",data_dir,Logfile);
+  }
+
+  TLOG(TLVL_DEBUG) << std::format("using fn:{}",fn);
   
   std::ofstream output_file;
-  output_file.open(_logfile.data(),std::ios::app);
+  output_file.open(fn.data(),std::ios::app);
   if (not output_file.is_open()) {
-    TLOG(TLVL_ERROR) << std::format("failed to open _logfile:{} in ios::app mode",_logfile); 
+    TLOG(TLVL_ERROR) << std::format("failed to open log file:{} in ios::app mode",fn); 
   }
   else {
     int ns = vs.size();
@@ -96,6 +106,6 @@ int TMu2eEqBase::WriteOutput(const std::string& Output) {
     output_file.close();
   }
   
-  TLOG(TLVL_DEBUG) << "--- END"; 
+  TLOG(TLVL_DEBUG) << "-- END"; 
   return 0;
 }
