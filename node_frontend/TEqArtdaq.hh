@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Tracker DTC 
+// ARTDAQ 
 //-----------------------------------------------------------------------------
 #ifndef __TEqArtdaq_hh__
 #define __TEqArtdaq_hh__
@@ -31,6 +31,7 @@ public:
   int                 PrintProcesses(std::ostream& Stream);
   int                 ProcessStatus (std::ostream& Stream);
   int                 Tlvls         (std::ostream& Stream);
+  int                 Tshow         (std::ostream& Stream);
   
   static void         ProcessCommand(int hDB, int hKey, void* Info);
   

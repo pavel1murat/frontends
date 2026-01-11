@@ -31,7 +31,7 @@ function tfm_get_node_name(index) {
 // node id = 'nodeXXX' - provide for 1000 nodes
 //-----------------------------------------------------------------------------
 function tfm_choose_node_id(evt, id) {
-  var i, tabs;
+  let i, tabs;
   tabs = document.getElementsByClassName("nodetabs");
   for (i=0; i<tabs.length; i++) {
     tabs[i].className = tabs[i].className.replace(" active", "");
@@ -57,7 +57,7 @@ function tfm_update_node_id(evt, id) {
 // node id = 'nodeXXX' - provide for 1000 nodes
 //-----------------------------------------------------------------------------
 function tfm_choose_artdaq_process_id(evt, id) {
-  var i, tabs;
+  let i, tabs;
   tabs = document.getElementsByClassName("process_tabs");
   for (i=0; i<tabs.length; i++) {
     tabs[i].className = tabs[i].className.replace(" active", "");
@@ -126,10 +126,10 @@ async function tfm_get_list_of_nodes() {
 //-----------------------------------------------------------------------------
 async function tfm_command_set_odb(cmd) {
   
-  var paths=[cmd.parameter_path+'/Name',
-             cmd.parameter_path+'/ParameterPath',
-             cmd.parameter_path+'/Finished',
-             cmd.parameter_path+'/Run',
+  const paths=[cmd.parameter_path+'/Name',
+               cmd.parameter_path+'/ParameterPath',
+               cmd.parameter_path+'/Finished',
+               cmd.parameter_path+'/Run',
   ];
 
   try {
@@ -144,7 +144,7 @@ async function tfm_command_set_odb(cmd) {
 
   while(done == 0) {
       // check whether the command has finished
-    var paths=[cmd.parameter_path+'/Run', cmd.parameter_path+'/Finished'];
+    const paths=[cmd.parameter_path+'/Run', cmd.parameter_path+'/Finished'];
     let run      = 1;
     let finished = 0;
     sleep(500);
@@ -171,16 +171,17 @@ async function tfm_command_set_odb(cmd) {
 //-----------------------------------------------------------------------------
 async function tfm_command_set_odb_B(cmd) {
 
-  let ppath = cmd.func_parameter_path(g_hostname);
+  const ppath = cmd.func_parameter_path(g_hostname);
   
-  var paths=[ppath+'/Name',
-             ppath+'/ParameterPath',
-             ppath+'/Finished',
-             ppath+'/Run',
+  const paths=[ppath+'/Name',
+               ppath+'/ParameterPath',
+               ppath+'/Finished',
+               ppath+'/Run',
+               ppath+'/logfile',
   ];
 
   try { 
-    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,1]);
+    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,1,cmd.logfile]);
     let result=rpc.result;	      
   }
   catch(error) {
@@ -191,7 +192,7 @@ async function tfm_command_set_odb_B(cmd) {
 
   while(done == 0) {
       // check whether the command has finished
-    var paths=[ppath+'/Run', ppath+'/Finished'];
+    const paths=[ppath+'/Run', ppath+'/Finished'];
     let run      = 1;
     let finished = 0;
     sleep(500);
@@ -209,7 +210,7 @@ async function tfm_command_set_odb_B(cmd) {
   // display the logfile. THis is the only non-generic place
   // if the command was a struct with the logfile being one of its parameters,
   // this function became completely generic
-  displayFile('artdaq.log', 'messageFrame');
+  displayFile(cmd.logfile, 'messageFrame');
 }
 
 //-----------------------------------------------------------------------------
@@ -235,7 +236,7 @@ async function tfm_load_pars_and_execute(cmd) {
   let process_label   = tfm_get_artdaq_process_label(g_process);
   let active_run_conf = await odb_get_active_run_conf_name();
   
-  var paths=[ppath+'/host',
+  let paths=[ppath+'/host',
              ppath+'/process',
              ppath+'/run_conf',
   ];

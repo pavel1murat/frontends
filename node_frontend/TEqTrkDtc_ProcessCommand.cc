@@ -77,9 +77,8 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   TEqTrkDtc*            eq_dtc = (TEqTrkDtc*) TEquipmentManager::Instance()->_eq_dtc[pcie_addr];
   trkdaq::DtcInterface* dtc_i  = eq_dtc->Dtc_i();
 
-  ss << "--host_label:" << eq_dtc->HostLabel() << " host_name:" << eq_dtc->FullHostName()
-     << " cmd:" << cmd << " pcie_addr:" << dtc_i->PcieAddr()
-     << " link:" << link; // << " parameter_path:" << parameter_path;
+  ss << std::format("-- label:{} host:{} cmd:{} pcie_addr:{} link:{}",
+                    eq_dtc->HostLabel(),eq_dtc->FullHostName(),cmd,dtc_i->PcieAddr(),link);
 //-----------------------------------------------------------------------------
 // CONFIGURE_JA
 //------------------------------------------------------------------------------
@@ -92,29 +91,32 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
       TLOG(TLVL_ERROR) << "coudn't execute DtcInterface::ConfigureJA ... BAIL OUT";
     }
   }
+//-----------------------------------------------------------------------------
+// DUMP_SETTINGS
+//-----------------------------------------------------------------------------
   else if (cmd == "dump_settings") {
-//-----------------------------------------------------------------------------
-// 
-//-----------------------------------------------------------------------------
     ss << std::endl;
-    TLOG(TLVL_DEBUG) << "arrived at dump_settings";
+    TLOG(TLVL_DEBUG) << std::format("arrived at {}",cmd);
  
     cmd_rc = eq_dtc->DumpSettings(ss);
   }
+//-----------------------------------------------------------------------------
+// FIND_ALIGNMENT
+//-----------------------------------------------------------------------------
   else if (cmd == "find_alignment") {
     cmd_rc = eq_dtc->FindAlignment(ss);
   }
-  else if (cmd == "find_thresholds") {
 //-----------------------------------------------------------------------------
 // FIND_THRESHOLDS
 //-----------------------------------------------------------------------------
+  else if (cmd == "find_thresholds") {
     ss << std::endl;
     cmd_rc = eq_dtc->FindThresholds(ss);
   }
-  else if (cmd == "get_key") {
 //-----------------------------------------------------------------------------
 // GET KEY ... TODO
 //-----------------------------------------------------------------------------
+  else if (cmd == "get_key") {
     ss << std::endl;
     cmd_rc = eq_dtc->GetKey(ss);
   }
@@ -140,7 +142,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     // ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at hard_reset";
  
-    try         { dtc_i->Dtc()->HardReset(); ss << "hart reset OK" << std::endl; }
+    try         { dtc_i->Dtc()->HardReset(); ss << " hard reset OK" << std::endl; }
     catch (...) { ss << "ERROR : coudn't hard reset the DTC ... BAIL OUT" << std::endl; }
   }
   else if (cmd == "init_readout") {
@@ -165,14 +167,6 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     cmd_rc = eq_dtc->MeasureThresholds(ss);
   }
 //-----------------------------------------------------------------------------
-// // PRINT ROC STATUS
-// //-----------------------------------------------------------------------------
-//   else if (cmd == "print_roc_status") {
-//     ss << std::endl;
-//     try         { dtc_i->PrintRocStatus(1,-1,ss); }
-//     catch (...) { ss << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
-//   }
-//-----------------------------------------------------------------------------
 // PRINT STATUS
 //-----------------------------------------------------------------------------
   else if (cmd == "print_status") {
@@ -188,7 +182,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     try {
       cmd_rc = eq_dtc->PrintRocStatus(ss);
     }
-    catch (...) { ss << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
+    catch (...) { ss << " ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
   }  
   else if (cmd == "pulser_off") {
 //-----------------------------------------------------------------------------

@@ -202,9 +202,9 @@ function loadPage() {
       let cmd      = new Command('load_parameters','cmd_params','/Mu2e/ActiveRunConfiguration/DAQ/Tfm');
       let btn      = tfm_make_simple_button(cmd);
       td2.appendChild(btn);
-    //-----------------------------------------------------------------------------
-    // create a "get_state" drop-button
-    //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// create a "get_state" drop-button
+//-----------------------------------------------------------------------------
       cmd = new Command('get_state','cmd_params'   ,'/Mu2e/Commands/DAQ/Tfm');
       btn = tfm_make_dropup_button(cmd);
       td2.appendChild(btn);
@@ -213,33 +213,34 @@ function loadPage() {
       let btn1 = tfm_make_dropup_button(cmd);
       td2.appendChild(btn1);
       
-//      cmd  = new Command('print_fcl','cmd_params','/Mu2e/Commands/DAQ/Tfm');
-//      let btn2 = tfm_make_dropup_button(cmd);
-//      td2.appendChild(btn2);
-      
-      cmd  = new Command_B('print_fcl','print_fcl',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path);
-      let btn2 = tfm_make_dropup_button_B(cmd);
+      // which logfile the output should go? - artdaq.log
+      let cmd_b  = new Command_B('print_fcl','print_fcl',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,"artdaq.log");
+      let btn2 = tfm_make_dropup_button_B(cmd_b);
       td2.appendChild(btn2);
       
-      // which logfile the output should go? - artdaq.log
-      cmd  = new Command_B('tlvls','tlvls',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path);
-      let btn3 = tfm_make_exec_button_B(cmd);
+      // output of everything trace-related goes to trace.log
+      cmd_b  = new Command_B('tlvls','tlvls',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      let btn3 = tfm_make_exec_button_B(cmd_b);
       td2.appendChild(btn3);
       
-      cmd  = new Command_B('tonM','tonM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path);
-      btn3 = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn3);
-
-      cmd  = new Command_B('toffM','toffM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path);
-      btn3 = tfm_make_exec_button_B(cmd);
+      cmd_b  = new Command_B('tshow','tshow',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn3 = tfm_make_dropup_button_B(cmd_b);
       td2.appendChild(btn3);
       
-      cmd  = new Command_B('tonS','tonS',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path);
-      btn3 = tfm_make_exec_button_B(cmd);
+      cmd_b  = new Command_B('tonM','tonM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn3 = tfm_make_exec_button_B(cmd_b);
       td2.appendChild(btn3);
 
-      cmd  = new Command_B('toffS','toffS',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path);
-      btn3 = tfm_make_exec_button_B(cmd);
+      cmd_b  = new Command_B('toffM','toffM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn3 = tfm_make_exec_button_B(cmd_b);
+      td2.appendChild(btn3);
+      
+      cmd_b  = new Command_B('tonS','tonS',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn3 = tfm_make_exec_button_B(cmd_b);
+      td2.appendChild(btn3);
+
+      cmd_b  = new Command_B('toffS','toffS',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn3 = tfm_make_exec_button_B(cmd_b);
       td2.appendChild(btn3);
       
       // and the last action button not using ODB

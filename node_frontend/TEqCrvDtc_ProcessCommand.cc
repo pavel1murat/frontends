@@ -99,7 +99,7 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     // ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at hard_reset";
  
-    try         { dtc_i->Dtc()->HardReset(); ss << "hart reset OK" << std::endl; }
+    try         { dtc_i->Dtc()->HardReset(); ss << " hard reset OK" << std::endl; }
     catch (...) { ss << "ERROR : coudn't hard reset the DTC ... BAIL OUT" << std::endl; }
   }
   else if (cmd == "init_readout") {
