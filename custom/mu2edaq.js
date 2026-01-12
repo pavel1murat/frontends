@@ -40,6 +40,9 @@ function node_artdaq_parameter_path(hostname) {
 }
 
 //-----------------------------------------------------------------------------
+function tfm_cmd_parameter_path(hostname) { return `/Mu2e/Commands/DAQ/Tfm`; }
+
+//-----------------------------------------------------------------------------
 // common javascript functions
 // DAQ colors. Each element has 'Enabled' and 'Status' field
 //-----------------------------------------------------------------------------
@@ -91,7 +94,17 @@ function displayFile(filePath, elementId) {
   fetch(filePath)
     .then(response => response.text())
     .then(text => {
-      document.getElementById(elementId).textContent = text;
+      // document.getElementById(elementId).textContent = text;
+
+      log = document.getElementById(elementId);
+      
+      const lines = text.split('\n');
+
+      for (line of lines) {
+        const newline = document.createElement('div');
+        newline.textContent = line;
+        log.appendChild(newline);
+      }
     })
     .catch(err => {
       console.error("Error loading file:", err);
@@ -223,8 +236,3 @@ function make_set_odb_button(cmda) {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-// emacs
-// Local Variables:
-// mode: web
-// End:

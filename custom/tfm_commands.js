@@ -162,7 +162,10 @@ async function tfm_command_set_odb(cmd) {
   // display the logfile. THis is the only non-generic place
   // if the command was a struct with the logfile being one of its parameters,
   // this function became completely generic
-  displayFile('artdaq.log', 'messageFrame');
+
+  let logfile = 'artdaq.log'
+  if (g_logfile != null) { logfile = g_logfile; }
+  displayFile(logfile, 'messageFrame');
 }
 
 //-----------------------------------------------------------------------------
@@ -180,8 +183,14 @@ async function tfm_command_set_odb_B(cmd) {
                ppath+'/logfile',
   ];
 
-  try { 
-    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,1,cmd.logfile]);
+  let logfile = cmd.logfile;
+  
+  if (logfile == null) { logfile   = g_logfile; }
+  else                 { g_logfile = logfile  ; }
+  
+  try {
+    
+    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,1,logfile]);
     let result=rpc.result;	      
   }
   catch(error) {
@@ -210,7 +219,8 @@ async function tfm_command_set_odb_B(cmd) {
   // display the logfile. THis is the only non-generic place
   // if the command was a struct with the logfile being one of its parameters,
   // this function became completely generic
-  displayFile(cmd.logfile, 'messageFrame');
+
+  displayFile(logfile, 'messageFrame');
 }
 
 //-----------------------------------------------------------------------------

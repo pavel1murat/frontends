@@ -46,7 +46,8 @@ exit
 #+end_src
 
 * Commands
-- format of commands is common for all run configurations
+- the /Mu2e/Commands tree stores parameters of all commands.
+- the tree is common for all run configurations
 - to update commands using odbedit:
 #+begin_src
 > odbedit

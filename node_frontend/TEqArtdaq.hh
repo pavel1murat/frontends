@@ -31,7 +31,7 @@ public:
   int                 PrintProcesses(std::ostream& Stream);
   int                 ProcessStatus (std::ostream& Stream);
   int                 Tlvls         (std::ostream& Stream);
-  int                 Tshow         (std::ostream& Stream);
+  int                 Tshow         (std::ostream& Stream, const std::string& Logfile);
   
   static void         ProcessCommand(int hDB, int hKey, void* Info);
   

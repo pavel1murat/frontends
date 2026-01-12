@@ -12,8 +12,9 @@
   
   <script src="global_variables.js"></script>
   <script src="mu2edaq.js"></script>
+  <script src="mu2e_mess_001.js"></script>
   <script src="tfm_commands.js"></script>
-    
+  
   <title>TFM control</title>
     
   <script>
@@ -244,8 +245,8 @@ function loadPage() {
       td2.appendChild(btn3);
       
       // and the last action button not using ODB
-      cmd  = new Command('reset_output','cmd_params','/Mu2e/Commands/DAQ/Tfm');
-      btn3 = tfm_make_exec_button(cmd);
+      cmd  = new Command_B('reset_output','reset_output',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,null);
+      btn3 = tfm_make_exec_button_B(cmd);
       td2.appendChild(btn3);
       
       tr2.appendChild(td2);

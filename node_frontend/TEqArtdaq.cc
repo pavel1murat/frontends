@@ -471,7 +471,9 @@ int TEqArtdaq::Tlvls(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
-int TEqArtdaq::Tshow(std::ostream& Stream) {
+// logfile is a short string, not qualified with the path
+//-----------------------------------------------------------------------------
+int TEqArtdaq::Tshow(std::ostream& Stream, const std::string& Logfile) {
   int rc(0);
   TLOG(TLVL_DEBUG) << "-- START";
 
@@ -479,6 +481,10 @@ int TEqArtdaq::Tshow(std::ostream& Stream) {
   HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
 
   int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+
+  std::string path = Odb_i()->GetString(0,"/Logger/Data dir");
+
+  std::string fn = std::format("{}/{}",path,Logfile);
   // tshow | tdelta -ct 1 -d 1
 
   // declare -f tshow  : { test -n "${PAGER-}" && trace_cntl show "$@" | $PAGER || trace_cntl show "$@" }
@@ -487,13 +493,13 @@ int TEqArtdaq::Tshow(std::ostream& Stream) {
   // std::string par_tshow ("");
   // std::string par_tdelta("-ct 1 -d 1");
   
-  std::string cmd = std::format("trace_cntl show | trace_delta -ct 1 -d 1 | head -n 500");
+  std::string cmd = std::format("trace_cntl show | trace_delta -ct 1 -d 1 | head -n 500 >> {}",fn);
 
   TLOG(TLVL_DEBUG) << "cmd=" << cmd;
   
   std::string output = popen_shell_command(cmd);
 
-  Stream << "\n" << output;
+  Stream << "-- Tshow done\n";
   
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
   return rc;
@@ -571,7 +577,7 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
     cmd_rc = eq->Tlvls(ss);
   }
   else if (cmd == "tshow") {
-    cmd_rc = eq->Tshow(ss);
+    cmd_rc = eq->Tshow(ss,logfile);
   }
   else {
     ss << " ERROR: Unknown command:" << cmd;
