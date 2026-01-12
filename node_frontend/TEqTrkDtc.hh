@@ -77,6 +77,7 @@ public:
   int         Read             (std::ostream& Stream);
   int         ReadDDR          (std::ostream& Stream);
   int         ReadIlp          (std::ostream& Stream);
+  int         ReadMnID         (std::ostream& Stream);
   int         ReadRegister     (std::ostream& Stream);
   int         ReadRocRegister  (std::ostream& Stream);
   int         ReadSpi          (std::ostream& Stream);

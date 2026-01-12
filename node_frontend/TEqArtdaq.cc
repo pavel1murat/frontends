@@ -437,12 +437,13 @@ int TEqArtdaq::PrintProcesses(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 int TEqArtdaq::ProcessStatus(std::ostream& Stream) {
   int rc;
-  TLOG(TLVL_DEBUG) << "-- START";
 
   HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
   HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
 
   int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+
+  TLOG(TLVL_DEBUG) << std::format("-- START: print_level:{}",print_level);
 
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
   return rc;

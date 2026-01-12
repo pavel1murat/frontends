@@ -577,18 +577,23 @@ int TEqTrkDtc::MeasureThresholds(std::ostream& Stream) {
 // link=-1: print status of all enabled ROCs
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::PrintRocStatus(std::ostream& Stream) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "-- START";
   
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  //  HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,"print_roc_status");
 
-  int link        = odb_i->GetInteger(h_cmd,"link"       );
+  int link        = odb_i->GetInteger(h_cmd,"link");
+  
+  TLOG(TLVL_DEBUG) << std::format("link:{}",link);
   try         {
     _dtc_i->PrintRocStatus(1,link,Stream);
   }
   catch (...) {
     Stream << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl;
   }
+  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
   return 0;
 }
 
@@ -1018,20 +1023,93 @@ int TEqTrkDtc::ReadRocRegister(std::ostream& Stream) {
 
 
 //-----------------------------------------------------------------------------
+int TEqTrkDtc::ReadMnID(std::ostream& Stream) {
+  int rc(0);
+
+  OdbInterface* odb_i     = OdbInterface::Instance();
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(HostLabel(),_dtc_i->PcieAddr());
+  HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
+
+  int link         = odb_i->GetInteger(h_cmd    ,"link"       ); // o["link"       ];
+  int print_level  = odb_i->GetInteger(h_cmd_par,"print_level"); // o["print_level"];
+
+  TLOG(TLVL_DEBUG) << std::format("-- START: DTC:{} link:{} print_level:{}",_dtc_i->PcieAddr(),link,print_level);
+
+  if (not _dtc_i->LinkEnabled(link)) {
+    std::string msg = std::format("DTC:{} link:{} not enabled",_dtc_i->PcieAddr(),link);
+    TLOG(TLVL_ERROR) << msg;
+    Stream << "ERROR: " << msg << "\n";
+    return -1;
+  }
+
+  if (not _dtc_i->LinkLocked(link)) {
+    std::string msg = std::format("DTC:{} link:{} enabled but not lockd",_dtc_i->PcieAddr(),link);
+    TLOG(TLVL_ERROR) << msg;
+    Stream << "ERROR: " << msg << "\n";
+    return -2;
+  }
+  
+  try         {
+    if (link != -1) {
+      std::vector<uint16_t>   data;
+      _dtc_i->ControlRoc_ReadSpi(data,link,print_level,Stream);
+    }
+    else {
+                                        // need formatted printout for all ROCs
+      trkdaq::TrkSpiData_t spi[6];
+      for (int i=0; i<6; i++) {
+                                        // to print
+        link = i;
+        if (_dtc_i->LinkEnabled(i)) {
+          _dtc_i->ControlRoc_ReadSpi_1(&spi[i],i,0,Stream);
+        }
+      }
+                                        // now - printing
+      _dtc_i->PrintSpiAll(spi,Stream);
+    }
+  }
+  catch (...) {
+//-----------------------------------------------------------------------------
+// send an error message and print 
+//-----------------------------------------------------------------------------
+    std::string msg = std::format("TEqTrkDtc::{}: ERROR reading ROC SPI dtc:{} link:{}",
+                                  __func__,_dtc_i->PcieAddr(),link);
+    cm_msg(MERROR, HostLabel().data(),msg.data());    
+    Stream << msg << " on " << HostLabel() << std::endl;
+    rc = -1;
+  }
+
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 int TEqTrkDtc::ReadIlp(std::ostream& Stream) {
   int rc(0);
 
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   std::string   cmd_name  = odb_i->GetString(h_cmd,"Name");
-  //  HNDLE         h_cmd_par = odb_i->GetHandle(h_cmd,cmd_name);
   HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
 
   int link        = odb_i->GetInteger(h_cmd    ,"link"    );
-  //  midas::odb o   ("/Mu2e/Commands/Tracker/DTC/control_roc_read_ilp");
 
-  //  int link         = o["link"       ];
   int print_level  = odb_i->GetInteger(h_cmd_par,"print_level");
+  
+  if (not _dtc_i->LinkEnabled(link)) {
+    std::string msg = std::format("DTC:{} link:{} not enabled",_dtc_i->PcieAddr(),link);
+    TLOG(TLVL_ERROR) << msg;
+    Stream << "ERROR: " << msg << "\n";
+    return -1;
+  }
+
+  if (not _dtc_i->LinkLocked(link)) {
+    std::string msg = std::format("DTC:{} link:{} enabled but not lockd",_dtc_i->PcieAddr(),link);
+    TLOG(TLVL_ERROR) << msg;
+    Stream << "ERROR: " << msg << "\n";
+    return -2;
+  }
   
   try         {
     std::vector<uint16_t>   data;
