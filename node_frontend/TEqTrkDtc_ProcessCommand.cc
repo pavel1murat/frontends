@@ -16,7 +16,7 @@
 // also, can run command processing as a detached thread 
 //-----------------------------------------------------------------------------
 void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
-  TLOG(TLVL_DEBUG) << "-- START TEqTrkDtc::" << __func__;
+  TLOG(TLVL_DEBUG) << "-- START";
 
   // in the end, ProcessCommand should send ss.str() as a message to some log
   std::stringstream ss;
@@ -230,6 +230,13 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
     ss << std::endl;
     cmd_rc = eq_dtc->ReadDDR(ss);
+  }
+  else if (cmd == "read_mnid") {
+//-----------------------------------------------------------------------------
+// read panel MinnesotaID
+//-----------------------------------------------------------------------------
+    ss << std::endl;
+    cmd_rc = eq_dtc->ReadMnID(ss);
   }
   else if (cmd == "read_ilp") {
 //-----------------------------------------------------------------------------
