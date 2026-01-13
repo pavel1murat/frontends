@@ -1035,48 +1035,34 @@ int TEqTrkDtc::ReadMnID(std::ostream& Stream) {
 
   TLOG(TLVL_DEBUG) << std::format("-- START: DTC:{} link:{} print_level:{}",_dtc_i->PcieAddr(),link,print_level);
 
-  if (not _dtc_i->LinkEnabled(link)) {
-    std::string msg = std::format("DTC:{} link:{} not enabled",_dtc_i->PcieAddr(),link);
-    TLOG(TLVL_ERROR) << msg;
-    Stream << "ERROR: " << msg << "\n";
-    return -1;
+  int lnk1 = link;
+  int lnk2 = lnk1+1;
+  if (link == -1) {
+    lnk1 = 0;
+    lnk2 = 6;
   }
 
-  if (not _dtc_i->LinkLocked(link)) {
-    std::string msg = std::format("DTC:{} link:{} enabled but not lockd",_dtc_i->PcieAddr(),link);
-    TLOG(TLVL_ERROR) << msg;
-    Stream << "ERROR: " << msg << "\n";
-    return -2;
-  }
+  int pcie_addr = _dtc_i->PcieAddr();
   
-  try         {
-    if (link != -1) {
-      std::vector<uint16_t>   data;
-      _dtc_i->ControlRoc_ReadSpi(data,link,print_level,Stream);
+  for (int lnk=lnk1; lnk<lnk2; lnk++) {
+    if (not _dtc_i->LinkEnabled(lnk)) {
+      std::string msg = std::format("DTC:{} link:{} not enabled",pcie_addr,lnk);
+      TLOG(TLVL_ERROR) << msg;
+      Stream << "ERROR: " << msg << "\n";
+      rc -= 1;
+      continue;
     }
-    else {
-                                        // need formatted printout for all ROCs
-      trkdaq::TrkSpiData_t spi[6];
-      for (int i=0; i<6; i++) {
-                                        // to print
-        link = i;
-        if (_dtc_i->LinkEnabled(i)) {
-          _dtc_i->ControlRoc_ReadSpi_1(&spi[i],i,0,Stream);
-        }
-      }
-                                        // now - printing
-      _dtc_i->PrintSpiAll(spi,Stream);
+
+    if (not _dtc_i->LinkLocked(lnk)) {
+      std::string msg = std::format("DTC:{} link:{} enabled but not locked",pcie_addr,lnk);
+      TLOG(TLVL_ERROR) << msg;
+      Stream << "ERROR: " << msg << "\n";
+      rc -= 10;
+      continue;
     }
-  }
-  catch (...) {
-//-----------------------------------------------------------------------------
-// send an error message and print 
-//-----------------------------------------------------------------------------
-    std::string msg = std::format("TEqTrkDtc::{}: ERROR reading ROC SPI dtc:{} link:{}",
-                                  __func__,_dtc_i->PcieAddr(),link);
-    cm_msg(MERROR, HostLabel().data(),msg.data());    
-    Stream << msg << " on " << HostLabel() << std::endl;
-    rc = -1;
+
+    int mnid = _dtc_i->ReadPanelID(lnk,print_level);
+    Stream << std::format("DTC:{} link:{} mnid:{}\n",pcie_addr,lnk,mnid);
   }
 
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
