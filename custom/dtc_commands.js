@@ -62,34 +62,6 @@ function cfo_command(cmd) {
 }
 
 //-----------------------------------------------------------------------------
-function dtc_command_save(cmd) {
-  let msg = { "client_name":g_hostname,
-              "cmd":cmd,
-              "max_reply_length":100000,
-              "args":'{"eq_type":"dtc","pcie":'+g_pcie.toString()+',"roc":'+g_roc.toString()+'}'};
-  
-  mjsonrpc_call("jrpc",msg).then(function(rpc1) {
-    let s = rpc1.result.reply
-    console.log(s.length);
-    let y = '<br>'+s.replaceAll(/\n/gi,'<br>').replace(/ /g, '&nbsp;');
-    
-    const el = document.getElementById("content");
-    el.innerHTML += y;
-    el.style.fontFamily = 'monospace';
-    // el.scrollIntoView();
-    const sel = (el || document.body);
-    sel.scrollTop = sel.scrollHeight;
-    const scrollToBottom = (id) => {
-      el.scrollTop = el.scrollHeight;
-    }
-    el.classList.toggle('force-redraw');
-    
-  }).catch(function(error){
-    mjsonrpc_error_alert(error);
-  });
-}
-
-//-----------------------------------------------------------------------------
 function dtc_command(cmd) {
   let msg = { "client_name":g_hostname,
               "cmd":cmd,
@@ -133,12 +105,13 @@ async function dtc_command_set_odb(cmd,logfile) {
   let p0 = '/Mu2e/Commands/DAQ/Nodes/'+g_hostname+'/DTC'+g_pcie;
 
   const paths=[p0+'/Name',
+               p0+'/link',
                p0+'/ParameterPath',
                p0+'/Finished',
   ];
 
   try {
-    let rpc = await mjsonrpc_db_paste(paths, [cmd,p0,0]);
+    let rpc = await mjsonrpc_db_paste(paths, [cmd,g_roc,p0,0]);
     // parameters are set, trigger the execution by setting odb["/Mu2e/Commands/Tracker/Run"] = 1  }
     try {
       let rpc = mjsonrpc_db_paste([p0+'/Run'], [1]);

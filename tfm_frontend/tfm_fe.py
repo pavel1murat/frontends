@@ -61,7 +61,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
 # or None (if we shouldn't write an event).
 #------------------------------------------------------------------------------
     def readout_func(self):
-        TRACE.DBG(1,":001: -- START",TRACE_NAME)
+        TRACE.TRACE(TRACE.TLVL_DBG+1,":001: -- START",TRACE_NAME)
         # In this example, we just make a simple event with one bank.
 
         # event = midas.event.Event()
@@ -71,7 +71,7 @@ class TfmEquipment(midas.frontend.EquipmentBase):
         # data = [1,2,3,4,5,6,TRACE.TLVL_LOG,8]
         # event.create_bank("MYBK", midas.TID_INT, data)
 
-        TRACE.DBG(1,"-- END",TRACE_NAME)
+        TRACE.TRACE(TRACE.TLVL_DBG+1,"-- END",TRACE_NAME)
         return None;        # event
 
 #------------------------------------------------------------------------------
@@ -154,11 +154,10 @@ class TfmFrontend(midas.frontend.FrontendBase):
         
         TRACE.TRACE(TRACE.TLVL_LOG,"004: tfm instantiated, self.use_runinfo_db=%i"%(self.use_runinfo_db))
 
-#        cmd=f"cat {os.getenv('MIDAS_EXPTAB')} | awk -v expt={os.getenv('MIDAS_EXPT_NAME')} '{{if ($1==expt) {{print $2}} }}'"
-#        process = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
-#        stdout, stderr = process.communicate();
-
-        self.message_fn = self.client.odb_get("/Logger/Data dir")+'/artdaq.log';
+        cmd=f"cat {os.getenv('MIDAS_EXPTAB')} | awk -v expt={os.getenv('MIDAS_EXPT_NAME')} '{{if ($1==expt) {{print $2}} }}'"
+        process = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+        stdout, stderr = process.communicate();
+        self.message_fn = stdout.decode('utf-8').split()[0]+'/artdaq.log';
 #------------------------------------------------------------------------------
 # runinfo DB related stuff
 #-------v----------------------------------------------------------------------
@@ -331,19 +330,9 @@ class TfmFrontend(midas.frontend.FrontendBase):
         return rc;
 
 #------------------------------------------------------------------------------
-    def process_cmd_reset_output(self,parameter_path,logfile):
-        
-        TRACE.DEBUG(0,f'-- START: parameter_path:{parameter_path} logfile:{logfile}',TRACE_NAME);
-
-        fn = self.message_fn;
-        if (logfile != ''):
-            fn = self.client.odb_get('/Logger/Data dir')+'/'+logfile;
-        
-        TRACE.DEBUG(0,f'resetting fn:{fn}',TRACE_NAME);
-        file = open(fn,'w');
+    def process_cmd_reset_output(self,parameter_path):
+        file = open(self.message_fn, 'w');
         file.close();
-
-        TRACE.DEBUG(0,f'-- END',TRACE_NAME);
         return 0;
 
 #------------------------------------------------------------------------------
@@ -457,9 +446,8 @@ class TfmFrontend(midas.frontend.FrontendBase):
         """
         run      = self.client.odb_get(self.cmd_top_path+'/Run' )
         cmd_name = self.client.odb_get(self.cmd_top_path+'/Name')
-        logfile  = self.client.odb_get(self.cmd_top_path+'/logfile')
         
-        TRACE.DEBUG(0,f'-- START: path:{path} cmd_name:{cmd_name} run:{run} logfile:{logfile}',TRACE_NAME);
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'path:{path} cmd_name:{cmd_name} run:{run}',TRACE_NAME);
         if (run != 1):
 #-------^----------------------------------------------------------------------
 # likely, self-resetting the request
@@ -485,16 +473,14 @@ class TfmFrontend(midas.frontend.FrontendBase):
         elif (cmd_name.upper() == 'PRINT_FCL'):
             rc = self.process_cmd_print_fcl(parameter_path);
         elif (cmd_name.upper() == 'RESET_OUTPUT'):
-            rc = self.process_cmd_reset_output(parameter_path,logfile);
+            rc = self.process_cmd_reset_output(parameter_path);
 #------------------------------------------------------------------------------
 # when done, set state to rc; 0=ready)
 #------------------------------------------------------------------------------
         self.client.odb_set(self.tfm_odb_path+'/Status'  ,rc)
-        
-        self.client.odb_set(self.cmd_top_path+'/Run'     ,0)
-        self.client.odb_set(self.cmd_top_path+'/Finished',1)
+        self.client.odb_set(self.tfm_odb_path+'/Run'     ,0)
+        self.client.odb_set(self.tfm_odb_path+'/Finished',1)
 
-        TRACE.DEBUG(0,f'-- END: path:{path} cmd_name:{cmd_name} run:{run} logfile:{logfile}',TRACE_NAME);
         return
     
 
