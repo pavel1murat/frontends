@@ -72,6 +72,8 @@ TEqArtdaq::TEqArtdaq(const char* EqName) : TMu2eEqBase(EqName) {
 //-----------------------------------------------------------------------------
   HNDLE hdb           = _odb_i->GetDbHandle();
   HNDLE h_artdaq_conf = _odb_i->GetArtdaqConfHandle(_h_active_run_conf,_host_label);
+  int partition_id    = _odb_i->GetPartitionID(_h_active_run_conf);
+  
   HNDLE h_component;
   KEY   component;
   for (int i=0; db_enum_key(hdb, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
@@ -113,9 +115,10 @@ TEqArtdaq::TEqArtdaq(const char* EqName) : TMu2eEqBase(EqName) {
     else if (ac.name.find("dl") == 0) ac.type = kDataLogger;
     else if (ac.name.find("ds") == 0) ac.type = kDispatcher;
 
-    int x;
-    _odb_i->GetInteger(h_component,"XmlrpcPort",&x);
-    ac.xmlrpc_port = std::format("{}",x);
+    int rank;
+    _odb_i->GetInteger(h_component,"Rank",&rank);
+    int xmlrpc_port = 10000+1000*partition_id+rank;
+    ac.xmlrpc_port = std::format("{}",xmlrpc_port);
     
     ac.subsystem   = _odb_i->GetString (h_component,"Subsystem");
 

@@ -94,8 +94,6 @@ function displayFile(filePath, elementId) {
   fetch(filePath)
     .then(response => response.text())
     .then(text => {
-      // document.getElementById(elementId).textContent = text;
-
       log = document.getElementById(elementId);
       
       const lines = text.split('\n');
