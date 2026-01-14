@@ -12,5 +12,5 @@ let g_plane    = 0;
 let g_panel    = 0;
 let g_mnid     = 0;    // integer
 //-----------------------------------------------------------------------------
-g_logfile      = null;
+g_logfile      = 'artdaq.log';
 

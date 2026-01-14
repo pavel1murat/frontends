@@ -330,8 +330,10 @@ class TfmFrontend(midas.frontend.FrontendBase):
         return rc;
 
 #------------------------------------------------------------------------------
-    def process_cmd_reset_output(self,parameter_path):
-        file = open(self.message_fn, 'w');
+    def process_cmd_reset_output(self,parameter_path,logfile):
+        exp_dir     = self.client.odb_get("/Logger/Data dir");
+        fn = f'{exp_dir}/{logfile}'
+        file = open(fn, 'w');
         file.close();
         return 0;
 
@@ -446,6 +448,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         """
         run      = self.client.odb_get(self.cmd_top_path+'/Run' )
         cmd_name = self.client.odb_get(self.cmd_top_path+'/Name')
+        logfile  = self.client.odb_get(self.cmd_top_path+'/logfile')
         
         TRACE.TRACE(TRACE.TLVL_DEBUG,f'path:{path} cmd_name:{cmd_name} run:{run}',TRACE_NAME);
         if (run != 1):
@@ -473,7 +476,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         elif (cmd_name.upper() == 'PRINT_FCL'):
             rc = self.process_cmd_print_fcl(parameter_path);
         elif (cmd_name.upper() == 'RESET_OUTPUT'):
-            rc = self.process_cmd_reset_output(parameter_path);
+            rc = self.process_cmd_reset_output(parameter_path,logfile);
 #------------------------------------------------------------------------------
 # when done, set state to rc; 0=ready)
 #------------------------------------------------------------------------------

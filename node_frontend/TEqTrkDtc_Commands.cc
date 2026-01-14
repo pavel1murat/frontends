@@ -519,9 +519,9 @@ int TEqTrkDtc::MeasureThresholds(std::ostream& Stream) {
   OdbInterface* odb_i  = OdbInterface::Instance();
 
   HNDLE h_cmd          = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  // std::string cmd_name = odb_i->GetString(h_cmd,"Name");
-  // HNDLE h_cmd_par      = odb_i->GetHandle(h_cmd,cmd_name);
-  HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
+  std::string cmd_name = odb_i->GetString(h_cmd,"Name");
+  HNDLE h_cmd_par      = odb_i->GetHandle(h_cmd,cmd_name);
+  // HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
 
   int   link           = odb_i->GetInteger(h_cmd    ,"link"       );
   int   print_level    = odb_i->GetInteger(h_cmd_par,"print_level");

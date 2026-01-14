@@ -111,7 +111,7 @@ async function dtc_command_set_odb(cmd,logfile) {
   ];
 
   try {
-    let rpc = await mjsonrpc_db_paste(paths, [cmd,g_roc,p0,0]);
+    let rpc = await mjsonrpc_db_paste(paths, [cmd,g_roc,p0+'/'+cmd,0]);
     // parameters are set, trigger the execution by setting odb["/Mu2e/Commands/Tracker/Run"] = 1  }
     try {
       let rpc = mjsonrpc_db_paste([p0+'/Run'], [1]);

@@ -97,8 +97,9 @@
 
       // still, command in executed by TFM - parameters need to be stored in '/Mu2e/ActiveRunConfiguration/DAQ/Tfm'
       let odb_tfm_path = '/Mu2e/Commands/DAQ/Tfm';
-      cmd     = new Command('print_fcl','cmd_params',odb_tfm_path);
-      btn     = tfm_make_exec_button_par(cmd);
+      cmd     = new Command_B('print_fcl','print_fcl',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,'artdaq.log');
+//      cmd     = new Command('print_fcl','cmd_params',odb_tfm_path);
+      btn     = tfm_make_exec_button_B(cmd);
       td2.appendChild(btn);
 
       // would like to set some parameters in ODB

@@ -402,8 +402,8 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 //-----------------------------------------------------------------------------
 // if debug_level != 0, always generate diagnostics
 //-----------------------------------------------------------------------------
-          std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
-                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+          std::string msg = std::format("event:{} DTC:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                        ev_counter(),_dtc_i->PcieAddr(),i,rdh->error_code(),roc_nb[i],pc);
           // cm_msg(MINFO, _artdaqLabel.data(),msg.data());
           TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
         }
@@ -416,8 +416,8 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 //-----------------------------------------------------------------------------
 // buffer overflow - make it a warning
 //-----------------------------------------------------------------------------
-            std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
-                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+            std::string msg = std::format("event:{} DTC:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                          ev_counter(),_dtc_i->PcieAddr(),i,rdh->error_code(),roc_nb[i],pc);
             // cm_msg(MINFO, _artdaqLabel.data(),msg.data());
             TLOG(TLVL_WARNING) << _artdaqLabel.data() << ": " << msg;
           }
@@ -426,8 +426,8 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 // timeout - definitely an error
 //-----------------------------------------------------------------------------
             nerr += 1;
-            std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
-                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+            std::string msg = std::format("event:{} DTC:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                          ev_counter(),_dtc_i->PcieAddr(),i,rdh->error_code(),roc_nb[i],pc);
             // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
             TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
           }
@@ -436,8 +436,8 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 // 
 //-----------------------------------------------------------------------------
             nerr += 1;
-            std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
-                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+            std::string msg = std::format("event:{} DTC:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                          ev_counter(),_dtc_i->PcieAddr(),i,rdh->error_code(),roc_nb[i],pc);
             // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
             TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
           }
@@ -446,8 +446,8 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
 // 
 //-----------------------------------------------------------------------------
             nerr += 1;
-            std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
-                                        ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+            std::string msg = std::format("event:{} DTC:{} link:{} ERROR CODE:{:#04x} NBYTES:{} NPACKETS:{}",
+                                          ev_counter(),_dtc_i->PcieAddr(),i,rdh->error_code(),roc_nb[i],pc);
             // cm_msg(MERROR, _artdaqLabel.data(),msg.data());
             TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
           }
@@ -455,8 +455,8 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
       }
 
       if ((rdh->packetCount+1)*16 != rdh->byteCount) { 
-        std::string msg = std::format("event:{} link:{} ERROR CODE:{:#04x} NBYTES:{} != (NPACKETS:{}+1)*16",
-                                      ev_counter(),i,rdh->error_code(),roc_nb[i],pc);
+        std::string msg = std::format("event:{} DTC:{} link:{} ERROR CODE:{:#04x} NBYTES:{} != (NPACKETS:{}+1)*16",
+                                      ev_counter(),_dtc_i->PcieAddr(),i,rdh->error_code(),roc_nb[i],pc);
                                       
         _dtc_i->PrintBuffer((void*) rdh, (rdh->byteCount+16)/2,0,&std::cout);
         TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
@@ -469,7 +469,8 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
       if (roc_nb[i] != 0x10) {
         err_code |= 0x2;
         nerr     += 1;
-        std::string msg = std::format("event:{:10d} non-zero payload for DISABLED link:{}",ev_counter(),i);
+        std::string msg = std::format("event:{:10d} non-zero payload for DISABLED DTC:{} link:{}",
+                                      ev_counter(),_dtc_i->PcieAddr(),i);
         cm_msg(MERROR, _artdaqLabel.data(),msg.data());
         TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
       }
@@ -555,8 +556,10 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 // on a second thought, try to stop the run by sending an "alarm" message
 //-----------------------------------------------------------------------------
   if (sz <= 0) {
-    std::string msg = std::format("{} event:{} ZERO PAYLOAD (n_subevents=0) action:stop_run",__func__,ev_counter());
-    message("alarm", msg);
+
+    // PM may want to reconsider
+    // std::string msg = std::format("{} event:{} ZERO PAYLOAD (n_subevents=0) action:stop_run",__func__,ev_counter());
+    // message("alarm", msg);
 
     cm_msg(MERROR, _artdaqLabel.data(),Form("event: %10li subevents.size():%i",ev_counter(),sz));
     TLOG(TLVL_ERROR) << "event:" << ev_counter() << " subevents.size():" << sz;
@@ -750,10 +753,11 @@ bool mu2e::TrackerBRDR::getNext_(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
 // in the beginning, send message to the Farm manager
 //-----------------------------------------------------------------------------
-  if (ev_counter() == 1) {
-    std::string msg = "TrackerBRDR::getNext: " + std::to_string(ev_counter());
-    message("info",msg);
-  }
+
+  // if (ev_counter() == 1) {
+  //   std::string msg = "TrackerBRDR::getNext: " + std::to_string(ev_counter());
+  //   message("info",msg);
+  // }
 
   if (should_stop()) return false;
 
