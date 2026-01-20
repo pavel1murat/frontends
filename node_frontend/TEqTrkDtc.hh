@@ -55,7 +55,9 @@ public:
   
   TMFeResult  Init             () override;
   virtual int InitVarNames     () override;
-  virtual int ReadMetrics      () override;
+  virtual int HandlePeriodic   () override;
+
+  int         ReadMetrics      ();
   
   virtual int BeginRun         (HNDLE H_RunConf) override;
   

@@ -43,6 +43,9 @@ function node_artdaq_parameter_path(hostname) {
 function tfm_cmd_parameter_path(hostname) { return `/Mu2e/Commands/DAQ/Tfm`; }
 
 //-----------------------------------------------------------------------------
+function test_cmd_parameter_path(cmd) { return `/Mu2e/Commands/Test`; }
+
+//-----------------------------------------------------------------------------
 // common javascript functions
 // DAQ colors. Each element has 'Enabled' and 'Status' field
 //-----------------------------------------------------------------------------
@@ -109,6 +112,17 @@ function displayFile(filePath, elementId) {
     });
   
   return result;
+}
+
+//-----------------------------------------------------------------------------
+async function writeToLog(filePath,textLine) {
+  fetch(filePath,{
+      method : 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body   : JSON.stringify({ content: textLine })
+  }).then(res => res.json())
+    .then(result => console.log("Server says:",result))
+    .catch(err =>console.error("Failed:",err));
 }
 
 //-----------------------------------------------------------------------------
@@ -228,6 +242,83 @@ function make_set_odb_button(cmda) {
 //  btn.onclick = function() { odb_load_table(cmda.parameter_path,cmda.table_id) ; }
   btn.onclick = function() { cmda.func(cmda) ; }
   return btn;
+}
+
+//-----------------------------------------------------------------------------
+// and this one updates ODB
+// the command parameters record is expected to be in path+${cmd}
+//-----------------------------------------------------------------------------
+async function mu2e_command_set_odb_B(cmd) {
+
+  const ppath = cmd.func_parameter_path(g_hostname);
+  
+  const paths=[ppath+'/Name',
+               ppath+'/ParameterPath',
+               ppath+'/Finished',
+               ppath+'/Run',
+               ppath+'/logfile',
+  ];
+
+  let logfile = cmd.logfile;
+  
+  if (logfile == null) { logfile   = g_logfile; }
+  else                 { g_logfile = logfile  ; }
+  
+  try {
+    
+    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,1,logfile]);
+    let result=rpc.result;	      
+  }
+  catch(error) {
+    mjsonrpc_error_alert(error);
+  };
+  
+  let done = 0;
+
+  while(done == 0) {
+      // check whether the command has finished
+    const paths=[ppath+'/Run', ppath+'/Finished'];
+    let run      = 1;
+    let finished = 0;
+    sleep(500);
+    try {
+      let rpc = await mjsonrpc_db_get_values(paths);
+      run      = rpc.result.data[0];
+      finished = rpc.result.data[1];
+    }
+    catch(error) {
+      mjsonrpc_error_alert(error);
+    };
+    done = finished;
+  };
+  
+  // display the logfile. THis is the only non-generic place
+  // if the command was a struct with the logfile being one of its parameters,
+  // this function became completely generic
+
+  displayFile(logfile, 'messageFrame');
+}
+
+//-----------------------------------------------------------------------------
+// input: Command_B
+//-----------------------------------------------------------------------------
+function mu2e_make_exec_button_B(cmd) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.title;
+  btn.onclick = function() { cmd.func(cmd) ; }
+  // btn.onclick = test_mu2e_odb_load_table(cmd); 
+  return btn;
+}
+
+//-----------------------------------------------------------------------------
+// load ODB table corresponding to a given 'odb_path' to HTML table with a given 'table_id'
+// cmd: Cmmand_B - doesn't work yet
+//-----------------------------------------------------------------------------
+function mu2e_odb_load_table(cmd) {
+  const table     = document.getElementById(cmd.table_id);
+  table.innerHTML = '';
+  odb_browser(cmd.table_id,cmd.func_parameter_path(cmd),0);
 }
 
 //-----------------------------------------------------------------------------

@@ -19,7 +19,7 @@
 // stored in the TRACKER command
 // perhaps do not need passing the CmdParameterPath
 //-----------------------------------------------------------------------------
-int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
+int TEqTracker::ExecuteRpiCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
   int rc(0);
 
   OdbInterface* odb_i = OdbInterface::Instance();
@@ -98,31 +98,17 @@ int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
       HNDLE       h_dtc     = odb_i->GetHandle(h_plane,"DTC");
       int         pcie_addr = odb_i->GetDtcPcieAddress(h_dtc);
       std::string node      = odb_i->GetDtcHostLabel  (h_dtc);
-//-----------------------------------------------------------------------------
-// pass address of parameters stored in the tracker command tree
-//-----------------------------------------------------------------------------
-      HNDLE h_dtc_cmd     = odb_i->GetDtcCmdHandle   (node,pcie_addr);
+      // tbd
 
-      int lnk = -1;
-      if (mnid >= 0) {
-        lnk = odb_i->GetInteger(h_panel,"Link");
-        TLOG(TLVL_DEBUG+1) << std::format("   link lnk:{} h_panel:{} enabled:{}",pln,h_panel,odb_i->GetEnabled(h_panel));
-        if (odb_i->GetEnabled(h_panel) == 0) continue;
+      if (cmd == "reset_station_lv") ResetStationLV(cmd_parameter_path);
+      else {
+        TLOG(TLVL_ERROR) << std::format("unknown command:{}",cmd);
+        rc = -1;
+        break;
       }
-
-      TLOG(TLVL_DEBUG+1) << std::format("node:{} pcie_addr:{} link:{}",node,pcie_addr,lnk);
-
-      odb_i->SetString (h_dtc_cmd,"Name"         ,cmd);
-      odb_i->SetString (h_dtc_cmd,"ParameterPath",cmd_parameter_path);
-        
-      odb_i->SetInteger(h_dtc_cmd,"link"         ,lnk);
-      odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);
-      odb_i->SetInteger(h_dtc_cmd,"Finished"     , 0);
-//-----------------------------------------------------------------------------
-// and trigger the execution
-//-----------------------------------------------------------------------------
-      odb_i->SetInteger(h_dtc_cmd,"Run"          , 1);
+      if (rc < 0) break;
     }
+    if (rc < 0) break;
   }
 
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);

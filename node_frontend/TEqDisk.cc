@@ -21,7 +21,8 @@ using nlohmann::json;
 
 //-----------------------------------------------------------------------------
 TEqDisk::TEqDisk(const char* EqName) : TMu2eEqBase(EqName) {
-  _logfile         = "/home/mu2etrk/test_stand/experiments/test_025/disk.log"; // TODO: to come from config
+   std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+  _logfile             = std::format("{}/hosts.log",data_dir);
   _monitoringLevel = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Disk");
 }
 
@@ -31,16 +32,14 @@ TEqDisk::~TEqDisk() {
 
 //-----------------------------------------------------------------------------
 TMFeResult TEqDisk::Init() {
-  // char cbuf[100];
-
   TLOG(TLVL_DEBUG) << "-- START";
 
   _prev_ctime_sec = std::time(nullptr);
   _prev_fsize_gb  = 0.;
 
-  InitVarNames();
+  int rc = InitVarNames();
   
-  TLOG(TLVL_DEBUG) << "-- END";
+  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
   return TMFeOk();
 }
 
@@ -81,7 +80,7 @@ int TEqDisk::InitVarNames() {
 //-----------------------------------------------------------------------------
 // bank name should be 4 chars long
 //-----------------------------------------------------------------------------
-int TEqDisk::ReadMetrics() {
+int TEqDisk::HandlePeriodic() {
   int rc(0);
 
   TLOG(TLVL_DEBUG+1) << "-- START";

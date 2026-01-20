@@ -10,6 +10,12 @@
 #include "frontends/utils/OdbInterface.hh"
 
 class TEqTracker : public TMFeEquipment {
+  enum {
+    kCmdUndefined = 0,
+    kCmdDtc       = 1,
+    kCmdRpi       = 2,
+    kCmdTracker   = 3,
+  };
 public:
   HNDLE                          _h_active_run_conf;
   HNDLE                          _h_daq_host_conf;
@@ -23,7 +29,14 @@ public:
   std::string                    _ss_cmd_path;     // "/Mu2e/Commands/Tracker"
   int                            _first_station;
   int                            _last_station;
-  //  std::vector<TEqTrkDtc*>        _list_of_dtcs;    // 
+//-----------------------------------------------------------------------------
+// commands
+//-----------------------------------------------------------------------------
+  HNDLE                          _h_cmd;
+  int                            _cmd_type;        // command type: 1:DTC, 2:RPI, etc (see above)
+  int                            _cmd_station;
+  int                            _cmd_plane;
+  int                            _cmd_panel;
 //-----------------------------------------------------------------------------
 // threads
 //-----------------------------------------------------------------------------
@@ -67,15 +80,21 @@ public:
 //-----------------------------------------------------------------------------
 // fanout DTC command to all tracker DTCs and wait for completion
 //-----------------------------------------------------------------------------
-  static  int        ExecuteDtcCommand(HNDLE hCmd);
+  static  int        ExecuteDtcCommand    (HNDLE hCmd);
+  static  int        ExecuteRpiCommand    (HNDLE hCmd);
+  static  int        ExecuteTrackerCommand(HNDLE hCmd);
+  static  int        ExecuteTestCommand   (HNDLE hCmd);
 
   static  int        PulserOn         (const std::string& CmdParameterPath);
   static  int        PulserOff        (const std::string& CmdParameterPath);
   static  int        PanelPrintStatus (const std::string& CmdParameterPath);
   static  int        ResetOutput();
-  static  TMFeResult ResetStationLV  (const std::string& CmdParameterPath);
+  static  int        TestCommand      (int Station, int Plane, int Panel);
+  static  TMFeResult ResetStationLV   (const std::string& CmdParameterPath);
 
-  static  int        WaitForCompletion (HNDLE h_CMD, int TimeoutMs);
+  static  int        WaitForCompletion (HNDLE h_Cmd);
+
+  int                WriteOutput(const std::string& Output, const std::string& Logfile);
 
 };
 #endif

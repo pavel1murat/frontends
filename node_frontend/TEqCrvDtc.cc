@@ -184,6 +184,6 @@ int TEqCrvDtc::InitVarNames() {
 
 
 //-----------------------------------------------------------------------------
-int TEqCrvDtc::ReadMetrics() {
+int TEqCrvDtc::HandlePeriodic() {
   return 0;
 }

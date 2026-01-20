@@ -1,6 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // equipment name is the short node name, i.e. 'mu2edaq22'
 //////////////////////////////////////////////////////////////////////////////
+#include <iostream>
+#include <fstream>
 #include <format>
 #include "frontends/trk_cfg_frontend/TEqTracker.hh"
 #include "utils/utils.hh"
@@ -18,13 +20,16 @@ TEqTracker::TEqTracker(const char* eqname, const char* eqfilename): TMFeEquipmen
   fEqConfPeriodMilliSec   = 30000;  // 30 sec ?
   fEqConfLogHistory       = 1;
   fEqConfWriteEventsToOdb = true;
-  fg_EqTracker              = this;
+  fg_EqTracker            = this;
+  _cmd_type               = kCmdUndefined;
 }
 
 //-----------------------------------------------------------------------------
 // overloaded function of TMFeEquipment : 2 DTCs
 //-----------------------------------------------------------------------------
 TMFeResult TEqTracker::HandleInit(const std::vector<std::string>& args) {
+
+  TLOG(TLVL_DEBUG) << "-- START";
 
   fEqConfReadOnlyWhenRunning = false;
   fEqConfWriteEventsToOdb    = true;
@@ -60,10 +65,19 @@ TMFeResult TEqTracker::HandleInit(const std::vector<std::string>& args) {
   HNDLE h_run      = _odb_i->GetHandle(0,_ss_cmd_path+"/Run");
 
   if (db_open_record(hdb, h_run,&_run,sizeof(_run), MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
-    cm_msg(MERROR, __func__,"cannot open hotlink in ODB");
-    //    return -1;
+    cm_msg(MERROR, __func__,"failed to open hotlink in ODB");
+    TLOG(TLVL_ERROR) << "failed to open hotlink in ODB";
   }
 
+  HNDLE h_test_run = _odb_i->GetHandle(0,"/Mu2e/Commands/Test/Run");
+
+  if (db_open_record(hdb, h_test_run,&_run,sizeof(_run), MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+    cm_msg(MERROR, __func__,"failed to open hotlink for /Mu2e/Commands/Test/Run in ODB");
+    TLOG(TLVL_ERROR) << "failed to open hotlink in ODB";
+  }
+
+  TLOG(TLVL_DEBUG) << "-- END";
+  
   return TMFeOk();
 }
 
@@ -141,16 +155,37 @@ void TEqTracker::HandlePeriodic() {
 // when the execution comes here, odb["/Mu2e/Commands/Tracker/Run"] is set to 1
 //-----------------------------------------------------------------------------
 void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
-  TLOG(TLVL_DEBUG) << "--- START: TEqTracker::" << __func__; 
 
   OdbInterface* odb_i = OdbInterface::Instance();
   
-  HNDLE h_trk_cmd = odb_i->GetTrackerCmdHandle();  // returns handle of '/Mu2e/Commands/Tracker'
-  if (odb_i->GetCommand_Run(h_trk_cmd) == 0) {
-    TLOG(TLVL_DEBUG) << "self inflicted, return";
+  //   HNDLE h_trk_cmd = odb_i->GetTrackerCmdHandle();  // returns handle of '/Mu2e/Commands/Tracker'
+
+  KEY key;
+
+  db_get_key(hDB,hKey,&key);
+  
+  TLOG(TLVL_DEBUG) << std::format("--- START: hDB:{} hKey:{} k.name:{}",hDB,hKey,key.name); 
+//-----------------------------------------------------------------------------
+// get handle to the command sent to the tracker
+//-----------------------------------------------------------------------------
+  db_get_parent(hDB,hKey,&fg_EqTracker->_h_cmd);              // odb_i->GetHandle(hDB,hKey);  // returns handle 
+
+  std::string logfile = odb_i->GetString(fg_EqTracker->_h_cmd,"logfile");
+
+  if (odb_i->GetInteger(fg_EqTracker->_h_cmd,"Finished") == 0) {
+    TLOG(TLVL_DEBUG) << "previous command not finished yet, return";
+    fg_EqTracker->WriteOutput("-- ERROR: previous command not finished\n",logfile);
     return;
   }
 
+  if (odb_i->GetInteger(fg_EqTracker->_h_cmd,"Run") == 0) {
+    TLOG(TLVL_DEBUG) << "self inflicted, return";
+    fg_EqTracker->WriteOutput("-- ERROR: self inflicted, return\n",logfile);
+    return;
+  }
+//-----------------------------------------------------------------------------
+// set tracker BUSY
+//-----------------------------------------------------------------------------
   HNDLE h_trk_cfg  = odb_i->GetTrackerConfigHandle();
   odb_i->SetInteger(h_trk_cfg,"Status",1); // busy
 
@@ -160,43 +195,69 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   fg_EqTracker->_first_station   = first_station;
   fg_EqTracker->_last_station    = last_station ;
 
-  std::string cmd                = odb_i->GetString(h_trk_cmd,"Name");
-  std::string cmd_parameter_path = odb_i->GetString(h_trk_cmd,"ParameterPath");
+  std::string cmd                = odb_i->GetString(fg_EqTracker->_h_cmd,"Name");
+  std::string cmd_parameter_path = odb_i->GetString(fg_EqTracker->_h_cmd,"ParameterPath");
 
   TLOG(TLVL_DEBUG) << std::format("cmd:{} cmd.parameter_path:{}",cmd,cmd_parameter_path);
 
-  if      (cmd == "digi_rw"         ) ExecuteDtcCommand(h_trk_cmd);
-  else if (cmd == "pulser_on"       ) ExecuteDtcCommand(h_trk_cmd);
-  else if (cmd == "pulser_off"      ) ExecuteDtcCommand(h_trk_cmd);
-  else if (cmd == "read"            ) ExecuteDtcCommand(h_trk_cmd);
-  else if (cmd == "load_thresholds" ) ExecuteDtcCommand(h_trk_cmd);
-  else if (cmd == "print_status"    ) PanelPrintStatus(cmd_parameter_path);
-  else if (cmd == "reset_output"    ) ResetOutput();
-  else if (cmd == "reset_station_lv") ResetStationLV(cmd_parameter_path); 
+  if      (cmd == "digi_rw"         ) fg_EqTracker->_cmd_type = kCmdDtc;
+  else if (cmd == "pulser_on"       ) fg_EqTracker->_cmd_type = kCmdDtc;
+  else if (cmd == "pulser_off"      ) fg_EqTracker->_cmd_type = kCmdDtc;
+  else if (cmd == "read"            ) fg_EqTracker->_cmd_type = kCmdDtc;  // "read" loads channel masks
+  else if (cmd == "load_thresholds" ) fg_EqTracker->_cmd_type = kCmdDtc;
+  else if (cmd == "print_status"    ) fg_EqTracker->_cmd_type = kCmdTracker;
+  else if (cmd == "reset_output"    ) fg_EqTracker->_cmd_type = kCmdTracker;
+  // ResetOutput(); // need to figure what to do
+  else if (cmd == "reset_station_lv") fg_EqTracker->_cmd_type = kCmdRpi;
+  else if (cmd == "test_command"    ) fg_EqTracker->_cmd_type = kCmdTracker;
   else {
     std::string msg = std::format("cmd:{} is not implemented yet",cmd);
     TLOG(TLVL_ERROR) << msg;
     cm_msg(MERROR, __func__,msg.data());
   }
+//-----------------------------------------------------------------------------
+// first fan-out level: decide on the backend, the same backend may be
+// responsible for processing several commands
+// command execution can take some time, so need to be executed in a thread
+//-----------------------------------------------------------------------------
+  TLOG(TLVL_DEBUG) << std::format("cmd_type:{}",fg_EqTracker->_cmd_type);
+  
+  if (fg_EqTracker->_cmd_type != kCmdUndefined) {
+    if      (fg_EqTracker->_cmd_type == kCmdDtc) {
+      ExecuteDtcCommand(fg_EqTracker->_h_cmd);
+    }
+    else if (fg_EqTracker->_cmd_type == kCmdRpi) {
+      ExecuteRpiCommand(fg_EqTracker->_h_cmd);
+    }
+    else if (fg_EqTracker->_cmd_type == kCmdTracker) {
+                                        // no DTC, no RPI involved ?
+      ExecuteTrackerCommand(fg_EqTracker->_h_cmd);
+      // std::thread t(TEqTracker::ExecuteTrackerCommand,fg_EqTracker->_h_cmd);
+      // t.detach();
+    }
+    WaitForCompletion(fg_EqTracker->_h_cmd);
+  }
 
-  int finished = odb_i->GetInteger(h_trk_cmd,"Finished"  );
-  int rc       = odb_i->GetInteger(h_trk_cmd,"ReturnCode");
+  int finished = odb_i->GetInteger(fg_EqTracker->_h_cmd,"Finished"  );
+  int rc       = odb_i->GetInteger(fg_EqTracker->_h_cmd,"ReturnCode");
   
   TLOG(TLVL_DEBUG) << std::format("-- END finished:{} rc:{}",finished,rc);
   return;
 }
 
 //-----------------------------------------------------------------------------
-int TEqTracker::WaitForCompletion(HNDLE h_Cmd, int TimeoutMs) {
+int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
 // wait for the command completion or timeout - this is a common part for all
 // "per-DTC" commands
 // for no-DTC commands it should be fast as all "ReturnCode" and "Finished"
 // fields should check out during the first iteration
 //-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG) << "--- START:" << __func__; 
+  int return_code(0);
+  
   ss_sleep(100);
   // int finished = 0; // simulate .... 0;
+
   int wait_time(0);
   int n_not_finished = 100;
   
@@ -205,7 +266,13 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd, int TimeoutMs) {
   int first_station = odb_i->GetInteger(h_trk_cfg,"FirstStation");
   int last_station  = odb_i->GetInteger(h_trk_cfg,"LastStation" ); 
 
-  while ((n_not_finished > 0) and (wait_time < TimeoutMs)) {
+  HNDLE h_cmd_par   = odb_i->GetCmdParameterHandle(h_Cmd);
+  std::string cmd   = odb_i->GetString (h_Cmd    ,"Name"      );
+  int timeout_ms    = odb_i->GetInteger(h_cmd_par,"timeout_ms");
+
+  TLOG(TLVL_DEBUG) << std::format("--- START: cmd:{} timeout_ms:{}",cmd,timeout_ms); 
+
+  while ((n_not_finished > 0) and (wait_time < timeout_ms)) {
     ss_sleep(100);
     wait_time += 100;
 
@@ -224,7 +291,11 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd, int TimeoutMs) {
         
         int rc       = odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
         int finished = odb_i->GetInteger(h_dtc_cmd,"Finished"  );
-        if ((rc != 0) or (finished == 0)) {
+        if (finished == 1) {
+                                        // assume rc can only be < 0
+          if (rc != 0) return_code += rc;
+        }
+        else {
           n_not_finished += 1;
         }
       }
@@ -239,15 +310,48 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd, int TimeoutMs) {
     odb_i->SetInteger(h_trk_cfg,"Status"    ,-1);
   }
   else {
-    odb_i->SetInteger(h_Cmd    ,"ReturnCode", 0);
-    odb_i->SetInteger(h_trk_cfg,"Status"    ,-0);
+    odb_i->SetInteger(h_Cmd    ,"ReturnCode", return_code);
+    odb_i->SetInteger(h_trk_cfg,"Status"    ,-return_code);
   }
 //-----------------------------------------------------------------------------
 // mark execution as completed
 //-----------------------------------------------------------------------------
-  odb_i->SetInteger(h_trk_cfg,"Status"  ,0);
   odb_i->SetInteger(h_Cmd    ,"Finished",1);
 
-  TLOG(TLVL_DEBUG) << "--- END:" << __func__ << " n_not_finished:" << n_not_finished; 
+  TLOG(TLVL_DEBUG) << std::format("-- END: n_not_finished:{} return_code:{}",n_not_finished,return_code);
   return n_not_finished;
+}
+
+
+//-----------------------------------------------------------------------------
+// later, make sure that the tracekr inherits from TMu2eEqBase, not TMFEquipment
+//-----------------------------------------------------------------------------
+// make sure that a command can redirect its output
+int TEqTracker::WriteOutput(const std::string& Output, const std::string& Logfile) {
+
+  TLOG(TLVL_DEBUG) << std::format("-- START: Logfile:{}",Logfile); 
+
+  std::vector<std::string> vs = splitString(Output,'\n');
+
+  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+  std::string fn = std::format("{}/{}",data_dir,Logfile);
+
+  TLOG(TLVL_DEBUG) << std::format("using fn:{}",fn);
+  
+  std::ofstream output_file;
+  output_file.open(fn.data(),std::ios::app);
+  if (not output_file.is_open()) {
+    TLOG(TLVL_ERROR) << std::format("failed to open log file:{} in ios::app mode",fn); 
+  }
+  else {
+    int ns = vs.size();
+    for (int i=ns-1; i>=0; i--) {
+      output_file << vs[i] << std::endl;
+      TLOG(TLVL_DEBUG+1) << vs[i];
+    }
+    output_file.close();
+  }
+  
+  TLOG(TLVL_DEBUG) << "-- END"; 
+  return 0;
 }

@@ -4,7 +4,7 @@
 // messages go to tracker.log
 //-----------------------------------------------------------------------------
 function trk_panel_control(is, iplane, ipanel, mnid) {
-    window.location.href = `trk_station_control.html?station=${is}&plane=${iplane}&panel=${ipanel}&mnid=${mnid}&facility=tracker`;
+  window.open(`trk_station_control.html?station=${is}&plane=${iplane}&panel=${ipanel}&mnid=${mnid}&facility=tracker`,'_blank');
 }
 
 //-----------------------------------------------------------------------------      
@@ -81,6 +81,11 @@ async function trk_choose_panel_id(evt, panel_id) {
 }
 
 //-----------------------------------------------------------------------------
+function trk_cmd_parameter_path(cmd) {
+  return '/Mu2e/Commands/Tracker';
+}
+
+//-----------------------------------------------------------------------------
 // and this one updates ODB
 // the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
 // TEquipmentTracker will finally update /Finished
@@ -91,7 +96,7 @@ function trk_command_set_odb(cmd) {
              "/Mu2e/Commands/Tracker/ParameterPath",
              "/Mu2e/Commands/Tracker/Finished",
              "/Mu2e/Commands/Tracker/"+cmd+"/mnid",
-            ];
+  ];
   
   
   mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker",0,g_mnid]).then(function(rpc) {

@@ -20,9 +20,11 @@ public:
   TEqDisk(const char* Name);
   ~TEqDisk();
 
-  virtual TMFeResult  Init         () override;
-  virtual int         InitVarNames () override;
-  virtual int         ReadMetrics  () override;
+  virtual TMFeResult  Init          () override;
+  virtual int         InitVarNames  () override;
+  virtual int         HandlePeriodic() override;
+
+  int                 ReadMetrics   ();
 
   static void         ProcessCommand(int hDB, int hKey, void* Info);
   

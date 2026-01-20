@@ -40,6 +40,18 @@ TEquipmentManager::TEquipmentManager(const char* eqname, const char* eqfilename)
 
 
 //-----------------------------------------------------------------------------
+TMFeResult TEquipmentManager::InitArtdaq() {
+  _eq_artdaq = new TEqArtdaq("artdaq");
+  return TMFeOk();
+}
+//-----------------------------------------------------------------------------
+
+TMFeResult TEquipmentManager::InitDisk() {
+  _eq_disk = new TEqDisk("disk");
+  return TMFeOk();
+}
+
+//-----------------------------------------------------------------------------
 // back to DTC: two are listed in the header, both should be listed in ODB
 // can't do this in the constructor
 //-----------------------------------------------------------------------------
@@ -47,9 +59,6 @@ TMFeResult TEquipmentManager::InitDtc() {
 
   TLOG(TLVL_DEBUG) << "--- START";
 
-  _eq_dtc[0] = nullptr;
-  _eq_dtc[1] = nullptr;
-  
   HNDLE h_subkey;
   KEY   subkey;
 
@@ -136,10 +145,65 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
 
   EqSetStatus("Started...", "white");
   fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
+//-----------------------------------------------------------------------------
+// expected types of equipment
+// 1. DTC's
+//-----------------------------------------------------------------------------
+//  InitDtc   ();
+  HNDLE h_subkey;
+  KEY   subkey;
 
-  InitDtc   ();
-  InitArtdaq();
-  InitDisk  ();
+  HNDLE hdb = _odb_i->GetDbHandle();
+  for (int i=0; db_enum_key(hdb,_h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
+//-----------------------------------------------------------------------------
+// skip 'Artdaq' folder
+//-----------------------------------------------------------------------------
+    db_get_key(hdb,h_subkey,&subkey);
+    
+    TLOG(TLVL_DEBUG) << "subkey.name:" << subkey.name;
+    
+    if (strstr(subkey.name,"DTC") != subkey.name)           continue;
+//-----------------------------------------------------------------------------
+// capitalize the subsystem name
+//-----------------------------------------------------------------------------
+    std::string subsystem = _odb_i->GetString(h_subkey,"Subsystem");
+    std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
+    int dtc_enabled       = _odb_i->GetEnabled(h_subkey);
+    int pcie_addr         = _odb_i->GetInteger(h_subkey,"PcieAddress");
+
+    TLOG(TLVL_DEBUG) << std::format("node:{} subsystem:{} pcie_addr:{} enabled:{}",_host_label,subsystem,pcie_addr,dtc_enabled);
+   
+    if (dtc_enabled) {
+      std::string name = std::format("DTC{}",pcie_addr);
+      if      (subsystem == "CRV"    ) {
+        _eq_dtc[pcie_addr] = new TEqCrvDtc(name.data(),_h_active_run_conf,h_subkey);
+      }
+      else if (subsystem == "TRACKER") {
+        _eq_dtc[pcie_addr]    = new TEqTrkDtc(name.data(),_h_active_run_conf,h_subkey);
+      }
+      _eq_list.emplace_back(_eq_dtc[pcie_addr]);
+      TLOG(TLVL_DEBUG) << std::format("host:{} DTC:{} added to the equipment list",_host_label,pcie_addr);
+    }
+    else {
+      TLOG(TLVL_WARNING) << std::format("host:{} DTC:{} DISABLED",_host_label,pcie_addr);
+    }
+  }
+  //  TLOG(TLVL_DEBUG) << std::format("EQ_DTC0:0x{:08x} EQ_DTC1:0x{:08x}",(void*) (_eq_dtc[0]),(void*) (_eq_dtc[1]));
+//-----------------------------------------------------------------------------
+// 2. ARTDAQ
+//-----------------------------------------------------------------------------
+//  InitArtdaq();
+  HNDLE h_artdaq_conf = _odb_i->GetArtdaqConfHandle(_h_active_run_conf,_host_label);
+  if (_odb_i->GetEnabled( h_artdaq_conf)) { 
+    _eq_artdaq = new TEqArtdaq("artdaq");
+    _eq_list.emplace_back(_eq_artdaq);
+  }
+//-----------------------------------------------------------------------------
+// 3. disk
+//-----------------------------------------------------------------------------
+//   InitDisk  ();
+  _eq_disk = new TEqDisk("disk");
+  _eq_list.emplace_back(_eq_disk);
   
   TLOG(TLVL_DEBUG) << "-- END";
   return TMFeOk();
@@ -230,25 +294,34 @@ void TEquipmentManager::HandlePeriodic() {
   // midas::odb o_runinfo("/Runinfo");
   // int running_state          = o_runinfo["State"];
   // int transition_in_progress = o_runinfo["Transition in progress"];
-  //
 
-  for (int pcie_addr=0; pcie_addr<2; pcie_addr++) {
-    if (_eq_dtc[pcie_addr] and (_eq_dtc[pcie_addr]->MonitoringLevel() > 0)) {
-      _eq_dtc[pcie_addr]->ReadMetrics();
+//-----------------------------------------------------------------------------
+// _eq_list contains only enabled equipment items
+// run monitoring loop in generic form
+//-----------------------------------------------------------------------------
+  for (auto eq : _eq_list) {
+    if (eq->MonitoringLevel() > 0) {
+      eq->HandlePeriodic();
     }
   }
+
+  // for (int pcie_addr=0; pcie_addr<2; pcie_addr++) {
+  //   if (_eq_dtc[pcie_addr] and (_eq_dtc[pcie_addr]->MonitoringLevel() > 0)) {
+  //     _eq_dtc[pcie_addr]->ReadMetrics();
+  //   }
+  // }
 //-----------------------------------------------------------------------------
 // read metrics of artdaq processes running on this node
 //-----------------------------------------------------------------------------
-  if (_eq_artdaq and (_eq_artdaq->MonitoringLevel() > 0) and TMFE::Instance()->fStateRunning) {
-    _eq_artdaq->ReadMetrics();
-  }
+  // if (_eq_artdaq and (_eq_artdaq->MonitoringLevel() > 0) and TMFE::Instance()->fStateRunning) {
+  //   _eq_artdaq->ReadMetrics();
+  // }
 //-----------------------------------------------------------------------------
 // monitor node resources
 //-----------------------------------------------------------------------------
-  if (_eq_disk and (_eq_disk->MonitoringLevel() > 0)) {
-    _eq_disk->ReadMetrics();
-  }
+  // if (_eq_disk and (_eq_disk->MonitoringLevel() > 0)) {
+  //   _eq_disk->ReadMetrics();
+  // }
 
   EqSetStatus(Form("OK"),"#00FF00");
 
@@ -260,101 +333,91 @@ void TEquipmentManager::HandlePeriodic() {
 // not sure if this function is needed any more
 //-----------------------------------------------------------------------------
 void TEquipmentManager::ProcessCommand(int hDB, int hKey, void* Info) {
-  TLOG(TLVL_DEBUG) << "-- START";
-
-  OdbInterface* odb_i = OdbInterface::Instance();
-
-  KEY k;
-  odb_i->GetKey(hKey,&k);
-
-  HNDLE h_dtc = odb_i->GetParent(hKey);
-  KEY dtc;
-  odb_i->GetKey(h_dtc,&dtc);
-
-  int pcie_addr(0);
-  if (dtc.name[3] == '1') pcie_addr = 1;
-
-  HNDLE h_frontend = odb_i->GetParent(h_dtc);
-  KEY frontend;
-  odb_i->GetKey(h_frontend,&frontend);
+  //  TLOG(TLVL_DEBUG) << "-- START";
+  TLOG(TLVL_ERROR) << "not supposed to be called";
+  return;
   
-  TLOG(TLVL_DEBUG) << "k.name:" << k.name
-                   << " dtc.name:" << dtc.name
-                   << " pcie_addr:" << pcie_addr
-                   << " frontend.name:" << frontend.name;
+//   OdbInterface* odb_i = OdbInterface::Instance();
 
-  std::string dtc_cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
-  midas::odb o_dtc_cmd(dtc_cmd_buf_path);
-                                        // should 0 or 1
-  if (o_dtc_cmd["Run"] == 0) {
-    TLOG(TLVL_DEBUG) << "self inflicted, return";
-    return;
-  }
+//   KEY k;
+//   odb_i->GetKey(hKey,&k);
 
-  std::string dtc_cmd        = o_dtc_cmd["Name"];
-  std::string parameter_path = dtc_cmd_buf_path+std::format("/{:s}",dtc_cmd.data());
-//-----------------------------------------------------------------------------
-// 
-// this is address of the parameter record
-//-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG) << "dtc_cmd:" << dtc_cmd;
-  TLOG(TLVL_DEBUG) << "parameter_path:" << parameter_path;
+//   HNDLE h_dtc = odb_i->GetParent(hKey);
+//   KEY dtc;
+//   odb_i->GetKey(h_dtc,&dtc);
 
-  midas::odb o_par(parameter_path);
-  TLOG(TLVL_DEBUG) << "-- parameters found";
-//-----------------------------------------------------------------------------
-// should be already defined at this point
-//-----------------------------------------------------------------------------
-  trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(pcie_addr);
+//   int pcie_addr(0);
+//   if (dtc.name[3] == '1') pcie_addr = 1;
 
-  if (dtc_cmd == "pulser_on") {
-//-----------------------------------------------------------------------------
-// execute pulser_on command , no printout
-// so far assume link != -1, but we do want to use -1 (all)
-//------------------------------------------------------------------------------
-    int link               = o_par["link"              ];
-    int first_channel_mask = o_par["first_channel_mask"];
-    int duty_cycle         = o_par["duty_cycle"        ];
-    int pulser_delay       = o_par["pulser_delay"      ];
-
-    TLOG(TLVL_DEBUG) << "link:" << link
-                     << " first_channel_mask:" << first_channel_mask
-                     << " duty_cycle:" << duty_cycle
-                     << " pulser_delay:" << pulser_delay;
-    try {
-      dtc_i->ControlRoc_PulserOn(link,first_channel_mask,duty_cycle,pulser_delay);
-    }
-    catch(...) {
-      TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserON ... BAIL OUT";
-    }
-  }
-  else if (dtc_cmd == "pulser_off") {
-    int link               = o_par["link"       ];
-    int print_level        = o_par["print_level"];
-
-    TLOG(TLVL_DEBUG) << "link:" << link
-                     << " print_level:" << print_level;
-    try {
-      dtc_i->ControlRoc_PulserOff(link,print_level);
-    }
-    catch(...) {
-      TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserOFF ... BAIL OUT";
-    }
-  }
+//   HNDLE h_frontend = odb_i->GetParent(h_dtc);
+//   KEY frontend;
+//   odb_i->GetKey(h_frontend,&frontend);
   
-  o_dtc_cmd["Finished"] = 1;
+//   TLOG(TLVL_DEBUG) << "k.name:" << k.name
+//                    << " dtc.name:" << dtc.name
+//                    << " pcie_addr:" << pcie_addr
+//                    << " frontend.name:" << frontend.name;
+
+//   std::string dtc_cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
+//   midas::odb o_dtc_cmd(dtc_cmd_buf_path);
+//                                         // should 0 or 1
+//   if (o_dtc_cmd["Run"] == 0) {
+//     TLOG(TLVL_DEBUG) << "self inflicted, return";
+//     return;
+//   }
+
+//   std::string dtc_cmd        = o_dtc_cmd["Name"];
+//   std::string parameter_path = dtc_cmd_buf_path+std::format("/{:s}",dtc_cmd.data());
+// //-----------------------------------------------------------------------------
+// // 
+// // this is address of the parameter record
+// //-----------------------------------------------------------------------------
+//   TLOG(TLVL_DEBUG) << "dtc_cmd:" << dtc_cmd;
+//   TLOG(TLVL_DEBUG) << "parameter_path:" << parameter_path;
+
+//   midas::odb o_par(parameter_path);
+//   TLOG(TLVL_DEBUG) << "-- parameters found";
+// //-----------------------------------------------------------------------------
+// // should be already defined at this point
+// //-----------------------------------------------------------------------------
+//   trkdaq::DtcInterface* dtc_i = trkdaq::DtcInterface::Instance(pcie_addr);
+
+//   if (dtc_cmd == "pulser_on") {
+// //-----------------------------------------------------------------------------
+// // execute pulser_on command , no printout
+// // so far assume link != -1, but we do want to use -1 (all)
+// //------------------------------------------------------------------------------
+//     int link               = o_par["link"              ];
+//     int first_channel_mask = o_par["first_channel_mask"];
+//     int duty_cycle         = o_par["duty_cycle"        ];
+//     int pulser_delay       = o_par["pulser_delay"      ];
+
+//     TLOG(TLVL_DEBUG) << "link:" << link
+//                      << " first_channel_mask:" << first_channel_mask
+//                      << " duty_cycle:" << duty_cycle
+//                      << " pulser_delay:" << pulser_delay;
+//     try {
+//       dtc_i->ControlRoc_PulserOn(link,first_channel_mask,duty_cycle,pulser_delay);
+//     }
+//     catch(...) {
+//       TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserON ... BAIL OUT";
+//     }
+//   }
+//   else if (dtc_cmd == "pulser_off") {
+//     int link               = o_par["link"       ];
+//     int print_level        = o_par["print_level"];
+
+//     TLOG(TLVL_DEBUG) << "link:" << link
+//                      << " print_level:" << print_level;
+//     try {
+//       dtc_i->ControlRoc_PulserOff(link,print_level);
+//     }
+//     catch(...) {
+//       TLOG(TLVL_ERROR) << "coudn't execute ControlRoc_PulserOFF ... BAIL OUT";
+//     }
+//   }
   
-  TLOG(TLVL_DEBUG) << "-- END";
-}
-
-//-----------------------------------------------------------------------------
-TMFeResult TEquipmentManager::InitArtdaq() {
-  _eq_artdaq = new TEqArtdaq("artdaq");
-  return TMFeOk();
-}
-//-----------------------------------------------------------------------------
-
-TMFeResult TEquipmentManager::InitDisk() {
-  _eq_disk = new TEqDisk("disk");
-  return TMFeOk();
+//   o_dtc_cmd["Finished"] = 1;
+  
+//   TLOG(TLVL_DEBUG) << "-- END";
 }

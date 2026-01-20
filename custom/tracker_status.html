@@ -43,7 +43,7 @@
         <thead>
           <tr>
             <td>
-              <div class="mtableheader">Tracker Control Commands</div>
+              <div class="mtableheader">Tracker Status</div>
             </td>
             <td> station select:</td>
             <td colspan=12>
@@ -79,18 +79,20 @@
 //-----------------------------------------------------------------------------
 // first row - commands
 //-----------------------------------------------------------------------------
-      const r1  = document.createElement("tr");
-      const c2  = document.createElement("td");
-      c2.innerHTML = `
-               <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
-               <input type=button value='load channel map'  onClick='dtc_command("load_channels_map")'>
-               <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>
-               <input type=button value='reset_station_lv'  onClick='dtc_command("reset_station_lv")'>`;
-    
-      c2.colSpan = 6;
-      r1.appendChild(c2);
-      com_table_tbody.appendChild(r1);
-
+//      const r1  = document.createElement("tr");
+//      const c2  = document.createElement("td");
+//      c2.innerHTML = `
+//               <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
+//               <input type=button value='load channel map'  onClick='dtc_command("load_channels_map")'>
+//               <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>
+//               <input type=button value='reset_station_lv'  onClick='dtc_command("reset_station_lv")'>`;
+//    
+//      c2.colSpan = 6;
+//      r1.appendChild(c2);
+//      com_table_tbody.appendChild(r1);
+//------------------------------------------------------------------------------
+// next : read a station range and create one row per station
+//-----------------------------------------------------------------------------
       let first_station = -1;
       let last_station  = -1;
       const p1 = tracker_path+`/FirstStation`;
@@ -104,25 +106,16 @@
         
           const s_path = `${tracker_path}/Station_${i.toString().padStart(2,'0')}`;
           const cell   = document.createElement("td");
-          cell.innerHTML = `<b>Station ${i}</b>`;
+          cell.innerHTML = `<b>Z-station ${i}</b>`;
           set_colors(s_path,cell);
           row.appendChild(cell);
 
           const plane_cell_done = new Array(2);
           for (let k=0; k<2; k++) { 
-//            const pln     = document.createElement("td");
-//            pln.innerHTML = `<b>plane ${k}</b>`;
-//            row.appendChild(pln);
             plane_cell_done[k] = 0;
         
             // now - panels
             for (let ip=0; ip<6; ip++) {
-//              if (plane_cell_done[k] == 0) {
-//                const pln = document.createElement("td");
-//                pln.innerHTML = `<b>plane ${k}</b>`;
-//                row.appendChild(pln);
-//                plane_cell_done[k] = 1;
-//              }
               const panel_odb_path = s_path+`/Plane_${k.toString().padStart(2,'0')}`+`/Panel_${ip.toString().padStart(2,'0')}`;
             
               const c1     = document.createElement("td");

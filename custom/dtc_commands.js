@@ -145,12 +145,98 @@ async function dtc_command_set_odb(cmd,logfile) {
 }
 
 //-----------------------------------------------------------------------------
+// and this one updates ODB
+// the command parameters record is expected to be in path+${cmd}
+//-----------------------------------------------------------------------------
+async function dtc_command_set_odb_B(cmd) {
+
+  const ppath = cmd.func_parameter_path(g_hostname);
+
+  let logfile = cmd.logfile;
+  
+  if (logfile == null) { logfile   = g_logfile; }
+  else                 { g_logfile = logfile  ; }
+  
+//-----------------------------------------------------------------------------
+// query status
+//-----------------------------------------------------------------------------
+//   try {
+//     const paths=[ppath+'/Run', ppath+'/Finished', ppath+'/logfile'];
+//     let rpc  = await mjsonrpc_db_get_values(paths);
+//     let run      = rpc.result.data[0];
+//     let finished = rpc.result.data[1];
+//     let lfile    = rpc.result.data[2];
+// 
+//     if (finished == 0) {
+//       // write message to logfile and exit
+//       displayFile(logfile, 'messageFrame');
+//       return;
+//     }
+//   }
+//   catch(error) {
+//     mjsonrpc_error_alert(error);
+//   };
+//-----------------------------------------------------------------------------
+// passing parameters
+//-----------------------------------------------------------------------------
+  const paths=[ppath+'/Name',
+               ppath+'/ParameterPath',
+               ppath+'/Run',
+               ppath+'/logfile',
+  ];
+
+  try {
+    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,1,logfile]);
+    let result=rpc.result;	      
+  }
+  catch(error) {
+    mjsonrpc_error_alert(error);
+  };
+  
+  let done = 0;
+
+  while(done == 0) {
+    // check whether the command has finished, finished is set by the frontend
+    const paths=[ppath+'/Run', ppath+'/Finished'];
+    let run      = 1;
+    let finished = 0;
+    sleep(500);
+    try {
+      let rpc = await mjsonrpc_db_get_values(paths);
+      run      = rpc.result.data[0];
+      finished = rpc.result.data[1];
+    }
+    catch(error) {
+      mjsonrpc_error_alert(error);
+    };
+    done = finished;
+  };
+  
+  // display the logfile. THis is the only non-generic place
+  // if the command was a struct with the logfile being one of its parameters,
+  // this function became completely generic
+
+  displayFile(logfile, 'messageFrame');
+}
+
+//-----------------------------------------------------------------------------
 function dtc_load_cmd_parameters(cmd) {
   const table     = document.getElementById('cmd_params');
   table.innerHTML = '';
   odb_browser('cmd_params','/Mu2e/Commands/DAQ/Nodes/'+g_hostname+'/DTC'+g_pcie+'/'+cmd,0);
 }
-      
+
+//-----------------------------------------------------------------------------
+// input: Command_B
+//-----------------------------------------------------------------------------
+function dtc_make_exec_button_B(cmd) {
+  const btn   = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.title;
+  btn.onclick = function() { cmd.func(cmd) ; }
+  return btn;
+}
+
 //    emacs
 //    Local Variables:
 //    mode: web

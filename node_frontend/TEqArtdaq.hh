@@ -24,9 +24,11 @@ public:
   int                 ReadDrMetrics(const ArtdaqComponent_t* Ac);
   int                 ReadDsMetrics(const ArtdaqComponent_t* Ac);
 
-  virtual TMFeResult  Init         () override;
-  virtual int         InitVarNames () override;
-  virtual int         ReadMetrics  () override;
+  virtual TMFeResult  Init          () override;
+  virtual int         InitVarNames  () override;
+  virtual int         HandlePeriodic() override;
+
+  int                 ReadMetrics   ();
 
   int                 PrintProcesses(std::ostream& Stream);
   int                 ProcessStatus (std::ostream& Stream);
