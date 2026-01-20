@@ -8,7 +8,7 @@
 let g_node     = 1;             // integer index of the active node
 let g_process  = 0;
 let g_run_conf = 'undefined'
-  
+
 //-----------------------------------------------------------------------------      
 // node id = 'nodeXXX' - provide for 1000 nodes
 //-----------------------------------------------------------------------------

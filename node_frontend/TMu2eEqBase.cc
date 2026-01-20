@@ -50,7 +50,7 @@ int TMu2eEqBase::InitVarNames() {
 }
 
 //-----------------------------------------------------------------------------
-int TMu2eEqBase::ReadMetrics() {
+int TMu2eEqBase::HandlePeriodic() {
   return 0;
 }
 

@@ -55,8 +55,7 @@ int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
 // could be a plane, a station, or the whole tracker
 //-----------------------------------------------------------------------------
     if (plane >= 0) {
-                                        // a single plane
-      
+                                        // a single plane, nothing needs to be redefined
     }
     else if (station >= 0) {
                                         // a single station, both planes
@@ -126,8 +125,6 @@ int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
     }
   }
 
-  rc = WaitForCompletion(hTrkCmd,10000); // if needed, could specify the timeout in the command parameters
-  
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
   return rc;
 }

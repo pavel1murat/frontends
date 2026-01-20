@@ -45,7 +45,8 @@ public:
 
   virtual TMFeResult  Init               ();
   virtual int         InitVarNames       ();
-  virtual int         ReadMetrics        ();
+  virtual int         HandlePeriodic     ();
+  //  virtual int         ReadMetrics        ();
   virtual int         BeginRun           (HNDLE H_RunConf);
 };
 #endif

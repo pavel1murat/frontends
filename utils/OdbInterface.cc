@@ -904,6 +904,15 @@ HNDLE OdbInterface::GetTrackerPlaneHandle(int Station, int Plane) {
 }
 
 //-----------------------------------------------------------------------------
+// detector indices (by the slot_id)
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetTrackerPanelHandle(int Station, int Plane, int Panel) {
+  std::string path = std::format("/Mu2e/ActiveRunConfiguration/Tracker/Station_{:02d}/Plane_{:02d}/Panel_{:02d}",
+                                 Station,Plane,Panel);
+  return GetHandle(0,path);
+}
+
+//-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetTrackerPanelHandle(int MnID) {
   int sdir = (MnID/10)*10;
   std::string path = std::format("/Mu2e/ActiveRunConfiguration/Tracker/PanelMap/{:03d}/MN{:03d}/Panel",sdir,MnID);

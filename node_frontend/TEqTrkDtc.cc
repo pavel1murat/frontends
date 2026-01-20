@@ -384,9 +384,10 @@ void TEqTrkDtc::ReadNonHistRegisters() {
   TLOG(TLVL_DEBUG+1) << "--END , saved to:" << buf;
 }
 
-
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::ReadMetrics() {
+int TEqTrkDtc::HandlePeriodic() {
+
+  TLOG(TLVL_DEBUG+1) << std::format("-- START: host:{} DTC:{}",HostLabel(),_dtc_i->PcieAddr());
 //-----------------------------------------------------------------------------
 // DTC temperature and voltages - for history 
 //-----------------------------------------------------------------------------

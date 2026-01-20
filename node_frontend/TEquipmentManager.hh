@@ -24,17 +24,15 @@ public:
   TMu2eEqBase*                   _eq_dtc[2];   // if nullptr, then not defined
   TMu2eEqBase*                   _eq_artdaq;
   TMu2eEqBase*                   _eq_disk  ;
-
-  std::vector<TMu2eEqBase*>      _eq_list  ;   // to iterate over all equipment items
+                                               // includes only enabled equipment items - 
+  std::vector<TMu2eEqBase*>      _eq_list  ;   // to iterate over them w/o additional checks
 
   HNDLE                          hDB;                     // need to loop over ...
   HNDLE                          _h_active_run_conf;
   HNDLE                          _h_daq_host_conf;
   HNDLE                          _h_frontend_conf;
-  //  HNDLE                          _h_dtc [2];
   std::string                    _full_host_name;  // on private network, for communicatioin
   std::string                    _host_label;      // on public network, for ODB
-  //  xmlrpc_env                     _env;
   // int                            _monitorDtc;
   // int                            _monitorDisk;
   // int                            _monitorArtdaq;

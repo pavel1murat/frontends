@@ -412,10 +412,18 @@ int TEqArtdaq::ReadDsMetrics(const ArtdaqComponent_t* Ac) {
   
 
 //-----------------------------------------------------------------------------
-int TEqArtdaq::ReadMetrics() {
+int TEqArtdaq::HandlePeriodic() {
 
   TLOG(TLVL_DEBUG+1) << "-- START";
 
+  if (not TMFE::Instance()->fStateRunning) {
+//------------------------------------------------------------------------------
+// if not running, there is nothing to monitor
+//-----------------------------------------------------------------------------
+    TLOG(TLVL_DEBUG+1) << "-- END: not running";
+    return 0;
+  }
+    
   int nbr = _list_of_ac.size();
   for (int i=0; i<nbr; i++) {
     ArtdaqComponent_t* ac = &_list_of_ac[i];

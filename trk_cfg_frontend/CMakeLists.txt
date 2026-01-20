@@ -29,6 +29,8 @@ cet_make_exec(NAME trk_cfg_frontend
   trk_cfg_frontend.cc
   TEqTracker.cc
   TEqTracker_ExecuteDtcCommand.cc
+  TEqTracker_ExecuteRpiCommand.cc
+  TEqTracker_ExecuteTrackerCommand.cc
   TEqTracker_PulserOn.cc
   TEqTracker_PulserOff.cc
   TEqTracker_PanelPrintStatus.cc

@@ -24,18 +24,17 @@
     <title>TrackerControl</title>
     
     <script>
-    
     //-----------------------------------------------------------------------------
     function loadPanelControlTable() {
       const table      = document.getElementById('panel_commands');
-
+      
       table.innerHTML  = '';
       // table.node_name  = node_name;
-
+      
       let thead     = document.createElement('thead');
       
       let tr        = document.createElement('tr');
-
+      
       let td       = document.createElement('td');
       td.innerHTML = `<div class="mtableheader" colspan=2> Panel MN${g_mnid.toString().padStart(3,'0')} controls </div>`;
       td.colspan   = 4;
@@ -44,7 +43,7 @@
       thead.appendChild(tr);
       table.appendChild(thead);
 
-      // now - the body
+      // now - the table body
       
       const tbody  = document.createElement('tbody');
 
@@ -138,7 +137,6 @@
     
 //-----------------------------------------------------------------------------
     function loadStationControlTable() {
-      const station_cmd_table     = document.getElementById('station_commands');
 
       // reset  plane and panel IDs
       
@@ -147,65 +145,74 @@
       
       const plane1   = 2*g_station;
       const plane2   = 2*g_station+1;
+
+      const table     = document.getElementById('station_commands');
+      table.innerHTML = '';
       
-      station_cmd_table.innerHTML = `
-        <thead>
+      let thead      = document.createElement('thead');
 
-          <tr>
-            <td colspan=9> <div class="mtableheader">Station ${g_station} controls</div> </td>
-          </tr>
+      let tr = document.createElement('tr');
+      tr.colSpan = 9;
+      tr.innerHTML = `<div class="mtableheader">Station ${g_station} controls</div> </td>`;
 
-          <tr>
-            <td>
-              <div class="tab">
-                <button class="trk_plane_tab" id="trk_plane_0" onclick="trk_choose_plane_id(event,'${plane1}')">zplane:${plane1}</button>
-              </div>
-            </td>
-            <td colspan> <div class="tab" id="trk_panel_tabs_0"></div></td>
-          </tr>
+      thead.appendChild(tr);
 
-          <tr>
-            <td>
-              <div class="tab">
-                <button class="trk_plane_tab" id="trk_plane_1" onclick="trk_choose_plane_id(event,'${plane2}')">zplane:${plane2}</button>
-              </div>
-            </td>
-            <td colspan> <div class="tab" id="trk_panel_tabs_1"></div></td>
-          </tr>
-        </thead>
-
-        <tbody>                                                                        
-          <tr>
-            <td colspan=2>
-              <input type=button value='load parameters'  onClick='trk_station_load_parameters(${g_station})'>
-                <div class="dropup">
-                  <input type=button class="dropbtn" value='init readout'>
-                  <div class="dropup-content">
-                    <div onClick='dtc_load_parameters_init_readout()'     > Load Parameters </div>
-                    <div onClick='trk_command_set_odb("trk_init_readout")'> Run             </div>
-                  </div>
-                </div>
-              <input type=button value='print status' onClick='trk_command_set_odb("trk_station_print_status")'>
-              <input type=button value='reset output' onClick='trk_reset_output   ("output_window")'           >
-
+      thead.innerHTML += `
+      <tr>
+        <td colspan=2>
+      <input type=button value='load parameters'  onClick='trk_station_load_parameters(${g_station})'>
+      <div class="dropup">
+      <input type=button class="dropbtn" value='init readout'>
+      <div class="dropup-content">
+      <div onClick='dtc_load_parameters_init_readout()'     > Load Parameters </div>
+      <div onClick='trk_command_set_odb("trk_init_readout")'> Run             </div>
+      </div>
+      </div>
+      <input type=button value='print status' onClick='trk_command_set_odb("trk_station_print_status")'>
+      <input type=button value='reset output' onClick='trk_reset_output   ("output_window")'           >
+      
       <!--
                                                       <input type=button value='reset LV'     onClick='trk_station_command_set_odb("reset_station_lv")'>
       -->
-              <div class="dropup">
-                <input type=button class="dropbtn" value='reset LV'>
-                <div class="dropup-content">
-                  <div onClick='trk_load_parameters_reset_station_lv(${g_station})' > Load Parameters </div>
-                  <div onClick='trk_station_command_set_odb("reset_station_lv")'> Run             </div>
-                </div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-            `;
+      <div class="dropup">
+      <input type=button class="dropbtn" value='reset LV'>
+      <div class="dropup-content">
+      <div onClick='trk_load_parameters_reset_station_lv(${g_station})' > Load Parameters </div>
+      <div onClick='trk_station_command_set_odb("reset_station_lv")'> Run             </div>
+      </div>
+      </div>
+      </td>
+      </tr>
+      `;
+
+      table.appendChild(thead);
+
+      let tbody = document.createElement('tbody');
+      tbody.innerHTML = `
+      <tr>
+      <td>
+      <div class="tab">
+      <button class="trk_plane_tab" id="trk_plane_0" onclick="trk_choose_plane_id(event,'${plane1}')">zplane:${plane1}</button>
+      </div>
+      </td>
+      <td colspan> <div class="tab" id="trk_panel_tabs_0"></div></td>
+      </tr>
       
-      //-----------------------------------------------------------------------------
-      // create panel buttons
-      //-----------------------------------------------------------------------------
+      <tr>
+      <td>
+      <div class="tab">
+      <button class="trk_plane_tab" id="trk_plane_1" onclick="trk_choose_plane_id(event,'${plane2}')">zplane:${plane2}</button>
+      </div>
+      </td>
+      <td colspan> <div class="tab" id="trk_panel_tabs_1"></div></td>
+      </tr>
+      `;
+
+      table.appendChild(tbody);
+      
+//-----------------------------------------------------------------------------
+// create panel buttons
+//-----------------------------------------------------------------------------
 
       const station_path  = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${g_station.toString().padStart(2,'0')}`;
 
@@ -254,35 +261,63 @@
       
       let title        = document.getElementById('table-title');
       title.innerHTML  = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
-      //-----------------------------------------------------------------------------
-      //  create tracker commands table
-      //-----------------------------------------------------------------------------
+      
+//-----------------------------------------------------------------------------
+//  tracker commands table
+//-----------------------------------------------------------------------------
+
       const tracker_cmd_table     = document.getElementById('tracker_commands');
-      tracker_cmd_table.innerHTML = `
-        <thead>
-          <tr>
-            <td colspan=9> <div class="mtableheader">Tracker controls</div></td>
-          </tr>
-          <tr>
-            <td> Zstation:</td>
-            <td colspan=4>
-              <div class="tab" id="trk_station_tabs"> </div></td>
-          </tr>
-        </thead>
+      tracker_cmd_table.innerHTML = ``;
+      let thead = document.createElement('thead');
+      let tr = document.createElement('tr');
+      let td = document.createElement('td');
+      td.colSpan = 8;
+      td.innerHTML = `<div class="mtableheader">Tracker controls A</div>`;
+      tr.appendChild(td);
+      thead.appendChild(tr);
 
-        <tbody>
-          <tr>
-            <td colspan=2>
-              <input type=button value='load parameters'  onClick='trk_load_parameters()'               >
-              <input type=button value='reset output'     onClick='trk_reset_output   ("output_window")'>
-            </td>
-          </tr>
-        </tbody>
+      tr = document.createElement('tr');
+      td = document.createElement('td');
+      td.colSpan = 8;
+
+      //      let cmd = new Command_B('load parametersA','load_parameters',mu2e_odb_load_table,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      //      let btn = mu2e_make_exec_button_B(cmd);
+      //      td.appendChild(btn);
+      //
+
+      td.innerHTML += `
+           <input type=button value='load parameters'  onClick='trk_load_parameters()'               >
+      <input type=button value='reset output'      onClick='trk_reset_output   ("output_window")'>
+      <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
+      <input type=button value='load channel map'  onClick='dtc_command("load_channels_map")'>
+      <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>
+      <input type=button value='reset_station_lv'  onClick='dtc_command("reset_station_lv")'>
       `;
+      
+      tr.appendChild(td);
+      thead.appendChild(tr);
+      tracker_cmd_table.appendChild(thead);
+        
+      let tbody = document.createElement('tbody');
+      tr = document.createElement('tr');
 
-      //------------------------------------------------------------------------------
-      // create station tabs
-      //-----------------------------------------------------------------------------
+      td = document.createElement('td');
+      td.colSpan = 3;
+      td.innerText = 'Zstation:';
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      td.colSpan = 5;
+      
+      td.innerHTML = `<div class="tab" id="trk_station_tabs"> </div>`;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      
+      tracker_cmd_table.appendChild(tbody);
+      
+//------------------------------------------------------------------------------
+// create station tabs
+//-----------------------------------------------------------------------------
       
       let first_station  = -1;
       let last_station   = -1;

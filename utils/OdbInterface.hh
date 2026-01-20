@@ -175,6 +175,7 @@ public:
   HNDLE       GetTrackerConfigHandle  ();
   HNDLE       GetTrackerStationHandle (int Station);
   HNDLE       GetTrackerPlaneHandle   (int Station, int Plane);
+  HNDLE       GetTrackerPanelHandle   (int Station, int Plane, int Panel);
   HNDLE       GetTrackerPanelHandle   (int MnID);
 };
 

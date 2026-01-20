@@ -403,7 +403,7 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
   for (int lnk=lnk1; lnk<lnk2; lnk++) {
     int link_rc(0);
 
-    Stream << std::format("-- link:()",lnk);
+    Stream << std::format("-- link:{}",lnk);
     std::string  panel_path = std::format("{:s}/Link{:d}/DetectorElement",dtc_path.data(),lnk);
     
     TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path;
@@ -418,12 +418,13 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
     try {
       link_rc = 1;
 
-      int station = odb_i->GetInteger(h_panel,"Station");
-      TLOG(TLVL_DEBUG) << "-- check 1.4 station:" << station;
+      int slot_id  = odb_i->GetInteger(h_panel,"slot_id");
+      int zstation = (slot_id/20);
+      TLOG(TLVL_DEBUG) << std::format("-- check 1.4 zstation:{}",zstation);
       link_rc = 2;
       
       std::string fn = std::format("{:}/tracker/station_{:02d}/{:s}/{:s}.json",
-                                   config_dir.data(),station,thresholds_dir.data(),panel_name.data());
+                                   config_dir.data(),zstation,thresholds_dir.data(),panel_name.data());
     
       TLOG(TLVL_DEBUG) << "-- check 1.5 fn:" << fn;
       link_rc = 3;
@@ -623,8 +624,9 @@ int TEqTrkDtc::ProgramRoc(std::ostream& Stream) {
 
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::PulserOff(std::ostream& Stream) {
+  int rc(0);
 
-  TLOG(TLVL_DEBUG) << "-- START TEqTrkDtc::PulserOff";
+  TLOG(TLVL_DEBUG) << "-- START";
   
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
@@ -643,14 +645,15 @@ int TEqTrkDtc::PulserOff(std::ostream& Stream) {
     Stream << "ERROR : coudn't execute ControlRoc_PulserOFF ... BAIL OUT" << std::endl;
   }
   
-  TLOG(TLVL_DEBUG) << "-- END TEqTrkDtc::PulserOff";
-  return 0;
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  return rc;
 }
 
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::PulserOn(std::ostream& Stream) {
+  int rc(0);
   
-  TLOG(TLVL_DEBUG) << "-- START TEqTrkDtc::PulserOn";
+  TLOG(TLVL_DEBUG) << "-- START";
 
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
@@ -673,8 +676,8 @@ int TEqTrkDtc::PulserOn(std::ostream& Stream) {
     Stream << " -- ERROR : coudn\'t execute ControlRoc_PulserOn ... BAIL OUT" << std::endl;
   }
   
-  TLOG(TLVL_DEBUG) << "-- END TEqTrkDtc::PulserOn";
-  return 0;
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  return rc;
 }
 
 //-----------------------------------------------------------------------------
@@ -1303,6 +1306,15 @@ int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
 
     if (print_level > 0) {
       Stream << " -- link:" << lnk;
+    }
+
+    if (not _dtc_i->LinkEnabled(lnk)) {
+      Stream << std::format(" not enabled\n");
+      continue;
+    }
+    else if (not _dtc_i->LinkLocked(lnk)) {
+      Stream << " ERROR : link enabled but not locked\n";
+      TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} link:{} enabled but not locked",_host_label,_dtc_i->PcieAddr(),lnk);
     }
     
     std::string  panel_path = std::format("{:s}/Link{:d}/DetectorElement",dtc_path.data(),lnk);
