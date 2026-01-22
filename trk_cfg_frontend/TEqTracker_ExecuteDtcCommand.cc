@@ -112,16 +112,30 @@ int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
 
       TLOG(TLVL_DEBUG+1) << std::format("node:{} pcie_addr:{} link:{}",node,pcie_addr,lnk);
 
-      odb_i->SetString (h_dtc_cmd,"Name"         ,cmd);
-      odb_i->SetString (h_dtc_cmd,"ParameterPath",cmd_parameter_path);
+      int finished = odb_i->GetInteger(h_dtc_cmd,"Finished");
+      if (finished == 0) {
+      }
+      else if (finished == 1) {
+        odb_i->SetString (h_dtc_cmd,"Name"         ,cmd);
+        odb_i->SetString (h_dtc_cmd,"ParameterPath",cmd_parameter_path);
         
-      odb_i->SetInteger(h_dtc_cmd,"link"         ,lnk);
-      odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);
-      odb_i->SetInteger(h_dtc_cmd,"Finished"     , 0);
+        odb_i->SetInteger(h_dtc_cmd,"link"         ,lnk);
+        odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);
+      // 'Finished' is set by the frontend
+      //      odb_i->SetInteger(h_dtc_cmd,"Finished"     , 0);
 //-----------------------------------------------------------------------------
-// and trigger the execution
+// and trigger the execution of a 'per-DTC' command
 //-----------------------------------------------------------------------------
-      odb_i->SetInteger(h_dtc_cmd,"Run"          , 1);
+        odb_i->SetInteger(h_dtc_cmd,"Run"          , 1);
+      }
+      else {
+//-----------------------------------------------------------------------------
+// dont know what to do - unknown value of 'Finished' - generate diagnostics and
+// move on to processing the next panel
+//-----------------------------------------------------------------------------
+        TLOG(TLVL_ERROR) << std::format("Finished:{}",finished);
+        rc += -1;
+      }
     }
   }
 

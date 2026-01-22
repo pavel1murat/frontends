@@ -69,7 +69,7 @@ public:
   int         GetKey           (std::ostream& Stream);
   int         GetRocDesignInfo (std::ostream& Stream);
   int         InitReadout      (std::ostream& Stream);
-  int         LoadThresholds   (std::ostream& Stream);   // load thresholds from disk to ODB
+  int         LoadThresholds   (HNDLE h_Cmd);                 // load thresholds from disk to ODB
   int         MeasureThresholds(std::ostream& Stream);
   int         PrintRocStatus   (std::ostream& Stream);
   int         ProgramRoc       (std::ostream& Stream);
@@ -87,6 +87,8 @@ public:
   int         RebootMcu        (std::ostream& Stream);
   int         SetCalDac        (std::ostream& Stream);
   int         SetThresholds    (std::ostream& Stream);  // ODB --> preamps
+  int         StartMessage     (HNDLE h_Cmd, std::ostream& Stream);
+  int         TestCommand      (std::ostream& Stream);
   int         WriteRocRegister (std::ostream& Stream);
   int         WriteRegister    (std::ostream& Stream);
 

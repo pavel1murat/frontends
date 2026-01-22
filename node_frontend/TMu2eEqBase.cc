@@ -84,6 +84,8 @@ int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& Logfi
 
   std::vector<std::string> vs = splitString(Output,'\n');
 
+  std::mutex mtx; // For thread-safe output
+
   std::string fn = _logfile;
   if (Logfile != "") {
     std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
@@ -91,19 +93,25 @@ int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& Logfi
   }
 
   TLOG(TLVL_DEBUG) << std::format("using fn:{}",fn);
-  
-  std::ofstream output_file;
-  output_file.open(fn.data(),std::ios::app);
-  if (not output_file.is_open()) {
-    TLOG(TLVL_ERROR) << std::format("failed to open log file:{} in ios::app mode",fn); 
-  }
-  else {
-    int ns = vs.size();
-    for (int i=ns-1; i>=0; i--) {
-      output_file << vs[i] << std::endl;
-      TLOG(TLVL_DEBUG+1) << vs[i];
+//-----------------------------------------------------------------------------
+// make sure writing to disk is thread-safe
+//-----------------------------------------------------------------------------
+  {
+    std::lock_guard<std::mutex> lock(mtx);
+
+    std::ofstream output_file;
+    output_file.open(fn.data(),std::ios::app);
+    if (not output_file.is_open()) {
+      TLOG(TLVL_ERROR) << std::format("failed to open log file:{} in ios::app mode",fn); 
     }
-    output_file.close();
+    else {
+      int ns = vs.size();
+      for (int i=ns-1; i>=0; i--) {
+        output_file << vs[i] << std::endl;
+        TLOG(TLVL_DEBUG+1) << vs[i];
+      }
+      output_file.close();
+    }
   }
   
   TLOG(TLVL_DEBUG) << "-- END"; 

@@ -358,20 +358,27 @@ int TEqTrkDtc::FindThresholds(std::ostream& Stream ) {
 }
 
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
+int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
 
+  // in the end, ProcessCommand should send ss.str() as a message to some log
+  std::stringstream ss;
+
+  StartMessage(h_Cmd,ss);
+  
   OdbInterface* odb_i  = OdbInterface::Instance();
   
-  HNDLE h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  HNDLE h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
+  //   HNDLE h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
 
-  int link        = odb_i->GetInteger(h_cmd    ,"link"       );
+  int link        = odb_i->GetInteger(h_Cmd    ,"link"       );
   
+  HNDLE h_cmd_par = odb_i->GetCmdParameterHandle(h_Cmd);
   int doit        = odb_i->GetInteger(h_cmd_par,"doit"       );
   int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
+
+  
   
   int lnk1 = link;
   int lnk2 = lnk1+1;
@@ -380,7 +387,8 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
     lnk2 = 6;
   }
 
-  TLOG(TLVL_DEBUG) << std::format(" checkpoint 0.1 PcieAddr:{} lnk1:{} lnk2:{} print_level:0x{:04x}",_dtc_i->PcieAddr(),lnk1,lnk2,print_level);
+  TLOG(TLVL_DEBUG) << std::format(" checkpoint 0.1 PcieAddr:{} lnk1:{} lnk2:{} print_level:0x{:04x}",
+                                  _dtc_i->PcieAddr(),lnk1,lnk2,print_level);
 //-----------------------------------------------------------------------------
 // this could be universal,
 // with the definition of DetectorElement being subsystem-dependent
@@ -390,7 +398,7 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
   std::string config_dir = odb_i->GetConfigDir();
     
   HNDLE h_tracker = odb_i->GetHandle(0,"/Mu2e/ActiveRunConfiguration/Tracker");
-  std::string thresholds_dir = odb_i->GetString(h_tracker,"ReadoutConfiguration/ThresholdsDir");
+  std::string thresholds_dir = odb_i->GetString(h_tracker,"ReadoutConfiguration/thresholds_dir");
 
   std::string  dtc_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}",
                                       _host_label.data(),_dtc_i->fPcieAddr);
@@ -403,7 +411,7 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
   for (int lnk=lnk1; lnk<lnk2; lnk++) {
     int link_rc(0);
 
-    Stream << std::format("-- link:{}",lnk);
+    ss << std::format("-- link:{}",lnk);
     std::string  panel_path = std::format("{:s}/Link{:d}/DetectorElement",dtc_path.data(),lnk);
     
     TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path;
@@ -423,7 +431,7 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
       TLOG(TLVL_DEBUG) << std::format("-- check 1.4 zstation:{}",zstation);
       link_rc = 2;
       
-      std::string fn = std::format("{:}/tracker/station_{:02d}/{:s}/{:s}.json",
+      std::string fn = std::format("{:}/tracker/slot_{:02d}/{:s}/{:s}.json",
                                    config_dir.data(),zstation,thresholds_dir.data(),panel_name.data());
     
       TLOG(TLVL_DEBUG) << "-- check 1.5 fn:" << fn;
@@ -434,7 +442,7 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
       if (not ifs.is_open()) {
         std::string msg = std::format("failed to open file:{}\n",fn);
         TLOG(TLVL_ERROR) << msg;
-        Stream << "ERROR: " << msg; 
+        ss << "ERROR: " << msg; 
         rc -= 1;
         continue;
       }
@@ -442,9 +450,9 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
       nlohmann::json jf = nlohmann::json::parse(ifs);
     
       if (print_level > 1) {
-        Stream << std::endl;
-        Stream << "ich mask G_cal  G_hv Th_cal Th_hv" << std::endl;
-        Stream << "---------------------------------" << std::endl;
+        ss << std::endl;
+        ss << "ich mask G_cal  G_hv Th_cal Th_hv" << std::endl;
+        ss << "---------------------------------" << std::endl;
       }
     
       link_rc = 4;
@@ -469,7 +477,7 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
                          << " gain:" << gain << " thr:" << thr;
         
         if (print_level > 1) {
-          Stream << ich << " " << gain << " " << std::setw(3) << thr << " " << type << std::endl;
+          ss << ich << " " << gain << " " << std::setw(3) << thr << " " << type << std::endl;
           TLOG(TLVL_DEBUG+1) << ich << " " << gain << " " << std::setw(3) << thr << " " << type << std::endl;
         }
         
@@ -492,16 +500,20 @@ int TEqTrkDtc::LoadThresholds(std::ostream& Stream) {
       odb_i->SetArray(h_panel,"gain_cal",TID_WORD,gain_cal,96);
       odb_i->SetArray(h_panel,"gain_hv" ,TID_WORD,gain_hv ,96);
       
-      Stream << std::format(" SUCCESS, panel_name:{}\n",panel_name);
+      ss << std::format(" SUCCESS, panel_name:{}\n",panel_name);
     }
     catch (...) {
-      Stream << std::format(" ERROR, panel_name:{} link_rc:{}\n",panel_name,link_rc);
+      ss << std::format(" ERROR, panel_name:{} link_rc:{}\n",panel_name,link_rc);
       TLOG(TLVL_ERROR) << "link:" << lnk << " panel_name:" << panel_name << " link_rc:" << link_rc;
       rc -= 1;
     }
-  }
-                                      
-  odb_i->SetStatus(h_dtc,0);
+  }                                    
+//-----------------------------------------------------------------------------
+// write output to the equipment log - need to revert the line order 
+//-----------------------------------------------------------------------------
+  odb_i->SetStatus(h_dtc,rc);
+
+  int cmd_rc = TMu2eEqBase::WriteOutput(ss.str());
   
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
 
@@ -1393,6 +1405,28 @@ int TEqTrkDtc::WriteRegister(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
+int TEqTrkDtc::TestCommand(std::ostream& Stream) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  OdbInterface* odb_i     = OdbInterface::Instance();
+  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
+  //  HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);  // "ParameterPath"
+
+  try {
+    Stream << "test_command finished OK" << std::endl;
+  }
+  catch (...) {
+    TLOG(TLVL_ERROR) << std::format("rc:{}",rc);
+    Stream << std::format(" ERROR : test_command rc:{}\n",rc);
+  }
+
+  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
 int TEqTrkDtc::WriteRocRegister(std::ostream& Stream) {
   
   OdbInterface* odb_i     = OdbInterface::Instance();
@@ -1420,3 +1454,17 @@ int TEqTrkDtc::WriteRocRegister(std::ostream& Stream) {
 }
 
 
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::StartMessage(HNDLE h_Cmd, std::ostream& Stream) {
+
+  Stream << std::endl; // perhaps
+
+  std::string cmd  = _odb_i->GetString(h_Cmd,"Name");
+  std::string link = _odb_i->GetString(h_Cmd,"link");
+  
+  Stream << std::format("-- label:{} host:{} cmd:{} pcie_addr:{} link:{}",
+                        HostLabel(),FullHostName(),cmd,_dtc_i->PcieAddr(),link);
+  return 0;
+}
