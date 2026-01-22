@@ -58,6 +58,7 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   }
 //-----------------------------------------------------------------------------
 // get DTC config handle and set the DTC busy status
+// before issuing a new command, one has to check the status
 //-----------------------------------------------------------------------------
   HNDLE h_dtc = odb_i->GetDtcConfigHandle(frontend.name,pcie_addr);
   odb_i->SetInteger(h_dtc,"Status",1);

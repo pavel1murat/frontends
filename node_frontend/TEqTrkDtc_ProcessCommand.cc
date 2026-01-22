@@ -26,51 +26,53 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // based on the key, figure out own name and the node name
 // - this is the price paid for decoupling
 //-----------------------------------------------------------------------------
-  KEY k;
-  odb_i->GetKey(hKey,&k);
+  KEY k_cmd;                            // hKey corresponds to "Run"
+  odb_i->GetKey(hKey,&k_cmd);
 
   HNDLE h_cmd = odb_i->GetParent(hKey);
-  KEY dtc;
-  odb_i->GetKey(h_cmd,&dtc);
+  KEY k_dtc;
+  odb_i->GetKey(h_cmd,&k_dtc);
 
   int pcie_addr(0);
-  if (dtc.name[3] == '1') pcie_addr = 1;
+  if (k_dtc.name[3] == '1') pcie_addr = 1;
 //-----------------------------------------------------------------------------
 // the command tree is assumed to have a form of .../mu2edaq09/DTC1/'
 // so the frontend name is the same as the host label
 //-----------------------------------------------------------------------------
   HNDLE h_frontend = odb_i->GetParent(h_cmd);
-  KEY frontend;
-  odb_i->GetKey(h_frontend,&frontend);
+  KEY k_frontend;
+  odb_i->GetKey(h_frontend,&k_frontend);
   
-  TLOG(TLVL_DEBUG) << "k.name:" << k.name
-                   << " dtc.name:" << dtc.name
-                   << " pcie_addr:" << pcie_addr
-                   << " frontend.name:" << frontend.name;
-
-  //  std::string cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
-
-                                        // should 0 or 1
-  int run = odb_i->GetInteger(h_cmd,"Run");
-  if (run == 0) {
-    TLOG(TLVL_DEBUG) << "self inflicted, return";
+  TLOG(TLVL_DEBUG) << std::format("k_cmd.name:{} k_dtc.name:{} pcie_addr:{} k_frontend.name:{}",
+                                  k_cmd.name,k_dtc.name,pcie_addr,k_frontend.name);
+//-----------------------------------------------------------------------------
+// get DTC config handle and check the DTC busy status
+// if available, set it to BUSY (1)
+// before issuing a new command, one has to check the DTC status
+//-----------------------------------------------------------------------------
+  HNDLE h_dtc = odb_i->GetDtcConfigHandle(k_frontend.name,pcie_addr);
+  int status = odb_i->GetInteger(h_dtc,"Status");
+  if (status != 0) {
+    TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} BUSY or in trouble",k_frontend.name,pcie_addr);
     return;
   }
-//-----------------------------------------------------------------------------
-// get DTC config handle and set the DTC busy status
-//-----------------------------------------------------------------------------
-  HNDLE h_dtc = odb_i->GetDtcConfigHandle(frontend.name,pcie_addr);
+    
   odb_i->SetInteger(h_dtc,"Status",1);
-  
+
+  // should be 0 or 1 - may be extra because of the status check...
+  // int finished = odb_i->GetInteger(h_cmd,"Finished");
+  // if (finished == 0) {
+  //   TLOG(TLVL_DEBUG) << "self inflicted, return";
+  //   return;
+  // }
+
   std::string cmd            = odb_i->GetString (h_cmd,"Name");
   std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
   int link                   = odb_i->GetInteger(h_cmd,"link");
 //-----------------------------------------------------------------------------
 // this is address of the parameter record
 //-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG) << "cmd:" << cmd << " parameter_path:" << parameter_path;
-
-  //  HNDLE h_par_path           = odb_i->GetHandle(0,parameter_path);
+  TLOG(TLVL_DEBUG) << std::format("cmd:{} parameter_path:{}",cmd,parameter_path);
 //-----------------------------------------------------------------------------
 // should be already defined at this point
 //-----------------------------------------------------------------------------
@@ -153,11 +155,12 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     cmd_rc = eq_dtc->InitReadout(ss);
   }
 //-----------------------------------------------------------------------------
-// LOAD_THRESHOLDS
+// LOAD_THRESHOLDS - execute per-DTC commands as threads
 //-----------------------------------------------------------------------------
   else if (cmd == "load_thresholds") {
-    ss << std::endl;
-    cmd_rc = eq_dtc->LoadThresholds(ss);
+    // 2026-01-21 PM cmd_rc = eq_dtc->LoadThresholds(h_cmd);
+    std::thread t(&TEqTrkDtc::LoadThresholds,eq_dtc,h_cmd);
+    t.detach();
   }
 //-----------------------------------------------------------------------------
 // MEASURE_THRESHOLDS
@@ -299,9 +302,17 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     try         { dtc_i->Dtc()->SoftReset(); ss << " soft reset OK" << std::endl; }
     catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }
   }
+  else if (cmd == "test_command") {
+//-----------------------------------------------------------------------------
+// test command; for different DTCs may be executed in a thread, links are processes sequentially
+// what starts the thread ??  - this is open so far
+//-----------------------------------------------------------------------------
+    ss << std::endl;
+    cmd_rc = eq_dtc->TestCommand(ss);
+  }
   else if (cmd == "write_register") {
 //-----------------------------------------------------------------------------
-// read ILP
+// WRITE_REGISTER
 //-----------------------------------------------------------------------------
     ss << std::endl;
     cmd_rc = eq_dtc->WriteRegister(ss);
@@ -320,7 +331,6 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // write output to the equipment log - need to revert the line order 
 //-----------------------------------------------------------------------------
   cmd_rc = eq_dtc->WriteOutput(ss.str());
-  
 //-----------------------------------------------------------------------------
 // done, avoid second call - leave "Run" = 1;, before setting it to 1 again,
 // need to make sure that "Finished" = 1
