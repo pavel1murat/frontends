@@ -13,7 +13,7 @@
 
   <script srs="global_variables.js"></script>
   <script src="mu2edaq.js"></script>
-  <script src="trk_commands.js"></script>
+  <script src="tracker_commands.js"></script>
   
   <title>Tracker Status</title>
 
@@ -21,7 +21,7 @@
 //-----------------------------------------------------------------------------
 // main function
 //-----------------------------------------------------------------------------
-    function createPage() {
+    async function createPage() {
     
       const urlParams    = new URLSearchParams(window.location.search);
       const stationIndex = urlParams.get('station') || '0';  // Default to Station_00
@@ -122,8 +122,8 @@
               c1.className = "status-cell";
               const mnid_path = panel_odb_path+`/Name`;
               mjsonrpc_db_get_values([mnid_path]).then(function (rpc) {
-                panel_name = rpc.result.data[0];
-                mnid = parseInt(panel_name.substring(2));
+                const panel_name = rpc.result.data[0];
+                const mnid = parseInt(panel_name.substring(2));
                 c1.innerHTML = `<button onclick="trk_panel_control('${i}','${k}', '${ip}', '${mnid}')"> ${panel_name} </button></div>`;
             
                 // Load initial values and set up polling for updates

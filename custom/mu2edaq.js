@@ -2,8 +2,8 @@
 //-----------------------------------------------------------------------------
 // could think of having a cmd.name and cmd.title, but in absense of pointers 
 // that could complicate things
-// parameter_path points to the path where the name, parameter_path, and Finished
-// should be stored
+// parameter_path points to the ODB path where the command name, parameter_path,
+// and 'Finished' should be stored
 //-----------------------------------------------------------------------------
 class Command {
   constructor(name,table_id,parameter_path) {
@@ -44,6 +44,9 @@ function tfm_cmd_parameter_path(hostname) { return `/Mu2e/Commands/DAQ/Tfm`; }
 
 //-----------------------------------------------------------------------------
 function test_cmd_parameter_path(cmd) { return `/Mu2e/Commands/Test`; }
+
+//-----------------------------------------------------------------------------
+function trk_cmd_parameter_path(cmd) { return `/Mu2e/Commands/Tracker`; }
 
 //-----------------------------------------------------------------------------
 // common javascript functions
@@ -280,7 +283,7 @@ async function mu2e_command_set_odb_B(cmd) {
     const paths=[ppath+'/Run', ppath+'/Finished'];
     let run      = 1;
     let finished = 0;
-    sleep(500);
+    sleep(100);
     try {
       let rpc = await mjsonrpc_db_get_values(paths);
       run      = rpc.result.data[0];
@@ -300,7 +303,45 @@ async function mu2e_command_set_odb_B(cmd) {
 }
 
 //-----------------------------------------------------------------------------
-// input: Command_B
+// load ODB table corresponding to a given 'odb_path' to HTML table with a given 'table_id'
+// input: cmd: Command_B
+//-----------------------------------------------------------------------------
+function mu2e_odb_load_table(cmd) {
+  const table     = document.getElementById(cmd.table_id);
+  table.innerHTML = '';
+  odb_browser(cmd.table_id,cmd.func_parameter_path(cmd),0);
+}
+
+//-----------------------------------------------------------------------------
+function mu2e_make_dropup_button_B(cmd) {
+  let btn    = document.createElement('div');
+  btn.className = 'dropup';
+
+  let inp       = document.createElement('input');
+  inp.type      = 'button';
+  inp.className = 'dropbtn';
+  inp.value     = cmd.name;
+  btn.appendChild(inp);
+
+  let d1       = document.createElement('div');
+  d1.className = 'dropup-content';
+
+  const d1_1   = document.createElement('div');
+  d1_1.innerHTML = 'Load Parameters'
+  // cmd.parameter_path corresponds to the ODB handle which has the command name one of its members
+  d1_1.onclick   = function() { mu2e_odb_load_table(cmd) ; };
+  d1.appendChild(d1_1);
+
+  const d1_2   = document.createElement('div');
+  d1_2.innerHTML = 'Run'
+  d1_2.onclick   = function() { cmd.func(cmd) ; };
+
+  d1.appendChild(d1_2);
+
+  btn.appendChild(d1);
+  return btn;
+}
+
 //-----------------------------------------------------------------------------
 function mu2e_make_exec_button_B(cmd) {
   let btn    = document.createElement('input');
@@ -309,16 +350,6 @@ function mu2e_make_exec_button_B(cmd) {
   btn.onclick = function() { cmd.func(cmd) ; }
   // btn.onclick = test_mu2e_odb_load_table(cmd); 
   return btn;
-}
-
-//-----------------------------------------------------------------------------
-// load ODB table corresponding to a given 'odb_path' to HTML table with a given 'table_id'
-// cmd: Cmmand_B - doesn't work yet
-//-----------------------------------------------------------------------------
-function mu2e_odb_load_table(cmd) {
-  const table     = document.getElementById(cmd.table_id);
-  table.innerHTML = '';
-  odb_browser(cmd.table_id,cmd.func_parameter_path(cmd),0);
 }
 
 //-----------------------------------------------------------------------------

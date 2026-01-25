@@ -5,11 +5,12 @@
 #include <regex>
 #include "nlohmann/json.hpp"
 
-#include "node_frontend/ArtdaqMetrics.hh"
-#include "node_frontend/TEquipmentManager.hh"
-#include "node_frontend/TEqArtdaq.hh"
+#include "utils/TEquipmentManager.hh"
 #include "utils/OdbInterface.hh"
 #include "utils/utils.hh"
+
+#include "node_frontend/ArtdaqMetrics.hh"
+#include "node_frontend/TEqArtdaq.hh"
 
 #include "odbxx.h"
 
@@ -58,7 +59,7 @@ std::initializer_list<const char*>  DsVarName = {
 #include "node_frontend/TEqArtdaq.hh"
 
 //-----------------------------------------------------------------------------
-TEqArtdaq::TEqArtdaq(const char* EqName) : TMu2eEqBase(EqName) {
+TEqArtdaq::TEqArtdaq(const char* Name, const char* Title) : TMu2eEqBase(Name,Title,TMu2eEqBase::kArtdaq) {
 //-----------------------------------------------------------------------------
 // get port number used by the TFM, don't assume the farm_manager is running locally
 // the frontend has to have its own xmlrpc URL,
@@ -572,7 +573,8 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // should be already defined at this point
 //-----------------------------------------------------------------------------
-  TEqArtdaq*  eq = (TEqArtdaq*) TEquipmentManager::Instance()->_eq_artdaq;
+  TEquipmentManager* eqm = TEquipmentManager::Instance();
+  TEqArtdaq*  eq = (TEqArtdaq*) eqm->FindEquipmentItem("ARTDAQ");
 
   ss << std::format("host_label:{} host_name:{} cmd:{}",eq->HostLabel(),eq->FullHostName(),cmd);
 //-----------------------------------------------------------------------------

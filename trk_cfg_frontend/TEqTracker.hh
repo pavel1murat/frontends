@@ -8,8 +8,9 @@
 #include "midas.h"
 
 #include "frontends/utils/OdbInterface.hh"
+#include "frontends/utils/TMu2eEqBase.hh"
 
-class TEqTracker : public TMFeEquipment {
+class TEqTracker : public TMu2eEqBase {
   enum {
     kCmdUndefined = 0,
     kCmdDtc       = 1,
@@ -61,22 +62,13 @@ public:
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  TEqTracker(const char* eqname, const char* eqfilename);
+  TEqTracker(const char* Name, const char* Title);
 
-  virtual TMFeResult HandleInit         (const std::vector<std::string>& args);
-  virtual void       HandlePeriodic     ();
-  // virtual TMFeResult HandleRpc          (const char* cmd, const char* args, std::string& response);
-  // virtual TMFeResult HandleBinaryRpc    (const char* cmd, const char* args, std::vector<char>& response);
-  virtual TMFeResult HandleBeginRun     (int RunNumber);
-  virtual TMFeResult HandleEndRun       (int RunNumber);
-  virtual TMFeResult HandlePauseRun     (int RunNumber);
-  virtual TMFeResult HandleResumeRun    (int RunNumber);
-  virtual TMFeResult HandleStartAbortRun(int RunNumber);
+  virtual TMFeResult Init               () override;
 //-----------------------------------------------------------------------------
 // this is MIDAS callback
 //-----------------------------------------------------------------------------
   static  void       ProcessCommand   (int hDB, int hKey, void* Info);
-
 //-----------------------------------------------------------------------------
 // fanout DTC command to all tracker DTCs and wait for completion
 //-----------------------------------------------------------------------------
@@ -88,13 +80,10 @@ public:
   static  int        PulserOn         (const std::string& CmdParameterPath);
   static  int        PulserOff        (const std::string& CmdParameterPath);
   static  int        PanelPrintStatus (const std::string& CmdParameterPath);
-  static  int        ResetOutput();
   static  int        TestCommand      (int Station, int Plane, int Panel);
   static  TMFeResult ResetStationLV   (const std::string& CmdParameterPath);
 
   static  int        WaitForCompletion (HNDLE h_Cmd);
-
-  int                WriteOutput(const std::string& Output, const std::string& Logfile);
 
 };
 #endif

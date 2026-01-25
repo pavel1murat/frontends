@@ -35,6 +35,9 @@ cet_make_library(LIBRARY_NAME frontends::utils
                  get_host_name.cc
                  MidasInterface.cc
                  OdbInterface.cc
+                 TEquipmentManager.cc
+                 TEquipmentManager_Rpc.cc
+                 TMu2eEqBase.cc
                  LIBRARIES PUBLIC 
                  midas
                  tracelib

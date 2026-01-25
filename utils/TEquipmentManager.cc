@@ -1,16 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////
 // equipment name is the short node name, i.e. 'mu2edaq22'
 //////////////////////////////////////////////////////////////////////////////
-#include "node_frontend/TEqCrvDtc.hh"
-#include "node_frontend/TEqTrkDtc.hh"
-#include "node_frontend/TEquipmentManager.hh"
+#include <format>
+
+#include "utils/TEquipmentManager.hh"
 
 #include "utils/utils.hh"
-#include "TString.h"
+#include "utils/TMu2eEqBase.hh"
 
 #include "odbxx.h"
-#include "node_frontend/TEqArtdaq.hh"
-#include "node_frontend/TEqDisk.hh"
 
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "TEquipmentManager"
@@ -28,74 +26,22 @@ TEquipmentManager::TEquipmentManager(const char* eqname, const char* eqfilename)
 
   gEqManager              = this;
 
-  _eq_dtc[0]              = nullptr;
-  _eq_dtc[1]              = nullptr;
-  _eq_artdaq              = nullptr;
-  _eq_disk                = nullptr;
-
-  TLOG(TLVL_DEBUG) << " -- checkpoint 1";
-  
   TLOG(TLVL_DEBUG) << "-- END";
 }
 
-
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentManager::InitArtdaq() {
-  _eq_artdaq = new TEqArtdaq("artdaq");
-  return TMFeOk();
-}
+// expect one-two-three equipment items per frontend, so employ a brute force 
+// approach to searching
 //-----------------------------------------------------------------------------
-
-TMFeResult TEquipmentManager::InitDisk() {
-  _eq_disk = new TEqDisk("disk");
-  return TMFeOk();
-}
-
-//-----------------------------------------------------------------------------
-// back to DTC: two are listed in the header, both should be listed in ODB
-// can't do this in the constructor
-//-----------------------------------------------------------------------------
-TMFeResult TEquipmentManager::InitDtc() {
-
-  TLOG(TLVL_DEBUG) << "--- START";
-
-  HNDLE h_subkey;
-  KEY   subkey;
-
-  HNDLE hdb = _odb_i->GetDbHandle();
-  for (int i=0; db_enum_key(hdb,_h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
-//-----------------------------------------------------------------------------
-// skip 'Artdaq' folder
-//-----------------------------------------------------------------------------
-    db_get_key(hdb,h_subkey,&subkey);
-    
-    TLOG(TLVL_DEBUG) << "subkey.name:" << subkey.name;
-    
-    if (strstr(subkey.name,"DTC") != subkey.name)           continue;
-//-----------------------------------------------------------------------------
-// capitalize the subsystem name
-//-----------------------------------------------------------------------------
-    std::string subsystem = _odb_i->GetString(h_subkey,"Subsystem");
-    std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
-    int dtc_enabled       = _odb_i->GetEnabled(h_subkey);
-    int pcie_addr         = _odb_i->GetInteger(h_subkey,"PcieAddress");
-
-    TLOG(TLVL_DEBUG) << std::format("subsystem:{} pcie_addr:{} enabled:{}",subsystem,pcie_addr,dtc_enabled);
-   
-    if (dtc_enabled) {
-      std::string name = std::format("DTC{}",pcie_addr);
-      if      (subsystem == "CRV"    ) {
-        _eq_dtc[pcie_addr] = new TEqCrvDtc(name.data(),_h_active_run_conf,h_subkey);
-      }
-      else if (subsystem == "TRACKER") {
-        _eq_dtc[pcie_addr]    = new TEqTrkDtc(name.data(),_h_active_run_conf,h_subkey);
-      }
+TMu2eEqBase* TEquipmentManager::FindEquipmentItem(const std::string& Name) {
+  TMu2eEqBase* eq_item(nullptr);
+  for (auto eq : _eq_list) {
+    if (eq->Name() == Name) {
+      eq_item = eq;
+      break;
     }
   }
-
-  TLOG(TLVL_DEBUG) << "--- END: EQ_DTC0:" <<  _eq_dtc[0] << " EQ_DTC1:" <<  _eq_dtc[1];
-
-  return TMFeOk();
+  return eq_item;
 }
 
 //-----------------------------------------------------------------------------
@@ -106,6 +52,8 @@ TMFeResult TEquipmentManager::InitDtc() {
 // - standard node hardware (disk, memory etc)
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
+
+  TLOG(TLVL_DEBUG) << "-- START";
 
   fEqConfReadOnlyWhenRunning = false;
   fEqConfWriteEventsToOdb    = true;
@@ -136,75 +84,17 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
     return TMFeMidasError(buf,"TEquipmentManager::HandleInit(",DB_INVALID_NAME);
   }
   _h_frontend_conf = _odb_i->GetFrontendConfHandle(_h_active_run_conf,_host_label);
+  _diagLevel       = _odb_i->GetInteger(_h_frontend_conf,"DiagLevel");
+  
+  TLOG(TLVL_DEBUG) << std::format("_diagLevel:{}",_diagLevel);
+
 //-----------------------------------------------------------------------------
-// in principle, CRV doesn't need to know about tracker-specific monitoring
-// multiple options, but for now leave as is
-//-----------------------------------------------------------------------------
-  _diagLevel     = _odb_i->GetInteger(_h_frontend_conf,"DiagLevel");
-  TLOG(TLVL_DEBUG) << "_diagLevel:"  << _diagLevel;
+// initialize equipment
+//
 
   EqSetStatus("Started...", "white");
   fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
-//-----------------------------------------------------------------------------
-// expected types of equipment
-// 1. DTC's
-//-----------------------------------------------------------------------------
-//  InitDtc   ();
-  HNDLE h_subkey;
-  KEY   subkey;
 
-  HNDLE hdb = _odb_i->GetDbHandle();
-  for (int i=0; db_enum_key(hdb,_h_daq_host_conf,i,&h_subkey) != DB_NO_MORE_SUBKEYS; i++) {
-//-----------------------------------------------------------------------------
-// skip 'Artdaq' folder
-//-----------------------------------------------------------------------------
-    db_get_key(hdb,h_subkey,&subkey);
-    
-    TLOG(TLVL_DEBUG) << "subkey.name:" << subkey.name;
-    
-    if (strstr(subkey.name,"DTC") != subkey.name)           continue;
-//-----------------------------------------------------------------------------
-// capitalize the subsystem name
-//-----------------------------------------------------------------------------
-    std::string subsystem = _odb_i->GetString(h_subkey,"Subsystem");
-    std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
-    int dtc_enabled       = _odb_i->GetEnabled(h_subkey);
-    int pcie_addr         = _odb_i->GetInteger(h_subkey,"PcieAddress");
-
-    TLOG(TLVL_DEBUG) << std::format("node:{} subsystem:{} pcie_addr:{} enabled:{}",_host_label,subsystem,pcie_addr,dtc_enabled);
-   
-    if (dtc_enabled) {
-      std::string name = std::format("DTC{}",pcie_addr);
-      if      (subsystem == "CRV"    ) {
-        _eq_dtc[pcie_addr] = new TEqCrvDtc(name.data(),_h_active_run_conf,h_subkey);
-      }
-      else if (subsystem == "TRACKER") {
-        _eq_dtc[pcie_addr]    = new TEqTrkDtc(name.data(),_h_active_run_conf,h_subkey);
-      }
-      _eq_list.emplace_back(_eq_dtc[pcie_addr]);
-      TLOG(TLVL_DEBUG) << std::format("host:{} DTC:{} added to the equipment list",_host_label,pcie_addr);
-    }
-    else {
-      TLOG(TLVL_WARNING) << std::format("host:{} DTC:{} DISABLED",_host_label,pcie_addr);
-    }
-  }
-  //  TLOG(TLVL_DEBUG) << std::format("EQ_DTC0:0x{:08x} EQ_DTC1:0x{:08x}",(void*) (_eq_dtc[0]),(void*) (_eq_dtc[1]));
-//-----------------------------------------------------------------------------
-// 2. ARTDAQ
-//-----------------------------------------------------------------------------
-//  InitArtdaq();
-  HNDLE h_artdaq_conf = _odb_i->GetArtdaqConfHandle(_h_active_run_conf,_host_label);
-  if (_odb_i->GetEnabled( h_artdaq_conf)) { 
-    _eq_artdaq = new TEqArtdaq("artdaq");
-    _eq_list.emplace_back(_eq_artdaq);
-  }
-//-----------------------------------------------------------------------------
-// 3. disk
-//-----------------------------------------------------------------------------
-//   InitDisk  ();
-  _eq_disk = new TEqDisk("disk");
-  _eq_list.emplace_back(_eq_disk);
-  
   TLOG(TLVL_DEBUG) << "-- END";
   return TMFeOk();
 }
@@ -223,20 +113,16 @@ TMFeResult TEquipmentManager::HandleBeginRun(int RunNumber)  {
   int rc(0);
   
   if (handle_begin_run) {
-    for (int i=0; i<2; i++) {
-      if (_eq_dtc[i]) {
-        // begin run returns either 0 (success) or a negative number
-        rc -= _eq_dtc[i]->BeginRun(_h_active_run_conf);
-      }
+    for (auto eq: _eq_list) {
+                                        // begin run returns either 0 (success) or a negative number
+      rc = eq->BeginRun(_h_active_run_conf);
     }
   }
   
   TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
 
   if (rc == 0) return TMFeOk();
-  else {
-    return TMFeResult(1,"failed to initialize DTC readout");
-  }
+  else         return TMFeResult(1,"failed to initialize the DTC readout");
 };
 
 //-----------------------------------------------------------------------------
@@ -305,32 +191,15 @@ void TEquipmentManager::HandlePeriodic() {
     }
   }
 
-  // for (int pcie_addr=0; pcie_addr<2; pcie_addr++) {
-  //   if (_eq_dtc[pcie_addr] and (_eq_dtc[pcie_addr]->MonitoringLevel() > 0)) {
-  //     _eq_dtc[pcie_addr]->ReadMetrics();
-  //   }
-  // }
-//-----------------------------------------------------------------------------
-// read metrics of artdaq processes running on this node
-//-----------------------------------------------------------------------------
-  // if (_eq_artdaq and (_eq_artdaq->MonitoringLevel() > 0) and TMFE::Instance()->fStateRunning) {
-  //   _eq_artdaq->ReadMetrics();
-  // }
-//-----------------------------------------------------------------------------
-// monitor node resources
-//-----------------------------------------------------------------------------
-  // if (_eq_disk and (_eq_disk->MonitoringLevel() > 0)) {
-  //   _eq_disk->ReadMetrics();
-  // }
-
-  EqSetStatus(Form("OK"),"#00FF00");
+  EqSetStatus("OK","#00FF00");
 
   TLOG(TLVL_DEBUG+1) << "-- END";
 }
 
 
 //-----------------------------------------------------------------------------
-// not sure if this function is needed any more
+// not sure if this function is needed any more: we're using ODB-based, not RPC-based communication
+// leave it for now - some time ago it worked
 //-----------------------------------------------------------------------------
 void TEquipmentManager::ProcessCommand(int hDB, int hKey, void* Info) {
   //  TLOG(TLVL_DEBUG) << "-- START";

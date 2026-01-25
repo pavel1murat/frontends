@@ -8,8 +8,9 @@
 //-----------------------------------------------------------------------------
 // 'skip_dtc_init' is common for all DTCs, may become obsolete
 //-----------------------------------------------------------------------------
-TEqCrvDtc::TEqCrvDtc(const char* EqName, HNDLE H_RunConf, HNDLE H_Dtc) : TMu2eEqBase(EqName) {
-
+TEqCrvDtc::TEqCrvDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Dtc) :
+  TMu2eEqBase(Name,Title,TMu2eEqBase::kCrv)
+{
   TLOG(TLVL_DEBUG) << "-- START: H_RunConf:" << H_RunConf << " H_Dtc:" << H_Dtc;
 
   _h_dtc               = H_Dtc;

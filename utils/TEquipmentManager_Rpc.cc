@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-#include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
-#include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
+#include <format>
 
-#include "node_frontend/TEquipmentManager.hh"
+#include "utils/TEquipmentManager.hh"
+#include "utils/TMu2eEqBase.hh"
 #include "utils/OdbInterface.hh"
 #include "utils/utils.hh"
 #include "nlohmann/json.hpp"
@@ -42,7 +42,7 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
   
   json j1;
   try {
-    TLOG(TLVL_DEBUG) << "PM before parsing json args:" << args;
+    TLOG(TLVL_DEBUG) << "before parsing json args:" << args;
     j1 = nlohmann::json::parse(args);
   }
   catch(const std::exception& e) {
@@ -55,26 +55,27 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
   
   // equipment type is always defined, the rest parameters depend on it
   eq_type        = j1.at("eq_type");
+
+  std::string eq_name = eq_type;
+  
   if (eq_type == "dtc") {
     pcie_addr = j1.at("pcie");
+    eq_name   = std::format("dtc{}",pcie_addr);
     link      = j1.at("roc" );
-    eq        = _eq_dtc[pcie_addr];
-    TLOG(TLVL_DEBUG) << "pcie_addr:" << pcie_addr << " eq:" << eq
-                     << " _eq_dtc[" << pcie_addr << "]:0x" << std::hex << _eq_dtc[pcie_addr];
   }
-  else if (eq_type == "artdaq") {
-    // perhaps some additional parameters to parse
-    eq = _eq_artdaq;
-  }
-  else if (eq_type == "disk") {
-    // perhaps some additional parameters to parse
-    eq = _eq_disk;
+//-----------------------------------------------------------------------------
+// equipment namse are always capitalized
+//-----------------------------------------------------------------------------
+  std::transform(eq_name.begin(),eq_name.end(),eq_name.begin(),::toupper);
+  eq          = FindEquipmentItem(eq_name);
+  
+  if (eq != nullptr) {
+    TLOG(TLVL_DEBUG) << std::format("eq_name:{} eq:{} ",eq_name,(void*) eq);
   }
   else {
     TLOG(TLVL_ERROR) << "undefined eq_type:" << eq_type;
     throw std::runtime_error("undefined eq_type:"+eq_type);
   }
-  TLOG(TLVL_DEBUG) << "just a checkpoint";
 //-----------------------------------------------------------------------------
 // start forming response
 //-----------------------------------------------------------------------------
@@ -83,7 +84,7 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
 // a single place to make sure that the pointer to the EqDTC is OK
 //-----------------------------------------------------------------------------
   if (eq == nullptr) {
-    ss << "EQ:" << eq_type << " is not enabled";
+    ss << "EQ:" << eq_type << " is disabled";
     response += ss.str();
     TLOG(TLVL_ERROR) << response;
     return TMFeErrorMessage(response);
@@ -93,9 +94,10 @@ TMFeResult TEquipmentManager::HandleRpc(const char* cmd, const char* args, std::
 // for eq_name = DTC, there is link defined - set it in the command parameters
 // in ODB
 //-----------------------------------------------------------------------------
-  std::string cmd_path = odb_i->GetCmdConfigPath(_host_label,eq->Name());
+  std::string cmd_path = odb_i->GetCmdConfigPath(_host_label,eq->Title());
   HNDLE       h_cmd    = odb_i->GetHandle(0,cmd_path);
-  TLOG(TLVL_DEBUG) << "cmd_path:" << cmd_path << " h_cmd:" << h_cmd << " eq->Name():" << eq->Name();
+  TLOG(TLVL_DEBUG) << std::format("cmd_path:{} h_cmd:{} eq->Name():{} eq->Title():{}",
+                                  cmd_path,h_cmd,eq->Name(),eq->Title());
 //-----------------------------------------------------------------------------
 // is the assumption that the parameter path is always local OK ?
 //-----------------------------------------------------------------------------

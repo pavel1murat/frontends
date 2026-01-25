@@ -2,17 +2,20 @@
 #include <fstream>
 #include "utils/utils.hh"
 #include "utils/OdbInterface.hh"
-#include "node_frontend/TMu2eEqBase.hh"
+#include "utils/TMu2eEqBase.hh"
 #include <format>
 
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "TMu2eEqBase"
 
 //-----------------------------------------------------------------------------
-TMu2eEqBase::TMu2eEqBase(const char* EqName) {
-  TLOG(TLVL_DEBUG) << std::format("-- START EqName:{}",EqName); 
+TMu2eEqBase::TMu2eEqBase(const char* Name, const char* Title, int Subsystem) :
+  _name     (Name     ),
+  _title    (Title    ),
+  _subsystem(Subsystem)
+{
+  TLOG(TLVL_DEBUG) << std::format("-- START: Name:{} Title:{}",Name,Title); 
 
-  _name                       = EqName;
   _odb_i                      = OdbInterface::Instance();
   _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
   std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
@@ -27,7 +30,7 @@ TMu2eEqBase::TMu2eEqBase(const char* EqName) {
   _full_host_name  = get_full_host_name (private_subnet.data());
   _h_daq_host_conf = _odb_i->GetHostConfHandle(_host_label);
   _monitoringLevel = 0;
-  TLOG(TLVL_DEBUG) << std::format("-- END _host_label:{} _full_host_name:{}",_host_label,_full_host_name); 
+  TLOG(TLVL_DEBUG) << std::format("-- END: _host_label:{} _full_host_name:{}",_host_label,_full_host_name); 
 }
 
 //-----------------------------------------------------------------------------
@@ -55,22 +58,32 @@ int TMu2eEqBase::HandlePeriodic() {
 }
 
 //-----------------------------------------------------------------------------
-int TMu2eEqBase::ResetOutput() {
+// the logfiles are supposed to be located in ODB("/Logger/Data dir")
+//-----------------------------------------------------------------------------
+int TMu2eEqBase::ResetOutput(const std::string& Logfile) {
+
+  std::string fn(_logfile);
+  
+  if (Logfile != "") {
+    std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+    fn = std::format("{}/{}",data_dir,Logfile);
+  }
+
   TLOG(TLVL_DEBUG) << "--- START _logfile:" << _logfile; 
 
-  std::ofstream output_file;
-  output_file.open(_logfile,std::ofstream::trunc);
-  if (not output_file.is_open()) {
-    TLOG(TLVL_ERROR) << std::format("failed to open _logfile:{} in ofstream::trunc mode",_logfile); 
-  }
-  else {
-    output_file.close();
-  }
+  std::mutex mtx; // For thread-safe output
 
-  //  ss_sleep(100);
-
-  // midas::odb o_cmd("/Mu2e/Commands/Tracker");
-  // o_cmd["Finished"] = 1;
+  {
+    std::lock_guard<std::mutex> lock(mtx);
+    std::ofstream output_file;
+    output_file.open(fn.data(),std::ofstream::trunc);
+    if (not output_file.is_open()) {
+      TLOG(TLVL_ERROR) << std::format("failed to open _logfile:{} in ofstream::trunc mode",fn); 
+    }
+    else {
+      output_file.close();
+    }
+  }
   
   TLOG(TLVL_DEBUG) << "--- END";
   return 0;
@@ -78,6 +91,7 @@ int TMu2eEqBase::ResetOutput() {
 
 //-----------------------------------------------------------------------------
 // make sure that a command can redirect its output
+//-----------------------------------------------------------------------------
 int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& Logfile) {
 
   TLOG(TLVL_DEBUG) << std::format("-- START: _logfile:{} Logfile:{} Output size:{}",_logfile,Logfile,Output.length()); 

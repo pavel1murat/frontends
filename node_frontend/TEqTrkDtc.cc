@@ -3,7 +3,7 @@
 
 #include "utils/OdbInterface.hh"
 #include "node_frontend/TEqTrkDtc.hh"
-#include "node_frontend/TEquipmentManager.hh"
+#include "utils/TEquipmentManager.hh"
 
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "TEqTrkDtc"
@@ -33,7 +33,7 @@ namespace {
 };
 
 //-----------------------------------------------------------------------------
-TEqTrkDtc::TEqTrkDtc(const char* EqName) : TMu2eEqBase(EqName) {
+TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title) : TMu2eEqBase(Name,Title,TMu2eEqBase::kTracker) {
 }
 
 //-----------------------------------------------------------------------------
@@ -41,8 +41,8 @@ TEqTrkDtc::~TEqTrkDtc() {
 }
 
 //-----------------------------------------------------------------------------
-TEqTrkDtc::TEqTrkDtc(const char* EqName, HNDLE H_RunConf, HNDLE H_Dtc)  : TMu2eEqBase(EqName) {
-
+TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Dtc): TMu2eEqBase(Name,Title,TMu2eEqBase::kTracker)
+{
   TLOG(TLVL_DEBUG) << "-- START: H_RunConf:" << H_RunConf << " H_Dtc:" << H_Dtc;
   
   _h_dtc               = H_Dtc;

@@ -2,6 +2,34 @@
 # ------------------------------------------------------------------------------
 # development news
 # ------------------------------------------------------------------------------
+** <2026-01-24 Sat> mhttpd MIDAS_EXPT_NAME=tracker is running as a user service
+- config files:
+#+begin_src
+  /home/mu2etrk/.config/systemd/user:
+  drwxr-x--- 3 mu2etrk mu2e 106 Jan 24 11:54 .
+  drwxr-x--- 3 mu2etrk mu2e  18 Jan 24 11:20 ..
+  drwxr-xr-x 2 mu2etrk mu2e  54 Jan 24 11:53 default.target.wants
+  -rw-r----- 1 mu2etrk mu2e 171 Jan 24 11:52 krb5-renew.service
+  -rw-r----- 1 mu2etrk mu2e 132 Jan 24 11:50 krb5-renew.timer
+  -rw-r----- 1 mu2etrk mu2e 634 Jan 24 11:54 mhttpd.service
+#+end_src
+- to install (if in question, check with gemini) :
+  - generate a user service keytab file for user xxx@YYYY.ZZZ and install it in ~/.keytabs
+  - edit [[file:../scripts/mhttpd.service]] and [[file:../scripts/krb5-renew.service]] and install them in ~/.config/systemd/user
+  - install file:../scripts/krb5-renew.timer in ~/.config/systemd/user
+  - install [[file:../scripts/start_mhttpd_service.sh]] in ~/bin
+- to start:
+#+begin_src
+systemctl --user enable mhttpd
+systemctl --user enable renew-krb5
+systemctl --user start  mhttpd
+systemctl --user start  renew-krb5
+#+end_src
+- to check status: 
+#+begin_src
+systemctl --user status mhttpd
+systemctl --user status renew-krb5
+#+end_src
 ** <2025-11-27 Thu> make DAQ/DtcFwVersion a directory, with separate fw versions
    for tracker and CRV
 ** <2025-03-01 Sat>

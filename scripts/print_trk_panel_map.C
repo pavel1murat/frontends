@@ -9,9 +9,9 @@
 #include "odbxx.h"
 #include "frontends/utils/OdbInterface.hh"
 //-----------------------------------------------------------------------------
-// 
+// 'StationSlot' is the station slot number, 0 is the most upstream
 //-----------------------------------------------------------------------------
-int print_trk_panel_map(int Station, const char* Experiment = "tracker") {
+int print_trk_panel_map(int StationSlot, const char* Experiment = "tracker") {
 
   cm_connect_experiment("mu2e-dl-01-data", Experiment, "print_trk_panel_map",NULL);
 
@@ -19,7 +19,7 @@ int print_trk_panel_map(int Station, const char* Experiment = "tracker") {
 
   HNDLE h_tracker = odb_i->GetHandle(0,"/Mu2e/ActiveRunConfiguration/Tracker");
 
-  HNDLE h_station = odb_i->GetHandle(h_tracker,std::format("Station_{:02d}",Station));
+  HNDLE h_station = odb_i->GetHandle(h_tracker,std::format("Station_{:02d}",StationSlot));
 
   for (int plane=0; plane<2; plane++) {
     HNDLE h_plane = odb_i->GetHandle(h_station,std::format("Plane_{:02d}",plane));
@@ -40,7 +40,7 @@ int print_trk_panel_map(int Station, const char* Experiment = "tracker") {
       // std::cout << std::format("name:{} mnid:{:03d} dtc_id:{:02} link:{} ppid:{:2} pln:{} pnl:{} zfc:{}\n",
       //                          panel_name,mnid,dtc_id,link,ppid,pln,pnl,zfc);
 
-      std::cout << std::format("   {:03},  {:3}, {:3}, {:3}, {:4}, {:2}, {:3}",
+      std::cout << std::format("  {:03},  {:3}, {:3}, {:3}, {:4}, {:2}, {:3}",
                                mnid,dtc_id,link,pln,ppid,pnl,zfc) << std::endl;
     }
   }

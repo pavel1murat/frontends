@@ -54,6 +54,12 @@ int TEqTracker::ExecuteTrackerCommand(HNDLE hTrkCmd) { // const std::string& Cmd
 
   OdbInterface* odb_i = OdbInterface::Instance();
   HNDLE h_trk_cfg   = odb_i->GetTrackerConfigHandle();
+
+//-----------------------------------------------------------------------------
+// set tracker status to BUSY
+//-----------------------------------------------------------------------------
+  odb_i->SetStatus(h_trk_cfg,1);
+
   HNDLE h_panel(0);
 
   std::string cmd                  = odb_i->GetString (hTrkCmd,"Name"   );

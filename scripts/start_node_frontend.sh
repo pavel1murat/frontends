@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 #------------------------------------------------------------------------------
+# 2026-01-24 PM: supposed to be obsilete, superseded by start_linux_frontend.sh
+# -----------------------------------------------------------------------------
 # node_frontend processes are running on a network tagged as 'PrivateNetwork'
 # in some cases it can be the same as the public network
 #------------------------------------------------------------------------------

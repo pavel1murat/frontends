@@ -7,7 +7,7 @@
 #include <ctime>
 #include "midas.h"
 
-#include "node_frontend/TMu2eEqBase.hh"
+#include "utils/TMu2eEqBase.hh"
 #include "node_frontend/ArtdaqComponent.hh"
 
 class TEqArtdaq: public TMu2eEqBase {
@@ -17,7 +17,7 @@ public:
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  TEqArtdaq(const char* Name);
+  TEqArtdaq(const char* Name, const char* Title);
   ~TEqArtdaq();
 
   int                 ReadBrMetrics(const ArtdaqComponent_t* Ac);

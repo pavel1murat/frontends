@@ -1,0 +1,19 @@
+[Unit]
+Description=My Kerberos Authenticated Service
+After=network.target
+
+[Service]
+# Environment variable to point tools to your specific credential cache
+Environment=KRB5CCNAME=FILE:/run/user/%U/krb5cc_service
+
+# The magic: obtain a ticket using the keytab before starting the main app
+ExecStartPre=/usr/bin/kinit -kt /home/mu2etrk/.keytabs/mhttpd.keytab xxxx@YYYY.ZZZ
+
+# Your actual application
+ExecStart=/home/mu2etrk/bin/start_mhttpd_service.sh
+
+# Optional: Refresh the ticket periodically if the service runs for days
+# ExecStartPost=... (some scripts use a sidecar k5start process instead)
+
+[Install]
+WantedBy=default.target

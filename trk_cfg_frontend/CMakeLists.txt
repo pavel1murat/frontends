@@ -34,7 +34,6 @@ cet_make_exec(NAME trk_cfg_frontend
   TEqTracker_PulserOn.cc
   TEqTracker_PulserOff.cc
   TEqTracker_PanelPrintStatus.cc
-  TEqTracker_ResetOutput.cc
   TEqTracker_ResetStationLV.cc
   LIBRARIES
   frontends_utils
