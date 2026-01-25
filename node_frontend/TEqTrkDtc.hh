@@ -8,7 +8,7 @@
 #include "midas.h"
 
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
-#include "node_frontend/TMu2eEqBase.hh"
+#include "utils/TMu2eEqBase.hh"
 
 class TEqTrkDtc: public TMu2eEqBase {
   enum {
@@ -45,8 +45,8 @@ public:
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  TEqTrkDtc (const char* Name);
-  TEqTrkDtc (const char* Name, HNDLE H_RunConf, HNDLE H_Dtc);
+  TEqTrkDtc (const char* Name, const char* Title);
+  TEqTrkDtc (const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Dtc);
   ~TEqTrkDtc();
 
   trkdaq::DtcInterface* Dtc_i() { return _dtc_i; }

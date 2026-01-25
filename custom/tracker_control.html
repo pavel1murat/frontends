@@ -19,7 +19,7 @@
 
     <script srs="global_variables.js"></script>
     <script src="mu2edaq.js"></script>
-    <script src="trk_commands.js"></script>
+    <script src="tracker_commands.js"></script>
     
     <title>TrackerControl</title>
     
@@ -95,8 +95,9 @@
       let stn = g_station.toString().padStart(2,'0');
       let pln = g_plane.toString().padStart(2,'0');
       let pnl = g_panel.toString().padStart(2,'0');
-      
-      let cmda = new Command_A('load_parameters','load_parameters',odb_load_table,'cmd_params' ,`/Mu2e/ActiveRunConfiguration/Tracker/Station_${stn}/Plane_${pln}/Panel_${pnl}`);
+
+      const parameter_path = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stn}/Plane_${pln}/Panel_${pnl}`
+      let cmda = new Command_A('load_parameters','load_parameters',odb_load_table,'cmd_params' , parameter_path);
       btn = make_load_table_button(cmda);
       td2.appendChild(btn);
 
@@ -157,59 +158,68 @@
 
       thead.appendChild(tr);
 
-      thead.innerHTML += `
-      <tr>
-        <td colspan=2>
-      <input type=button value='load parameters'  onClick='trk_station_load_parameters(${g_station})'>
-      <div class="dropup">
-      <input type=button class="dropbtn" value='init readout'>
-      <div class="dropup-content">
-      <div onClick='dtc_load_parameters_init_readout()'     > Load Parameters </div>
-      <div onClick='trk_command_set_odb("trk_init_readout")'> Run             </div>
-      </div>
-      </div>
-      <input type=button value='print status' onClick='trk_command_set_odb("trk_station_print_status")'>
-      <input type=button value='reset output' onClick='trk_reset_output   ("output_window")'           >
-      
-      <!--
-                                                      <input type=button value='reset LV'     onClick='trk_station_command_set_odb("reset_station_lv")'>
-      -->
-      <div class="dropup">
-      <input type=button class="dropbtn" value='reset LV'>
-      <div class="dropup-content">
-      <div onClick='trk_load_parameters_reset_station_lv(${g_station})' > Load Parameters </div>
-      <div onClick='trk_station_command_set_odb("reset_station_lv")'> Run             </div>
-      </div>
-      </div>
-      </td>
-      </tr>
-      `;
+
+      tr = document.createElement('tr');
+      let td = document.createElement('td');
+      td.colSpan = 2;
+
+      let btn = document.createElement('input');
+      btn.type = 'button';
+      btn.value = 'load_parameters';
+      btn.onclick = function() { trk_station_load_parameters(g_station) ; } ;
+
+      td.appendChild(btn);
+
+// all station-level commands should set g_station in the command parameter record
+      // mu2e_command_set_odb takes Command_B as input
+      let cmd_b = new Command_B('init readout','init_readout',mu2e_command_set_odb_B,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      let btn_b = mu2e_make_dropup_button_B(cmd_b);
+      td.appendChild(btn_b);
+
+      cmd_b = new Command_B('load thresholds','load_thresholds',mu2e_command_set_odb_B,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
+
+      cmd_b = new Command_B('print status','trk_station_print_status',mu2e_command_set_odb_B,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
+
+      cmd_b = new Command_B('reset output','reset_output',mu2e_command_set_odb_B,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
+
+      cmd_b = new Command_B('reset LV','reset_station_lv',mu2e_command_set_odb_B,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
+
+      tr.appendChild(td);
+      thead.appendChild(tr);
 
       table.appendChild(thead);
 
       let tbody = document.createElement('tbody');
       tbody.innerHTML = `
-      <tr>
-      <td>
-      <div class="tab">
-      <button class="trk_plane_tab" id="trk_plane_0" onclick="trk_choose_plane_id(event,'${plane1}')">zplane:${plane1}</button>
-      </div>
-      </td>
-      <td colspan> <div class="tab" id="trk_panel_tabs_0"></div></td>
-      </tr>
-      
-      <tr>
-      <td>
-      <div class="tab">
-      <button class="trk_plane_tab" id="trk_plane_1" onclick="trk_choose_plane_id(event,'${plane2}')">zplane:${plane2}</button>
-      </div>
-      </td>
-      <td colspan> <div class="tab" id="trk_panel_tabs_1"></div></td>
-      </tr>
+        <tr>
+          <td>
+            <div class="tab">
+              <button class="trk_plane_tab" id="trk_plane_0" onclick="trk_choose_plane_id(event,'${plane1}')">zplane:${plane1}</button>
+            </div>
+          </td>
+          <td colspan> <div class="tab" id="trk_panel_tabs_0"></div></td>
+        </tr>
+        
+        <tr>
+          <td>
+            <div class="tab">
+              <button class="trk_plane_tab" id="trk_plane_1" onclick="trk_choose_plane_id(event,'${plane2}')">zplane:${plane2}</button>
+            </div>
+          </td>
+          <td colspan> <div class="tab" id="trk_panel_tabs_1"></div></td>
+        </tr>
       `;
 
       table.appendChild(tbody);
-      
+
 //-----------------------------------------------------------------------------
 // create panel buttons
 //-----------------------------------------------------------------------------

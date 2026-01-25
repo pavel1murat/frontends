@@ -14,16 +14,21 @@ using namespace std;
 using nlohmann::json;
 
 #include "node_frontend/TEqDisk.hh"
-#include "node_frontend/TEquipmentManager.hh"
+#include "utils/TEquipmentManager.hh"
 
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "TEqDisk"
 
 //-----------------------------------------------------------------------------
-TEqDisk::TEqDisk(const char* EqName) : TMu2eEqBase(EqName) {
+TEqDisk::TEqDisk(const char* Name, const char* Title) : TMu2eEqBase(Name,Title,TMu2eEqBase::kDisk) {
    std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
   _logfile             = std::format("{}/hosts.log",data_dir);
   _monitoringLevel = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Disk");
+
+  _prev_ctime_sec = std::time(nullptr);
+  _prev_fsize_gb  = 0.;
+
+  int rc = InitVarNames();
 }
 
 //-----------------------------------------------------------------------------
@@ -32,13 +37,8 @@ TEqDisk::~TEqDisk() {
 
 //-----------------------------------------------------------------------------
 TMFeResult TEqDisk::Init() {
+  int rc(0);
   TLOG(TLVL_DEBUG) << "-- START";
-
-  _prev_ctime_sec = std::time(nullptr);
-  _prev_fsize_gb  = 0.;
-
-  int rc = InitVarNames();
-  
   TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
   return TMFeOk();
 }

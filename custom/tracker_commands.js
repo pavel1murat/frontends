@@ -4,7 +4,7 @@
 // messages go to tracker.log
 //-----------------------------------------------------------------------------
 function trk_panel_control(is, iplane, ipanel, mnid) {
-  window.open(`trk_station_control.html?station=${is}&plane=${iplane}&panel=${ipanel}&mnid=${mnid}&facility=tracker`,'_blank');
+  window.open(`tracker_control.html?station=${is}&plane=${iplane}&panel=${ipanel}&mnid=${mnid}&facility=tracker`,'_blank');
 }
 
 //-----------------------------------------------------------------------------      

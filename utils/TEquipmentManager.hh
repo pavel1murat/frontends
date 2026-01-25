@@ -4,26 +4,22 @@
 #ifndef __TEquipmentManager_hh__
 #define __TEquipmentManager_hh__
 
-// #include "xmlrpc-c/config.h"  /* information about this build environment */
-// #include <xmlrpc-c/base.h>
-// #include <xmlrpc-c/client.h>
 #include <ctime>
+#include <sstream>
 #include "tmfe.h"
 #include "midas.h"
 
 #include "utils/OdbInterface.hh"
-#include "node_frontend/TMu2eEqBase.hh"
 
-#include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
+// #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
+
+class TMu2eEqBase;
 
 class TEquipmentManager : public TMFeEquipment {
 public:
 
   static TEquipmentManager*      gEqManager;
 
-  TMu2eEqBase*                   _eq_dtc[2];   // if nullptr, then not defined
-  TMu2eEqBase*                   _eq_artdaq;
-  TMu2eEqBase*                   _eq_disk  ;
                                                // includes only enabled equipment items - 
   std::vector<TMu2eEqBase*>      _eq_list  ;   // to iterate over them w/o additional checks
 
@@ -33,17 +29,9 @@ public:
   HNDLE                          _h_frontend_conf;
   std::string                    _full_host_name;  // on private network, for communicatioin
   std::string                    _host_label;      // on public network, for ODB
-  // int                            _monitorDtc;
-  // int                            _monitorDisk;
-  // int                            _monitorArtdaq;
-  // int                            _monitorSPI;
-  // int                            _monitorRocRegisters;
-  // int                            _monitorRates;
   int                            _diagLevel;
 
   OdbInterface*                  _odb_i;
-  int                            _dtc0_cmd_run; // RPC
-  int                            _dtc1_cmd_run;
 //-----------------------------------------------------------------------------
 // threads
 //-----------------------------------------------------------------------------
@@ -68,9 +56,11 @@ public:
 //-----------------------------------------------------------------------------
   TEquipmentManager(const char* eqname, const char* eqfilename);
 
-  TMFeResult         InitDtc            ();
-  TMFeResult         InitArtdaq         ();
-  TMFeResult         InitDisk           ();
+  TMu2eEqBase*       AddEquipmentItem(TMu2eEqBase* EqItem) {
+    return _eq_list.emplace_back(EqItem);
+  }
+
+  TMu2eEqBase*       FindEquipmentItem(const std::string& Name);
 
   virtual TMFeResult HandleInit         (const std::vector<std::string>& args);
   virtual void       HandlePeriodic     ();

@@ -1,0 +1,9 @@
+[Unit]
+Description=Renew Kerberos ticket every 8 hours
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=8h
+
+[Install]
+WantedBy=timers.target

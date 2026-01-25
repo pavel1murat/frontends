@@ -1,0 +1,10 @@
+[Unit]
+Description=Renew Kerberos Ticket
+
+[Service]
+Type=oneshot
+
+ExecStart=/usr/bin/kinit -kt %h/.keytabs/mhttpd.keytab xxx@YYYY.ZZZ
+
+[Install]
+WantedBy=default.target

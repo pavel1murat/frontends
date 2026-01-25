@@ -14,6 +14,8 @@
 #    {"name": "MN224", "channel": 0,"status":0},
 #    {"name": "MN224", "channel":90,"status":0}
 #]
+# call signature:
+#                     load_channel_map.py --slot=10 --thr=
 #------------------------------------------------------------------------------
 import  midas,TRACE
 import  midas.client
@@ -31,7 +33,8 @@ logger = logging.getLogger('midas')
 class LoadChannelMap:
     
     def __init__(self):
-        self.station    = None;
+        self.slot       = None;
+        self.threshold  = None;
         self.diag_level = 0;
         
 # ---------------------------------------------------------------------
@@ -51,7 +54,7 @@ class LoadChannelMap:
 
         try:
             optlist, args = getopt.getopt(sys.argv[1:], '',
-                     ['diag_level=', 'station=' ] )
+                     ['diag_level=', 'slot=', 'threshold=' ] )
  
         except getopt.GetoptError:
             self.Print(name,0,'%s' % sys.argv)
@@ -64,10 +67,13 @@ class LoadChannelMap:
 
             if   (key == '--diag_level'):
                 self.diag_level = int(val)
-            if   (key == '--station'):
-                self.station = int(val)
+            elif   (key == '--slot'):
+                self.slot = int(val)
+            elif   (key == '--threshold'):
+                self.threshold = int(val)
 
-        self.Print(name,1,'station   = %s' % self.station)
+        self.Print(name,1,'slot      = %s' % self.slot)
+        self.Print(name,1,'threshold = %s' % self.threshold)
         self.Print(name,1,'diag_level= %s' % self.diag_level)
         self.Print(name,1,'------------------------------------- Done')
         return 0
@@ -88,21 +94,21 @@ class LoadChannelMap:
 # different good channel maps for different thresholds
 # location: $thresholds_dir/channel_map.json
 #---v--------------------------------------------------------------------------
-    def load_channel_map(self,station):
+    def load_channel_map(self,slot):
 
         logger.info("Initializing : load_channel_map")
 
         node            = socket.gethostname().split('.')[0];
-        experiment_name = "test_025";
+        experiment_name = "tracker";
         client          = midas.client.MidasClient("load_channel_map",node,experiment_name,None)
 
         ro_cfg_path     = '/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration';
-        thresholds_dir  = client.odb_get(ro_cfg_path+'/ThresholdsDir');
+        thresholds_dir  = client.odb_get(ro_cfg_path+'/thresholds_dir');
 
-        station_path = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{station:02d}'
-        print(station_path);
+        slot_path = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{slot:02d}'
+        print(slot_path);
 
-        fn = f'config/tracker/station_{station:02d}/{thresholds_dir}/channel_map.json';
+        fn = f'config/tracker/slot_{slot:02d}/thresholds-{self.threshold}-mV/channel_map.json';
         print (f'-------------- opening file:{fn}')
         
         with open(fn, 'r') as file:
@@ -120,7 +126,7 @@ class LoadChannelMap:
 #------------------------------------------------------------------------------
             for plane in range(0,2):
                 for panel in range(0,6):
-                    panel_odb_path = station_path+f'/Plane_{plane:02d}/Panel_{panel:02d}';
+                    panel_odb_path = slot_path+f'/Plane_{plane:02d}/Panel_{panel:02d}';
                     panel_name     = client.odb_get(panel_odb_path+'/Name');
                     print(f'-- panel_name:{panel_name} ODB path:{panel_odb_path}');
             
@@ -155,5 +161,5 @@ if __name__ == "__main__":
     x = LoadChannelMap();
     x.parse_parameters();
 
-    if (x.station != None):
-        x.load_channel_map(x.station)
+    if (x.slot != None):
+        x.load_channel_map(x.slot)

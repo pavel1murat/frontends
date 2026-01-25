@@ -31,8 +31,8 @@ cet_set_compiler_flags(
 
 cet_make_exec(NAME      node_frontend
               SOURCE    node_frontend.cc
-                        TEquipmentManager.cc
-                        TEquipmentManager_Rpc.cc
+#                        TEquipmentManager.cc
+#                        TEquipmentManager_Rpc.cc
                         TEqArtdaq.cc
                         TEqDisk.cc
 #
@@ -44,7 +44,7 @@ cet_make_exec(NAME      node_frontend
                         TEqCrvDtc_Commands.cc
                         TEqCrvDtc_ProcessCommand.cc
 
-                        TMu2eEqBase.cc
+#                        TMu2eEqBase.cc
 
 
               LIBRARIES frontends_utils

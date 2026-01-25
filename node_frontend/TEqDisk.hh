@@ -7,7 +7,7 @@
 #include <ctime>
 #include "midas.h"
 
-#include "node_frontend/TMu2eEqBase.hh"
+#include "utils/TMu2eEqBase.hh"
 
 class TEqDisk: public TMu2eEqBase {
 public:
@@ -17,7 +17,7 @@ public:
 //-----------------------------------------------------------------------------
 // functions
 //------------.-----------------------------------------------------------------
-  TEqDisk(const char* Name);
+  TEqDisk(const char* Name, const char* Title);
   ~TEqDisk();
 
   virtual TMFeResult  Init          () override;

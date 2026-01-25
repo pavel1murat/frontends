@@ -225,24 +225,31 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
 
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::FindAlignment(std::ostream& Stream) {
+  int rc(0);
   
+  TLOG(TLVL_DEBUG) << "-- START";
+
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
 
-  int link        = odb_i->GetInteger(h_cmd,"link"       );
+  int link        = odb_i->GetInteger(h_cmd    ,"link"       );
   int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
+
+  TLOG(TLVL_DEBUG) << std::format("link:{} print_level:{}",link,print_level);
 
   if (link == -1) Stream << std::endl;
 
   try {
-    _dtc_i->FindAlignments(print_level,link,Stream);
+    rc = _dtc_i->FindAlignments(print_level,link,Stream);
   }
   catch (...) {
     Stream << " -- ERROR : coudn't execute FindAlignments for link:" << link << " ... BAIL OUT" << std::endl;
+    rc = -10;
   }
   
-  return 0;
+  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
+  return rc;
 }
 
 //-----------------------------------------------------------------------------
@@ -442,7 +449,7 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
       if (not ifs.is_open()) {
         std::string msg = std::format("failed to open file:{}\n",fn);
         TLOG(TLVL_ERROR) << msg;
-        ss << "ERROR: " << msg; 
+        ss << " ERROR: " << msg; 
         rc -= 1;
         continue;
       }
@@ -919,7 +926,7 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
     Stream << "-- link:" << lnk;
     if (_dtc_i->LinkEnabled(lnk) == 0) {
       if (print_level != 0) {
-        Stream << " is disabled" << std::endl;
+        Stream << " : disabled" << std::endl;
         continue;
       }
     }
@@ -1321,7 +1328,7 @@ int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
     }
 
     if (not _dtc_i->LinkEnabled(lnk)) {
-      Stream << std::format(" not enabled\n");
+      Stream << std::format(" : disabled\n");
       continue;
     }
     else if (not _dtc_i->LinkLocked(lnk)) {
@@ -1455,16 +1462,19 @@ int TEqTrkDtc::WriteRocRegister(std::ostream& Stream) {
 
 
 //-----------------------------------------------------------------------------
-// 
+// for single-link commands aim for a 1 line output,
+// for 'all-active-link' comamnds (link=-1) print the header and then - 
+// one line per link
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::StartMessage(HNDLE h_Cmd, std::ostream& Stream) {
 
   Stream << std::endl; // perhaps
 
-  std::string cmd  = _odb_i->GetString(h_Cmd,"Name");
-  std::string link = _odb_i->GetString(h_Cmd,"link");
+  std::string cmd  = _odb_i->GetString (h_Cmd,"Name");
+  int link         = _odb_i->GetInteger(h_Cmd,"link");
   
   Stream << std::format("-- label:{} host:{} cmd:{} pcie_addr:{} link:{}",
                         HostLabel(),FullHostName(),cmd,_dtc_i->PcieAddr(),link);
+  if (link == -1) Stream << std::endl;
   return 0;
 }

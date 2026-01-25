@@ -8,7 +8,7 @@
 #include "midas.h"
 
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
-#include "node_frontend/TMu2eEqBase.hh"
+#include "utils/TMu2eEqBase.hh"
 
 class TEqCrvDtc: public TMu2eEqBase {
 public:
@@ -19,7 +19,7 @@ public:
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  TEqCrvDtc(const char* Name, HNDLE H_RunConf, HNDLE HDtc);
+  TEqCrvDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE HDtc);
   ~TEqCrvDtc();
   
   mu2edaq::DtcInterface* Dtc_i() { return _dtc_i; }

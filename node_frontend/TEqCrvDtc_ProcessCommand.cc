@@ -4,7 +4,7 @@
 //-----------------------------------------------------------------------------
 
 #include "utils/OdbInterface.hh"
-#include "node_frontend/TEquipmentManager.hh"
+#include "utils/TEquipmentManager.hh"
 #include "node_frontend/TEqCrvDtc.hh"
 
 #include "TRACE/tracemf.h"
@@ -75,7 +75,8 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // should be already defined at this point
 //-----------------------------------------------------------------------------
-  TEqCrvDtc*             eq_dtc = (TEqCrvDtc*) TEquipmentManager::Instance()->_eq_dtc[pcie_addr];
+  std::string eq_name = std::format("DTC{}",pcie_addr);
+  TEqCrvDtc*             eq_dtc = (TEqCrvDtc*) TEquipmentManager::Instance()->FindEquipmentItem(eq_name);
   mu2edaq::DtcInterface* dtc_i  = eq_dtc->Dtc_i();
 
   ss << "--host_label:" << eq_dtc->HostLabel() << " host_name:" << eq_dtc->FullHostName()
