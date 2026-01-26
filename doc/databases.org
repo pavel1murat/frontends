@@ -1,0 +1,148 @@
+#+startup:fold -*- buffer-read-only:t -*-
+* ------------------------------------------------------------------------------
+* schemas: - use 'production'                            
+run_info=> \dn
+    List of schemas
+    Name     |  Owner   
+-------------+----------
+ integration | run_user
+ old_test    | run_user
+ production  | run_user
+ public      | postgres
+ test        | run_user
+ test_sc     | run_user
+(6 rows)
+* schema='production' tables                                                 
+#+begin_src                                                                  
+run_info=> \dt production.*
+                 List of relations
+   Schema   |       Name        | Type  |  Owner   
+------------+-------------------+-------+----------
+ production | cause_type        | table | run_user
+ production | run_condition     | table | run_user
+ production | run_configuration | table | run_user
+ production | run_transition    | table | run_user
+ production | run_type          | table | run_user
+ production | subrun_info       | table | run_user
+ production | transition_type   | table | run_user
+(7 rows)
+#+end_src
+** run_configuration                                                         
+#+begin_src                                                                  
+run_info=> \d production.run_configuration
+                                                     Table "production.run_configuration"
+         Column          |           Type           | Collation | Nullable |                             Default                              
+-------------------------+--------------------------+-----------+----------+------------------------------------------------------------------
+ run_number              | bigint                   |           | not null | nextval('production.run_configuration_run_number_seq'::regclass)
+ run_type                | integer                  |           | not null | 
+ condition_id            | bigint                   |           | not null | 
+ artdaq_partition        | integer                  |           | not null | 
+ host_name               | character varying        |           | not null | 
+ configuration_name      | character varying        |           | not null | 
+ configuration_version   | integer                  |           | not null | 
+ context_name            | character varying        |           | not null | 
+ context_version         | integer                  |           | not null | 
+ trigger_table_name      | character varying        |           |          | 
+ trigger_table_version   | integer                  |           |          | 
+ online_software_version | character varying        |           |          | 
+ commit_time             | timestamp with time zone |           | not null | 
+ shifter_note            | character varying        |           |          | 
+Indexes:
+    "run_configuration_pk" PRIMARY KEY, btree (run_number)
+Foreign-key constraints:
+    "fk_run_condition" FOREIGN KEY (condition_id) REFERENCES production.run_condition(condition_id)
+    "fk_run_type" FOREIGN KEY (run_type) REFERENCES production.run_type(run_type_id)
+Referenced by:
+    TABLE "production.run_transition" CONSTRAINT "fk_run_configuration" FOREIGN KEY (run_number) REFERENCES production.run_configuration(run_number)
+    TABLE "production.subrun_info" CONSTRAINT "fk_run_configuration" FOREIGN KEY (run_number) REFERENCES production.run_configuration(run_number)
+Disabled user triggers:
+    set_run_number_trig BEFORE INSERT ON production.run_configuration FOR EACH ROW EXECUTE FUNCTION production.set_run_number_trigger()
+#+end_src
+** run_condition                                                             
+#+begin_src
+run_info=> \d production.run_condition
+                                                Table "production.run_condition"
+    Column    |           Type           | Collation | Nullable |                            Default                             
+--------------+--------------------------+-----------+----------+----------------------------------------------------------------
+ condition_id | bigint                   |           | not null | nextval('production.run_condition_condition_id_seq'::regclass)
+ condition    | text                     |           | not null | 
+ commit_time  | timestamp with time zone |           | not null | 
+Indexes:
+    "run_condition_pk" PRIMARY KEY, btree (condition_id)
+Referenced by:
+    TABLE "production.run_configuration" CONSTRAINT "fk_run_condition" FOREIGN KEY (condition_id) REFERENCES production.run_condition(condition_id)
+
+#+end_src
+** run_transition                                                            
+#+begin_src
+run_info=> \d production.run_transition
+                      Table "production.run_transition"
+     Column      |           Type           | Collation | Nullable | Default 
+-----------------+--------------------------+-----------+----------+---------
+ run_number      | bigint                   |           | not null | 
+ transition_type | integer                  |           | not null | 
+ cause_type      | integer                  |           |          | 
+ transition_time | timestamp with time zone |           | not null | 
+Foreign-key constraints:
+    "fk_cause_type" FOREIGN KEY (cause_type) REFERENCES production.cause_type(cause_id)
+    "fk_run_configuration" FOREIGN KEY (run_number) REFERENCES production.run_configuration(run_number)
+    "fk_transition_type" FOREIGN KEY (transition_type) REFERENCES production.transition_type(transition_id)
+#+end_src
+** cause_type                                                                
+#+begin_src
+run_info=> \d production.cause_type
+                     Table "production.cause_type"
+      Column       |       Type        | Collation | Nullable | Default 
+-------------------+-------------------+-----------+----------+---------
+ cause_id          | integer           |           | not null | 
+ cause_description | character varying |           | not null | 
+Indexes:
+    "cause_type_pk" PRIMARY KEY, btree (cause_id)
+Referenced by:
+    TABLE "production.run_transition" CONSTRAINT "fk_cause_type" FOREIGN KEY (cause_type) REFERENCES production.cause_type(cause_id)
+#+end_src
+** run_type                                                                  
+#+begin_src
+run_info=> \d production.run_type
+                          Table "production.run_type"
+        Column        |          Type          | Collation | Nullable | Default 
+----------------------+------------------------+-----------+----------+---------
+ run_type_id          | integer                |           | not null | 
+ run_type_description | character varying(250) |           | not null | 
+Indexes:
+    "run_type_pk" PRIMARY KEY, btree (run_type_id)
+Referenced by:
+    TABLE "production.run_configuration" CONSTRAINT "fk_run_type" FOREIGN KEY (run_type) REFERENCES production.run_type(run_type_id)
+#+end_src
+** subrun_info                                                               
+#+begin_src
+run_info=> \d production.subrun_info
+                      Table "production.subrun_info"
+    Column     |           Type           | Collation | Nullable | Default 
+---------------+--------------------------+-----------+----------+---------
+ run_number    | bigint                   |           | not null | 
+ subrun_number | bigint                   |           | not null | 
+ start_ewt     | bigint                   |           | not null | 
+ stop_ewt      | bigint                   |           | not null | 
+ commit_time   | timestamp with time zone |           | not null | 
+Indexes:
+    "subrun_info_pk" PRIMARY KEY, btree (run_number, subrun_number)
+Foreign-key constraints:
+    "fk_run_configuration" FOREIGN KEY (run_number) REFERENCES production.run_configuration(run_number)
+#+end_src
+** transition_type                                                           
+#+begin_src
+run_info=> \d production.transition_type
+                     Table "production.transition_type"
+         Column         |       Type        | Collation | Nullable | Default 
+------------------------+-------------------+-----------+----------+---------
+ transition_id          | integer           |           | not null | 
+ transition_description | character varying |           | not null | 
+Indexes:
+    "transition_type_pk" PRIMARY KEY, btree (transition_id)
+Referenced by:
+    TABLE "production.run_transition" CONSTRAINT "fk_transition_type" FOREIGN KEY (transition_type) REFERENCES production.transition_type(transition_id)
+#+end_src
+* ------------------------------------------------------------------------------
+* back to [[file:./frontends.org]]
+* ------------------------------------------------------------------------------

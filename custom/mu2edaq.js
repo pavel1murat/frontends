@@ -1,5 +1,4 @@
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 // could think of having a cmd.name and cmd.title, but in absense of pointers 
 // that could complicate things
 // parameter_path points to the ODB path where the command name, parameter_path,
@@ -13,15 +12,15 @@ class Command {
   }
 }
 
-class Command_A {
-  constructor(title,name,func,table_id,parameter_path) {
-    this.title          = title;
-    this.name           = name;
-    this.func           = func;
-    this.table_id       = table_id;
-    this.parameter_path = parameter_path;
-  }
-}
+// class Command_A {
+//   constructor(title,name,func,table_id,parameter_path) {
+//     this.title          = title;
+//     this.name           = name;
+//     this.func           = func;
+//     this.table_id       = table_id;
+//     this.parameter_path = parameter_path;
+//   }
+// }
 
 class Command_B {
   constructor(title,name,func,table_id,func_parameter_path,logfile) {
@@ -40,19 +39,29 @@ function node_artdaq_parameter_path(hostname) {
 }
 
 //-----------------------------------------------------------------------------
-function tfm_cmd_parameter_path(hostname) { return `/Mu2e/Commands/DAQ/Tfm`; }
+function tfm_cmd_parameter_path   (hostname) { return `/Mu2e/Commands/DAQ/Tfm`; }
+function tfm_config_parameter_path(hostname) { return `/Mu2e/ActiveRunConfiguration/DAQ/Tfm`; }
 
 //-----------------------------------------------------------------------------
 function test_cmd_parameter_path(cmd) { return `/Mu2e/Commands/Test`; }
 
 //-----------------------------------------------------------------------------
-function trk_cmd_parameter_path(cmd) { return `/Mu2e/Commands/Tracker`; }
+function trk_config_path(cmd) { return `/Mu2e/ActiveRunConfiguration/Tracker`; }
+function trk_cmd_path   (cmd) { return `/Mu2e/Commands/Tracker`; }
+
+function trk_panel_config_path(cmd) {
+  const stn = g_station.toString().padStart(2,'0');
+  const pln = g_plane.toString().padStart(2,'0');
+  const pnl = g_panel.toString().padStart(2,'0');
+  const path = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stn}/Plane_${pln}/Panel_${pnl}`;
+  return path;
+}
 
 //-----------------------------------------------------------------------------
 // common javascript functions
 // DAQ colors. Each element has 'Enabled' and 'Status' field
 //-----------------------------------------------------------------------------
-function set_colors(path, statusCell) {
+function set_colors(path, cell) {
   // Fetch values for Enabled and Status
   const path_enabled = path+`/Enabled`;
   const path_status  = path+`/Status`;
@@ -62,22 +71,22 @@ function set_colors(path, statusCell) {
     
     // Apply color styles
     if (enabled === 0) {
-      statusCell.style.backgroundColor = "gray";
-      statusCell.style.color = "white";
+      cell.style.backgroundColor = "gray";
+      cell.style.color = "white";
     } else if (enabled === 1) {
       if (status === 0) {
-        statusCell.style.backgroundColor = "green";
-        statusCell.style.color = "white";
+        cell.style.backgroundColor = "green";
+        cell.style.color = "white";
       } else if (status < 0) {
-        statusCell.style.backgroundColor = "red";
-        statusCell.style.color = "white";
+        cell.style.backgroundColor = "red";
+        cell.style.color = "white";
       } else if (status > 0) {
-        statusCell.style.backgroundColor = "yellow";
-        statusCell.style.color = "black";
+        cell.style.backgroundColor = "yellow";
+        cell.style.color = "black";
       }
     } else {
-      statusCell.style.backgroundColor = "gray";
-      statusCell.style.color = "white";
+      cell.style.backgroundColor = "gray";
+      cell.style.color = "white";
     }
   }).catch(function (error) {
     console.error("Error fetching values:", error);
@@ -249,7 +258,7 @@ function make_set_odb_button(cmda) {
 
 //-----------------------------------------------------------------------------
 // and this one updates ODB
-// the command parameters record is expected to be in path+${cmd}
+// the Command_B command parameter record is expected to be in path+${cmd}
 //-----------------------------------------------------------------------------
 async function mu2e_command_set_odb_B(cmd) {
 

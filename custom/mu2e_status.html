@@ -1,72 +1,78 @@
 <!DOCTYPE html>
 <html class="mcss" lang="en">
-<head>
-   <meta charset="UTF-8">
-   <title>Mu2e Main Page MV</title>
-   <link rel="stylesheet" href="midas.css">
-   <script src="controls.js"></script>
-   <script src="midas.js"></script>
-   <script src="mhttpd.js"></script>
-   <script src="filesrw.js"></script>
+  <head>
+    <meta charset="UTF-8">
+    <title>Mu2e Main Page MV</title>
+    <link rel="stylesheet" href="midas.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
 
-   <script>
-      function updateCellStyle(cell) {
-         const value = parseInt(cell.textContent.trim(), 10);
-         if (value === 1) {
-            cell.style.backgroundColor = "green";
-            cell.style.color = "white";
-         } else if (value === 0) {
-            cell.style.backgroundColor = "gray";
-            cell.style.color = "white";
-         } else if (value === -1) {
-            cell.style.backgroundColor = "red";
-            cell.style.color = "white";
-         } else {
-            cell.style.backgroundColor = "white";
-            cell.style.color = "black";
-         }
-      }
+    <script src="mu2edaq.js"></script>
+    
+    <script>
+    
+    function createSubsystemRows() {
+      const subsystems = [
+        { name: "Tracker"    , path: "/Mu2e/ActiveRunConfiguration/Tracker"    , link: "tracker_status.html" },
+        { name: "Calorimeter", path: "/Mu2e/ActiveRunConfiguration/Calorimeter", link: "calorimeter_status.html" },
+        { name: "CRV"        , path: "/Mu2e/ActiveRunConfiguration/CRV"        , link: "crv_status.html" },
+        { name: "EXM"        , path: "/Mu2e/ActiveRunConfiguration/EXM"        , link: "exm_status.html" },
+        { name: "STM"        , path: "/Mu2e/ActiveRunConfiguration/STM"        , link: "stm_status.html" },
+        { name: "DAQ"        , path: "/Mu2e/ActiveRunConfiguration/DAQ"        , link: "daq_status.html" }
+      ];
+      
+      const table = document.querySelector(".mtable tbody");
+      
+      subsystems.forEach((subsystem) => {
+        const row = document.createElement("tr");
+        
+        // Subsystem Name
+        let cell = document.createElement("td");
+        cell.innerHTML = `<b>${subsystem.name}</b>`;
+        row.appendChild(cell);
+        
+        // Enabled Cell
+        cell = document.createElement('td');
+        let div = document.createElement('div');
+        div.className = 'modbvalue status-cell';
+        div.dataset.odbPath = subsystem.path+'/Enabled';
+        div.onchange = function(event) { set_colors(subsystem.path,cell); } ;
+        // div.addEventListener('change',(e) => { set_colors(subsystem.path,statusCell); });
 
-      function createSubsystemRows() {
-         const subsystems = [
-            { name: "Tracker"    , path: "/Mu2e/ActiveRunConfiguration/Tracker/Enabled"    , link: "tracker_status.html" },
-            { name: "Calorimeter", path: "/Mu2e/ActiveRunConfiguration/Calorimeter/Enabled", link: "calorimeter_status.html" },
-            { name: "CRV"        , path: "/Mu2e/ActiveRunConfiguration/CRV/Enabled"        , link: "crv_status.html" },
-            { name: "EXM"        , path: "/Mu2e/ActiveRunConfiguration/EXM/Enabled"        , link: "exm_status.html" },
-            { name: "STM"        , path: "/Mu2e/ActiveRunConfiguration/STM/Enabled"        , link: "stm_status.html" },
-            { name: "DAQ"        , path: "/Mu2e/ActiveRunConfiguration/DAQ/Enabled"        , link: "daq_status.html" }
-         ];
+        cell.appendChild(div);
+        row.appendChild(cell);
 
-         const table = document.querySelector(".mtable tbody");
+        // Status Cell
+        cell = document.createElement('td');
+        div = document.createElement('div');
+        div.className = 'modbvalue status-cell';
+        div.dataset.odbPath = subsystem.path+'/Status';
+        div.onchange = function(event) { set_colors(subsystem.path,cell); } ;
+        // div.addEventListener('change',(e) => { set_colors(subsystem.path,statusCell); });
 
-         subsystems.forEach((subsystem) => {
-            const row = document.createElement("tr");
-
-            // Subsystem Name
-            const nameCell = document.createElement("td");
-            nameCell.innerHTML = `<b>${subsystem.name}</b>`;
-            row.appendChild(nameCell);
-
-            // Status Cell
-            const statusCell = document.createElement("td");
-            statusCell.innerHTML = `
-               <div class="modbvalue status-cell"
-                  data-odb-path="${subsystem.path}"
-                  onchange="updateCellStyle(this)">
-               </div>`;
-            row.appendChild(statusCell);
-
-            // Description Cell
-            const descriptionCell = document.createElement("td");
-            descriptionCell.innerHTML = `<a href="${subsystem.link}">${subsystem.name} Status</a>`;
-            row.appendChild(descriptionCell);
-
-            table.appendChild(row);
-         });
-      }
-
-      document.addEventListener("DOMContentLoaded", createSubsystemRows);
-   </script>
+        cell.appendChild(div);
+        row.appendChild(cell);
+        
+        // Description Cell
+        const descriptionCell = document.createElement('td');
+        descriptionCell.innerHTML = `<a href="${subsystem.link}">${subsystem.name} Status</a>`;
+        
+        // Initial load
+        set_colors(subsystem.path,descriptionCell);
+        
+        // Poll for updates
+        setInterval(() => {set_colors(subsystem.path,descriptionCell);},2000);
+        
+        row.appendChild(descriptionCell);
+        
+        table.appendChild(row);
+      });
+    }
+    
+    document.addEventListener("DOMContentLoaded", createSubsystemRows);
+    </script>
 
    <style>
       #mmain .mtable td {
@@ -94,12 +100,13 @@
    <table class="mtable">
       <thead>
          <tr>
-            <th colspan="3" class="mtableheader">Mu2e Main Page MV</th>
+            <th colspan="4" class="mtableheader">Mu2e Main Page MV</th>
          </tr>
          <tr>
-            <th style="padding:20px;">Subsystem</th>
-            <th style="width: 250px;">Enabled Status</th>
-            <th>Description</th>
+           <th style="padding:20px;">Subsystem</th>
+           <th style="width: 250px;">Enabled  </th>
+           <th style="width: 250px;">Status   </th>
+           <th>Description</th>
          </tr>
       </thead>
       <tbody>
@@ -109,3 +116,10 @@
 
 </body>
 </html>
+
+<!--
+    emacs
+    Local Variables:
+    mode: web
+    End:
+  -->

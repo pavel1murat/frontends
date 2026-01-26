@@ -1,71 +1,45 @@
 //////////////////////////////////////////////////////////////////////////////
 // equipment name is the short node name, i.e. 'mu2edaq22'
 //////////////////////////////////////////////////////////////////////////////
-#include "cfo_frontend/TEquipmentCfo.hh"
+#include "cfo_frontend/TEqExternalCfo.hh"
 #include "utils/utils.hh"
 #include "TString.h"
 
 #include "odbxx.h"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEquipmentCfo"
+#define  TRACE_NAME "TEqExternalCfo"
 
 //-----------------------------------------------------------------------------
-TEquipmentCfo::TEquipmentCfo(const char* eqname, const char* eqfilename): TMFeEquipment(eqname,eqfilename) {
-  fEqConfEventID          = 3;
-  fEqConfPeriodMilliSec   = 30000;  // 30 sec ?
-  fEqConfLogHistory       = 1;
-  fEqConfWriteEventsToOdb = true;
+TEqExternalCfo::TEqExternalCfo(const char* eqname, const char* eqfilename): TMu2eEqBase(eqname,eqfilename) {
+  // fEqConfEventID          = 3;
+  // fEqConfPeriodMilliSec   = 30000;  // 30 sec ?
+  // fEqConfLogHistory       = 1;
+  // fEqConfWriteEventsToOdb = true;
 
   _cfo_i                  = nullptr;
 }
 
 //-----------------------------------------------------------------------------
-int TEquipmentCfo::InitEmulatedCfo() {
-  int rc(0);
-//----------------------------------------------------------------------------- 
-// we know that this is an emulated CFO - get pointer to the corresponding DTC
-// an emulated CFO configuration includs a link to the DTC
-//-----------------------------------------------------------------------------
-  HNDLE h_dtc    = _odb_i->GetHandle     (_h_cfo,"DTC");
-  _pcie_addr     = _odb_i->GetDtcPcieAddress(h_dtc);
-//-----------------------------------------------------------------------------
-// get a pointer to the underlying interface to DTC and initialize its parameters
-// emulated CFO interface doesn't re-initialize the DTC
-//-----------------------------------------------------------------------------
-  bool skip_init = true;
-  _dtc_i         = trkdaq::DtcInterface::Instance(_pcie_addr,0,skip_init);
-
-  _dtc_i->SetEventMode(_event_mode);
-
-  _dtc_i->fPcieAddr       = _pcie_addr;
-  _dtc_i->fDtcID          = _odb_i->GetDtcID            (h_dtc);
-  _dtc_i->fLinkMask       = _odb_i->GetLinkMask         (h_dtc);
-//-----------------------------------------------------------------------------
-// for the emulated CFO, the underlying DTC may, in principle, be enabled,
-// while the CFO itself is disabled
-// not sure what running mode that would represent though
-//-----------------------------------------------------------------------------
-  _dtc_i->fEnabled        = _odb_i->GetEnabled          (h_dtc);
-  _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_dtc);
-  _dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode   (_h_active_run_conf);
-  _dtc_i->fJAMode         = _odb_i->GetJAMode           (h_dtc);
-  _dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte   (h_dtc);
-  
-  TLOG(TLVL_DEBUG) << " _h_cfo: "        << _h_cfo
-                   << " h_dtc:"          << h_dtc
-                   << "_pcie_addr: "     << _pcie_addr ;
-  TLOG(TLVL_DEBUG) << "_n_ewm_train:"    << _n_ewm_train
-                   << " _ew_length:"     << _ew_length
-                   << " _first_ts:"      << _first_ts
-                   << " _sleep_time_ms:" << _sleep_time_ms;
-  return rc;
+TEqExternalCfo::~TEqExternalCfo() {
 }
-
-
 //-----------------------------------------------------------------------------
-int TEquipmentCfo::InitExternalCfo() {
-  int rc(0);
+// overloaded function of TMFeEquipment : 2 DTCs
+//-----------------------------------------------------------------------------
+TMFeResult TEqExternalCfo::Init() {
+
+  // fEqConfReadOnlyWhenRunning = false;
+  // fEqConfWriteEventsToOdb    = true;
+  //fEqConfLogHistory = 1;
+
+  //  fEqConfBuffer = "SYSTEM";
+//-----------------------------------------------------------------------------
+// cache the ODB handle, as need to loop over the keys in InitArtdaq
+//-----------------------------------------------------------------------------
+  _odb_i                      = OdbInterface::Instance();
+  _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
+
+
 //---------------------------------------------------------------------------
 // in principle, can compile the run plan on the fly, make it a next step
 // CfoGetRunPlan returns a string - filename of the compiled run plan file 
@@ -95,28 +69,7 @@ int TEquipmentCfo::InitExternalCfo() {
  
   TLOG(TLVL_DEBUG) << "--- DONE, run plan:" << _run_plan_fn;
 
-  return rc;
-}
 
-
-//-----------------------------------------------------------------------------
-// overloaded function of TMFeEquipment : 2 DTCs
-//-----------------------------------------------------------------------------
-TMFeResult TEquipmentCfo::HandleInit(const std::vector<std::string>& args) {
-
-  fEqConfReadOnlyWhenRunning = false;
-  fEqConfWriteEventsToOdb    = true;
-  //fEqConfLogHistory = 1;
-
-  fEqConfBuffer = "SYSTEM";
-//-----------------------------------------------------------------------------
-// cache the ODB handle, as need to loop over the keys in InitArtdaq
-//-----------------------------------------------------------------------------
-  HNDLE  hDB;                     // need to loop over ? 
-  cm_get_experiment_database(&hDB, NULL);
-
-  _odb_i                      = OdbInterface::Instance(hDB);
-  _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
   
   _event_mode                 = _odb_i->GetEventMode    (_h_active_run_conf);
   _h_cfo                      = _odb_i->GetCfoConfHandle(_h_active_run_conf);
@@ -156,12 +109,13 @@ TMFeResult TEquipmentCfo::HandleInit(const std::vector<std::string>& args) {
                    << " _full_host_name:" << _full_host_name
                    << " _host_label:"     << _host_label
                    << std::endl;
-  EqSetStatus("Started...", "white");
-  fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
+
+  //EqSetStatus("Started...", "white");
+  //fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
   int rc(0);
-  if (_emulated_mode == 1) rc = InitEmulatedCfo();
-  else                     rc = InitExternalCfo();
+  // if (_emulated_mode == 1) rc = InitEmulatedCfo();
+  // else                     rc = InitExternalCfo();
 
   if (rc == 0) return TMFeOk();
   else         return TMFeErrorMessage("failed to initialize the CFO"); 
@@ -170,7 +124,8 @@ TMFeResult TEquipmentCfo::HandleInit(const std::vector<std::string>& args) {
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-void TEquipmentCfo::HandlePeriodic() {
+int TEqExternalCfo::HandlePeriodic() {
+  int rc(0);
 
   TLOG(TLVL_DEBUG+1) << "--- START";
 
@@ -188,7 +143,9 @@ void TEquipmentCfo::HandlePeriodic() {
   
   TLOG(TLVL_DEBUG+1) << "--- END";
 
-  EqSetStatus(Form("OK"),"#00FF00");
+  //  EqSetStatus(Form("OK"),"#00FF00");
+
+  return rc;
 }
 
 
@@ -196,71 +153,22 @@ void TEquipmentCfo::HandlePeriodic() {
 // at begin rum, the CFO starts executing the run plan
 // assume that from run to run the configuration can change
 //-----------------------------------------------------------------------------
-TMFeResult TEquipmentCfo::HandleBeginRun(int RunNumber)  {
-
+int TEqExternalCfo::BeginRun(HNDLE H_RunConf)  {
+  int rc(0);
+  
   TLOG(TLVL_DEBUG) << "--- START";
   
   _h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
-
-  if (_emulated_mode == 0) {
 //-----------------------------------------------------------------------------
 // in 'external' mode, [re-]initialize and start executing the run plan
 //-----------------------------------------------------------------------------
-    InitExternalCfo();
-// external CFO starts executing its plan once at begin run
-    _cfo_i->InitReadout(_run_plan_fn.data(),_link_mask);
-    _cfo_i->LaunchRunPlan();
-  }
-  else {
-//-----------------------------------------------------------------------------
-// in emulated mode, at begin run perform only [re-]initialization,
-// EWM's are sent by HandlePeriodic
-//-----------------------------------------------------------------------------
-    InitEmulatedCfo();
-  }
+  // InitExternalCfo();
+  // external CFO starts executing its plan once at begin run
+  _cfo_i->InitReadout(_run_plan_fn.data(),_link_mask);
+  _cfo_i->LaunchRunPlan();
 
-  TLOG(TLVL_DEBUG) << "--- END";
+  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
 
-  return TMFeOk();
+  return rc;
 };
 
-//-----------------------------------------------------------------------------
-TMFeResult TEquipmentCfo::HandleEndRun   (int RunNumber) {
-  fMfe->Msg(MINFO, "HandleEndRun", "End run %d!", RunNumber);
-  EqSetStatus("Stopped", "#00FF00");
-
-  printf("end_of_run %d\n", RunNumber);
-    
-  return TMFeOk();
-}
-
-//-----------------------------------------------------------------------------
-TMFeResult TEquipmentCfo::HandlePauseRun(int run_number) {
-  fMfe->Msg(MINFO, "HandlePauseRun", "Pause run %d!", run_number);
-  EqSetStatus("Stopped", "#00FF00");
-    
-  printf("pause_run %d\n", run_number);
-    
-  return TMFeOk();
-}
-
-//-----------------------------------------------------------------------------
-TMFeResult TEquipmentCfo::HandleResumeRun(int RunNumber) {
-  fMfe->Msg(MINFO, "HandleResumeRun", "Resume run %d!", RunNumber);
-  EqSetStatus("Stopped", "#00FF00");
-
-  printf("resume_run %d\n", RunNumber);
-
-  return TMFeOk();
-}
-
-
-//-----------------------------------------------------------------------------
-TMFeResult TEquipmentCfo::HandleStartAbortRun(int run_number) {
-  fMfe->Msg(MINFO, "HandleStartAbortRun", "Begin run %d aborted!", run_number);
-  EqSetStatus("Stopped", "#00FF00");
-
-  printf("start abort run %d\n", run_number);
-    
-  return TMFeOk();
-}

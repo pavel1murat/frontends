@@ -18,8 +18,10 @@
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "cfo_ext_frontend"
 
-#include "cfo_frontend/TEquipmentCfo.hh"
 #include "utils/utils.hh"
+#include "utils/TEquipmentManager.hh"
+#include "cfo_frontend/TEqEmulatedCfo.hh"
+#include "cfo_frontend/TEqExternalCfo.hh"
 
 //-----------------------------------------------------------------------------
 class CfoFrontend: public TMFrontend {
@@ -40,10 +42,7 @@ public:
      return TMFeOk();
    }
    
-   TMFeResult HandleFrontendInit(const std::vector<std::string>& args) {
-     //printf("FeEverything::HandleFrontendInit!\n");
-     return TMFeOk();
-   }
+  TMFeResult HandleFrontendInit(const std::vector<std::string>& args);
    
    TMFeResult HandleFrontendReady(const std::vector<std::string>& args) {
      //printf("FeEverything::HandleFrontendReady!\n");
@@ -65,18 +64,61 @@ public:
 CfoFrontend::CfoFrontend() : TMFrontend() {
 
   std::string hostname = get_short_host_name("");
-  // fName  = hostname+"_fe";
-  fName  = hostname;
+  fName  = "cfo_fe";
   FeSetName(fName.data());
-  
-  TEquipmentCfo* eq = new TEquipmentCfo(hostname.data(),__FILE__);
-
-// add eq to the list of equipment pieces
-// equipment stores backward pointer to the frontend
-  FeAddEquipment(eq);
 }
 
+//-----------------------------------------------------------------------------
+// at this point, the connection to ODB is already established
+//-----------------------------------------------------------------------------
+TMFeResult CfoFrontend::HandleFrontendInit(const std::vector<std::string>& args) {
+  int        rc(0);
+  TMFeResult res(TMFeOk());
+  
+  TLOG(TLVL_DEBUG) << std::format("-- START");
+//-----------------------------------------------------------------------------
+// add eqm to the list of equipment pieces - it will be the only one 'TEquipment' thing
+// managed by the frontend, TEquipment stores backward pointer to the frontend
+// if this works, I can initialize frontend-specific equipment items here and simply
+// add already initialize equipment to the equipment manager
+//-----------------------------------------------------------------------------
+  TEquipmentManager* eqm = new TEquipmentManager("cfo",__FILE__);
+//-----------------------------------------------------------------------------
+// expected equipment: emulated or 'external' CFO
+//-----------------------------------------------------------------------------
+  OdbInterface* odb_i     = OdbInterface::Instance();
 
+  // _h_daq_host_conf        = odb_i->GetHostConfHandle(_host_label);
+
+  HNDLE h_active_run_conf = odb_i->GetActiveRunConfigHandle();
+  HNDLE h_cfo_conf        = odb_i->GetCfoConfHandle(h_active_run_conf);
+  int emulated_mode       = odb_i->GetCfoEmulatedMode(h_cfo_conf);
+
+  TMu2eEqBase* eq(nullptr);
+  if (emulated_mode == 1) {
+    eq = (TMu2eEqBase*) new TEqEmulatedCfo("CFO","CFO");
+  }
+  else if (emulated_mode == 0) {
+    eq = (TMu2eEqBase*) new TEqExternalCfo("CFO","CFO");
+  }
+  else {
+    std::string msg = std::format("undefined CFO emulated mode:{}. BAIL OUT",emulated_mode);
+    TLOG(TLVL_ERROR) << msg;
+    rc = -1;
+    res = TMFeResult(rc,msg);
+  }
+
+  if (rc == 0) {
+    eqm->AddEquipmentItem(eq);
+    // add eq to the list of equipment pieces
+    // equipment stores backward pointer to the frontend
+    FeAddEquipment(eqm);
+  }
+    
+  TLOG(TLVL_DEBUG) << std::format("-- END");
+  return res;
+}
+   
 //-----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
   
@@ -85,14 +127,6 @@ int main(int argc, char* argv[]) {
 
   signal(SIGPIPE, SIG_IGN);
   
-  //std::string name = "";
-  //
-  //if (argc == 2) {
-  //   name = argv[1];
-  //} else {
-  //   usage(); // DOES NOT RETURN
-  //}
-
   CfoFrontend fe;
 
   // FeMain calls FeInit - at this point connection to the experiment happens
