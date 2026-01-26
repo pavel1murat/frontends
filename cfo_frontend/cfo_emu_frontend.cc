@@ -25,7 +25,7 @@
 #include "utils/utils.hh"
 #include "utils/OdbInterface.hh"
 
-#include "cfo_frontend/cfo_interface.hh"
+// #include "cfo_frontend/cfo_interface.hh"
 #include "cfo_frontend/cfo_emu_frontend.hh"
 
 using namespace DTCLib; 
@@ -37,7 +37,11 @@ using namespace trkdaq;
 // The frontend name (client name) as seen by other MIDAS clients
 //-----------------------------------------------------------------------------
 
-int cfo_emu_frontend::running = 0;
+namespace cfo_emu_frontend {
+  int running = 0;
+};
+
+// int cfo_emu_frontend::running = 0;
 
 const char* frontend_name;
 

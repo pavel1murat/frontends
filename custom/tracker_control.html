@@ -29,13 +29,11 @@
       const table      = document.getElementById('panel_commands');
       
       table.innerHTML  = '';
-      // table.node_name  = node_name;
       
-      let thead     = document.createElement('thead');
-      
-      let tr        = document.createElement('tr');
-      
+      let thead    = document.createElement('thead');
+      let tr       = document.createElement('tr');
       let td       = document.createElement('td');
+
       td.innerHTML = `<div class="mtableheader" colspan=2> Panel MN${g_mnid.toString().padStart(3,'0')} controls </div>`;
       td.colspan   = 4;
 
@@ -89,34 +87,37 @@
       
       // second row : non-dropbtn commands      
 
-      let tr2      = document.createElement('tr');
-      let td2      = document.createElement('td');
+      let tr2 = document.createElement('tr');
+      let td2 = document.createElement('td');
       //
       let stn = g_station.toString().padStart(2,'0');
       let pln = g_plane.toString().padStart(2,'0');
       let pnl = g_panel.toString().padStart(2,'0');
 
-      const parameter_path = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stn}/Plane_${pln}/Panel_${pnl}`
-      let cmda = new Command_A('load_parameters','load_parameters',odb_load_table,'cmd_params' , parameter_path);
-      btn = make_load_table_button(cmda);
+      let cmdb = new Command_B('load_parameters','load_parameters',mu2e_odb_load_table,'cmd_params' , trk_panel_config_path);
+      let btn  = mu2e_make_exec_button_B(cmdb);
       td2.appendChild(btn);
 
       // trk_panel_command identifies the panel in parameters and sets for execution
       
-      cmda = new Command_A('load_thresholds'   ,'load_thresholds'   , trk_panel_command_set_odb, 'cmd_params' ,`/Mu2e/Commands/Tracker`);
-      btn = make_set_odb_button(cmda);
+      cmdb = new Command_B('load_thresholds'   ,'load_thresholds'   , trk_panel_command_set_odb_B, 'cmd_params' ,trk_cmd_path);
+      btn = make_set_odb_button(cmdb);
       td2.appendChild(btn);
 
-      cmda = new Command_A('load_channel_masks','load_channel_masks', trk_panel_command_set_odb, 'cmd_params' ,`/Mu2e/Commands/Tracker`);
-      btn = make_set_odb_button(cmda);
+      cmdb = new Command_B('load_channel_map'  ,'load_channel_map', trk_panel_command_set_odb_B, 'cmd_params' ,trk_cmd_path);
+      btn = make_set_odb_button(cmdb);
       td2.appendChild(btn);
 
-      cmda = new Command_A('set_thresholds'    ,'set_thresholds'    , trk_panel_command_set_odb, 'cmd_params' ,`/Mu2e/Commands/Tracker`);
-      btn = make_set_odb_button(cmda);
+      cmdb = new Command_B('set_thresholds'    ,'set_thresholds'    , trk_panel_command_set_odb_B, 'cmd_params' ,trk_cmd_path);
+      btn = make_set_odb_button(cmdb);
       td2.appendChild(btn);
 
-      cmda = new Command_A('measure_thresholds','measure_thresholds',trk_panel_command_set_odb,'cmd_params' ,`/Mu2e/Commands/Tracker`);
-      btn = make_load_table_button(cmda);
+      cmdb = new Command_B('measure_thresholds','measure_thresholds',trk_panel_command_set_odb_B,'cmd_params' ,trk_cmd_path);
+      btn = make_load_table_button(cmdb);
+      td2.appendChild(btn);
+
+      cmdb = new Command_B('find_alignment','find_alignment',trk_panel_command_set_odb_B,'cmd_params' ,trk_cmd_path);
+      btn = make_load_table_button(cmdb);
       td2.appendChild(btn);
       //
       //      cmda = new Command_A('print_status'      ,'panel_print_status'      ,trk_panel_command_set_odb,'cmd_params' ,`/Mu2e/Commands/Tracker`);
@@ -125,7 +126,6 @@
       //
       tr2.appendChild(td2);
       tbody.appendChild(tr2);
-
       table.appendChild(tbody);
 
     }
@@ -153,8 +153,8 @@
       let thead      = document.createElement('thead');
 
       let tr = document.createElement('tr');
-      tr.colSpan = 9;
-      tr.innerHTML = `<div class="mtableheader">Station ${g_station} controls</div> </td>`;
+      // tr.colSpan = 9;
+      tr.innerHTML = `<td colspan=9> <div class="mtableheader">Station ${g_station} controls</div></td>`;
 
       thead.appendChild(tr);
 
@@ -170,25 +170,31 @@
 
       td.appendChild(btn);
 
-// all station-level commands should set g_station in the command parameter record
+      // all station-level commands should set g_station in the command parameter record
       // mu2e_command_set_odb takes Command_B as input
-      let cmd_b = new Command_B('init readout','init_readout',mu2e_command_set_odb_B,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      let cmd_b = new Command_B('init readout','init_readout',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,"trkdtc.log");
       let btn_b = mu2e_make_dropup_button_B(cmd_b);
       td.appendChild(btn_b);
 
-      cmd_b = new Command_B('load thresholds','load_thresholds',mu2e_command_set_odb_B,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      cmd_b = new Command_B('find_alignment','find_alignment',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
       btn_b = mu2e_make_exec_button_B(cmd_b);
       td.appendChild(btn_b);
 
-      cmd_b = new Command_B('print status','trk_station_print_status',mu2e_command_set_odb_B,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      cmd_b = new Command_B('load thresholds','load_thresholds',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
       btn_b = mu2e_make_exec_button_B(cmd_b);
       td.appendChild(btn_b);
 
-      cmd_b = new Command_B('reset output','reset_output',mu2e_command_set_odb_B,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      cmd_b = new Command_B('print status','print_status',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
       btn_b = mu2e_make_exec_button_B(cmd_b);
       td.appendChild(btn_b);
 
-      cmd_b = new Command_B('reset LV','reset_station_lv',mu2e_command_set_odb_B,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
+      // don't need to specify the stations
+//       cmd_b = new Command_B('reset output','reset_output',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+//       btn_b = mu2e_make_exec_button_B(cmd_b);
+//       td.appendChild(btn_b);
+
+      // 
+      cmd_b = new Command_B('reset LV','reset_lv',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
       btn_b = mu2e_make_exec_button_B(cmd_b);
       td.appendChild(btn_b);
 
@@ -271,7 +277,7 @@
       
       let title        = document.getElementById('table-title');
       title.innerHTML  = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
-      
+     
 //-----------------------------------------------------------------------------
 //  tracker commands table
 //-----------------------------------------------------------------------------
@@ -282,7 +288,7 @@
       let tr = document.createElement('tr');
       let td = document.createElement('td');
       td.colSpan = 8;
-      td.innerHTML = `<div class="mtableheader">Tracker controls A</div>`;
+      td.innerHTML = `<div class="mtableheader">Tracker controls</div>`;
       tr.appendChild(td);
       thead.appendChild(tr);
 
@@ -290,19 +296,31 @@
       td = document.createElement('td');
       td.colSpan = 8;
 
-      //      let cmd = new Command_B('load parametersA','load_parameters',mu2e_odb_load_table,'cmd_params',trk_cmd_parameter_path,"trkdtc.log");
-      //      let btn = mu2e_make_exec_button_B(cmd);
-      //      td.appendChild(btn);
-      //
+      // load tracker config table for active configuration - thus 'trk_config_path'
+      let cmd_b = new Command_B('load parameters','load_parameters',mu2e_odb_load_table,'cmd_params',trk_config_path,"trkdtc.log");
+      let btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
+      
+      cmd_b = new Command_B('load thresholds','load_thresholds',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
+      
+      cmd_b = new Command_B('load channel map','load_channel_map',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
 
-      td.innerHTML += `
-           <input type=button value='load parameters'  onClick='trk_load_parameters()'               >
-      <input type=button value='reset output'      onClick='trk_reset_output   ("output_window")'>
-      <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
-      <input type=button value='load channel map'  onClick='dtc_command("load_channels_map")'>
-      <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>
-      <input type=button value='reset_station_lv'  onClick='dtc_command("reset_station_lv")'>
-      `;
+      // not sure what I thought about...
+      cmd_b = new Command_B('initialize','initialize',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
+      
+      cmd_b = new Command_B('reset LV','reset_lv',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
+      
+      cmd_b = new Command_B('reset output','reset_output',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
       
       tr.appendChild(td);
       thead.appendChild(tr);
@@ -339,22 +357,23 @@
         const div_station_tabs = document.getElementById("trk_station_tabs");
         for (let is=first_station; is<last_station+1; is++) {
           let iss = is.toString().padStart(2,'0');
-          div_station_tabs.innerHTML += `<button class="trk_station_tab" id='trk_station_${is}' onclick="trk_update_station_id(event,'${is}')">${iss}</button>`
+          // div_station_tabs.innerHTML += `<button class="trk_station_tab" id='trk_station_${is}' onclick="trk_update_station_id(event,'${is}')">${iss}</button>`
+          let btn = document.createElement('button');
+          btn.id        = `trk_station_${is}`
+          btn.className = 'trk_station_tab';
+          btn.onclick   = function() { trk_update_station_id(event,is); } ;
+          btn.innerHTML = iss;
+          div_station_tabs.appendChild(btn);
         };
       }).catch(function(error) {
         mjsonrpc_error_alert(error);
       });
       
 //-----------------------------------------------------------------------------
-// create station control table
+// create station and panel control tables
 //-----------------------------------------------------------------------------
 
       loadStationControlTable();
-
-//-----------------------------------------------------------------------------
-//  create panel control table
-//-----------------------------------------------------------------------------
-
       loadPanelControlTable();
       
 //-----------------------------------------------------------------------------

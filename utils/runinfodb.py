@@ -13,8 +13,7 @@ import  logging
 
 logger = logging.getLogger('midas')
 
-import TRACE;
-TRACE_NAME = "runinfodb";
+import TRACE; TRACE_NAME = "runinfodb";
 
 HALT   = 0  #                        // RUNNING --> HALTED  (abort   )
 STOP   = 1  #                        // RUNNING --> STOPPED (stop    )
@@ -32,7 +31,7 @@ class RuninfoDB:
         self.info   = None;
         try:
             self.info   = json.loads(open(config_file).read());
-            TRACE.TRACE(8, "db:%s host:%s port:%s user:%s passwd:%s schema:%s"%
+            TRACE.DEBUG(0, "db:%s host:%s port:%s user:%s passwd:%s schema:%s"%
                         (self.database(),self.host(),self.port(),self.user(),self.passwd(),self.schema()),TRACE_NAME)
         except:
             self.error = f"Postgresql DB user is not defined - check {config_file}";
@@ -42,7 +41,7 @@ class RuninfoDB:
         try:
             self.conn     = self.open_connection();
             self.cur      = self.conn.cursor();
-            TRACE.TRACE(8, "after open_connection",TRACE_NAME)
+            TRACE.DEBUG(0, "after open_connection",TRACE_NAME)
         except:
             self.error    = "DB connection failed. If ssh tunnel is used, check it";
 
@@ -81,16 +80,16 @@ class RuninfoDB:
                                 port     = self.port())
 
         if conn.status == extensions.STATUS_READY:
-            TRACE.TRACE(8,"Connection is active and ready.",TRACE_NAME);
+            TRACE.DEBUG(0,"Connection is active and ready.",TRACE_NAME);
         elif conn.status == extensions.STATUS_BEGIN:
-            TRACE.TRACE(5,"A transaction is currently open.",TRACE_NAME);
+            TRACE.DEBUG(0,"A transaction is currently open.",TRACE_NAME);
         elif conn.status == extensions.STATUS_PREPARED:
-            TRACE.TRACE(5,"Connection is in prepared state.",TRACE_NAME);
+            TRACE.DEBUG(0,"Connection is in prepared state.",TRACE_NAME);
         elif conn.status == extensions.STATUS_UNKNOWN:
-            TRACE.TRACE(5,"Connection is in a unknown state.",TRACE_NAME);
+            TRACE.DEBUG(0,"Connection is in a unknown state.",TRACE_NAME);
 
         if (conn.status == extensions.STATUS_READY): 
-            TRACE.TRACE(8, "success in connecting to Postgresql",TRACE_NAME);
+            TRACE.DEBUG(0, "success in connecting to Postgresql",TRACE_NAME);
             return conn;
         else:
             TRACE.ERROR("Unable to connect to run_info database!",TRACE_NAME)
@@ -120,14 +119,14 @@ class RuninfoDB:
 #---v--------------------------------------------------------------------------
     def register_transition(run_number, transition_type, cause_type):
  
-        TRACE.TRACE(8,f"-- register_transition START",TRACE_NAME)
+        TRACE.DEBUG(0,f"-- register_transition START",TRACE_NAME)
         query = (f"INSERT INTO {self.schema()}.run_transition"
                  f"(run_number,transition_type,cause_type,transition_time)"
                  f" VALUES ({run_number},{transition_type},{cause_type},CURRENT_TIMESTAMP);"
              )
-        TRACE.TRACE(8,f"query:{query}",TRACE_NAME)
+        TRACE.DEBUG(0,f"query:{query}",TRACE_NAME)
         self.execute_query(query)
-        TRACE.TRACE(8,f"-- register_transition END",TRACE_NAME)
+        TRACE.DEBUG(0,f"-- register_transition END",TRACE_NAME)
         return
 
 #-------^---------------------------------------------------------------------
@@ -135,7 +134,7 @@ class RuninfoDB:
 #-----------------------------------------------------------------------------
     def next_run_number(self, store_in_odb):
 
-        TRACE.TRACE(8,"--- start",TRACE_NAME)
+        TRACE.DEBUG(0,"--- start",TRACE_NAME)
         
         run_number              = -1;
         run_type                = -1;
@@ -145,7 +144,7 @@ class RuninfoDB:
         online_software_version = -1;
         
         rc = self.check_connection();
-        TRACE.TRACE(8,f'connection status rc={rc}',TRACE_NAME)
+        TRACE.DEBUG(0,f'connection status rc={rc}',TRACE_NAME)
         if (rc < 0): return rc;
 #-----------------------------------------------------------------------------
 # retrieve from ODB parameters to be stored in Postgresql
@@ -155,7 +154,7 @@ class RuninfoDB:
         run_type         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/RunType");
         tt_name          = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Trigger/Table");
         hostname         = os.environ["HOSTNAME"]
-        TRACE.TRACE(8,f'run_config_name{run_config_name} run_type:{run_type} tt_name:{tt_name} hostname:{hostname}',TRACE_NAME)
+        TRACE.DEBUG(0,f'run_config_name{run_config_name} run_type:{run_type} tt_name:{tt_name} hostname:{hostname}',TRACE_NAME)
 #-------------------------------------------------------------------------------
 # write run info into db
 #-  at this point run number in the DB gets incremented
@@ -173,7 +172,7 @@ class RuninfoDB:
                  f"'{tt_name}','{tt_version}',CURRENT_TIMESTAMP);"
                  )
 
-        TRACE.TRACE(8,"query=%s"%query,TRACE_NAME)
+        TRACE.DEBUG(0,"query=%s"%query,TRACE_NAME)
         self.execute_query(query)
 
         query = f"select max(run_number) from {self.schema()}.run_configuration;"
@@ -182,7 +181,7 @@ class RuninfoDB:
         row        = self.cur.fetchone()
         # print(row)
         run_number = int(row[0])
-        TRACE.TRACE(8,f'run_number:{run_number}',TRACE_NAME)
+        TRACE.DEBUG(0,f'run_number:{run_number}',TRACE_NAME)
         # print("run_number ",run_number)
 
 #        run_info_conditions = "unknown"
@@ -276,7 +275,7 @@ def test1():
         runinfo_db.register_transition(next_run,runinfo.START,1);
         
     except Exception as e:
-        TRACE.TRACE(4,"ERROR",TRACE_NAME) # print(f"Error occurred: {e}")
+        TRACE.ERROR("exception thrown",TRACE_NAME) # print(f"Error occurred: {e}")
               
 #------------------------------------------------------------------------------
 if __name__ == "__main__":

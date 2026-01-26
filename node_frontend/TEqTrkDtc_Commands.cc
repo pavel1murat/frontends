@@ -408,7 +408,7 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
   std::string thresholds_dir = odb_i->GetString(h_tracker,"ReadoutConfiguration/thresholds_dir");
 
   std::string  dtc_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}",
-                                      _host_label.data(),_dtc_i->fPcieAddr);
+                                      _host_label.data(),_dtc_i->PcieAddr());
 
   HNDLE h_dtc = odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr()); // Handle(0,dtc_path);
   odb_i->SetStatus(h_dtc,1);
@@ -418,8 +418,8 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
   for (int lnk=lnk1; lnk<lnk2; lnk++) {
     int link_rc(0);
 
-    ss << std::format("-- link:{}",lnk);
-    std::string  panel_path = std::format("{:s}/Link{:d}/DetectorElement",dtc_path.data(),lnk);
+    ss << std::format("-- load thresholds: DTC{}:link{}",_dtc_i->PcieAddr(),lnk);
+    std::string  panel_path = std::format("{:s}/Link{}/DetectorElement",dtc_path.data(),lnk);
     
     TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path;
 
@@ -433,13 +433,13 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
     try {
       link_rc = 1;
 
-      int slot_id  = odb_i->GetInteger(h_panel,"slot_id");
-      int zstation = (slot_id/20);
-      TLOG(TLVL_DEBUG) << std::format("-- check 1.4 zstation:{}",zstation);
+      int slot_id  = odb_i->GetInteger(h_panel,"slot_id");    // 20*slot+panel_slot
+      int slot     = (slot_id/20);
+      TLOG(TLVL_DEBUG) << std::format("-- check 1.4 slot:{}",slot);
       link_rc = 2;
       
       std::string fn = std::format("{:}/tracker/slot_{:02d}/{:s}/{:s}.json",
-                                   config_dir.data(),zstation,thresholds_dir.data(),panel_name.data());
+                                   config_dir.data(),slot,thresholds_dir.data(),panel_name.data());
     
       TLOG(TLVL_DEBUG) << "-- check 1.5 fn:" << fn;
       link_rc = 3;
@@ -507,7 +507,7 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
       odb_i->SetArray(h_panel,"gain_cal",TID_WORD,gain_cal,96);
       odb_i->SetArray(h_panel,"gain_hv" ,TID_WORD,gain_hv ,96);
       
-      ss << std::format(" SUCCESS, panel_name:{}\n",panel_name);
+      ss << std::format(" panel_name:{} slot:{} : SUCCESS\n",panel_name,slot);
     }
     catch (...) {
       ss << std::format(" ERROR, panel_name:{} link_rc:{}\n",panel_name,link_rc);
@@ -1475,6 +1475,6 @@ int TEqTrkDtc::StartMessage(HNDLE h_Cmd, std::ostream& Stream) {
   
   Stream << std::format("-- label:{} host:{} cmd:{} pcie_addr:{} link:{}",
                         HostLabel(),FullHostName(),cmd,_dtc_i->PcieAddr(),link);
-  if (link == -1) Stream << std::endl;
+  Stream << std::endl;
   return 0;
 }

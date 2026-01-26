@@ -176,6 +176,7 @@ file:elog.org::/configuration/
 *** SetRunplan
 *** LaunchRunplan
 *** ConfigureForTimingChain
+* [[file:databases.org][databases]]
 * DQM                                                                        
 - DQM jobs are started by the file:../conf/mu2e_config_fe.py
 - ARTDAQ env vars need to be set for that

@@ -7,7 +7,9 @@ function trk_panel_control(is, iplane, ipanel, mnid) {
   window.open(`tracker_control.html?station=${is}&plane=${iplane}&panel=${ipanel}&mnid=${mnid}&facility=tracker`,'_blank');
 }
 
-//-----------------------------------------------------------------------------      
+//-----------------------------------------------------------------------------
+// station_id is expected to be a string ... mmm
+//-----------------------------------------------------------------------------
 function trk_choose_station_id(evt, station_id) {
   let tabs = document.getElementsByClassName("trk_station_tab");
   for (let i=0; i<tabs.length; i++) {
@@ -143,7 +145,7 @@ function trk_command_set_odb(cmd) {
 }
 
 //-----------------------------------------------------------------------------
-// input Comamnd_A type, 
+// input Command_A type, 
 //-----------------------------------------------------------------------------
 async function trk_panel_command_set_odb(cmda) {
   
@@ -197,6 +199,21 @@ async function trk_panel_command_set_odb(cmda) {
 }
 
 //-----------------------------------------------------------------------------
+// input Command_B type, 
+//-----------------------------------------------------------------------------
+async function trk_panel_command_set_odb_B(cmd) {
+  
+  try {
+    const rpc = await mjsonrpc_db_paste(["/Mu2e/Commands/Tracker/mnid" ], [g_mnid]);
+    // and after that proceed with teh standard part
+    mu2e_command_set_odb_B(cmd);
+  }
+  catch(error) {
+    mjsonrpc_error_alert(error);
+  }
+}
+
+//-----------------------------------------------------------------------------
 // and this one updates ODB
 // the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
 // TEquipmentTracker will finally update /Finished
@@ -207,7 +224,7 @@ function trk_station_command_set_odb(cmd) {
              "/Mu2e/Commands/Tracker/ParameterPath",
              "/Mu2e/Commands/Tracker/Finished",
              "/Mu2e/Commands/Tracker/"+cmd+"/station",
-            ];
+  ];
   
   
   mjsonrpc_db_paste(paths, [cmd,"/Mu2e/Commands/Tracker",0,g_station]).then(function(rpc) {
@@ -348,6 +365,40 @@ function trk_load_parameters_init_readout() {
   odb_browser('cmd_params','/Mu2e/Commands/Tracker/init_readout',0);
 }
       
+//-----------------------------------------------------------------------------
+// load station / plane / panel and call mu2e_command_set_odb_B
+// handle all panels
+//-----------------------------------------------------------------------------
+function trk_cmd_station_B(cmd) {
+
+  ppath = cmd.func_parameter_path(cmd);
+  paths = [ ppath+'/station', ppath+'/plane', ppath+'/mnid' ];
+
+  mjsonrpc_db_paste(paths, [g_station, -1, -1]).then(function(rpc) {
+    result=rpc.result;
+    // station is set, complete the command
+    mu2e_command_set_odb_B(cmd);
+  }).catch(function(error) {
+    mjsonrpc_error_alert(error);
+  });
+}
+
+//-----------------------------------------------------------------------------
+// g_station = -1 ?
+//-----------------------------------------------------------------------------
+function trk_cmd_all_stations_B(cmd) {
+
+  ppath = cmd.func_parameter_path(cmd);
+  paths = [ ppath+'/station', ppath+'/plane', ppath+'/mnid' ];
+
+  mjsonrpc_db_paste(paths, [-1, -1, -1]).then(function(rpc) {
+    result=rpc.result;
+    // station is set, complete the command
+    mu2e_command_set_odb_B(cmd);
+  }).catch(function(error) {
+    mjsonrpc_error_alert(error);
+  });
+}
 
 // ${ip.toString().padStart(2,'0')
 //    emacs
