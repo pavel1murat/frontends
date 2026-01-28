@@ -232,7 +232,7 @@ int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
 
   // in the end, ProcessCommand should send ss.str() as a message to some log
   std::stringstream sstr;
-  StartMessage(H_Cmd,ss);
+  StartMessage(H_Cmd,sstr);
 
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(H_Cmd);
@@ -377,9 +377,9 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
   TLOG(TLVL_DEBUG) << "-- START";
 
   // in the end, ProcessCommand should send ss.str() as a message to some log
-  std::stringstream ss;
+  std::stringstream sstr;
 
-  StartMessage(h_Cmd,ss);
+  StartMessage(h_Cmd,sstr);
   
   OdbInterface* odb_i  = OdbInterface::Instance();
   
@@ -422,7 +422,7 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
   for (int lnk=lnk1; lnk<lnk2; lnk++) {
     int link_rc(0);
 
-    ss << std::format("-- load thresholds: DTC{}:link{}",_dtc_i->PcieAddr(),lnk);
+    sstr << std::format("-- load thresholds: DTC{}:link{}",_dtc_i->PcieAddr(),lnk);
     std::string  panel_path = std::format("{:s}/Link{}/DetectorElement",dtc_path.data(),lnk);
     
     TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path;
@@ -453,7 +453,7 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
       if (not ifs.is_open()) {
         std::string msg = std::format("failed to open file:{}\n",fn);
         TLOG(TLVL_ERROR) << msg;
-        ss << " ERROR: " << msg; 
+        sstr << " ERROR: " << msg; 
         rc -= 1;
         continue;
       }
@@ -461,9 +461,9 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
       nlohmann::json jf = nlohmann::json::parse(ifs);
     
       if (print_level > 1) {
-        ss << std::endl;
-        ss << "ich mask G_cal  G_hv Th_cal Th_hv" << std::endl;
-        ss << "---------------------------------" << std::endl;
+        sstr << std::endl;
+        sstr << "ich mask G_cal  G_hv Th_cal Th_hv" << std::endl;
+        sstr << "---------------------------------" << std::endl;
       }
     
       link_rc = 4;
@@ -488,7 +488,7 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
                          << " gain:" << gain << " thr:" << thr;
         
         if (print_level > 1) {
-          ss << ich << " " << gain << " " << std::setw(3) << thr << " " << type << std::endl;
+          sstr << ich << " " << gain << " " << std::setw(3) << thr << " " << type << std::endl;
           TLOG(TLVL_DEBUG+1) << ich << " " << gain << " " << std::setw(3) << thr << " " << type << std::endl;
         }
         
@@ -511,10 +511,10 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
       odb_i->SetArray(h_panel,"gain_cal",TID_WORD,gain_cal,96);
       odb_i->SetArray(h_panel,"gain_hv" ,TID_WORD,gain_hv ,96);
       
-      ss << std::format(" panel_name:{} slot:{} : SUCCESS\n",panel_name,slot);
+      sstr << std::format(" panel_name:{} slot:{} : SUCCESS\n",panel_name,slot);
     }
     catch (...) {
-      ss << std::format(" ERROR, panel_name:{} link_rc:{}\n",panel_name,link_rc);
+      sstr << std::format(" ERROR, panel_name:{} link_rc:{}\n",panel_name,link_rc);
       TLOG(TLVL_ERROR) << "link:" << lnk << " panel_name:" << panel_name << " link_rc:" << link_rc;
       rc -= 1;
     }
@@ -524,7 +524,7 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
   odb_i->SetStatus(h_dtc,rc);
 
-  int cmd_rc = TMu2eEqBase::WriteOutput(ss.str());
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
   
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
 
@@ -1290,7 +1290,7 @@ int TEqTrkDtc::SetThresholds(HNDLE H_Cmd) {
   // in the end, ProcessCommand should send ss.str() as a message to some log
   std::stringstream sstr;
 
-  StartMessage(h_Cmd,sstr);
+  StartMessage(H_Cmd,sstr);
 
   OdbInterface* odb_i = OdbInterface::Instance();
   

@@ -440,11 +440,70 @@ int TEqArtdaq::HandlePeriodic() {
 
 //-----------------------------------------------------------------------------
 int TEqArtdaq::PrintProcesses(std::ostream& Stream) {
-  int rc;
+  int rc = 0;
   TLOG(TLVL_DEBUG) << "-- START";
+
+  // Use static to cache output across multiple calls
+  static std::string last_output;
+
+  std::string cmd = "/bin/ps -efl | /bin/grep mu2etrk | /bin/grep -v grep 2>&1";
+  TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
+  
+  std::string output  = popen_shell_command(cmd);
+  TLOG(TLVL_DEBUG+1) << "output size=" << output.size();
+
+  // Only update cache if output is non-empty
+  if (!output.empty()) {
+    last_output = output;
+  }
+
+  // Always write cached output to Stream
+  Stream << "=== PrintProcesses ===\n";
+  Stream << last_output << "\n";
+
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
   return rc;
-}
+  }
+
+
+//-----------------------------------------------------------------------------
+/*int TEqArtdaq::PrintProcesses(std::ostream& Stream) {
+    int rc = 0;
+    TLOG(TLVL_DEBUG) << "-- START";
+
+    //const std::string dir =
+    //  "/scratch/mu2e/mu2etrk/daquser_002_namitha/logs/dl01-mu2e-dl-01-23301";
+
+    // Sorted by time, limited to 10 latest files
+    const std::string cmd = "/bin/ls -lh --time-style=long-iso /scratch/mu2e/mu2etrk/daquser_002_namitha/logs/dl01-mu2e-dl-01-23301";
+      // "/bin/ls -lhtr --time-style=long-iso " + dir + " | /usr/bin/tail -10 2>&1";
+
+    TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
+
+    FILE* pipe = popen(cmd.c_str(), "r");
+    if (!pipe) {
+        Stream << "ERROR: Failed to run command: " << cmd << "\n";
+        TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
+        return rc;
+    }
+
+    char buffer[512];
+    bool has_output = false;
+    while (fgets(buffer, sizeof(buffer), pipe)) {
+        Stream << buffer;
+        has_output = true;
+    }
+
+    if (!has_output) {
+        Stream << "No files found\n";
+    }
+
+    pclose(pipe);
+
+    TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
+    return rc;
+    }*/
+
 
 //-----------------------------------------------------------------------------
 int TEqArtdaq::ProcessStatus(std::ostream& Stream) {
