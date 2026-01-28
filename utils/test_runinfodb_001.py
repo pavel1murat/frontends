@@ -1,7 +1,7 @@
 import  midas, TRACE
 import  midas.client
 import  os, socket, psycopg2
-import  frontends.utils.runinfodb;
+import  frontends.utils.runinfodb as fur;
 import  logging
 
 logger = logging.getLogger('midas')
@@ -33,11 +33,11 @@ def test1():
 
     logger.info("Initializing %s" % "get_next_run")
     hostname = socket.gethostname().split('.')[0];
-    client = midas.client.MidasClient("get_next_run", hostname, "test_025", None)
+    client = midas.client.MidasClient("get_next_run", hostname, os.getenv('MIDAS_EXPT_NAME'), None)
    
     # Initialize the RuninfoDB
 
-    db = runinfodb.RuninfoDB(midas_client=client,config="config/runinfodb.json",)
+    db = fur.RuninfoDB(midas_client=client,config="config/runinfodb.json",)
 
     # Call next_run_number
     try:

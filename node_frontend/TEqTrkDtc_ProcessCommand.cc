@@ -109,7 +109,9 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // FIND_ALIGNMENT
 //-----------------------------------------------------------------------------
   else if (cmd == "find_alignment") {
-    cmd_rc = eq_dtc->FindAlignment(ss);
+    // cmd_rc = eq_dtc->FindAlignment(ss);
+    std::thread t(&TEqTrkDtc::FindAlignment,eq_dtc,h_cmd);
+    t.detach();
   }
 //-----------------------------------------------------------------------------
 // FIND_THRESHOLDS
@@ -136,7 +138,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // CONTROL_ROC_DIGI_RW
 //-----------------------------------------------------------------------------
-    ss << std::endl;  // ################ 
+    ss << std::endl;
 
     cmd_rc = eq_dtc->DigiRW(ss);
   }
@@ -154,14 +156,12 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // init_readout
 //-----------------------------------------------------------------------------
-    // ss << std::endl;
     cmd_rc = eq_dtc->InitReadout(ss);
   }
 //-----------------------------------------------------------------------------
 // LOAD_THRESHOLDS - execute per-DTC commands as threads
 //-----------------------------------------------------------------------------
   else if (cmd == "load_thresholds") {
-    // 2026-01-21 PM cmd_rc = eq_dtc->LoadThresholds(h_cmd);
     std::thread t(&TEqTrkDtc::LoadThresholds,eq_dtc,h_cmd);
     t.detach();
   }
@@ -293,8 +293,10 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // LOASET_THRESHOLDS
 //-----------------------------------------------------------------------------
   else if (cmd == "set_thresholds") {
-    ss << std::endl;
-    eq_dtc->SetThresholds(ss);
+    // ss << std::endl;
+    // eq_dtc->SetThresholds(ss);
+    std::thread t(&TEqTrkDtc::SetThresholds,eq_dtc,h_cmd);
+    t.detach();
   }
   else if (cmd == "soft_reset") {
 //-----------------------------------------------------------------------------

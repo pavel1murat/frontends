@@ -184,6 +184,10 @@
       btn_b = mu2e_make_exec_button_B(cmd_b);
       td.appendChild(btn_b);
 
+      cmd_b = new Command_B('set_thresholds','set_thresholds',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
+
       cmd_b = new Command_B('print status','print_status',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
       btn_b = mu2e_make_exec_button_B(cmd_b);
       td.appendChild(btn_b);
@@ -302,6 +306,10 @@
       td.appendChild(btn_b);
       
       cmd_b = new Command_B('load thresholds','load_thresholds',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+      btn_b = mu2e_make_exec_button_B(cmd_b);
+      td.appendChild(btn_b);
+      
+      cmd_b = new Command_B('set thresholds','set_thresholds',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
       btn_b = mu2e_make_exec_button_B(cmd_b);
       td.appendChild(btn_b);
       

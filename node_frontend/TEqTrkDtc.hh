@@ -64,12 +64,12 @@ public:
   int         ConfigureJA      (std::ostream& Stream);
   int         DigiRW           (std::ostream& Stream);
   int         DumpSettings     (std::ostream& Stream);
-  int         FindAlignment    (std::ostream& Stream);
+  int         FindAlignment    (HNDLE H_Cmd);
   int         FindThresholds   (std::ostream& Stream);
   int         GetKey           (std::ostream& Stream);
   int         GetRocDesignInfo (std::ostream& Stream);
   int         InitReadout      (std::ostream& Stream);
-  int         LoadThresholds   (HNDLE h_Cmd);                 // load thresholds from disk to ODB
+  int         LoadThresholds   (HNDLE H_Cmd);                 // load thresholds from disk to ODB
   int         MeasureThresholds(std::ostream& Stream);
   int         PrintRocStatus   (std::ostream& Stream);
   int         ProgramRoc       (std::ostream& Stream);
@@ -86,7 +86,7 @@ public:
   int         ResetRoc         (std::ostream& Stream);
   int         RebootMcu        (std::ostream& Stream);
   int         SetCalDac        (std::ostream& Stream);
-  int         SetThresholds    (std::ostream& Stream);  // ODB --> preamps
+  int         SetThresholds    (HNDLE H_Cmd);  // ODB --> preamps
   int         StartMessage     (HNDLE h_Cmd, std::ostream& Stream);
   int         TestCommand      (std::ostream& Stream);
   int         WriteRocRegister (std::ostream& Stream);
