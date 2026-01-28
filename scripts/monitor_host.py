@@ -78,7 +78,7 @@ class MonitorHost:
         a = 0
 
 #------------------------------------------------------------------------------
-# print statistics reported by a given artdaq process
+# returns: ctime_sec fsize_gb space_used space_avail
 #------------------------------------------------------------------------------
     def mon_disk_io(self):
         name = 'mon_disk_io';

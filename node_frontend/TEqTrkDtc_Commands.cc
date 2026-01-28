@@ -208,9 +208,10 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
   TLOG(TLVL_DEBUG) << "roc_readout_mode:" << roc_readout_mode
                    << " roc_lane_mask:0x" << std::hex << roc_lane_mask;
 
+  Stream << std::endl;
   try {
     _dtc_i->SetRocLaneMask(roc_lane_mask);
-    rc = _dtc_i->InitReadout(-1,roc_readout_mode);
+    rc = _dtc_i->InitReadout(-1,roc_readout_mode,&Stream);
 
     Stream << " emulate_cfo:" << _dtc_i->EmulateCfo()
            << " roc_readout_mode:" << roc_readout_mode << " rc:" << rc;
@@ -224,31 +225,36 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::FindAlignment(std::ostream& Stream) {
+int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
 
-  OdbInterface* odb_i     = OdbInterface::Instance();
-  HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
+  // in the end, ProcessCommand should send ss.str() as a message to some log
+  std::stringstream sstr;
+  StartMessage(H_Cmd,ss);
 
-  int link        = odb_i->GetInteger(h_cmd    ,"link"       );
+  OdbInterface* odb_i     = OdbInterface::Instance();
+  HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(H_Cmd);
+
+  int link        = odb_i->GetInteger(H_Cmd    ,"link"       );
   int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
 
   TLOG(TLVL_DEBUG) << std::format("link:{} print_level:{}",link,print_level);
 
-  if (link == -1) Stream << std::endl;
+  sstr << std::endl;
 
   try {
-    rc = _dtc_i->FindAlignments(print_level,link,Stream);
+    rc = _dtc_i->FindAlignments(print_level,link,sstr);
   }
   catch (...) {
-    Stream << " -- ERROR : coudn't execute FindAlignments for link:" << link << " ... BAIL OUT" << std::endl;
+    sstr << " -- ERROR : coudn't execute FindAlignments for link:" << link << " ... BAIL OUT" << std::endl;
     rc = -10;
   }
   
-  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+
+  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
 }
 
@@ -377,8 +383,6 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
   
   OdbInterface* odb_i  = OdbInterface::Instance();
   
-  //   HNDLE h_cmd     = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-
   int link        = odb_i->GetInteger(h_Cmd    ,"link"       );
   
   HNDLE h_cmd_par = odb_i->GetCmdParameterHandle(h_Cmd);
@@ -514,7 +518,7 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
       TLOG(TLVL_ERROR) << "link:" << lnk << " panel_name:" << panel_name << " link_rc:" << link_rc;
       rc -= 1;
     }
-  }                                    
+  }
 //-----------------------------------------------------------------------------
 // write output to the equipment log - need to revert the line order 
 //-----------------------------------------------------------------------------
@@ -1278,26 +1282,29 @@ int TEqTrkDtc::SetCalDac(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
-
+int TEqTrkDtc::SetThresholds(HNDLE H_Cmd) {
+  int rc(0);
+  
   TLOG(TLVL_DEBUG) << "-- START";
+
+  // in the end, ProcessCommand should send ss.str() as a message to some log
+  std::stringstream sstr;
+
+  StartMessage(h_Cmd,sstr);
 
   OdbInterface* odb_i = OdbInterface::Instance();
   
-  HNDLE h_cmd          = odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  // std::string cmd_name = odb_i->GetString(h_cmd,"Name");
-  // HNDLE h_cmd_par      = odb_i->GetHandle(h_cmd,cmd_name);
-  HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
+  HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(H_Cmd);
   
   TLOG(TLVL_DEBUG) << "-- checkpoint 0.1";
 
   // int doit        = o["doit"] ;
   // int print_level = o["print_level"] ;
 
+  int link        = odb_i->GetInteger(H_Cmd,"link"       );
+
   int doit        = odb_i->GetInteger(h_cmd_par,"doit"       );
   int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
-
-  int link        = odb_i->GetInteger(h_cmd,"link"       );
   
   TLOG(TLVL_DEBUG) << "-- checkpoint 0.2 link:" << link << " PcieAddr:" << _dtc_i->PcieAddr();
 
@@ -1324,15 +1331,15 @@ int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
   for (int lnk=lnk1; lnk<lnk2; lnk++) {
 
     if (print_level > 0) {
-      Stream << " -- link:" << lnk;
+      sstr << " -- link:" << lnk;
     }
 
     if (not _dtc_i->LinkEnabled(lnk)) {
-      Stream << std::format(" : disabled\n");
+      sstr << std::format(" : disabled\n");
       continue;
     }
     else if (not _dtc_i->LinkLocked(lnk)) {
-      Stream << " ERROR : link enabled but not locked\n";
+      sstr << " ERROR : link enabled but not locked\n";
       TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} link:{} enabled but not locked",_host_label,_dtc_i->PcieAddr(),lnk);
     }
     
@@ -1344,9 +1351,9 @@ int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
     // midas::odb o(panel_path);
 
     if (print_level > 1) {
-      Stream << std::endl;
-      Stream << "ich mask G_cal  G_hv Th_cal Th_hv" << std::endl;
-      Stream << "---------------------------------" << std::endl;
+      sstr << std::endl;
+      sstr << "ich mask G_cal  G_hv Th_cal Th_hv" << std::endl;
+      sstr << "---------------------------------" << std::endl;
     }
 
     uint16_t ch_mask[96], gain_cal[96], gain_hv[96], thr_cal[96], thr_hv[96], data[4*96];
@@ -1364,28 +1371,29 @@ int TEqTrkDtc::SetThresholds(std::ostream& Stream ) {
       data[i+96*3] = thr_hv  [i];
 
       if (print_level > 1) {
-        Stream << std::format("{:3d} {:3d} {:5d} {:5d} {:5d} {:5d}\n",
-                              i,ch_mask[i],data[i],data[i+96*1],data[i+96*2],data[i+96*3]);
+        sstr << std::format("{:3d} {:3d} {:5d} {:5d} {:5d} {:5d}\n",
+                            i,ch_mask[i],data[i],data[i+96*1],data[i+96*2],data[i+96*3]);
       }
     }
       
     if (doit != 0) {
       try {
         _dtc_i->ControlRoc_SetThresholds(lnk,data);
-        Stream << " : SUCCESS" ;
+        sstr << " : SUCCESS" ;
       }
       catch(...) {
-        Stream << "ERROR : coudn't execute Rpc_ControlRoc_SetThresholds. BAIL OUT" << std::endl;
+        sstr << "ERROR : coudn't execute Rpc_ControlRoc_SetThresholds. BAIL OUT" << std::endl;
       }
     }
-    
-    Stream << std::endl;
+    sstr << std::endl;
   }
   
   odb_i->SetStatus(h_dtc,0);
   
-  TLOG(TLVL_DEBUG) << "-- END";
-  return 0;
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+
+  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{} cmd_rc:{}",rc,cmd_rc);
+  return rc;
 }
 
 //-----------------------------------------------------------------------------
