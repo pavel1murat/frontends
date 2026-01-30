@@ -83,7 +83,7 @@ export TFM_CONFIG_DIR=$MU2E_DAQ_DIR/config/artdaq
 export             PATH=$PATH:$MU2E_DAQ_DIR/config/scripts
 export       PYTHONPATH=$SPACK_VIEW/python
 export MU2E_SEARCH_PATH=$SPACK_ENV:/cvmfs/mu2e.opensciencegrid.org/DataFiles
-export  FHICL_FILE_PATH=$SPACK_ENV:$FHICL_FILE_PATH
+export  FHICL_FILE_PATH=$MU2E_DAQ_DIR/config/artdaq:$SPACK_ENV:$FHICL_FILE_PATH
 export  LD_LIBRARY_PATH=$SPACK_VIEW/lib
 
 return 0

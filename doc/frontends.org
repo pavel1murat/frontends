@@ -107,6 +107,11 @@ SFilename
 Next Filename 
 ... 
 #+end_src
+- copy to userfiles/sequencer :
+  - [[file:../sequencer/get_next_run_number.msl]]
+  - [[file:../sequencer/run_library.msl]]
+  - [[file:../sequencer/trk_control_roc_library.msl]]
+  - [[file:../sequencer/trk_pulse_injection.msl]]
 ** configure postgres                                                        
 - make sure you have $MU2E_DAQ_DIR/config/runinfodb.json with the PG configuration
   if needed, copy it from another work area
@@ -213,7 +218,7 @@ crw-rw-rw- 1 root root 234, 1 Oct  1 12:08 /dev/mu2e1
 #+end_src
 * [[file:ots.org][ots]]                                                                        
 * [[file:trace.org][TRACE]]
-* tracker plane/panel slot indexing in the DAQ code
+* tracker plane/panel slot indexing in the DAQ code                          
 - station slots 0,2,4,etc
 |-------------------------+-----------+-----------+-------------------------+-----------+-----------|
 | geography               | DAQ plane | DAQ panel | geography               | DAQ plane | DAQ panel |

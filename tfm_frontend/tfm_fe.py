@@ -152,7 +152,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
                                               artdaq_config_dir=artdaq_config_dir,
                                               rpc_host         =self.tfm_rpc_host);
         
-        TRACE.TRACE(TRACE.TLVL_LOG,"004: tfm instantiated, self.use_runinfo_db=%i"%(self.use_runinfo_db))
+        TRACE.INFO(f'004: tfm instantiated, self.use_runinfo_db={self.use_runinfo_db}')
 
         cmd=f"cat {os.getenv('MIDAS_EXPTAB')} | awk -v expt={os.getenv('MIDAS_EXPT_NAME')} '{{if ($1==expt) {{print $2}} }}'"
         process = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
@@ -212,7 +212,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 # dict if needed.
 #------------------------------------------------------------------------------
     def begin_of_run(self, run_number):
-
+        TRACE.INFO(f'--START:');
         if (self.use_runinfo_db):
             try:
                 db = runinfo_db("aaa");
@@ -224,7 +224,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
         self._fm.do_config(run_number=run_number)
         self._fm.do_start_running()
-        TRACE.TRACE(TRACE.TLVL_LOG,"001:BEGIN_OF_RUN")
+        TRACE.INFO(f'001:BEGIN_OF_RUN')
 
         if (self.use_runinfo_db):
 #------------------------------------------------------------------------------
@@ -243,6 +243,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
        
         self.set_all_equipment_status("Running", "greenLight")
 
+        TRACE.INFO(f'--END:');
         return midas.status_codes["SUCCESS"]
 
 #------------------------------------------------------------------------------

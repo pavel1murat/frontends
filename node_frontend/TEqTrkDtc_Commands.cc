@@ -237,6 +237,9 @@ int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
   OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(H_Cmd);
 
+  HNDLE h_dtc = odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr()); // Handle(0,dtc_path);
+  odb_i->SetStatus(h_dtc,1);
+
   int link        = odb_i->GetInteger(H_Cmd    ,"link"       );
   int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
 
@@ -251,8 +254,11 @@ int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
     sstr << " -- ERROR : coudn't execute FindAlignments for link:" << link << " ... BAIL OUT" << std::endl;
     rc = -10;
   }
-  
+
+  sstr << std::format(" rc:{}",rc);
   int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+
+  odb_i->SetStatus(h_dtc,0);
 
   TLOG(TLVL_DEBUG) << std::format("-- END: rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
@@ -1382,7 +1388,7 @@ int TEqTrkDtc::SetThresholds(HNDLE H_Cmd) {
         sstr << " : SUCCESS" ;
       }
       catch(...) {
-        sstr << "ERROR : coudn't execute Rpc_ControlRoc_SetThresholds. BAIL OUT" << std::endl;
+        sstr << " : ERROR : coudn't execute Rpc_ControlRoc_SetThresholds. BAIL OUT" << std::endl;
       }
     }
     sstr << std::endl;

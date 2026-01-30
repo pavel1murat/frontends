@@ -134,7 +134,7 @@ class RuninfoDB:
 #-----------------------------------------------------------------------------
     def next_run_number(self, store_in_odb):
 
-        TRACE.DEBUG(0,"--- start",TRACE_NAME)
+        TRACE.DEBUG(0,"-- START",TRACE_NAME)
         
         run_number              = -1;
         run_type                = -1;
