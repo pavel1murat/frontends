@@ -63,6 +63,8 @@ int TMu2eEqBase::HandlePeriodic() {
 int TMu2eEqBase::ResetOutput(const std::string& Logfile) {
 
   std::string fn(_logfile);
+                                        // show as BUSY
+  _odb_i->SetStatus(_handle,1);
   
   if (Logfile != "") {
     std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
@@ -82,6 +84,7 @@ int TMu2eEqBase::ResetOutput(const std::string& Logfile) {
     }
     else {
       output_file.close();
+      _odb_i->SetStatus(_handle,0);
     }
   }
   

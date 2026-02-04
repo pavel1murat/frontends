@@ -16,6 +16,8 @@
 #]
 # call signature:
 #                     load_channel_map.py --slot=10 --thr=
+# or
+#                     load_channel_map.py --slot=10 --channel=1
 #------------------------------------------------------------------------------
 import  midas,TRACE
 import  midas.client
@@ -35,9 +37,9 @@ class LoadChannelMap:
     def __init__(self):
         self.slot       = None;
         self.threshold  = None;
+        self.channel    = None;
         self.diag_level = 0;
         
-# ---------------------------------------------------------------------
 # ---------------------------------------------------------------------
     def Print(self,Name,level,Message):
         if (level > self.diag_level): return 0;
@@ -54,7 +56,7 @@ class LoadChannelMap:
 
         try:
             optlist, args = getopt.getopt(sys.argv[1:], '',
-                     ['diag_level=', 'slot=', 'threshold=' ] )
+                     ['channel=', 'diag_level=', 'slot=', 'threshold=' ] )
  
         except getopt.GetoptError:
             self.Print(name,0,'%s' % sys.argv)
@@ -65,19 +67,22 @@ class LoadChannelMap:
 
             # print('key,val = ',key,val)
 
-            if   (key == '--diag_level'):
+            if   (key == '--channel'):
+                self.channel = int(val)
+            elif (key == '--diag_level'):
                 self.diag_level = int(val)
             elif   (key == '--slot'):
                 self.slot = int(val)
             elif   (key == '--threshold'):
                 self.threshold = int(val)
 
+        self.Print(name,1,'channel   = %s' % self.channel)
         self.Print(name,1,'slot      = %s' % self.slot)
         self.Print(name,1,'threshold = %s' % self.threshold)
         self.Print(name,1,'diag_level= %s' % self.diag_level)
         self.Print(name,1,'------------------------------------- Done')
+        
         return 0
-
 
 #------------------------------------------------------------------------------
     def extract_values(self,data, panel_name):
@@ -156,10 +161,47 @@ class LoadChannelMap:
 #            client.odb_set(panel_odb_path+f'/gain_{d["type"]}[{ich}]',d["gain"]);
 #            client.odb_set(panel_odb_path+f'/threshold_{d["type"]}[{ich}]',d["threshold"]);
 #
+
+
+#------------------------------------------------------------------------------
+# enable readout of only one channel for all panels of a station in a fiven slot
+#---v--------------------------------------------------------------------------
+    def enable_one_channel(self,slot,channel):
+
+        logger.info("Initializing : enable_one_channel")
+
+        node            = socket.gethostname().split('.')[0];
+        experiment_name = "tracker";
+        client          = midas.client.MidasClient("load_channel_map",node,experiment_name,None)
+
+        slot_path = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{slot:02d}'
+        print(slot_path);
+
+        for plane in range(0,2):
+            for panel in range(0,6):
+                panel_odb_path = slot_path+f'/Plane_{plane:02d}/Panel_{panel:02d}';
+                panel_name     = client.odb_get(panel_odb_path+'/Name');
+                print(f'-- panel_name:{panel_name} ODB path:{panel_odb_path}');
+            
+                # initialize the channel map, all channels good
+            
+                chmask = [];
+                for ch in range(0,96):
+                    if (ch == channel) : chmask.append(1)
+                    else               : chmask.append(0)
+
+                for ich in range(0,96):
+                    client.odb_set(panel_odb_path+f'/ch_mask[{ich}]',chmask[ich])
+
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
     x = LoadChannelMap();
     x.parse_parameters();
 
     if (x.slot != None):
-        x.load_channel_map(x.slot)
+        if (x.channel == None):
+            # load channel map from a file
+            x.load_channel_map(x.slot)
+        else:
+            # set just one channel
+            x.enable_one_channel(x.slot,x.channel)

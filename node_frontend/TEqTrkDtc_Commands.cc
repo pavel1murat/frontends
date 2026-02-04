@@ -225,12 +225,13 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
+// in the end, send ss.str() as a message to some log
+//-----------------------------------------------------------------------------
 int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
   int rc(0);
   
-  TLOG(TLVL_DEBUG) << "-- START";
+  TLOG(TLVL_DEBUG) << std::format("-- START: _host_label:{} DTC{}",_host_label,_dtc_i->PcieAddr());
 
-  // in the end, ProcessCommand should send ss.str() as a message to some log
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
 
@@ -242,17 +243,24 @@ int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
 
   int link        = odb_i->GetInteger(H_Cmd    ,"link"       );
   int print_level = odb_i->GetInteger(h_cmd_par,"print_level");
+  int doit        = odb_i->GetInteger(h_cmd_par,"doit");
 
-  TLOG(TLVL_DEBUG) << std::format("link:{} print_level:{}",link,print_level);
+  TLOG(TLVL_DEBUG) << std::format("link:{} print_level:{} doit:{}",link,print_level,doit);
 
   sstr << std::endl;
 
-  try {
-    rc = _dtc_i->FindAlignments(print_level,link,sstr);
+  if (doit != 0) {
+    try {
+      rc = _dtc_i->FindAlignments(print_level,link,sstr);
+    }
+    catch (...) {
+      sstr << " -- ERROR : coudn't execute FindAlignments for link:" << link << " ... BAIL OUT" << std::endl;
+      rc = -10;
+    }
   }
-  catch (...) {
-    sstr << " -- ERROR : coudn't execute FindAlignments for link:" << link << " ... BAIL OUT" << std::endl;
-    rc = -10;
+  else {
+    TLOG(TLVL_DEBUG) << std::format("just waiting");
+    ss_sleep(1000);
   }
 
   sstr << std::format(" rc:{}",rc);
@@ -1145,12 +1153,16 @@ int TEqTrkDtc::ReadIlp(std::ostream& Stream) {
 int TEqTrkDtc::ReadSpi(std::ostream& Stream) {
   int rc(0);
 
-  OdbInterface* odb_i     = OdbInterface::Instance();
+  TLOG(TLVL_DEBUG) << std::format("--START:");
+
+                                  OdbInterface* odb_i     = OdbInterface::Instance();
   HNDLE         h_cmd     = odb_i->GetDtcCmdHandle(HostLabel(),_dtc_i->PcieAddr());
   HNDLE         h_cmd_par = odb_i->GetCmdParameterHandle(h_cmd);
 
   int link         = odb_i->GetInteger(h_cmd    ,"link"       ); // o["link"       ];
   int print_level  = odb_i->GetInteger(h_cmd_par,"print_level"); // o["print_level"];
+
+  _odb_i->SetStatus(_handle,1);
   
   try         {
     if (link != -1) {
@@ -1170,6 +1182,8 @@ int TEqTrkDtc::ReadSpi(std::ostream& Stream) {
                                         // now - printing
       _dtc_i->PrintSpiAll(spi,Stream);
     }
+
+    _odb_i->SetStatus(_handle,1);
   }
   catch (...) {
 //-----------------------------------------------------------------------------
@@ -1182,6 +1196,7 @@ int TEqTrkDtc::ReadSpi(std::ostream& Stream) {
     rc = -1;
   }
 
+  TLOG(TLVL_DEBUG) << std::format("--END: rc:{}",rc);
   return rc;
 }
 
