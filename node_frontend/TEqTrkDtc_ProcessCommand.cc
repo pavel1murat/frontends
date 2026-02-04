@@ -57,15 +57,6 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     return;
   }
     
-  odb_i->SetInteger(h_dtc,"Status",1);
-
-  // should be 0 or 1 - may be extra because of the status check...
-  // int finished = odb_i->GetInteger(h_cmd,"Finished");
-  // if (finished == 0) {
-  //   TLOG(TLVL_DEBUG) << "self inflicted, return";
-  //   return;
-  // }
-
   std::string cmd            = odb_i->GetString (h_cmd,"Name");
   std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
   int link                   = odb_i->GetInteger(h_cmd,"link");
@@ -90,7 +81,9 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   int cmd_rc(0);
   if      (cmd == "configure_ja") {
     try {
+      odb_i->SetInteger(h_dtc,"Status",1);
       cmd_rc = dtc_i->ConfigureJA();             // use defaults from the dtc_i settings
+      odb_i->SetInteger(h_dtc,"Status",0);
     }
     catch(...) {
       TLOG(TLVL_ERROR) << "coudn't execute DtcInterface::ConfigureJA ... BAIL OUT";
@@ -109,7 +102,6 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // FIND_ALIGNMENT
 //-----------------------------------------------------------------------------
   else if (cmd == "find_alignment") {
-    // cmd_rc = eq_dtc->FindAlignment(ss);
     std::thread t(&TEqTrkDtc::FindAlignment,eq_dtc,h_cmd);
     t.detach();
   }
@@ -149,7 +141,11 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     // ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at hard_reset";
  
-    try         { dtc_i->Dtc()->HardReset(); ss << " hard reset OK" << std::endl; }
+    try         {
+      odb_i->SetInteger(h_dtc,"Status",1);
+      dtc_i->Dtc()->HardReset();
+      odb_i->SetInteger(h_dtc,"Status",0);
+      ss << " hard reset OK" << std::endl; }
     catch (...) { ss << "ERROR : coudn't hard reset the DTC ... BAIL OUT" << std::endl; }
   }
   else if (cmd == "init_readout") {
@@ -177,7 +173,11 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
   else if (cmd == "print_status") {
     ss << std::endl;
-    try         { dtc_i->PrintStatus(ss); }
+    try         {
+      odb_i->SetInteger(h_dtc,"Status",1);
+      dtc_i->PrintStatus(ss);
+      odb_i->SetInteger(h_dtc,"Status",0);
+    }
     catch (...) { ss << "ERROR : coudn't print status of the DTC ... BAIL OUT" << std::endl; }
   }  
 //-----------------------------------------------------------------------------
@@ -304,7 +304,11 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
     TLOG(TLVL_DEBUG) << "arrived at soft_reset";
  
-    try         { dtc_i->Dtc()->SoftReset(); ss << " soft reset OK" << std::endl; }
+    try         {
+      odb_i->SetInteger(h_dtc,"Status",1);
+      dtc_i->Dtc()->SoftReset();
+      odb_i->SetInteger(h_dtc,"Status",0);
+      ss << " soft reset OK" << std::endl; }
     catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }
   }
   else if (cmd == "test_command") {
@@ -336,15 +340,6 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // write output to the equipment log - need to revert the line order 
 //-----------------------------------------------------------------------------
   cmd_rc = eq_dtc->WriteOutput(ss.str());
-//-----------------------------------------------------------------------------
-// done, avoid second call - leave "Run" = 1;, before setting it to 1 again,
-// need to make sure that "Finished" = 1
-//-----------------------------------------------------------------------------
-  odb_i->SetInteger(h_cmd,"Finished",1);
-//-----------------------------------------------------------------------------
-// and set the DTC status
-//-----------------------------------------------------------------------------
-  odb_i->SetInteger(h_dtc,"Status",cmd_rc);
   
-  TLOG(TLVL_DEBUG) << "-- END TEqTrkDtc::" << __func__ << " cmd_rc:" << cmd_rc;
+  TLOG(TLVL_DEBUG) << "-- END:" << " cmd_rc:" << cmd_rc;
 }

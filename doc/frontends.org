@@ -145,6 +145,19 @@ file:elog.org::/configuration/
 -  "TCPSocket"
 -  "RTIDDS"
 -  "Null"
+** configuring ARTDAQ FCL's                                                  
+*** data logger                                                              
+#+BEGIN_SRC
+daq.aggregator.init_fragment_count : N_EVENT_BUILDERS
+#+END_SRC
+- it looks that the DL is waiting for each event builder to send smth so the number
+of init fragment count's should be exactly the same as the number of event builders
+- DL and DS should have  *expected_fragments_per_event: 1*
+** using artdaqDriver :
+#+begin_src
+artdaqDriver --help
+#+end_src
+- fcl example: file:../../otsdaq-mu2e-tracker/fcl/driver_tracker_br.fcl 
 * CFO                                                                        
 ** mu2e-pcie-utils interface                                                 
    file:../../mu2e_pcie_utils/cfoInterfaceLib/CFO.h

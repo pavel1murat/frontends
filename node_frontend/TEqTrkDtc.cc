@@ -45,7 +45,7 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
 {
   TLOG(TLVL_DEBUG) << "-- START: H_RunConf:" << H_RunConf << " H_Dtc:" << H_Dtc;
   
-  _h_dtc               = H_Dtc;
+  _handle              = H_Dtc;
 
   int dtc_enabled      = _odb_i->GetEnabled       (H_Dtc);
   int pcie_addr        = _odb_i->GetDtcPcieAddress(H_Dtc);
@@ -231,9 +231,9 @@ int TEqTrkDtc::BeginRun(HNDLE H_RunConf) {
   if (_dtc_i) {
     _dtc_i->fEventMode      = event_mode;
     _dtc_i->fRocReadoutMode = roc_readout_mode;
-    _dtc_i->fLinkMask       = _odb_i->GetLinkMask         (_h_dtc);
-    _dtc_i->fJAMode         = _odb_i->GetJAMode           (_h_dtc);
-    _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(_h_dtc);
+    _dtc_i->fLinkMask       = _odb_i->GetLinkMask         (_handle);
+    _dtc_i->fJAMode         = _odb_i->GetJAMode           (_handle);
+    _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(_handle);
 //-----------------------------------------------------------------------------
 // HardReset erases the DTC link mask, restore it
 // also, release all buffers from the previous read - this is the initialization
