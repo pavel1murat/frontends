@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <format>
+#include <thread>
 
 #include "frontends/utils/utils.hh"
 #include "frontends/utils/TMu2eEqBase.hh"
@@ -76,7 +77,7 @@ TMFeResult TEqTracker::Init() {
 // when the execution comes here, odb["/Mu2e/Commands/Tracker/Run"] is set to 1
 //-----------------------------------------------------------------------------
 void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
-
+  int rc(0);
   TLOG(TLVL_DEBUG) << "-- START:";
 //-----------------------------------------------------------------------------
 // start from checking the tracker status
@@ -117,6 +118,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << std::format("cmd:{} cmd.parameter_path:{}",cmd,cmd_parameter_path);
 
   if      (cmd == "digi_rw"         ) fg_EqTracker->_cmd_type = kCmdDtc;
+  else if (cmd == "find_alignment"  ) fg_EqTracker->_cmd_type = kCmdDtc;
   else if (cmd == "pulser_on"       ) fg_EqTracker->_cmd_type = kCmdDtc;
   else if (cmd == "pulser_off"      ) fg_EqTracker->_cmd_type = kCmdDtc;
   else if (cmd == "read"            ) fg_EqTracker->_cmd_type = kCmdDtc;  // "read" loads channel masks
@@ -127,7 +129,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 // reset_output is a special command - it doesn't require looping over stations
 // no need to wait for completion
 //-----------------------------------------------------------------------------
-    int rc = fg_EqTracker->ResetOutput(logfile);
+    rc = fg_EqTracker->ResetOutput(logfile);
     odb_i->SetStatus(h_trk_cfg,rc);
     return;
   }
@@ -158,13 +160,16 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
       // std::thread t(TEqTracker::ExecuteTrackerCommand,fg_EqTracker->_h_cmd);
       // t.detach();
     }
-    WaitForCompletion(fg_EqTracker->_h_cmd);
+
+    std::thread t(&TEqTracker::WaitForCompletion,fg_EqTracker->_h_cmd);
+    t.detach();
+    // WaitForCompletion(fg_EqTracker->_h_cmd);
   }
 
-  int finished = odb_i->GetInteger(fg_EqTracker->_h_cmd,"Finished"  );
-  int rc       = odb_i->GetInteger(fg_EqTracker->_h_cmd,"ReturnCode");
+  // int finished = odb_i->GetInteger(fg_EqTracker->_h_cmd,"Finished"  );
+  // int rc       = odb_i->GetInteger(fg_EqTracker->_h_cmd,"ReturnCode");
   
-  TLOG(TLVL_DEBUG) << std::format("-- END finished:{} rc:{}",finished,rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
   return;
 }
 
@@ -212,10 +217,10 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
         std::string node      = odb_i->GetDtcHostLabel  (h_dtc);
         HNDLE       h_dtc_cmd = odb_i->GetDtcCmdHandle  (node,pcie_addr);
         
-        int rc       = odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
-        int finished = odb_i->GetInteger(h_dtc_cmd,"Finished"  );
-        if (finished == 1) {
-                                        // assume rc can only be < 0
+        int status = odb_i->GetInteger(h_dtc,"Status"  );
+        int rc     = odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
+        if (status == 0) {
+                                        // completed
           if (rc != 0) return_code += rc;
         }
         else {

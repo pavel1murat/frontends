@@ -69,6 +69,7 @@ public:
   int         GetKey           (std::ostream& Stream);
   int         GetRocDesignInfo (std::ostream& Stream);
   int         InitReadout      (std::ostream& Stream);
+  int         LoadChannelMap   (HNDLE H_Cmd);                 // load map from disk to ODB
   int         LoadThresholds   (HNDLE H_Cmd);                 // load thresholds from disk to ODB
   int         MeasureThresholds(std::ostream& Stream);
   int         PrintRocStatus   (std::ostream& Stream);
@@ -85,8 +86,10 @@ public:
   int         ReadSpi          (std::ostream& Stream);
   int         ResetRoc         (std::ostream& Stream);
   int         RebootMcu        (std::ostream& Stream);
+  int         SaveChannelMap   (HNDLE H_Cmd);                 // save active channel map from ODB to disk
+  int         SaveThresholds   (HNDLE H_Cmd);                 // save thresholds from disk to ODB
   int         SetCalDac        (std::ostream& Stream);
-  int         SetThresholds    (HNDLE H_Cmd);  // ODB --> preamps
+  int         SetThresholds    (HNDLE H_Cmd);                 // load thresholds from ODB to firmware
   int         StartMessage     (HNDLE h_Cmd, std::ostream& Stream);
   int         TestCommand      (std::ostream& Stream);
   int         WriteRocRegister (std::ostream& Stream);
