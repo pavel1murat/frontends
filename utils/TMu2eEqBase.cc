@@ -93,6 +93,11 @@ int TMu2eEqBase::ResetOutput(const std::string& Logfile) {
 }
 
 //-----------------------------------------------------------------------------
+void TMu2eEqBase::SetStatus(int Status) {
+  _odb_i->SetStatus(_handle,Status);
+}
+
+//-----------------------------------------------------------------------------
 // make sure that a command can redirect its output
 //-----------------------------------------------------------------------------
 int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& Logfile) {

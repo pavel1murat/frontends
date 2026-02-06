@@ -62,6 +62,25 @@ int test_json_003(const char* Filename) {
 
 
 //-----------------------------------------------------------------------------
+// test reading a program_drac config file
+//-----------------------------------------------------------------------------
+int test_json_004(const char* Filename) {
+  
+  std::ifstream ifs(Filename);
+  nlohmann::json jf = nlohmann::json::parse(ifs);
+
+  for (auto& elm : jf.items()) {
+    nlohmann::json o = elm.value();
+    std::string version  = o["version"];
+    int fpga_image_present  = o["fpga_image"]["present"];
+    std::cout << std::format("version:{:10} fpga_image_present:{}\n",version,fpga_image_present);
+  }
+  
+  return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 int test_json(int Test, const char* Filename = "settings_vadim.json") {
   int rc(0);
   

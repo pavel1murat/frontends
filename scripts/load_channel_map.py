@@ -15,7 +15,7 @@
 #    {"name": "MN224", "channel":90,"status":0}
 #]
 # call signature:
-#                     load_channel_map.py --slot=10 --thr=
+#                     load_channel_map.py --slot=10 --thr=15
 # or
 #                     load_channel_map.py --slot=10 --channel=1
 #------------------------------------------------------------------------------

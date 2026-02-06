@@ -61,6 +61,8 @@ public:
 
   void SetName(const char* Name) { _name = Name; }
 
+  void SetStatus(int Status);
+
   virtual TMFeResult  Init               ();
   virtual int         InitVarNames       ();
   virtual int         HandlePeriodic     ();
