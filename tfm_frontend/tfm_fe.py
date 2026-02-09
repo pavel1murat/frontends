@@ -424,7 +424,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
         fcl_file = os.getenv("MU2E_DAQ_DIR")+f'/config/artdaq/{run_conf}/{process}.fcl'
         
-        TRACE.TRACE(TRACE.TLVL_DEBUG,f'fcl_file:{fcl_file} logfile:{self.message_fn}',TRACE_NAME);
+        TRACE.INFO(f'fcl_file:{fcl_file} logfile:{self.message_fn}',TRACE_NAME);
 #------------------------------------------------------------------------------
 # remember that MIDAS displays the logfile in the reverse order
 #------------------------------------------------------------------------------
