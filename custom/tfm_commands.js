@@ -5,9 +5,10 @@
 // import * as fs   from 'fs/promises'
 // import * as path from 'path'
 
-let g_node     = 1;             // integer index of the active node
-let g_process  = 0;
-let g_run_conf = 'undefined'
+// let g_node          = 1;             // integer index of the active node
+// let g_process       = 0;
+// let g_process_label = '';
+// let g_run_conf      = 'undefined'
 
 //-----------------------------------------------------------------------------      
 // node id = 'nodeXXX' - provide for 1000 nodes
@@ -25,6 +26,24 @@ function tfm_get_node_name(index) {
   }
 
   return node_name;
+}
+
+//-----------------------------------------------------------------------------      
+// node id - int of  'nodeXXX' - for a given name (the name is stored as innerHTML
+// returns an integer
+//-----------------------------------------------------------------------------
+function tfm_get_node_id(node_name) {
+
+  let node_id = null;
+  let tabs = document.getElementsByClassName("nodetabs");
+  for (let i=0; i<tabs.length; i++) {
+    if (node_name == tabs[i].innerText) {
+      node_id = Number(tabs[i].id.substring(4,7));
+      break;
+    }
+  }
+  
+  return node_id;
 }
 
 //-----------------------------------------------------------------------------      
@@ -65,10 +84,23 @@ function tfm_choose_artdaq_process_id(evt, id) {
   document.getElementById(id).style.display = "block";
   evt.currentTarget.className += " active";
 
-  let num   = id.substring(13,14);
-  g_process = Number(num);           // parse number out of 'process_btn_XX'
-  console.log('g_node=',g_node);
+  let num         = id.substring(13,14);
+  g_process       = Number(num);           // parse number out of 'process_btn_XX'
+  g_process_label = evt.currentTarget.innerHTML;
+  console.log('g_process=',g_process,' g_process_label:',g_process_label);
 }
+
+//-----------------------------------------------------------------------------
+// 
+//-----------------------------------------------------------------------------
+function tfm_update_artdaq_process_id(evt, id) {
+  tfm_choose_artdaq_process_id(evt,id);
+  const table     = document.getElementById('cmd_params');
+  table.innerHTML = '';
+  const path = artdaq_process_config_path(null);
+  odb_browser('cmd_params',path,0);
+}
+
 
 
 //-----------------------------------------------------------------------------
