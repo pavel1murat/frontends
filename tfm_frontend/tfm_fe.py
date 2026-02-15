@@ -107,14 +107,23 @@ class TfmFrontend(midas.frontend.FrontendBase):
 # define needed env variables
 #------------------------------------------------------------------------------
     def __init__(self):
-        TRACE.TRACE(TRACE.TLVL_LOG,"0010: START")
+        TRACE.INFO("-- START:",TRACE_NAME)
         midas.frontend.FrontendBase.__init__(self, "tfm_fe")
-        TRACE.TRACE(TRACE.TLVL_LOG,"0011: FrontendBase initialized")
+        TRACE.INFO('midas.frontend.FrontendBase initialized')
 #------------------------------------------------------------------------------
 # determine active configuration
 #------------------------------------------------------------------------------
         self._stop_run               = False;
         self.output_dir              = os.path.expandvars(self.client.odb_get("/Mu2e/OutputDir"));
+#------------------------------------------------------------------------------
+# redefine STDOUT for prints and trace as well, do that as soon as possible
+#------------------------------------------------------------------------------
+        self.tfm_logfile             = self.get_logfile(self.output_dir)
+        os.environ["TFM_LOGFILE"]    = self.tfm_logfile
+        sys.stdout  = open(self.tfm_logfile, 'w')
+        TRACE.CNTL('printfd',sys.stdout.fileno())
+        TRACE.INFO("0013: after get_logfile")
+
         self.config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
         self.artdaq_partition_number = self.client.odb_get("/Mu2e/ActiveRunConfiguration/DAQ/PartitionID")
         self.cmd_top_path            = "/Mu2e/Commands/DAQ/Tfm"
@@ -130,23 +139,15 @@ class TfmFrontend(midas.frontend.FrontendBase):
         mu2e_config_dir              = os.path.expandvars(self.client.odb_get("/Mu2e/ConfigDir"));
         artdaq_config_dir            = mu2e_config_dir+'/artdaq';
 
-        TRACE.INFO(f":0015:artdaq_config_dir={artdaq_config_dir} use_runinfo_db={self.use_runinfo_db} rpc_host={self.tfm_rpc_host}")
+        TRACE.INFO(f"0015:artdaq_config_dir={artdaq_config_dir} use_runinfo_db={self.use_runinfo_db} rpc_host={self.tfm_rpc_host}")
 
         os.environ["TFM_SETUP_FHICLCPP"] = f"{artdaq_config_dir}/.setup_fhiclcpp"
-
-        self.tfm_logfile = self.get_logfile(self.output_dir)
-        os.environ["TFM_LOGFILE"       ] = self.tfm_logfile
-#------------------------------------------------------------------------------
-# redefine STDOUT
-#------------------------------------------------------------------------------
-        sys.stdout  = open(self.tfm_logfile, 'w')
-        TRACE.INFO("0016: after get_logfile")
 #------------------------------------------------------------------------------
 # You can add equipment at any time before you call `run()`, but doing
 # it in __init__() seems logical.
 #-------v----------------------------------------------------------------------
         self.add_equipment(TfmEquipment(self.client))
-        TRACE.INFO(f'003: equipment added',TRACE_NAME)
+        TRACE.INFO(f'0017: equipment added',TRACE_NAME)
 
         self._fm   = farm_manager.FarmManager(odb_client       =self.client,
                                               artdaq_config_dir=artdaq_config_dir,
@@ -212,7 +213,8 @@ class TfmFrontend(midas.frontend.FrontendBase):
 # dict if needed.
 #------------------------------------------------------------------------------
     def begin_of_run(self, run_number):
-        TRACE.INFO(f'--START:');
+        TRACE.INFO(f'-- START:');
+        start_time = time.time();
         if (self.use_runinfo_db):
             try:
                 db = runinfo_db("aaa");
@@ -222,9 +224,11 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
         self.set_all_equipment_status("Run starting", "yellow")
 
+        TRACE.INFO('before fm.do_config',TRACE_NAME)
         self._fm.do_config(run_number=run_number)
+        TRACE.INFO('after fm.do_config',TRACE_NAME)
         self._fm.do_start_running()
-        TRACE.INFO(f'001:BEGIN_OF_RUN')
+        TRACE.INFO(f'after fm.do_start_running',TRACE_NAME)
 
         if (self.use_runinfo_db):
 #------------------------------------------------------------------------------
@@ -243,7 +247,8 @@ class TfmFrontend(midas.frontend.FrontendBase):
        
         self.set_all_equipment_status("Running", "greenLight")
 
-        TRACE.INFO(f'--END:');
+        end_time = time.time();
+        TRACE.INFO(f'--END: time spent: {end_time-start_time}');
         return midas.status_codes["SUCCESS"]
 
 #------------------------------------------------------------------------------

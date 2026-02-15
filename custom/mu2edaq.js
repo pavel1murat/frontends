@@ -34,6 +34,12 @@ class Command_B {
 }
 
 //-----------------------------------------------------------------------------
+function artdaq_process_config_path(cmd) {
+  const path = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/Artdaq/${g_process_label}`;
+  return path;
+}
+
+//-----------------------------------------------------------------------------
 function node_artdaq_parameter_path(hostname) {
   return `/Mu2e/Commands/DAQ/Nodes/${hostname}/Artdaq`;
 }
@@ -49,6 +55,7 @@ function test_cmd_parameter_path(cmd) { return `/Mu2e/Commands/Test`; }
 function trk_config_path(cmd) { return `/Mu2e/ActiveRunConfiguration/Tracker`; }
 function trk_cmd_path   (cmd) { return `/Mu2e/Commands/Tracker`; }
 
+//-----------------------------------------------------------------------------
 function trk_panel_config_path(cmd) {
   const stn = g_station.toString().padStart(2,'0');
   const pln = g_plane.toString().padStart(2,'0');
@@ -205,9 +212,9 @@ function node_control(hostname) {
 }
 
 //-----------------------------------------------------------------------------
-function tfm_control(hostname) {
-//  window.location.href = `tfm_control.html?hostname=${hostname}&facility=tfm`;
-  window.open(`tfm_control.html?hostname=${hostname}&facility=tfm`,'_blank');
+function tfm_control(hostname,process) {
+//  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}`;
+  window.open(`tfm_control.html?hostname=${hostname}&process=${process}`,'_blank');
 }
 
 //-----------------------------------------------------------------------------

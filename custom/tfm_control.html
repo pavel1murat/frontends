@@ -23,24 +23,24 @@
   // global variables
   // the hostname (nodename) should be the same within the scope of this script
   //-----------------------------------------------------------------------------
-  function updateNodeTable(node_index) {
-    const node_name            = tfm_get_node_name(g_node);
-    g_hostname                 = node_name;
-    const node_table           = document.getElementById('node_table');
-    node_table.innerHTML       = '';
-    node_table.node_name       = node_name;
-    node_table_tbody           = document.createElement('tbody');
+  function updateNodeTable(node_index,active_process_label) {
+    const node_name       = tfm_get_node_name(g_node);
+    g_hostname            = node_name;
+    const table           = document.getElementById('node_table');
+    table.innerHTML       = '';
+    table.node_name       = node_name;
+    tbody                 = document.createElement('tbody');
 //-----------------------------------------------------------------------------
 // pick current active node (g_node from tfm_commands.js) and list its processes
 //-----------------------------------------------------------------------------
-    var paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes/"+node_table.node_name+"/Artdaq"];
+    var paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes/"+table.node_name+"/Artdaq"];
     let process_list=[] ;
     sleep(1000);
     mjsonrpc_db_get_values(paths).then(function(rpc) {
       let artdaq      = rpc.result.data[0];
       console.log('artdaq=',artdaq);
       if (artdaq.enabled == 1) {
-        /* loop over the artdaq items */
+        /* loop over ARTDAQ items */
         for (const key in artdaq) {
           if (key.indexOf('/') >= 0) { continue; }
           if ((key.toUpperCase() == 'STATUS') || (key.toUpperCase() == 'ENABLED')) {continue;}
@@ -71,13 +71,14 @@
         }
         btn.innerHTML = p;
         btn.id        = 'process_btn_'+String(i).padStart(2,'0')
-        btn.onclick   = function () { tfm_choose_artdaq_process_id(event,btn.id); }
+//        btn.onclick   = function () { tfm_choose_artdaq_process_id(event,btn.id); }
+        btn.onclick   = function () { tfm_update_artdaq_process_id(event,btn.id); }
         div1.appendChild(btn);
       }
 
       td1.appendChild(div1);
       r1.appendChild(td1);
-      node_table_tbody.appendChild(r1);
+      tbody.appendChild(r1);
 
       tr2 = document.createElement('tr');
       td2 = document.createElement('td');
@@ -85,12 +86,17 @@
 //-----------------------------------------------------------------------------
 // Command is defined in mu2edaq.js
 //-----------------------------------------------------------------------------
-      let odb_conf_path = '/Mu2e/ActiveRunConfiguration/DAQ/Nodes/'+node_table.node_name;
-      let cmd     = new Command('load_parameters','cmd_params',odb_conf_path);
-      let btn     = tfm_make_simple_button(cmd);
-      td2.appendChild(btn);
+//      let odb_conf_path = '/Mu2e/ActiveRunConfiguration/DAQ/Nodes/'+table.node_name+'/Artdaq/'+g_process_label;
+//      let cmd     = new Command('load_parameters','cmd_params',odb_conf_path);
+//      let btn     = tfm_make_simple_button(cmd);
+//      td2.appendChild(btn);
 
-      let odb_param_path = '/Mu2e/Commands/DAQ/Nodes/'+node_table.node_name+'/Artdaq';
+      let cmdb = new Command_B('load_parameters','load_parameters',mu2e_odb_load_table,'cmd_params', artdaq_process_config_path);
+      let btn  = mu2e_make_exec_button_B(cmdb);
+      td2.appendChild(btn);
+      
+
+      let odb_param_path = '/Mu2e/Commands/DAQ/Nodes/'+table.node_name+'/Artdaq';
       cmd     = new Command('get_status','cmd_params',odb_param_path);
       btn     = tfm_make_simple_button(cmd);
       td2.appendChild(btn);
@@ -115,27 +121,37 @@
 
       tr2.appendChild(td2);
 
-      node_table_tbody.appendChild(tr2);
+      tbody.appendChild(tr2);
                                                        // update table
-      node_table.appendChild(node_table_tbody);
+      table.appendChild(tbody);
+      //-----------------------------------------------------------------------------
+      // update cmd_params
+      //-----------------------------------------------------------------------------
+      if (active_process_label != null) {
+        const table     = document.getElementById('cmd_params');
+        table.innerHTML = '';
+        const path = artdaq_process_config_path(null);
+        odb_browser('cmd_params',path,0);
+      }
 
     }).catch(function(error) {
       mjsonrpc_error_alert(error);
     });
   }
 
-
   
 //-----------------------------------------------------------------------------
 // main function defining the page contents
 //-----------------------------------------------------------------------------
-function loadPage() {
+  function loadPage() {
+    // debugger;
     const urlParams = new URLSearchParams(window.location.search);
-    g_hostname      = urlParams.get('hostname') || 'none';  //
+    g_hostname      = urlParams.get('hostname') || null ;  //
+    g_process_label = urlParams.get('process' ) || 'none';  //
     g_run_conf      = odb_get_active_run_conf_name();
-//-----------------------------------------------------------------------------
-//  fill TFM table
-//-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
+    //  fill TFM table
+    //-----------------------------------------------------------------------------
     const tfm_table     = document.getElementById('tfm_table');
     tfm_table.innerHTML = '';
       
@@ -193,11 +209,11 @@ function loadPage() {
       if (nnodes > 0) {
         tfm_tbody.appendChild(row);
       }
-//-----------------------------------------------------------------------------
-// now come commands
-//-----------------------------------------------------------------------------
+      //-----------------------------------------------------------------------------
+      // now come commands
+      //-----------------------------------------------------------------------------
       let tr2 = document.createElement('tr');
-    
+      
       let td2     = document.createElement('td');
       td2.colspan = 2;
 
@@ -254,10 +270,18 @@ function loadPage() {
       
       tfm_tbody.appendChild(tr2);
       tfm_table.appendChild(tfm_tbody);
+
+      //-----------------------------------------------------------------------------
+      // set active node button
+      //-----------------------------------------------------------------------------
+      if (g_hostname != null) {
+        g_node = tfm_get_node_id(g_hostname);
+      }
+      
       //-----------------------------------------------------------------------------
       //  fill node table
       //-----------------------------------------------------------------------------
-      updateNodeTable(g_node);
+      updateNodeTable(g_node,g_process_label);
       //-----------------------------------------------------------------------------
       //  fill TFM parameters table
       //-----------------------------------------------------------------------------

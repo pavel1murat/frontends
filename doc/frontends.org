@@ -153,11 +153,19 @@ daq.aggregator.init_fragment_count : N_EVENT_BUILDERS
 - it looks that the DL is waiting for each event builder to send smth so the number
 of init fragment count's should be exactly the same as the number of event builders
 - DL and DS should have  *expected_fragments_per_event: 1*
-** using artdaqDriver :
+** using artdaqDriver :                                                      
 #+begin_src
 artdaqDriver --help
 #+end_src
 - fcl example: file:../../otsdaq-mu2e-tracker/fcl/driver_tracker_br.fcl 
+** testing pull mode (CRV)
+- start request receiver in one shell
+- start request sender in another shell
+- add daq.event_builder.num_requests : 10 - that will send 10 requests
+#+begin_src
+requestReceiver -c /scratch/mu2e/mu2etrk/daquser_002_namitha/run_records/108236/br21.fcl
+requestSender -c /scratch/mu2e/mu2etrk/daquser_002_namitha/run_records/108236/eb11.fcl
+#+end_src
 * CFO                                                                        
 ** mu2e-pcie-utils interface                                                 
    file:../../mu2e_pcie_utils/cfoInterfaceLib/CFO.h
