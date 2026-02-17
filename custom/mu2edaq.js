@@ -213,7 +213,7 @@ function node_control(hostname) {
 
 //-----------------------------------------------------------------------------
 function tfm_control(hostname,process) {
-//  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}`;
+//  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}&facility=tfm`;
   window.open(`tfm_control.html?hostname=${hostname}&process=${process}`,'_blank');
 }
 

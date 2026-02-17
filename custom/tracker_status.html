@@ -29,9 +29,9 @@
       const npanels      = 6; // Number of panels
 
 
-      const com_table       = document.getElementById('station_commands');
-//      const com_table_title = document.querySelector("#table-title");
-//      com_table_title.textContent = `Station ${stationIndex}`;
+      const table       = document.getElementById('station_commands');
+//      const table_title = document.querySelector("#table-title");
+//      table_title.textContent = `Station ${stationIndex}`;
 
       const tracker_path  = `/Mu2e/ActiveRunConfiguration/Tracker`;
       const station_path  = `${tracker_path}/Station_${stationIndex.padStart(2,'0')}`;
@@ -39,60 +39,38 @@
 //      const first_station = parseInt(`<div class="modbvalue" data-odb-path="${tracker_path}/FirstStation">`);
 //      const last_station  = parseInt(`<div class="modbvalue" data-odb-path="${tracker_path}/LastStation">`);
 
-        com_table.innerHTML = `
-        <thead>
-          <tr>
-            <td>
-              <div class="mtableheader">Tracker Status</div>
-            </td>
-            <td> station select:</td>
-            <td colspan=12>
-              <div class="tab">
-                <button class="trk_station_tabs" id='st_00' onclick="choose_station_id(event,'st_00')">ST_00</button>
-                <button class="trk_station_tabs" id='st_01' onclick="choose_station_id(event,'st_01')">ST_01</button>
-                <button class="trk_station_tabs" id='st_02' onclick="choose_station_id(event,'st_02')">ST_02</button>
-                <button class="trk_station_tabs" id='st_03' onclick="choose_station_id(event,'st_03')">ST_03</button>
-                <button class="trk_station_tabs" id='st_04' onclick="choose_station_id(event,'st_04')">ST_04</button>
-                <button class="trk_station_tabs" id='st_05' onclick="choose_station_id(event,'st_05')">ST_05</button>
-                <button class="trk_station_tabs" id='st_05' onclick="choose_station_id(event,'st_05')">ST_05</button>
-                <button class="trk_station_tabs" id='st_06' onclick="choose_station_id(event,'st_06')">ST_06</button>
-                <button class="trk_station_tabs" id='st_07' onclick="choose_station_id(event,'st_07')">ST_07</button>
-                <button class="trk_station_tabs" id='st_08' onclick="choose_station_id(event,'st_08')">ST_08</button>
-                <button class="trk_station_tabs" id='st_09' onclick="choose_station_id(event,'st_09')">ST_09</button>
-                <button class="trk_station_tabs" id='st_10' onclick="choose_station_id(event,'st_10')">ST_10</button>
-                <button class="trk_station_tabs" id='st_11' onclick="choose_station_id(event,'st_11')">ST_11</button>
-                <button class="trk_station_tabs" id='st_12' onclick="choose_station_id(event,'st_12')">ST_12</button>
-                <button class="trk_station_tabs" id='st_13' onclick="choose_station_id(event,'st_13')">ST_13</button>
-                <button class="trk_station_tabs" id='st_14' onclick="choose_station_id(event,'st_14')">ST_14</button>
-                <button class="trk_station_tabs" id='st_15' onclick="choose_station_id(event,'st_15')">ST_15</button>
-                <button class="trk_station_tabs" id='st_15' onclick="choose_station_id(event,'st_15')">ST_15</button>
-                <button class="trk_station_tabs" id='st_16' onclick="choose_station_id(event,'st_16')">ST_16</button>
-                <button class="trk_station_tabs" id='st_17' onclick="choose_station_id(event,'st_17')">ST_17</button>
-                <button class="trk_station_tabs" id='st_18' onclick="choose_station_id(event,'st_18')"> ALL </button>
-              </div>
-            </td>
-          </tr>
-        </thead>
-        <tbody></tbody>`;
-      
-      const com_table_tbody = com_table.querySelector("tbody");
-//-----------------------------------------------------------------------------
-// first row - commands
-//-----------------------------------------------------------------------------
-//      const r1  = document.createElement("tr");
-//      const c2  = document.createElement("td");
-//      c2.innerHTML = `
-//               <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
-//               <input type=button value='load channel map'  onClick='dtc_command("load_channels_map")'>
-//               <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>
-//               <input type=button value='reset_station_lv'  onClick='dtc_command("reset_station_lv")'>`;
-//    
-//      c2.colSpan = 6;
-//      r1.appendChild(c2);
-//      com_table_tbody.appendChild(r1);
-//------------------------------------------------------------------------------
-// next : read a station range and create one row per station
-//-----------------------------------------------------------------------------
+      let thead = document.createElement('thead');
+
+      let tr = document.createElement('tr');
+      let td = document.createElement('td');
+      td.colSpan = 14;
+      td.innerHTML = 'Tracker Status'
+      set_colors(tracker_path,td);
+      // Poll for updates
+      setInterval(() => {set_colors(tracker_path,td);},2000);
+
+      tr.appendChild(td);
+      thead.appendChild(tr);
+      table.appendChild(thead);
+
+      tbody = document.createElement('tbody');
+      //-----------------------------------------------------------------------------
+      // first row - commands
+      //-----------------------------------------------------------------------------
+      //      const r1  = document.createElement("tr");
+      //      const c2  = document.createElement("td");
+      //      c2.innerHTML = `
+      //               <input type=button value='load thresholds'   onClick='dtc_command("load_thresholds")'>
+      //               <input type=button value='load channel map'  onClick='dtc_command("load_channels_map")'>
+      //               <input type=button value='initialize'        onClick='dtc_command("initialize_tracker")'>
+      //               <input type=button value='reset_station_lv'  onClick='dtc_command("reset_station_lv")'>`;
+      //    
+      //      c2.colSpan = 6;
+      //      r1.appendChild(c2);
+      //      tbody.appendChild(r1);
+      //------------------------------------------------------------------------------
+      // next : read a station range and create one row per station
+      //-----------------------------------------------------------------------------
       let first_station = -1;
       let last_station  = -1;
       const p1 = tracker_path+`/FirstStation`;
@@ -138,8 +116,9 @@
               });
             }
           }
-          com_table_tbody.appendChild(row);
+          tbody.appendChild(row);
         }
+        table.appendChild(tbody);
       });
     }
     document.addEventListener("DOMContentLoaded", createPage);
