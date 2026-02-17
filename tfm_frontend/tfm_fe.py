@@ -129,7 +129,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         self.cmd_top_path            = "/Mu2e/Commands/DAQ/Tfm"
         self.tfm_odb_path            = "/Mu2e/ActiveRunConfiguration/DAQ/Tfm"
 
-        TRACE.INFO(f':0014: artdaq_partition_number={self.artdaq_partition_number}')
+        TRACE.INFO(f'artdaq_partition_number={self.artdaq_partition_number}')
 
         config_path                  = "/Mu2e/RunConfigurations/"+self.config_name;
         self.use_runinfo_db          = self.client.odb_get(config_path+'/UseRunInfoDB')
