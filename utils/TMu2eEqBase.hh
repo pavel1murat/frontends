@@ -57,7 +57,8 @@ public:
   int                 MonitoringLevel() { return _monitoringLevel ; }
 
   int                 ResetOutput (const std::string& Logfile = "");
-  int                 WriteOutput (const std::string& Output, const std::string& Logfile = "");
+  virtual int         StartMessage(HNDLE H_Cmd,               std::stringstream& SStr); 
+  virtual int         WriteOutput (const std::string& Output, const std::string& Logfile = "");
 
   void SetName(const char* Name) { _name = Name; }
 
@@ -66,7 +67,6 @@ public:
   virtual TMFeResult  Init               ();
   virtual int         InitVarNames       ();
   virtual int         HandlePeriodic     ();
-  //  virtual int         ReadMetrics        ();
   virtual int         BeginRun           (HNDLE H_RunConf);
 };
 #endif

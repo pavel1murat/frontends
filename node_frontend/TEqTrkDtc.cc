@@ -532,11 +532,12 @@ int TEqTrkDtc::HandlePeriodic() {
           xx[buf].resize(nw);
           xx[buf] = roc_spi;
               
-          TLOG(TLVL_DEBUG+1) << "ROC:" << ilink
-                             << " saved N(SPI+KEY+ILP) words:" << nw;
+          TLOG(TLVL_DEBUG+1) << std::format("host:{} DTC:{} link:{} : saved N(SPI+KEY+ILP) words:{}",
+                                            HostLabel(),_dtc_i->PcieAddr(),ilink,nw);
         }
         else {
-          TLOG(TLVL_ERROR)   << "failed to read SPI, DTC:" << _dtc_i->PcieAddr() << " ROC:" << ilink;
+          TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} link:{} : failed to read SPI",
+                                          HostLabel(),_dtc_i->PcieAddr(),ilink);
 //-----------------------------------------------------------------------------
 // set ROC status to -1
 //-----------------------------------------------------------------------------

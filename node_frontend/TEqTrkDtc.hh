@@ -71,7 +71,7 @@ public:
   int         InitReadout      (std::ostream& Stream);
   int         LoadChannelMap   (HNDLE H_Cmd);                 // load map from disk to ODB
   int         LoadThresholds   (HNDLE H_Cmd);                 // load thresholds from disk to ODB
-  int         MeasureThresholds(std::ostream& Stream);
+  int         MeasureThresholds(HNDLE H_Cmd);                 // std::ostream& Stream);
   int         PrintRocStatus   (std::ostream& Stream);
   int         ProgramRoc       (std::ostream& Stream);
   int         PulserOff        (std::ostream& Stream);
@@ -90,12 +90,12 @@ public:
   int         SaveThresholds   (HNDLE H_Cmd);                 // save thresholds from disk to ODB
   int         SetCalDac        (std::ostream& Stream);
   int         SetThresholds    (HNDLE H_Cmd);                 // load thresholds from ODB to firmware
-  int         StartMessage     (HNDLE h_Cmd, std::ostream& Stream);
   int         TestCommand      (std::ostream& Stream);
   int         WriteRocRegister (std::ostream& Stream);
   int         WriteRegister    (std::ostream& Stream);
 
   static void ProcessCommand   (int hDB, int hKey, void* Info);
   
+  virtual int StartMessage     (HNDLE h_Cmd, std::stringstream& Stream) override;
 };
 #endif

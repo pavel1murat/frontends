@@ -2,6 +2,17 @@
 // global variables which names start with 'g_' are defined in global_variables.js
 // DTC id = 'dtc0' or 'dtc1'
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// load table with the DTC parameters
+//-----------------------------------------------------------------------------
+function dtc_load_parameters() {
+  const table     = document.getElementById('cmd_params');
+  table.innerHTML = '';
+  odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/DTC${g_pcie}`,0);
+}
+
+//-----------------------------------------------------------------------------
 function choose_dtc_id(evt, id) {
   let i, dtctabs;
   dtctabs = document.getElementsByClassName("dtctabs");
@@ -15,12 +26,14 @@ function choose_dtc_id(evt, id) {
   if (id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
   console.log('g_pcie=',g_pcie);
 }
+
 //-----------------------------------------------------------------------------
 // 'createTable' is a function loading the DTC control page
 //-----------------------------------------------------------------------------
 function update_dtc_id(evt, id) {
   choose_dtc_id(evt,id);
-  createTable();
+  // createTable();
+  dtc_load_parameters();
 }
 
 //-----------------------------------------------------------------------------      
@@ -75,15 +88,6 @@ function dtc_command(cmd) {
   }).catch(function(error){
     mjsonrpc_error_alert(error);
   });
-}
-
-//-----------------------------------------------------------------------------
-// load table with the DTC parameters
-//-----------------------------------------------------------------------------
-function dtc_load_parameters() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/DTC${g_pcie}`,0);
 }
 
 //-----------------------------------------------------------------------------

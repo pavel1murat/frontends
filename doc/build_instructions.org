@@ -208,6 +208,8 @@ spack install
 * installing MIDAS on RPI                                                    
 - need to disable PostgreSQL
 #+begin_src
+mkdir daq
+cd daq
 git clone https://bitbucket.org/tmidas/midas --recurse-submodules
 mkdir build
 cd build
@@ -215,6 +217,22 @@ cmake ../midas -DNO_PGSQL=true -DCMAKE_INSTALL_PREFIX=/opt/midas
 make
 sudo make install
 #+end_src
+
+copy additional files (setup script and the tracker frontend itself):
+
+#+begin_src
+scp $SPACK_ENV/frontends/scripts/setup_midas.sh       mu2e@rpiXXXX.fnal.gov:~/daq/.
+scp $SPACK_ENV/frontends/rpi/rpi_frontend.py          mu2e@rpiXXXX.fnal.gov:~/daq/.
+
+cp $SPACK_ENV/frontends/scripts/start_rpi_frontend.sh $MU2E_DAQ_DIR/config/scripts/.
+
+- to start RPI frontend :
+
+  config/scripts/start_rpi_frontend.sh mu2e-rpiXXX  $ name of the PI
+
+- see the script for additional details
+#+end_src
+
 * ROOT interface to mu2e-pcie-utils    validated <2025-04-17 Thu>            
 - ROOT interface library is not available by default, you have to build it
 - mu2e-pcie-utils depends on artdaq-core-mu2e

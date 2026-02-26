@@ -337,7 +337,8 @@ int TEqTrkDtc::FindThresholds(std::ostream& Stream ) {
     std::string  panel_path = std::format("{:s}/Link{:d}/DetectorElement",dtc_path.data(),lnk);
     HNDLE        h_panel    = _odb_i->GetHandle(0,panel_path);
     
-    TLOG(TLVL_DEBUG) << "-- check 1.2 link:" << lnk << " panel_path:" << panel_path << " h_panel:" << h_panel;
+    TLOG(TLVL_DEBUG) << std::format("host:{} DTC:{} link:{} panel_path:{} h_panel:{}",
+                                    HostLabel(),_dtc_i->PcieAddr(),lnk,panel_path,h_panel);
 
     // midas::odb o(panel_path);
 
@@ -584,17 +585,22 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
 // read all thresholds
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::MeasureThresholds(std::ostream& Stream) {
+int TEqTrkDtc::MeasureThresholds(HNDLE H_Cmd) { // (std::ostream& Stream) {
   int rc(0);
-  
   TLOG(TLVL_DEBUG) << "-- START";
+  
+  SetStatus(1);
 
-  HNDLE h_cmd          = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  std::string cmd_name = _odb_i->GetString(h_cmd,"Name");
-  HNDLE h_cmd_par      = _odb_i->GetHandle(h_cmd,cmd_name);
-  // HNDLE         h_cmd_par = _odb_i->GetCmdParameterHandle(h_cmd);
+  // in the end, ProcessCommand should send ss.str() as a message to some log
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
 
-  int   link           = _odb_i->GetInteger(h_cmd    ,"link"       );
+  //   HNDLE h_cmd_par      = _odb_i->GetHandle(H_Cmd,cmd_name);
+  HNDLE      h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
+
+  std::string cmd_name = _odb_i->GetString (H_Cmd,"Name");
+  int   link           = _odb_i->GetInteger(H_Cmd,"link");
+
   int   print_level    = _odb_i->GetInteger(h_cmd_par,"print_level");
   
   TLOG(TLVL_DEBUG) << "- checkpoint 0.1 Link:" << link
@@ -610,11 +616,15 @@ int TEqTrkDtc::MeasureThresholds(std::ostream& Stream) {
 
   TLOG(TLVL_DEBUG) << "-------------- lnk2, lnk2:" << lnk1 << " " << lnk2;
 
-  std::vector<float> thr;
+  std::vector<float> thr[6];
 
   for (int lnk=lnk1; lnk<lnk2; ++lnk) {
     if (_dtc_i->LinkEnabled(lnk) == 0) {
-      Stream << "Link:" << lnk << " is disabled" << std::endl;
+      sstr << "Link:" << lnk << " is disabled" << std::endl;
+      continue;
+    }
+    else if (_dtc_i->LinkLocked(lnk) == 0) {
+      sstr << "Link:" << lnk << " enabled but not locked" << std::endl;
       continue;
     }
     
@@ -622,8 +632,8 @@ int TEqTrkDtc::MeasureThresholds(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 // exceptions are handled in the called function
 //-----------------------------------------------------------------------------
-    rc = _dtc_i->ControlRoc_ReadThresholds(lnk,thr,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,
-                                           print_level,Stream);
+    rc = _dtc_i->ControlRoc_ReadThresholds(lnk,thr[lnk],0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,
+                                           print_level,sstr);
     if (rc < 0) break;
 //-----------------------------------------------------------------------------
 // now store the output in the ODB, the packing order: (hv, cal) ... ignore 'tot')
@@ -632,16 +642,30 @@ int TEqTrkDtc::MeasureThresholds(std::ostream& Stream) {
                                       _host_label.data(),_dtc_i->PcieAddr(),lnk);
     midas::odb o_panel(p_panel);
     for (int i=0; i<96; ++i) {
-      o_panel["thr_hv_mv" ][i] = thr[3*i  ];
-      o_panel["thr_cal_mv"][i] = thr[3*i+1];
+      o_panel["thr_hv_mv" ][i] = thr[lnk][3*i  ];
+      o_panel["thr_cal_mv"][i] = thr[lnk][3*i+1];
     }
-
-    _dtc_i->ControlRoc_PrintThresholds(lnk,thr,0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,
-                                       print_level,Stream);
   }
 
+  if (print_level & 0x2) {
+    for (int lnk=lnk1; lnk<lnk2; ++lnk) {
+      if      (_dtc_i->LinkEnabled(lnk) == 0) continue;
+      else if (_dtc_i->LinkLocked (lnk) == 0) continue;
+      
+      _dtc_i->PrintThresholds(link,thr[lnk],0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,print_level,sstr);
+    }
+  }
+  else if (print_level & 0x4) {
+//-----------------------------------------------------------------------------
+// print summary table for all 6 links, sum(cal+hv) only
+//-----------------------------------------------------------------------------
+    _dtc_i->PrintSumThresholds(thr,sstr);
+    
+  }
+
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
   SetStatus(rc); 
-  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
 }
 
@@ -652,14 +676,16 @@ int TEqTrkDtc::PrintRocStatus(std::ostream& Stream) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
+
+  SetStatus(1);                         // BUSY
   
-  HNDLE         h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE  h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
 
   int link        = _odb_i->GetInteger(h_cmd,"link");
   
   TLOG(TLVL_DEBUG) << std::format("link:{}",link);
   try         {
-    _dtc_i->PrintRocStatus(1,link,Stream);
+    rc = _dtc_i->PrintRocStatus(1,link,Stream);
   }
   catch (...) {
     Stream << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl;
@@ -765,6 +791,8 @@ int TEqTrkDtc::Rates(std::ostream& Stream) {
 
   TLOG(TLVL_DEBUG) << "-- START";
   
+  SetStatus(1);
+ 
   HNDLE         h_run_conf = _odb_i->GetActiveRunConfigHandle();
   std::string   conf_name  = _odb_i->GetRunConfigName(h_run_conf);
   
@@ -806,13 +834,10 @@ int TEqTrkDtc::Rates(std::ostream& Stream) {
         char key[16];
         sprintf(key,"ch_mask[%i]",iw);
         uint16_t w = _odb_i->GetUInt16(h_cmd_par,key);
-        // prates.ch_mask[iw] = w;
         rates_ch_mask [iw] = w;         // cache it here 
 
         for (int k=0; k<16; ++k) {
-          // int loc = iw*16+k;
           int flag = (w >> k) & 0x1;
-          // Stream << "mask loc:" << loc << " flag:" << flag <<std::endl;
           ch_mask[lnk].push_back(flag);
         }
       }
@@ -1126,10 +1151,12 @@ int TEqTrkDtc::ReadMnID(std::ostream& Stream) {
   
   for (int lnk=lnk1; lnk<lnk2; lnk++) {
     if (not _dtc_i->LinkEnabled(lnk)) {
+//-----------------------------------------------------------------------------
+// disabled link is not an error
+//-----------------------------------------------------------------------------
       std::string msg = std::format("DTC:{} link:{} not enabled",pcie_addr,lnk);
-      TLOG(TLVL_ERROR) << msg;
-      Stream << "ERROR: " << msg << "\n";
-      rc -= 1;
+      TLOG(TLVL_WARNING) << msg;
+      Stream << "WARNING: " << msg << "\n";
       continue;
     }
 
@@ -1151,22 +1178,25 @@ int TEqTrkDtc::ReadMnID(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
+// so far, assume that link != -1
+// what is the use case for reading ILP for all links in one go ?
+// disabled link is a warning, not an error
+//-----------------------------------------------------------------------------
 int TEqTrkDtc::ReadIlp(std::ostream& Stream) {
   int rc(0);
 
-  HNDLE         h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  std::string   cmd_name  = _odb_i->GetString(h_cmd,"Name");
-  HNDLE         h_cmd_par = _odb_i->GetCmdParameterHandle(h_cmd);
+  HNDLE         h_cmd       = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
+  std::string   cmd_name    = _odb_i->GetString(h_cmd,"Name");
+  HNDLE         h_cmd_par   = _odb_i->GetCmdParameterHandle(h_cmd);
 
-  int link        = _odb_i->GetInteger(h_cmd    ,"link"    );
-
-  int print_level  = _odb_i->GetInteger(h_cmd_par,"print_level");
+  int           link        = _odb_i->GetInteger(h_cmd    ,"link"    );
+  int           print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
   
   if (not _dtc_i->LinkEnabled(link)) {
     std::string msg = std::format("DTC:{} link:{} not enabled",_dtc_i->PcieAddr(),link);
-    TLOG(TLVL_ERROR) << msg;
-    Stream << "ERROR: " << msg << "\n";
-    return -1;
+    TLOG(TLVL_WARNING) << msg;
+    Stream << "WARNING: " << msg << "\n";
+    return 0;
   }
 
   if (not _dtc_i->LinkLocked(link)) {
@@ -1620,13 +1650,12 @@ int TEqTrkDtc::WriteRocRegister(std::ostream& Stream) {
   return rc;
 }
 
-
 //-----------------------------------------------------------------------------
 // for single-link commands aim for a 1 line output,
 // for 'all-active-link' comamnds (link=-1) print the header and then - 
 // one line per link
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::StartMessage(HNDLE h_Cmd, std::ostream& Stream) {
+int TEqTrkDtc::StartMessage(HNDLE h_Cmd, std::stringstream& Stream) {
 
   Stream << std::endl; // perhaps
 

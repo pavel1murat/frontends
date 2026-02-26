@@ -134,6 +134,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
     return;
   }
   else if (cmd == "reset_station_lv") fg_EqTracker->_cmd_type = kCmdRpi;
+  else if (cmd == "set_thresholds"  ) fg_EqTracker->_cmd_type = kCmdDtc;
   else if (cmd == "test_command"    ) fg_EqTracker->_cmd_type = kCmdTracker;
   else {
     std::string msg = std::format("cmd:{} is not implemented yet",cmd);

@@ -199,10 +199,20 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         sleep_time_ms = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/SleepTimeMs')
         cfo_emu_mode  = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/EmulatedMode')
 
+        tracker_odb_path = '/Mu2e/ActiveRunConfiguration/Tracker';
+        
         fn = f'/tmp/begin_run_msg_{run_number}.txt'
         f = open(fn, "w")
         f.write(f'begin run:{run_number} configuration:{config_name}')
-        f.write(f' CFO: emulated_mode:{cfo_emu_mode} run:{nev_per_train}/{ew_length}/{sleep_time_ms}')
+        f.write(f' CFO: emulated_mode:{cfo_emu_mode} run:{nev_per_train}/{ew_length}/{sleep_time_ms}\n')
+
+        # towards saving the station HV settings in the beginning of the run
+        s1 =  self.client.odb_get(tracker_odb_path+'/FirstStation')
+        s2 =  self.client.odb_get(tracker_odb_path+'/LastStation')
+        for s in range(s1,s2+1):
+            station_odb_path = tracker_odb_path+f'/Station_{s:02}'
+            station_id = self.client.odb_get(station_odb_path+'/production_id')
+            f.write(f'station slot:{s:02} id:{station_id:02} HV: .... to be written ...\n')
         f.close()
 #
         cmd = "elog  -x -s -n 1 -h " + self.elog["host"] + " -p "+self.elog['port'] \

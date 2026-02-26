@@ -33,7 +33,7 @@ int print_trk_panel_map(int StationSlot, const char* Experiment = "tracker") {
       std::string panel_name = odb_i->GetString(h_panel,"Name");
       int mnid = std::stoi(panel_name.substr(2));
       int link = odb_i->GetInteger(h_panel,"Link");
-      int pln  = odb_i->GetInteger(h_panel,"GeoPlane") % 2;
+      int pln  = odb_i->GetInteger(h_panel,"GeoPlane"); // need GeoPlane ... //  % 2;
       int pnl  = odb_i->GetInteger(h_panel,"GeoPanel");
       int zfc  = pln*2+(odb_i->GetInteger(h_panel,"slot_id") % 10)/3;
 

@@ -84,8 +84,11 @@
         
           const s_path = `${tracker_path}/Station_${i.toString().padStart(2,'0')}`;
           const cell   = document.createElement("td");
-          cell.innerHTML = `<b>Z-station ${i}</b>`;
+          cell.innerHTML = `<b>Z-slot ${i}</b>`;
           set_colors(s_path,cell);
+          
+          setInterval(() => {set_colors(s_path,cell);},2000);  // Poll for updates
+          
           row.appendChild(cell);
 
           const plane_cell_done = new Array(2);
