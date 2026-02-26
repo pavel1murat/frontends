@@ -98,6 +98,19 @@ void TMu2eEqBase::SetStatus(int Status) {
 }
 
 //-----------------------------------------------------------------------------
+int TMu2eEqBase::StartMessage(HNDLE h_Cmd, std::stringstream& Stream) {
+
+  Stream << std::endl; // perhaps
+
+  std::string cmd  = _odb_i->GetString (h_Cmd,"Name");
+  
+  Stream << std::format("-- cmd:{} WARNING : SHOULD BE OVERWTITTEN BY THE DERIVED CLASS",cmd);
+  Stream << std::endl;
+  
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
 // make sure that a command can redirect its output
 //-----------------------------------------------------------------------------
 int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& Logfile) {

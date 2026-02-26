@@ -12,16 +12,6 @@ class Command {
   }
 }
 
-// class Command_A {
-//   constructor(title,name,func,table_id,parameter_path) {
-//     this.title          = title;
-//     this.name           = name;
-//     this.func           = func;
-//     this.table_id       = table_id;
-//     this.parameter_path = parameter_path;
-//   }
-// }
-
 class Command_B {
   constructor(title,name,func,table_id,func_parameter_path,logfile) {
     this.title               = title;
@@ -40,8 +30,8 @@ function artdaq_process_config_path(cmd) {
 }
 
 //-----------------------------------------------------------------------------
-function node_artdaq_parameter_path(hostname) {
-  return `/Mu2e/Commands/DAQ/Nodes/${hostname}/Artdaq`;
+function node_artdaq_parameter_path(cmd) {
+  return `/Mu2e/Commands/DAQ/Nodes/${g_hostname}/Artdaq`;
 }
 
 //-----------------------------------------------------------------------------

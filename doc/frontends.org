@@ -203,6 +203,11 @@ requestSender -c /scratch/mu2e/mu2etrk/daquser_002_namitha/run_records/108236/eb
 *** LaunchRunplan
 *** ConfigureForTimingChain
 * [[file:databases.org][databases]]
+* debugging frontends                                                        
+- build it (today in EC - on daq13)
+- open a new shell , initialize the environment (run setup_daq.sh)
+- enable TRACE "slow" printouts, start frontend , see what it does
+- if that is not enough, run it under debuggger as 'frontend -d'
 * DQM                                                                        
 - DQM jobs are started by the file:../conf/mu2e_config_fe.py
 - ARTDAQ env vars need to be set for that
@@ -259,6 +264,7 @@ crw-rw-rw- 1 root root 234, 1 Oct  1 12:08 /dev/mu2e1
 | D plane D key  6        |         1 |         4 | D plane D key  8        |         1 |         4 |
 | D plane D key 10        |         1 |         5 | D plane D key 12        |         1 |         5 |
 |-------------------------+-----------+-----------+-------------------------+-----------+-----------|
+* [[file:trkdaq.org][TRKDAQ]]
 * troubleshooting                                                            
 ** TFM frontend doesn't start up                                             
 - start it interactively, check that the PG DB connection is established
@@ -298,11 +304,6 @@ OK
 ** [[file:tfm_launch_fe.org][tfm_launch_fe]] : trigger farm manager (TFM) launching frontend
 ** [[file:../node_frontend][node_frontend]] : slow monitoring frontend, monitors DTC's, ROCs, ARTDAQ one per node
 * [[file:odb.org][ODB]]                       
-* debugging frontends                                                        
-- build it (today in EC - on daq13)
-- open a new shell , initialize the environment (run setup_daq.sh)
-- enable TRACE "slow" printouts, start frontend , see what it does
-- if that is not enough, run it under debuggger as 'frontend -d'
 * SCREEN cheat sheet                                                         
 #+begin_src 
 screen -ls                 # see all screen sessions

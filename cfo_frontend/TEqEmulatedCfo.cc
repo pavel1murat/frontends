@@ -76,24 +76,29 @@ TMFeResult TEqEmulatedCfo::Init() {
   //fEqConfLogHistory = 1;
 
   //  fEqConfBuffer = "SYSTEM";
-//-----------------------------------------------------------------------------
-// cache the ODB handle, as need to loop over the keys in InitArtdaq
-//-----------------------------------------------------------------------------
-  _odb_i                      = OdbInterface::Instance();
-  _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
-
 //----------------------------------------------------------------------------- 
 // we know that this is an emulated CFO - get pointer to the corresponding DTC
 // an emulated CFO configuration includs a link to the DTC
 //-----------------------------------------------------------------------------
-  HNDLE h_dtc    = _odb_i->GetHandle     (_h_cfo,"DTC");
-  _pcie_addr     = _odb_i->GetDtcPcieAddress(h_dtc);
+  _handle   = _odb_i->GetCfoConfHandle(_h_active_run_conf);
+  _enabled  = _odb_i->GetEnabled(_handle);
+  
+  _n_ewm_train                  = _odb_i->GetCfoNEventsPerTrain   (_handle);
+  _ew_length                    = _odb_i->GetEWLength             (_handle);
+  _first_ts                     = (uint64_t) _odb_i->GetFirstEWTag(_handle);  // normally, start from zero
+  _sleep_time_ms                = _odb_i->GetCfoSleepTime         (_handle);
 //-----------------------------------------------------------------------------
 // get a pointer to the underlying interface to DTC and initialize its parameters
 // emulated CFO interface doesn't re-initialize the DTC
 //-----------------------------------------------------------------------------
   bool skip_init = true;
+
+  HNDLE h_dtc    = _odb_i->GetHandle     (_h_cfo,"DTC");
+  _pcie_addr     = _odb_i->GetDtcPcieAddress(h_dtc);
+  _event_mode    = _odb_i->GetEventMode    (_h_active_run_conf);
+
   _dtc_i         = trkdaq::DtcInterface::Instance(_pcie_addr,0,skip_init);
+  
 
   _dtc_i->SetEventMode(_event_mode);
 
@@ -101,9 +106,7 @@ TMFeResult TEqEmulatedCfo::Init() {
   _dtc_i->fDtcID          = _odb_i->GetDtcID            (h_dtc);
   _dtc_i->fLinkMask       = _odb_i->GetLinkMask         (h_dtc);
 //-----------------------------------------------------------------------------
-// for the emulated CFO, the underlying DTC may, in principle, be enabled,
-// while the CFO itself is disabled
-// not sure what running mode that would represent though
+// for the emulated CFO, the underlying DTC has to be enabled,
 //-----------------------------------------------------------------------------
   _dtc_i->fEnabled        = _odb_i->GetEnabled          (h_dtc);
   _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(h_dtc);
@@ -119,44 +122,22 @@ TMFeResult TEqEmulatedCfo::Init() {
                    << " _first_ts:"      << _first_ts
                    << " _sleep_time_ms:" << _sleep_time_ms;
 
-  _event_mode                 = _odb_i->GetEventMode    (_h_active_run_conf);
-  _h_cfo                      = _odb_i->GetCfoConfHandle(_h_active_run_conf);
-
-  _enabled                    = _odb_i->GetEnabled      (_h_cfo);
   if (_enabled == 0) {
     TLOG(TLVL_ERROR) << "CFO disabled, return ERROR";
     return TMFeErrorMessage("CFO disabled, return ERROR"); 
   }
 
-  std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
-  std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
-  std::string active_run_conf = _odb_i->GetRunConfigName(_h_active_run_conf);
 //-----------------------------------------------------------------------------
-// ultiimately, these parameters should be common for 'emulated' and 'external' modes
+// ultimately, these parameters should be common for 'emulated' and 'external' modes
 //-----------------------------------------------------------------------------
   _emulated_mode              = _odb_i->GetCfoEmulatedMode      (_h_cfo);
   _n_ewm_train                = _odb_i->GetCfoNEventsPerTrain   (_h_cfo);
   _ew_length                  = _odb_i->GetEWLength             (_h_cfo);
   _first_ts                   = (uint64_t) _odb_i->GetFirstEWTag(_h_cfo);  // normally, start from zero
   _sleep_time_ms              = _odb_i->GetCfoSleepTime         (_h_cfo);
-//-----------------------------------------------------------------------------
-// now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
-// nodes/DTC's to be monitored 
-// MIDAS 'host_name' could be 'local'..
-//-----------------------------------------------------------------------------
-  _host_label     = get_short_host_name(public_subnet.data());
-  _full_host_name = get_full_host_name (private_subnet.data());
 
   _h_frontend_conf = _odb_i->GetFrontendConfHandle(_h_active_run_conf,_host_label);
 
-  //  _odb_i->GetInteger(_h_frontend_conf,"Monitor/Dtc"   ,&_monitorDtc   );
-
-  TLOG(TLVL_DEBUG) << "active_run_conf:"  << active_run_conf 
-                   << " public_subnet:"   << public_subnet
-                   << " private subnet:"  << private_subnet 
-                   << " _full_host_name:" << _full_host_name
-                   << " _host_label:"     << _host_label
-                   << std::endl;
   // EqSetStatus("Started...", "white");
   // fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
@@ -187,6 +168,8 @@ int TEqEmulatedCfo::HandlePeriodic() {
       _first_ts += _n_ewm_train;
     }
   }
+  // assuming that takes 1 ms (which should be an overkill)
+  cm_yield(_sleep_time_ms-1.);
   
   TLOG(TLVL_DEBUG+1) << "--- END";
 
@@ -195,15 +178,19 @@ int TEqEmulatedCfo::HandlePeriodic() {
   return rc;
 }
 
-
 //-----------------------------------------------------------------------------
 // at begin rum, the CFO starts executing the run plan
 // assume that from run to run the configuration can change
+// reinitialize the CFO in teh beginning of each run - that doesnt' cost much
+// but saves time when the configuration changes
 //-----------------------------------------------------------------------------
-int TEqEmulatedCfo::BeginRun(HNDLE H_RunConf)  {
-  int rc(0);
-  
+int TEqEmulatedCfo::BeginRun(HNDLE H_RunConf) {
+ 
   TLOG(TLVL_DEBUG) << "--- START";
+
+  TMFeResult rc = Init();
+  // cfo_emu_frontend::running = 1;
+
   
   //  _h_active_run_conf = _odb_i->GetActiveRunConfigHandle();
 
@@ -224,8 +211,8 @@ int TEqEmulatedCfo::BeginRun(HNDLE H_RunConf)  {
   //   InitEmulatedCfo();
   // }
 
-  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc.error_code);
 
-  return rc;
+  return rc.error_code;
 };
 

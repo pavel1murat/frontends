@@ -165,8 +165,10 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // MEASURE_THRESHOLDS
 //-----------------------------------------------------------------------------
   else if (cmd == "measure_thresholds") {
-    ss << std::endl;
-    cmd_rc = eq_dtc->MeasureThresholds(ss);
+    // ss << std::endl;
+    // cmd_rc = eq_dtc->MeasureThresholds(ss);
+    std::thread t(&TEqTrkDtc::MeasureThresholds,eq_dtc,h_cmd);
+    t.detach();
   }
 //-----------------------------------------------------------------------------
 // PRINT STATUS

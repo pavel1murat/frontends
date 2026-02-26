@@ -33,9 +33,11 @@ public:
   int                 PrintProcesses(std::ostream& Stream);
   int                 ProcessStatus (std::ostream& Stream);
   int                 Tlvls         (std::ostream& Stream);
-  int                 Tshow         (std::ostream& Stream, const std::string& Logfile);
+  int                 Treset        (HNDLE H_Cmd);
+  int                 Tshow         (HNDLE H_Cmd);
   
   static void         ProcessCommand(int hDB, int hKey, void* Info);
   
+  virtual int         StartMessage  (HNDLE h_Cmd, std::stringstream& Stream) override;
 };
 #endif

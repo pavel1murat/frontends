@@ -544,19 +544,24 @@ int TEqArtdaq::Tlvls(std::ostream& Stream) {
 
 //-----------------------------------------------------------------------------
 // logfile is a short string, not qualified with the path
+// output of TRACE commands should go to the trace.log
 //-----------------------------------------------------------------------------
-int TEqArtdaq::Tshow(std::ostream& Stream, const std::string& Logfile) {
+int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& Logfile) {
   int rc(0);
   TLOG(TLVL_DEBUG) << "-- START";
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
 
   HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
   HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
 
-  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+  int print_level          = Odb_i()->GetInteger(h_cmd_par,"print_level");
+  std::string grep_pattern = Odb_i()->GetString(h_cmd_par,"grep_pattern");
 
   std::string path = Odb_i()->GetString(0,"/Logger/Data dir");
 
-  std::string fn = std::format("{}/{}",path,Logfile);
+  std::string fn = std::format("{}/{}",path,"trace.log");
   // tshow | tdelta -ct 1 -d 1
 
   // declare -f tshow  : { test -n "${PAGER-}" && trace_cntl show "$@" | $PAGER || trace_cntl show "$@" }
@@ -565,13 +570,61 @@ int TEqArtdaq::Tshow(std::ostream& Stream, const std::string& Logfile) {
   // std::string par_tshow ("");
   // std::string par_tdelta("-ct 1 -d 1");
   
-  std::string cmd = std::format("trace_cntl show | trace_delta -ct 1 -d 1 | head -n 500 >> {}",fn);
+  std::string cmd = std::format("trace_cntl show | trace_delta -ct 1 -d 1 ");
+  if (grep_pattern != "") {
+    cmd += std::format(" | grep {}",grep_pattern);
+  }
+  cmd += std::format(" | head -n 1000 >> {}",fn);
 
   TLOG(TLVL_DEBUG) << "cmd=" << cmd;
   
   std::string output = popen_shell_command(cmd);
 
-  Stream << "-- Tshow done\n";
+  sstr << "-- Tshow done\n";
+  
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+// logfile is a short string, not qualified with the path
+// output of TRACE commands should go to the trace.log
+// treset = 'trace_cntl reset'
+//-----------------------------------------------------------------------------
+int TEqArtdaq::Treset(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& Logfile) {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
+  HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
+
+  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+
+  std::string path = Odb_i()->GetString(0,"/Logger/Data dir");
+
+  std::string fn = std::format("{}/{}",path,"trace.log");
+  // tshow | tdelta -ct 1 -d 1
+
+  // declare -f tshow  : { test -n "${PAGER-}" && trace_cntl show "$@" | $PAGER || trace_cntl show "$@" }
+  // declare -f tdelta : { test -n "${PAGER-}" && { trace_delta "$@" | $PAGER; true } || trace_delta "$@" }
+  
+  // std::string par_tshow ("");
+  // std::string par_tdelta("-ct 1 -d 1");
+  
+  std::string cmd = std::format("trace_cntl reset");
+
+  TLOG(TLVL_DEBUG) << "cmd=" << cmd;
+  
+  std::string output = popen_shell_command(cmd);
+
+  sstr << "-- Treset done\n";
+  
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
   
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
   return rc;
@@ -649,8 +702,11 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
   else if (cmd == "tlvls") {
     cmd_rc = eq->Tlvls(ss);
   }
+  else if (cmd == "treset") {
+    cmd_rc = eq->Treset(h_cmd);
+  }
   else if (cmd == "tshow") {
-    cmd_rc = eq->Tshow(ss,logfile);
+    cmd_rc = eq->Tshow(h_cmd);
   }
   else {
     ss << " ERROR: Unknown command:" << cmd;
@@ -671,4 +727,20 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 //  odb_i->SetInteger(h_dtc,"Status",cmd_rc);
   TLOG(TLVL_DEBUG) << "-- END";
+}
+
+//-----------------------------------------------------------------------------
+// for single-link commands aim for a 1 line output,
+// for 'all-active-link' comamnds (link=-1) print the header and then - 
+// one line per link
+//-----------------------------------------------------------------------------
+int TEqArtdaq::StartMessage(HNDLE h_Cmd, std::stringstream& Stream) {
+
+  Stream << std::endl; // perhaps
+
+  std::string cmd  = _odb_i->GetString (h_Cmd,"Name");
+  
+  Stream << std::format("-- TArtdaq::StartMessage: cmd:{} FIXME",cmd);
+  Stream << std::endl;
+  return 0;
 }

@@ -103,8 +103,7 @@
 
       // still, command in executed by TFM - parameters need to be stored in '/Mu2e/ActiveRunConfiguration/DAQ/Tfm'
       let odb_tfm_path = '/Mu2e/Commands/DAQ/Tfm';
-      cmd     = new Command_B('print_fcl','print_fcl',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,'artdaq.log');
-//      cmd     = new Command('print_fcl','cmd_params',odb_tfm_path);
+      cmd     = new Command_B('print_fcl','print_fcl',tfm_command_set_odb_B,'cmd_params',artdaq_process_config_path,'artdaq.log');
       btn     = tfm_make_exec_button_B(cmd);
       td2.appendChild(btn);
 
@@ -242,9 +241,13 @@
       td2.appendChild(btn3);
       
       cmd_b  = new Command_B('tshow','tshow',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn3 = tfm_make_dropup_button_B(cmd_b);
+      btn3 = mu2e_make_dropup_button_B(cmd_b);
       td2.appendChild(btn3);
       
+      cmd_b  = new Command_B('treset','treset',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn3 = tfm_make_exec_button_B(cmd_b);
+      td2.appendChild(btn3);
+
       cmd_b  = new Command_B('tonM','tonM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
       btn3 = tfm_make_exec_button_B(cmd_b);
       td2.appendChild(btn3);
