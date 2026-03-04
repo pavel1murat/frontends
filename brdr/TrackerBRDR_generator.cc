@@ -548,12 +548,10 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
     cm_msg(MERROR,_artdaqLabel.data(),Form("event: %10li DTC EXCEPTION subevents.size():%i ",ev_counter(),sz));
   }
 
-  TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
-                     << " event:" << ev_counter()
-                     << " sz:" << sz;
+  TLOG(TLVL_DEBUG+1) << std::format("label:{} ev_counter:{} sz:{}",_artdaqLabel,ev_counter(),sz);
 //-----------------------------------------------------------------------------
 // in case of a null read, add an empty ARTDAQ fragment,
-// on a second thought, try to stop the run by sending an "alarm" message
+// on a second thought, in that case it might be better to stop the run by sending an "alarm" message
 //-----------------------------------------------------------------------------
   if (sz <= 0) {
 
@@ -582,6 +580,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
 // non-null payload
 // each subevent (a block of data corresponding to a single DTC) becomes an artdaq fragment
+// the artdaq event tag is defined by the EWT from the data 
 //-----------------------------------------------------------------------------
     for (int i=0; i<sz; i++) {                       // and so far sz = 1
       DTC_SubEvent* ev     = subevents[i].get();
@@ -591,12 +590,9 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
       
       tstamp               = ew_tag;  // hack ?? may be not
       
-      TLOG(TLVL_DEBUG+1) << "label:"      << _artdaqLabel
-                         << " dtc_block:" << i
-                         << " nb:"        << nb
-                         << " nbytes:"    << nbytes;
+      TLOG(TLVL_DEBUG+1) << std::format("label:{} dtc_block:{} nb:{} nbytes:{}",_artdaqLabel,i,nb,nbytes);
       if (nb > 0) {
-        artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::DTCEVT, tstamp);
+        artdaq::Fragment* frag = new artdaq::Fragment(tstamp, _fragment_ids[0], FragmentType::DTCEVT, tstamp);
         int event_size = nb+sizeof(DTCLib::DTC_EventHeader);
         frag->resizeBytes(event_size);
         
