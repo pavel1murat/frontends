@@ -11,7 +11,11 @@ class Command {
     this.parameter_path = parameter_path;
   }
 }
-
+//-----------------------------------------------------------------------------
+// func_parameter_path is expected to return the ODB path to common command parameters of the DTC, tracker, etc
+// to get parameters of the command itself, the value returned by func_parameter_path
+// needs to be appended with the `/${cmd.name}`
+//-----------------------------------------------------------------------------
 class Command_B {
   constructor(title,name,func,table_id,func_parameter_path,logfile) {
     this.title               = title;
@@ -32,6 +36,22 @@ function artdaq_process_config_path(cmd) {
 //-----------------------------------------------------------------------------
 function node_artdaq_parameter_path(cmd) {
   return `/Mu2e/Commands/DAQ/Nodes/${g_hostname}/Artdaq`;
+}
+
+//-----------------------------------------------------------------------------
+function dtc_config_path(cmd) {
+  const path = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/DTC${g_pcie}`;
+  return path;
+}
+
+//-----------------------------------------------------------------------------
+// cmd is of Command_B type
+// returns ODB path of the _top_ DTC command parameters
+// address of parameters of the command itself adds '/cmd.name'
+//-----------------------------------------------------------------------------
+function dtc_cmd_parameter_path(cmd) {
+  const path = `/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}`;
+  return path;
 }
 
 //-----------------------------------------------------------------------------
@@ -259,7 +279,7 @@ function make_set_odb_button(cmda) {
 //-----------------------------------------------------------------------------
 async function mu2e_command_set_odb_B(cmd) {
 
-  const ppath = cmd.func_parameter_path(g_hostname);
+  const ppath = cmd.func_parameter_path(cmd);
   
   const paths=[ppath+'/Name',
                ppath+'/ParameterPath',
@@ -315,7 +335,8 @@ async function mu2e_command_set_odb_B(cmd) {
 function mu2e_odb_load_table(cmd) {
   const table     = document.getElementById(cmd.table_id);
   table.innerHTML = '';
-  odb_browser(cmd.table_id,cmd.func_parameter_path(cmd),0);
+  const cmd_parameter_path = cmd.func_parameter_path(cmd)+`/${cmd.name}`;
+  odb_browser(cmd.table_id,cmd_parameter_path,0);
 }
 
 //-----------------------------------------------------------------------------

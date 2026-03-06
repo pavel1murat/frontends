@@ -1,0 +1,135 @@
+# This is a Spack Environment file.
+#
+# It describes a set of packages to be installed, along with
+# configuration settings.
+spack:
+  # add package specs to the `specs` list
+  specs:
+  - elog@2024-09-25
+  - py-psycopg2
+  - root@6.32.06+http+mlp+postgres+root7+rpath+sqlite+tmva+tmva-sofie cxxstd=20
+  - zlib
+  - hep-concurrency cxxstd=20
+  - cetlib cxxstd=20
+  - fhicl-cpp@4.19.02 cxxstd=20
+  - messagefacility cxxstd=20
+  - canvas cxxstd=20
+  - canvas-root-io cxxstd=20
+  - art-root-io cxxstd=20
+  - boost+iostreams
+  - art cxxstd=20
+  - artdaq-daqinterface
+  - mu2e-pcie-utils@develop
+  - geant4@11.3.2 cxxstd=20
+  - Offline@develop cxxstd=20
+  - otsdaq-mu2e-tracker@develop
+  - tfm@main
+  - frontends@main
+  - mu2e-trig-config
+  - production
+  - Stntuple@main
+  - daqana@main cxxstd=20
+  - trk-hit-dispatch
+  - midas@2025-05-03
+  - gobject-introspection@1.76.1
+  - python-venv arch=None-None-x86_64_v3
+  view: true
+  concretizer:
+    unify: true
+  repos:
+  - /home/mu2etrk/daquser_002/spack-repos/mu2e-TrkHitDispatch-spack
+  - /home/mu2etrk/daquser_002/spack-repos/scd_recipes
+  - /home/mu2etrk/daquser_002/spack-repos/murat-spack
+  - /home/mu2etrk/daquser_002/spack-repos/mu2e-spack
+  - /home/mu2etrk/daquser_002/spack-repos/fnal_art
+  - /home/mu2etrk/daquser_002/spack-repos/artdaq-spack
+  packages:
+    all:
+      require:
+      - target=x86_64_v3
+    krb5:
+      externals:
+      - spec: krb5@1.21.1
+        prefix: /usr
+      buildable: false
+    openssl:
+      externals:
+      - spec: openssl@3.2.2
+        prefix: /usr
+      buildable: false
+    opengl:
+      externals:
+      - spec: opengl@4.5.0
+        prefix: /usr
+      buildable: false
+  compilers:
+  - compiler:
+      spec: gcc@=13.1.0
+      paths:
+        cc: /mu2e/spack_areas/art-suite-s132/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path/linux-almalinux9-x86_64_v3/gcc-11.5.0/gcc-13.1.0-byfvucekqqajdjtlhhxxnpcjgtuumjsh/bin/gcc
+        cxx: /mu2e/spack_areas/art-suite-s132/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path/linux-almalinux9-x86_64_v3/gcc-11.5.0/gcc-13.1.0-byfvucekqqajdjtlhhxxnpcjgtuumjsh/bin/g++
+        f77: /mu2e/spack_areas/art-suite-s132/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path/linux-almalinux9-x86_64_v3/gcc-11.5.0/gcc-13.1.0-byfvucekqqajdjtlhhxxnpcjgtuumjsh/bin/gfortran
+        fc: /mu2e/spack_areas/art-suite-s132/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path/linux-almalinux9-x86_64_v3/gcc-11.5.0/gcc-13.1.0-byfvucekqqajdjtlhhxxnpcjgtuumjsh/bin/gfortran
+      flags: {}
+      operating_system: almalinux9
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
+  - compiler:
+      spec: gcc@=11.5.0
+      paths:
+        cc: /usr/bin/gcc
+        cxx: /usr/bin/g++
+        f77: /usr/bin/gfortran
+        fc: /usr/bin/gfortran
+      flags: {}
+      operating_system: almalinux9
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
+  - compiler:
+      spec: clang@=17.0.6
+      paths:
+        cc: /home/mu2etrk/daquser_002/spack/var/spack/environments/v001/.spack-env/view/bin/clang
+        cxx: /home/mu2etrk/daquser_002/spack/var/spack/environments/v001/.spack-env/view/bin/clang++
+        f77: null
+        fc: null
+      flags: {}
+      operating_system: almalinux9
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
+  develop:
+    midas:
+      spec: midas@=2025-05-03
+    mu2e-pcie-utils:
+      spec: mu2e-pcie-utils@=develop
+    otsdaq-mu2e-tracker:
+      spec: otsdaq-mu2e-tracker@=develop
+    tfm:
+      spec: tfm@=main
+    frontends:
+      spec: frontends@=main
+    Offline:
+      spec: Offline@=develop
+    otsdaq-mu2e-crv:
+      spec: otsdaq-mu2e-crv@=develop
+    artdaq:
+      spec: artdaq@=v4_03_00
+    artdaq-core-mu2e:
+      spec: artdaq-core-mu2e@=develop cxxstd=20
+    trk-hit-dispatch:
+      spec: trk-hit-dispatch@=main
+    daqana:
+      spec: daqana@=main cxxstd=20
+    Stntuple:
+      spec: Stntuple@=main
+    mu2e-trig-config:
+      spec: mu2e-trig-config@=develop
+    production:
+      spec: production@=main
+    artdaq-core-demo:
+      spec: artdaq-core-demo@=develop cxxstd=20

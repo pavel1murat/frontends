@@ -211,8 +211,31 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         s2 =  self.client.odb_get(tracker_odb_path+'/LastStation')
         for s in range(s1,s2+1):
             station_odb_path = tracker_odb_path+f'/Station_{s:02}'
-            station_id = self.client.odb_get(station_odb_path+'/production_id')
-            f.write(f'station slot:{s:02} id:{station_id:02} HV: .... to be written ...\n')
+            station_id       = self.client.odb_get(station_odb_path+'/production_id')
+            enabled          = self.client.odb_get(station_odb_path+'/Enabled')
+            if (enabled):
+                rpi = self.client.odb_get(station_odb_path+'/RPI/Name')
+                for plane in range(0,2):
+                    plane_odb_path = station_odb_path+f'/Plane_{plane:02}'
+                    plane_enabled = self.client.odb_get(plane_odb_path+'/Enabled')
+                    if (plane_enabled):
+                        for panel in range(0,6):
+                            panel_odb_path = plane_odb_path+f'/Panel_{panel:02}'
+                            panel_enabled  = self.client.odb_get(panel_odb_path+'/Enabled')
+                            panel_name     = self.client.odb_get(panel_odb_path+'/Name')
+                            panel_hv       = -1;
+                            if (panel_enabled):
+                                hv_channel = self.client.odb_get(panel_odb_path+'/hv_channel');
+
+                                hv_data_odb_path = f'/Equipment/{rpi}/Variables/LVHV[{24+hv_channel}]'
+                                hv = self.client.odb_get(hv_data_odb_path)
+                            
+                        
+                            f.write(f'station slot:{s:02} id:{station_id:02} plane:{plane} panel:{panel} {panel_name} HV:{panel_hv}\n')
+
+                    else:
+                        f.write(f'station slot:{s:02} id:{station_id:02} plane:{plane} panel:{-1} {-1} HV:{-1}\n')
+
         f.close()
 #
         cmd = "elog  -x -s -n 1 -h " + self.elog["host"] + " -p "+self.elog['port'] \

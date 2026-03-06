@@ -32,7 +32,8 @@ function choose_dtc_id(evt, id) {
 //-----------------------------------------------------------------------------
 function update_dtc_id(evt, id) {
   choose_dtc_id(evt,id);
-  // createTable();
+  loadPage();
+  // createRocCommandsTable();
   dtc_load_parameters();
 }
 
@@ -154,32 +155,12 @@ async function dtc_command_set_odb(cmd,logfile) {
 //-----------------------------------------------------------------------------
 async function dtc_command_set_odb_B(cmd) {
 
-  const ppath = cmd.func_parameter_path(g_hostname);
+  const ppath = cmd.func_parameter_path(cmd);
 
   let logfile = cmd.logfile;
   
   if (logfile == null) { logfile   = g_logfile; }
   else                 { g_logfile = logfile  ; }
-  
-//-----------------------------------------------------------------------------
-// query status
-//-----------------------------------------------------------------------------
-//   try {
-//     const paths=[ppath+'/Run', ppath+'/Finished', ppath+'/logfile'];
-//     let rpc  = await mjsonrpc_db_get_values(paths);
-//     let run      = rpc.result.data[0];
-//     let finished = rpc.result.data[1];
-//     let lfile    = rpc.result.data[2];
-// 
-//     if (finished == 0) {
-//       // write message to logfile and exit
-//       displayFile(logfile, 'messageFrame');
-//       return;
-//     }
-//   }
-//   catch(error) {
-//     mjsonrpc_error_alert(error);
-//   };
 //-----------------------------------------------------------------------------
 // passing parameters
 //-----------------------------------------------------------------------------
@@ -222,6 +203,62 @@ async function dtc_command_set_odb_B(cmd) {
 
   displayFile(logfile, 'messageFrame');
 }
+
+//-----------------------------------------------------------------------------
+// and this one updates ODB
+// the command parameters record is expected to be in path+${cmd}
+//-----------------------------------------------------------------------------
+async function dtc_command_set_odb_C(cmd) {
+
+  const ppath = cmd.func_parameter_path(cmd);
+
+  let logfile = cmd.logfile;
+  
+  if (logfile == null) { logfile   = g_logfile; }
+  else                 { g_logfile = logfile  ; }
+//-----------------------------------------------------------------------------
+// passing DTC-specific parameters
+//-----------------------------------------------------------------------------
+  const paths=[ppath+'/link'];
+
+  let result = null;
+  mjsonrpc_db_paste(paths, [g_roc]).then(function(rpc) {
+    // succeeded, call mu2e_command_set_odb_B
+    result=rpc.result;
+
+    let rpc1 = mu2e_command_set_odb_B(cmd);
+    
+  }).catch(function(error) {mjsonrpc_error_alert(error);});
+  
+}
+
+
+////-----------------------------------------------------------------------------
+//async function dtc_command_write_roc_register(cmd) {
+//
+//  const ppath = cmd.func_parameter_path(cmd);
+//
+//  let logfile = cmd.logfile;
+//  
+//  if (logfile == null) { logfile   = g_logfile; }
+//  else                 { g_logfile = logfile  ; }
+////-----------------------------------------------------------------------------
+//// passing DTC-specific parameters
+//// and link and register to read
+//  //-----------------------------------------------------------------------------
+//  cppath = ppath+'/'+cmd.name;
+//  const paths=[ppath+'/link',cpath+'/register'];
+//
+//  let result = null;
+//  mjsonrpc_db_paste(paths, [g_roc]).then(function(rpc) {
+//    // succeeded, call mu2e_command_set_odb_B
+//    result=rpc.result;
+//
+//    let rpc1 = mu2e_command_set_odb_B(cmd);
+//    
+//  }).catch(function(error) {mjsonrpc_error_alert(error);});
+//  
+//}
 
 //-----------------------------------------------------------------------------
 function dtc_load_cmd_parameters(cmd) {

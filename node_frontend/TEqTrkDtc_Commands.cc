@@ -165,27 +165,34 @@ int TEqTrkDtc::GetRocDesignInfo(std::ostream& Stream) {
       Stream << " disabled, continue" << std::endl;
       continue;
     }
-      // ROC ID
-    try         {
-      std::string roc_id = _dtc_i->GetRocID(i);
+    else {
       Stream << std::endl;
-      Stream << "roc_id         :" << roc_id << std::endl;
     }
-    catch (...) {
-      Stream << "ERROR : coudn't execute GetRocID ... BAIL OUT" << std::endl;
-    }
-    // design info 
-    try         {
-      std::string design_info = _dtc_i->GetRocDesignInfo(i);
-      Stream << "roc_design_info:" << design_info << std::endl;
-    }
-    catch (...) {
-      Stream << "ERROR : coudn't execute GetRocDesignInfo ... BAIL OUT" << std::endl;
-    }
-      // git commit
+      // ROC ID
     try {
-      std::string git_commit = _dtc_i->GetRocFwGitCommit(i);
-      Stream << "git_commit     :" << "'"  << git_commit << "'" << std::endl;
+      
+      trkdaq::ControlRoc_DeviceID_t dev_id;
+                                        // don't print anything
+      std::ostream* os(nullptr);
+      rc = _dtc_i->ControlRoc_ReadDeviceID(i,dev_id,1,os);
+
+      if (rc == 0) {
+
+        Stream << std::format("DeviceSerial:{}\n",dev_id.DeviceSerial);
+        Stream << std::format("DesignVer   :{}\n",dev_id.DesignVer); 
+        Stream << std::format("DesignInfo  :{}\n",dev_id.DesignInfo); 
+        Stream << std::format("BackLevelVer:{}\n",dev_id.BackLevelVer); 
+      
+        // std::string roc_id = _dtc_i->GetRocID(i);
+        // Stream << std::endl;
+        // Stream << "roc_id         :" << roc_id << std::endl;
+        
+        // std::string design_info = _dtc_i->GetRocDesignInfo(i);
+        // Stream << "roc_design_info:" << design_info << std::endl;
+
+        std::string git_commit = _dtc_i->GetRocFwGitCommit(i);
+        Stream << "git_commit  :" << "'"  << git_commit << "'" << std::endl;
+      }
     }
     catch (...) {
       Stream << "ERROR : coudn't execute GetRocFwGitCommit ... BAIL OUT" << std::endl;
@@ -1070,6 +1077,58 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
+int TEqTrkDtc::ReadDeviceID(std::ostream& Stream) {
+  int rc(0);
+
+  HNDLE         h_cmd     = _odb_i->GetDtcCmdHandle(HostLabel(),_dtc_i->PcieAddr());
+  HNDLE         h_cmd_par = _odb_i->GetCmdParameterHandle(h_cmd);
+
+  int link         = _odb_i->GetInteger(h_cmd    ,"link"       ); // o["link"       ];
+  int print_level  = _odb_i->GetInteger(h_cmd_par,"print_level"); // o["print_level"];
+
+  TLOG(TLVL_DEBUG) << std::format("-- START: DTC:{} link:{} print_level:{}",_dtc_i->PcieAddr(),link,print_level);
+
+  int lnk1 = link;
+  int lnk2 = lnk1+1;
+  if (link == -1) {
+    lnk1 = 0;
+    lnk2 = 6;
+  }
+
+  int pcie_addr = _dtc_i->PcieAddr();
+  
+  for (int lnk=lnk1; lnk<lnk2; lnk++) {
+    if (not _dtc_i->LinkEnabled(lnk)) {
+//-----------------------------------------------------------------------------
+// disabled link is not an error
+//-----------------------------------------------------------------------------
+      std::string msg = std::format("DTC:{} link:{} not enabled",pcie_addr,lnk);
+      TLOG(TLVL_WARNING) << msg;
+      Stream << "WARNING: " << msg << "\n";
+      continue;
+    }
+
+    if (not _dtc_i->LinkLocked(lnk)) {
+      std::string msg = std::format("DTC:{} link:{} enabled but not locked",pcie_addr,lnk);
+      TLOG(TLVL_ERROR) << msg;
+      Stream << "ERROR: " << msg << "\n";
+      rc -= 10;
+      continue;
+    }
+    
+    trkdaq::ControlRoc_DeviceID_t dev_id;
+    
+    _dtc_i->ControlRoc_ReadDeviceID(lnk,dev_id,1,&Stream);
+
+    //    Stream << std::format("DTC:{} link:{} mnid:{}\n",pcie_addr,lnk,mnid);
+  }
+
+  SetStatus(rc); 
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 int TEqTrkDtc::ReadRegister(std::ostream& Stream) {
   int rc(0);
   
@@ -1326,6 +1385,27 @@ int TEqTrkDtc::RebootMcu(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
+int TEqTrkDtc::ResetDigis(std::ostream& Stream) {
+  int rc(0);
+
+  HNDLE         h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
+  std::string   cmd_name  = _odb_i->GetString(h_cmd,"Name");
+
+  int link         = _odb_i->GetInteger(h_cmd    ,"link"       ); // o["link"       ];
+
+  //  int print_level  = o["print_level"];
+  
+  rc = _dtc_i->ResetDigis(link);
+
+  if (rc == 0) Stream << " -- reset_digis OK";
+  else         Stream << std::format(" -- ERROR: failed reset_roc link:{} rc:{}\n",link,rc);
+  
+  SetStatus(rc); 
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 int TEqTrkDtc::ResetRoc(std::ostream& Stream) {
   int rc(0);
   midas::odb o   ("/Mu2e/Commands/Tracker/DTC/reset_roc");
@@ -1461,6 +1541,98 @@ int TEqTrkDtc::SetCalDac(std::ostream& Stream) {
   SetStatus(rc); 
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
   return 0;
+}
+
+//-----------------------------------------------------------------------------
+// set [coarse] delays, in units of 5ns, of ROCs handled by this DTC
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::SetRocDelays(HNDLE H_Cmd) {
+  int rc(0), tmo_ms(100);
+  
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  // in the end, ProcessCommand should send ss.str() as a message to some log
+  std::stringstream sstr;
+
+  StartMessage(H_Cmd,sstr);
+
+  HNDLE         h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
+  
+
+  // int doit        = o["doit"] ;
+  // int print_level = o["print_level"] ;
+
+  int link        = _odb_i->GetInteger(H_Cmd    ,"link"       );
+  int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
+  int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
+
+  // delay itself comes from a different place - the DTC parameter record
+  
+  int lnk1 = link;
+  int lnk2 = lnk1+1;
+  if (link == -1) {
+    lnk1 = 0;
+    lnk2 = 6;
+  }
+
+//-----------------------------------------------------------------------------
+// this could be universal,
+// with the definition of DetectorElement being subsystem-dependent
+// in ODB, set DTC status as busy
+//-----------------------------------------------------------------------------
+  std::string  dtc_config_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}",
+                                            _host_label.data(),_dtc_i->fPcieAddr);
+
+  HNDLE h_dtc = _odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr());
+  _odb_i->SetStatus(h_dtc,1);
+
+  int dtc_delay_5ns = _odb_i->GetInteger(h_dtc,"delay_5ns");
+  TLOG(TLVL_DEBUG) << std::format("dtc_config_path:{} h_dtc:{} dtc_delay_5ns:{:5d}",dtc_config_path,h_dtc,dtc_delay_5ns);
+    
+  for (int lnk=lnk1; lnk<lnk2; lnk++) {
+
+    if (print_level > 0) {
+      sstr << " -- link:" << lnk;
+    }
+
+    if (not _dtc_i->LinkEnabled(lnk)) {
+      sstr << std::format(" : disabled\n");
+      continue;
+    }
+    else if (not _dtc_i->LinkLocked(lnk)) {
+      sstr << " ERROR : link enabled but not locked\n";
+      TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} link:{} enabled but not locked",_host_label,_dtc_i->PcieAddr(),lnk);
+    }
+
+    std::string  link_config_path = std::format("Link{:d}",lnk);
+    HNDLE        h_link           = _odb_i->GetHandle(h_dtc,link_config_path);
+    
+    int roc_delay_5ns = _odb_i->GetInteger(h_link,"delay_5ns");
+//-----------------------------------------------------------------------------
+// the total delay is the sum of the two, all in units of 5 ns
+//-----------------------------------------------------------------------------
+    int delay_5ns = dtc_delay_5ns+roc_delay_5ns;
+    
+    TLOG(TLVL_DEBUG) << std::format("link:{} link_config_path:{} h_link:{} roc_delay_5ns:{:5d} delay_5n:{:5d}",
+                                    lnk,link_config_path,h_link,roc_delay_5ns,delay_5ns);
+    if (doit != 0) {
+      try {
+        _dtc_i->Dtc()->WriteROCRegister(DTC_Link_ID(lnk),4,delay_5ns,false,tmo_ms);
+        sstr << std::format(" : SUCCESS, delay set to {:4d} x 5ns ns",delay_5ns) ;
+      }
+      catch(...) {
+        sstr << " : ERROR writing DTC:{} ROC{} register 4. Continue with the remaining registers" << std::endl;
+        rc -= 1;
+      }
+    }
+    sstr << std::endl;
+  }
+  
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  
+  SetStatus(rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{} cmd_rc:{}",rc,cmd_rc);
+  return rc;
 }
 
 //-----------------------------------------------------------------------------
@@ -1639,7 +1811,7 @@ int TEqTrkDtc::WriteRocRegister(std::ostream& Stream) {
   try {
     int timeout_ms(150);
     _dtc_i->Dtc()->WriteROCRegister(DTC_Link_ID(link),reg,val,false,timeout_ms);
-    Stream << " register:0x" << std::hex << reg << " val:0x" << val << std::dec;
+    Stream << " reg:0x" << std::hex << reg << " val:0x" << val << std::dec;
   }
   catch (...) {
     Stream << " ERROR : coudn't write ROC register:" << std::hex << reg << " ... BAIL OUT" << std::endl;
