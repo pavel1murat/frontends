@@ -135,7 +135,7 @@ spack install
 # when prompted give the file name:  spack/var/spack/repos/builtin/packages/geant4/package.py
 #+end_src
 # ------------------------------------------------------------------------------
-# or this should also work - beter instead
+# or this should also work - better instead
 # ------------------------------------------------------------------------------
 #+begin_src
 patch -i $env_name/frontends/scripts/gdk-pixbuf-recipe.patch -o spack/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
@@ -213,6 +213,10 @@ cd daq
 git clone https://bitbucket.org/tmidas/midas --recurse-submodules
 mkdir build
 cd build
+# if needed, install cmake
+sudo apt update
+sudo apt install cmake
+# after that:
 cmake ../midas -DNO_PGSQL=true -DCMAKE_INSTALL_PREFIX=/opt/midas
 make
 sudo make install

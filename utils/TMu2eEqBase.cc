@@ -43,6 +43,11 @@ int TMu2eEqBase::BeginRun(HNDLE H_RunConf) {
 }
 
 //-----------------------------------------------------------------------------
+int TMu2eEqBase::EndRun(HNDLE H_RunConf) {
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
 TMFeResult TMu2eEqBase::Init() {
   return TMFeOk();
 }
@@ -95,6 +100,11 @@ int TMu2eEqBase::ResetOutput(const std::string& Logfile) {
 //-----------------------------------------------------------------------------
 void TMu2eEqBase::SetStatus(int Status) {
   _odb_i->SetStatus(_handle,Status);
+}
+
+//-----------------------------------------------------------------------------
+int TMu2eEqBase::GetStatus() {
+  return _odb_i->GetStatus(_handle);
 }
 
 //-----------------------------------------------------------------------------

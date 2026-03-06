@@ -119,20 +119,19 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     cmd_rc = eq_dtc->GetKey(ss);
   }
-  else if (cmd == "get_roc_design_info") {
-//-----------------------------------------------------------------------------
-// get ROC design info - print output of 3 separate commands together
-//-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq_dtc->GetRocDesignInfo(ss);
-  }
   else if (cmd == "digi_rw") {
 //-----------------------------------------------------------------------------
 // CONTROL_ROC_DIGI_RW
 //-----------------------------------------------------------------------------
     ss << std::endl;
-
     cmd_rc = eq_dtc->DigiRW(ss);
+  }
+  else if (cmd == "get_design_info") {
+//-----------------------------------------------------------------------------
+// get ROC design info - print output of 3 separate commands together
+//-----------------------------------------------------------------------------
+    ss << std::endl;
+    cmd_rc = eq_dtc->GetRocDesignInfo(ss);
   }
   else if (cmd == "hard_reset") {
 //-----------------------------------------------------------------------------
@@ -232,12 +231,12 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     cmd_rc = eq_dtc->ReadDDR(ss);
   }
-  else if (cmd == "read_ddr") {
+  else if (cmd == "read_device_id") {
 //-----------------------------------------------------------------------------
-// read DDR
+// read device ID
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->ReadDDR(ss);
+    cmd_rc = eq_dtc->ReadDeviceID(ss);
   }
   else if (cmd == "read_mnid") {
 //-----------------------------------------------------------------------------
@@ -279,6 +278,9 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   else if (cmd == "reset_output") {
     cmd_rc = eq_dtc->ResetOutput();
   }
+  else if (cmd == "reset_digis") {
+    cmd_rc = eq_dtc->ResetDigis(ss);
+  }
   else if (cmd == "reset_roc") {
     cmd_rc = eq_dtc->ResetRoc(ss);
   }
@@ -292,11 +294,16 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
      cmd_rc = eq_dtc->SetCalDac(ss);
   }
 //-----------------------------------------------------------------------------
+// SET ROC DELAY(s)
+//-----------------------------------------------------------------------------
+  else if (cmd == "set_roc_delays") {
+    std::thread t(&TEqTrkDtc::SetRocDelays,eq_dtc,h_cmd);
+    t.detach();
+  }
+//-----------------------------------------------------------------------------
 // LOASET_THRESHOLDS
 //-----------------------------------------------------------------------------
   else if (cmd == "set_thresholds") {
-    // ss << std::endl;
-    // eq_dtc->SetThresholds(ss);
     std::thread t(&TEqTrkDtc::SetThresholds,eq_dtc,h_cmd);
     t.detach();
   }

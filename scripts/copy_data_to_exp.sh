@@ -20,7 +20,7 @@ name_stub=${USER}_`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`
 
 for rn in `seq $rn1 $rn2` ; do
     irn=`printf "%06i" $rn`
-    for f in `ls /data/tracker/vst/$name_stub/data/raw.mu2e.trk.vst.*.art | grep $rn` ; do
+    for f in `ls $RAW_DATA_DIR/raw.mu2e.trk.vst.*.art | grep $rn` ; do
         bn=`basename $f`
         dsconf=`echo $bn | awk -F . '{print $4}'`
         dsid=raw.mu2e.trk.vst.art

@@ -58,8 +58,13 @@ public:
   virtual int HandlePeriodic   () override;
 
   int         ReadMetrics      ();
+                                        // read ROC registers listed in .cc file - for monitoring ? and
+                                        // saving in the end of the run purposes
+  
+  int         ReadRocRegisters (int Link, const std::vector<int>& Registers, std::vector<uint32_t>& RegData);
   
   virtual int BeginRun         (HNDLE H_RunConf) override;
+  virtual int EndRun           (HNDLE H_RunConf) override;
   
   int         ConfigureJA      (std::ostream& Stream);
   int         DigiRW           (std::ostream& Stream);
@@ -78,17 +83,20 @@ public:
   int         PulserOn         (std::ostream& Stream);
   int         Rates            (std::ostream& Stream);
   int         Read             (std::ostream& Stream);
+  int         ReadDeviceID     (std::ostream& Stream);
   int         ReadDDR          (std::ostream& Stream);
   int         ReadIlp          (std::ostream& Stream);
   int         ReadMnID         (std::ostream& Stream);
   int         ReadRegister     (std::ostream& Stream);
   int         ReadRocRegister  (std::ostream& Stream);
   int         ReadSpi          (std::ostream& Stream);
+  int         ResetDigis       (std::ostream& Stream);
   int         ResetRoc         (std::ostream& Stream);
   int         RebootMcu        (std::ostream& Stream);
   int         SaveChannelMap   (HNDLE H_Cmd);                 // save active channel map from ODB to disk
   int         SaveThresholds   (HNDLE H_Cmd);                 // save thresholds from disk to ODB
   int         SetCalDac        (std::ostream& Stream);
+  int         SetRocDelays     (HNDLE H_Cmd);
   int         SetThresholds    (HNDLE H_Cmd);                 // load thresholds from ODB to firmware
   int         TestCommand      (std::ostream& Stream);
   int         WriteRocRegister (std::ostream& Stream);

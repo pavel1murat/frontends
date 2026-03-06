@@ -118,72 +118,168 @@
       tbody.appendChild(tr);
 
       tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <input type=button value='reset ROC'          onClick='dtc_command_set_odb("reset_roc"         ,"trkdtc.log")'>
-          <input type=button value='read SPI'           onClick='dtc_command_set_odb("read_spi"          ,"trkdtc.log")'>
-          <input type=button value='read ILP'           onClick='dtc_command_set_odb("read_ilp"          ,"trkdtc.log")'>
-          <input type=button value='read mnid'          onClick='dtc_command_set_odb("read_mnid"         ,"trkdtc.log")'>
-          <input type=button value='get key'            onClick='dtc_command_set_odb("get_key"           ,"trkdtc.log")'>
-          <input type=button value='find alignment'     onClick='dtc_command_set_odb("find_alignment"    ,"trkdtc.log")'>
-          <input type=button value='measure thresholds' onClick='dtc_command_set_odb("measure_thresholds","trkdtc.log")'>
-        </td>
-        <td>
-          <input type=button value='write ROC register' onClick='dtc_command_set_odb("write_roc_register","trkdtc.log")'>
-        </td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_roc_register/register" data-odb-editable="1" data-format="%x"></div>
-        </td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_roc_register/value" data-odb-editable="1"  data-format="%x"></div>
-        </td>
-      `;
-     
+      let td = document.createElement('td');
+      
+      let cmdb = new Command_B('reset_roc','reset_roc',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      let btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+
+      cmdb = new Command_B('read_spi','read_spi',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+
+      cmdb = new Command_B('read_ilp','read_ilp',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+
+      cmdb = new Command_B('read_mnid','read_mnid',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+
+      cmdb = new Command_B('get_key','get_key',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+
+      cmdb = new Command_B('find_alignment','find_alignment',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+
+      cmdb = new Command_B('measure_thresholds','measure_thresholds',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_dropup_button_B(cmdb);
+      td.appendChild(btn);
+
+      tr.appendChild(td);
+      
+      td = document.createElement('td');
+      cmdb = new Command_B('write_roc_register','write_roc_register',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+
+//      td = document.createElement('td');
+//      cmdb = new Command_B('write_roc_register','write_roc_register',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+//      btn  = mu2e_make_exec_button_B(cmdb);
+//      td.appendChild(btn);
+      tr.appendChild(td);
+      
+      td = document.createElement('td');
+      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_roc_register/register" data-odb-editable="1" data-format="%x"></div>`
+      tr.appendChild(td);
+      
+      td = document.createElement('td');
+      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_roc_register/value" data-odb-editable="1"  data-format="%x"></div>`
+      tr.appendChild(td);
+      
+      //      <td>
+      //      <input type=button value='reset ROC'          onClick='dtc_command_set_odb("reset_roc"         ,"trkdtc.log")'>
+      //      <input type=button value='read SPI'           onClick='dtc_command_set_odb("read_spi"          ,"trkdtc.log")'>
+      //      <input type=button value='read ILP'           onClick='dtc_command_set_odb("read_ilp"          ,"trkdtc.log")'>
+      //      <input type=button value='read mnid'          onClick='dtc_command_set_odb("read_mnid"         ,"trkdtc.log")'>
+      //      <input type=button value='get key'            onClick='dtc_command_set_odb("get_key"           ,"trkdtc.log")'>
+      //      <input type=button value='find alignment'     onClick='dtc_command_set_odb("find_alignment"    ,"trkdtc.log")'>
+      //      <input type=button value='measure thresholds' onClick='dtc_command_set_odb("measure_thresholds","trkdtc.log")'>
+      //      </td>
+
+      //      <td>
+      //      <input type=button value='write ROC register' onClick='dtc_command_set_odb("write_roc_register","trkdtc.log")'>
+      //      </td>
+      
+      //      <td>
+      //      <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_roc_register/register" data-odb-editable="1" data-format="%x"></div>
+      //      </td>
+      //      <td>
+      //      <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_roc_register/value" data-odb-editable="1"  data-format="%x"></div>
+      //      </td>
+
+      tr.appendChild(td);
       tbody.appendChild(tr);
       
       tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td colspan>
-          <input type=button value='get design info'  onClick='dtc_command("get_roc_design_info")'>
-          <div class="dropup">
-            <input type=button class="dropbtn" value='find_thresholds'>
-            <div class="dropup-content">
-              <div onClick='dtc_load_cmd_parameters("find_thresholds")'> Load Parameters </div>
-              <div onClick='dtc_command_set_odb("find_thresholds","trkdtc.log")'            > Run             </div>
-            </div>
-          </div>
-          <div class="dropup">
-            <input type=button class="dropbtn" value='program_roc'>
-            <div class="dropup-content">
-              <div onClick='dtc_load_cmd_parameters("program_roc")'> Load Parameters </div>
-              <div onClick='dtc_command_set_odb("program_roc","trkdtc.log")'            > Run             </div>
-            </div>
-          </div>
-          <input type=button value='reboot MCU'         onClick='dtc_command_set_odb("reboot_mcu","trkdtc.log")'>
-          <!--
-          <input type=button value='get ID'             onClick='dtc_command("get_roc_id")'>
-          <input type=button value='get GIT commit'     onClick='dtc_command("get_roc_fw_git_commit")'>
-          -->
-        </td>
-        <td><input type=button value='read &nbsp ROC register' onClick='dtc_command_set_odb("read_roc_register","trkdtc.log")'></td>
-        <td>
-          <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_roc_register/register" data-odb-editable="1" data-format="%x"></div>
-        </td>
-      `;
+      td = document.createElement('td');
+      // td.colSpan = 2;
 
-      //      <td>
-      //      <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_roc_register/value" data-format="%x"></div>
-      //      </td>
+      //      <input type=button value='get design info'  onClick='dtc_command("get_roc_design_info")'>
+
+      cmdb = new Command_B('get_design_info','get_design_info',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+      // tr.appendChild(td);
       
-      let td  = document.createElement('td');
-      let div = document.createElement('div');
-      div.classList.add('modbvalue');
-      div.dataset.odbPath = `/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_roc_register/value`;
-      div.dataset.format  = '%x';
-      td.appendChild(div);
+      //      <div class="dropup">
+      //      <input type=button class="dropbtn" value='find_thresholds'>
+      //      <div class="dropup-content">
+      //      <div onClick='dtc_load_cmd_parameters("find_thresholds")'> Load Parameters </div>
+      //      <div onClick='dtc_command_set_odb("find_thresholds","trkdtc.log")'            > Run             </div>
+      //      </div>
+      //      </div>
+
+      cmdb = new Command_B('find_thresholds','find_thresholds',dtc_command_set_odb_C,'cmd_params',dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_dropup_button_B(cmdb);
+      td.appendChild(btn);
+      // tr.appendChild(td);
       
+      //      <div class="dropup">
+      //      <input type=button class="dropbtn" value='program_roc'>
+      //      <div class="dropup-content">
+      //      <div onClick='dtc_load_cmd_parameters("program_roc")'> Load Parameters </div>
+      //      <div onClick='dtc_command_set_odb("program_roc","trkdtc.log")'            > Run             </div>
+      //      </div>
+      //      </div>
+
+      cmdb = new Command_B('program_roc','program_roc',dtc_command_set_odb_C,'cmd_params',dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_dropup_button_B(cmdb);
+      td.appendChild(btn);
+      // tr.appendChild(td);
+
+      //      <input type=button value='reboot MCU'         onClick='dtc_command_set_odb("reboot_mcu","trkdtc.log")'>
+      
+      cmdb = new Command_B('reboot_MCU','reboot_MCU',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+      // tr.appendChild(td);
+      
+//      cmdb = new Command_B('read_device_id','read_device_id',mu2e_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+//      btn  = mu2e_make_exec_button_B(cmdb);
+//      td.appendChild(btn);
+//      tr.appendChild(td);
+      
+      cmdb = new Command_B('reset_digis','reset_digis',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
       tr.appendChild(td);
-      
+
+  
+      cmdb = new Command_B('set_roc_delays','set_roc_delays',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_dropup_button_B(cmdb);
+      td.appendChild(btn);
+
+      //      <!--
+      //             <input type=button value='get ID'             onClick='dtc_command("get_roc_id")'>
+      //      <input type=button value='get GIT commit'     onClick='dtc_command("get_roc_fw_git_commit")'>
+      //      -->
+
+
+      td = document.createElement('td');
+      cmdb = new Command_B('read_roc_register','read_roc_register',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+
+//      cmdb = new Command_B('read_roc_register','read_roc_register',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+//      btn  = mu2e_make_exec_button_B(cmdb);
+//      td.appendChild(btn);
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      div = document.createElement('div');
+      div.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_roc_register/register" data-odb-editable="1" data-format="%x">0x0000</div>`
+      td.appendChild(div);
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      div = document.createElement('div');
+      div.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_roc_register/value" data-format="%x"></div>`
+      td.appendChild(div);
+      tr.appendChild(td);
+
       tbody.appendChild(tr);
       table.appendChild(tbody);
       
@@ -230,9 +326,9 @@
 
       let td = document.createElement('td');
       td.innerHTML = `
-        <div class="mtableheader">${g_hostname} DTC Control Commands &nbsp&nbsp
-          <a href="https://mu2einternalwiki.fnal.gov/wiki/Tracker_DAQ_Help">[ Help ]</a>
-        </div>
+      <div class="mtableheader">${g_hostname} DTC Control Commands &nbsp&nbsp
+      <a href="https://mu2einternalwiki.fnal.gov/wiki/Tracker_DAQ_Help">[ Help ]</a>
+      </div>
       `;
       tr.appendChild(td);
 
@@ -242,8 +338,8 @@
       let div = document.createElement('div');
       div.className = 'tab';
       div.innerHTML = `
-        <button class='dtctabs' id='dtc0' onclick="update_dtc_id(event,'dtc0')">PCIE:0</button>
-        <button class='dtctabs' id='dtc1' onclick="update_dtc_id(event,'dtc1')">PCIE:1</button>
+      <button class='dtctabs' id='dtc0' onclick="update_dtc_id(event,'dtc0')">PCIE:0</button>
+      <button class='dtctabs' id='dtc1' onclick="update_dtc_id(event,'dtc1')">PCIE:1</button>
       `;
       td.appendChild(div);
       tr.appendChild(td);
@@ -253,13 +349,13 @@
       div = document.createElement('div');
       div.className = "tab";
       div.innerHTML = `
-        <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
-        <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
-        <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
-        <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
-        <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
-        <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
-        <button class="roctabs" id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
+      <button class="roctabs" id='roc0' onclick="choose_roc_id(event,'roc0')">ROC0</button>
+      <button class="roctabs" id='roc1' onclick="choose_roc_id(event,'roc1')">ROC1</button>
+      <button class="roctabs" id='roc2' onclick="choose_roc_id(event,'roc2')">ROC2</button>
+      <button class="roctabs" id='roc3' onclick="choose_roc_id(event,'roc3')">ROC3</button>
+      <button class="roctabs" id='roc4' onclick="choose_roc_id(event,'roc4')">ROC4</button>
+      <button class="roctabs" id='roc5' onclick="choose_roc_id(event,'roc5')">ROC5</button>
+      <button class="roctabs" id='roc6' onclick="choose_roc_id(event,'roc6')">ALL </button>
       `;
       
       td.appendChild(div);
@@ -271,29 +367,29 @@
 
       tr = document.createElement('tr');
       tr.innerHTML = `
-        <td colspan=5>
-          <input type=button value='load parameters'  onClick='dtc_load_parameters()'>
-          <div class="dropup">
-            <input type=button class="dropbtn" value='init readout'>
-            <div class="dropup-content">
-              <div onClick='dtc_load_cmd_parameters("init_readout")'> Load Parameters </div>
-              <div onClick='dtc_command_set_odb("init_readout","trkdtc.log")'            > Run             </div>
-            </div>
-          </div>
-          <div class="dropup">
-            <input type=button class="dropbtn" value='configure_ja'>
-            <div class="dropup-content">
-              <div onClick='dtc_load_cmd_parameters("configure_ja")'> Load Parameters </div>
-              <div onClick='dtc_command_set_odb("configure_ja","trkdtc.log")'            > Run             </div>
-            </div>
-          </div>
-          <input type=button value='print status'     onClick='dtc_command_set_odb("print_status"    ,"trkdtc.log")'>
-          <input type=button value='print ROC status' onClick='dtc_command_set_odb("print_roc_status","trkdtc.log")'>
-          <input type=button value='reset output'     onClick='dtc_command_set_odb("reset_output"    ,"trkdtc.log")'>
-        </td>
-        <td></td>
-        <td> Register </td>
-        <td> Value    </td>
+      <td colspan=5>
+      <input type=button value='load parameters'  onClick='dtc_load_parameters()'>
+      <div class="dropup">
+      <input type=button class="dropbtn" value='init readout'>
+      <div class="dropup-content">
+      <div onClick='dtc_load_cmd_parameters("init_readout")'> Load Parameters </div>
+      <div onClick='dtc_command_set_odb("init_readout","trkdtc.log")'            > Run             </div>
+      </div>
+      </div>
+      <div class="dropup">
+      <input type=button class="dropbtn" value='configure_ja'>
+      <div class="dropup-content">
+      <div onClick='dtc_load_cmd_parameters("configure_ja")'> Load Parameters </div>
+      <div onClick='dtc_command_set_odb("configure_ja","trkdtc.log")'            > Run             </div>
+      </div>
+      </div>
+      <input type=button value='print status'     onClick='dtc_command_set_odb("print_status"    ,"trkdtc.log")'>
+      <input type=button value='print ROC status' onClick='dtc_command_set_odb("print_roc_status","trkdtc.log")'>
+      <input type=button value='reset output'     onClick='dtc_command_set_odb("reset_output"    ,"trkdtc.log")'>
+      </td>
+      <td></td>
+      <td> Register </td>
+      <td> Value    </td>
       `;
       tbody.appendChild(tr);
 
@@ -304,24 +400,32 @@
       td = document.createElement('td');
       td.colSpan = 5;
       td.innerHTML = `
-          <input type=button value='CFO launch run plan' onClick='cfo_command_set_odb("cfo_launch_run_plan","trkdtc.log")'>
-          <input type=button value='read subevents'      onClick='dtc_command_set_odb("read_subevents"     ,"trkdtc.log")'>
-          <input type=button value='soft reset'          onClick='dtc_command_set_odb("soft_reset"         ,"trkdtc.log")'>
-          <input type=button value='hard reset'          onClick='dtc_command_set_odb("hard_reset"         ,"trkdtc.log")'>
+      <input type=button value='CFO launch run plan' onClick='cfo_command_set_odb("cfo_launch_run_plan","trkdtc.log")'>
+      <input type=button value='read subevents'      onClick='dtc_command_set_odb("read_subevents"     ,"trkdtc.log")'>
+      <input type=button value='soft reset'          onClick='dtc_command_set_odb("soft_reset"         ,"trkdtc.log")'>
+      <input type=button value='hard reset'          onClick='dtc_command_set_odb("hard_reset"         ,"trkdtc.log")'>
       `;
 
-      // title,name,cmd,table_name,path_func,log: output of everything trace-related goes to trace.log
+      // PARAMETERS: title,name,cmd,table_name,path_func,log: output of everything trace-related goes to trace.log
       
       let cmd_b  = new Command_B('test_commandA','test_command',dtc_command_set_odb_B,'cmd_params',test_cmd_parameter_path,"trkdtc.log");
       let btn = dtc_make_exec_button_B(cmd_b);
 //      btn.addEventListener('click',dtc_command_set_odb_B);
       td.appendChild(btn);
-      
-      tr.appendChild(td);
-      td = document.createElement('td');
-      td.innerHTML = `<input type=button value='write DTC register'  onClick='dtc_command_set_odb("write_register"     ,"trkdtc.log")'>`;
       tr.appendChild(td);
 
+      td = document.createElement('td');
+      cmdb = new Command_B('write DTC register','write_register',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+
+//      td = document.createElement('td');
+//      td.innerHTML = `<input type=button value='write DTC register'  onClick='dtc_command_set_odb("write_register"     ,"trkdtc.log")'>`;
+
+      tr.appendChild(td);
+
+      // read and write need to know a) PCIE b) link in question
+      
       td = document.createElement('td');
       td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_register/register" data-odb-editable="1" data-format="%x"></div>`;
       tr.appendChild(td);
@@ -334,24 +438,24 @@
       
       tr = document.createElement('tr');
       tr.innerHTML = `
-        <td colspan=4> </td>
-        <td></td>
-        <td>
-          <input type=button value='read &nbsp DTC register'  onClick='dtc_command_set_odb("read_register", "trkdtc.log")'>
-        </td>
+      <td colspan=4> </td>
+      <td></td>
+      <td>
+      <input type=button value='read &nbsp DTC register'  onClick='dtc_command_set_odb("read_register", "trkdtc.log")'>
+      </td>
       `;
 
-//      <td>
-//      <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_register/register" data-odb-editable="1" data-format="%x"></div>
-//      </td>
+      td = document.createElement('td');
+      cmdb = new Command_B('read_DTC_register','read_register',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+
+      //      <td>
+      //      <div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_register/register" data-odb-editable="1" data-format="%x"></div>
+      //      </td>
 
       td  = document.createElement('td');
-      div = document.createElement('div');
-      div.classList.add('modbvalue');
-      div.dataset.odbPath     = `/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_register/register`;
-      div.dataset.odbEditable = '1';
-      div.dataset.format      = '%x';
-      td.appendChild(div);
+      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_register/register" data-odb-editable="1" data-format="%x"></div>`;
       tr.appendChild(td);
 
       //      <td>

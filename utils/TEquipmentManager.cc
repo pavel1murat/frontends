@@ -89,14 +89,32 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
   TLOG(TLVL_DEBUG) << std::format("_diagLevel:{}",_diagLevel);
 
 //-----------------------------------------------------------------------------
-// initialize equipment
-//
+// check if equipment has been initialized
+//-----------------------------------------------------------------------------
+  bool ok = true;
+  for (auto eq: _eq_list) {
+                                        // begin run returns either 0 (success) or a negative number
+    int status = eq->GetStatus();
+    if (status < 0) {
+      ok = false;
+      break;
+    }
+  }
 
-  EqSetStatus("Started...", "white");
-  fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
+  TMFeResult res;
+  if (ok) { 
+    EqSetStatus("Started...", "white");
+    fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
+    res = TMFeOk();
+  }
+  else {
+    EqSetStatus("init_failed", "red");
+    fMfe->Msg(MERROR, "HandleInit", std::format("failed").data());
+    res = TMFeResult(-1,std::format("{} failed ",_host_label));
+  }
 
   TLOG(TLVL_DEBUG) << "-- END";
-  return TMFeOk();
+  return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -127,12 +145,21 @@ TMFeResult TEquipmentManager::HandleBeginRun(int RunNumber)  {
 
 //-----------------------------------------------------------------------------
 TMFeResult TEquipmentManager::HandleEndRun   (int RunNumber) {
+  int rc;
+  
   fMfe->Msg(MINFO, "HandleEndRun", "End run %d!", RunNumber);
-  EqSetStatus("Stopped", "#00FF00");
+
+  for (auto eq: _eq_list) {
+    // begin run returns either 0 (success) or a negative number
+    rc = eq->EndRun(_h_active_run_conf);
+  }
 
   printf("end_of_run %d\n", RunNumber);
     
-  return TMFeOk();
+  EqSetStatus("Stopped", "#00FF00");
+
+  if (rc == 0) return TMFeOk();
+  else         return TMFeResult(1,"failed to stop the run");
 }
 
 //-----------------------------------------------------------------------------

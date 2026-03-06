@@ -103,6 +103,8 @@ public:
   int         SetLinkMask         (HNDLE h_Card, int Mask);
 
   int         GetPcieAddress      (HNDLE h_Card); // card: either CFO or DTC
+
+  int         GetDetElementConfigHandle(HNDLE H_Dtc, int Link);
 //-----------------------------------------------------------------------------
 // tracker ROC readout mode = 0: var length length ROC patterns
 //                            1: digi patterns

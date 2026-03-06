@@ -674,6 +674,17 @@ int OdbInterface::GetDtcPcieAddress(HNDLE hDtc) {
 }
 
 //-----------------------------------------------------------------------------
+// get handle of a detector element corresponding to a given DTC:LINK readout controller
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetDetElementConfigHandle(HNDLE H_Dtc, int Link) {
+
+  std::string config_path = std::format("Link{:d}/DetectorElement",Link);
+
+  HNDLE h_conf = GetHandle(H_Dtc,config_path);
+  return h_conf;
+}
+
+//-----------------------------------------------------------------------------
 // the ROC readout should be the same for all ROCs in the configuration
 // hDetConf - handle of the detector configuration
 //-----------------------------------------------------------------------------

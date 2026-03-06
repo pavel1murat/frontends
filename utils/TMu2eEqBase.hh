@@ -51,22 +51,25 @@ public:
   int                 Subsystem   () { return _subsystem     ; }
   std::string&        HostLabel   () { return _host_label    ; }
   std::string&        FullHostName() { return _full_host_name; }
+  int                 GetStatus   ();
 
   OdbInterface*       Odb_i       () { return _odb_i         ; }
 
   int                 MonitoringLevel() { return _monitoringLevel ; }
 
+
   int                 ResetOutput (const std::string& Logfile = "");
   virtual int         StartMessage(HNDLE H_Cmd,               std::stringstream& SStr); 
   virtual int         WriteOutput (const std::string& Output, const std::string& Logfile = "");
 
-  void SetName(const char* Name) { _name = Name; }
+  void                SetName(const char* Name) { _name = Name; }
 
-  void SetStatus(int Status);
+  void                SetStatus(int Status);
 
   virtual TMFeResult  Init               ();
   virtual int         InitVarNames       ();
   virtual int         HandlePeriodic     ();
   virtual int         BeginRun           (HNDLE H_RunConf);
+  virtual int         EndRun             (HNDLE H_RunConf);
 };
 #endif

@@ -78,7 +78,8 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     TLOG(TLVL_ERROR) << msg;
                                         // and send an error message
     cm_msg(MERROR, __func__,msg.data());
-                                    
+    cm_msg_flush_buffer();
+    SetStatus(-1);
   }
   else {
     _dtc_i->fPcieAddr       = pcie_addr;
@@ -247,6 +248,20 @@ int TEqTrkDtc::BeginRun(HNDLE H_RunConf) {
   TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
   return rc;
 }
+//-----------------------------------------------------------------------------
+// in the end of run, read out ROC registers and dump them
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::EndRun(HNDLE H_RunConf) {
+  int rc(0);
+    
+  TLOG(TLVL_DEBUG) << "-- START: DTC" << _dtc_i->PcieAddr() << ":" << _dtc_i;
+
+  std::vector<uint32_t> reg_data;
+
+  
+  TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
+  return rc;
+}
 
 //-----------------------------------------------------------------------------
 TMFeResult TEqTrkDtc::Init() {
@@ -385,8 +400,32 @@ void TEqTrkDtc::ReadNonHistRegisters() {
 }
 
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::HandlePeriodic() {
+int TEqTrkDtc::ReadRocRegisters(int Link, const std::vector<int>& Registers, std::vector<uint32_t>& RegData) {
+  int rc(0);
 
+  RegData.clear();
+  RegData.reserve(Registers.size());
+
+  for (const int reg : RocRegisters) {
+    // ROC registers store 16-bit words, don't know how to declare an array
+    // of shorts for ODBXX, use uint32_t
+    try {
+      uint32_t dat = _dtc_i->fDtc->ReadROCRegister(DTCLib::DTC_Link_ID(Link),reg,100); 
+      RegData.emplace_back(dat);
+    }
+    catch(...) {
+      rc = -1;
+      TLOG(TLVL_ERROR) << "failed to read DTC:" << _dtc_i->PcieAddr() << " ROC:" << Link << " registers";
+      SetStatus(-1);
+      break;
+    }
+  }
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::HandlePeriodic() {
+  int rc(0);
   TLOG(TLVL_DEBUG+1) << std::format("-- START: host:{} DTC:{}",HostLabel(),_dtc_i->PcieAddr());
 //-----------------------------------------------------------------------------
 // DTC temperature and voltages - for history 
@@ -443,31 +482,19 @@ int TEqTrkDtc::HandlePeriodic() {
       }
           
       if (_monitorRocRegisters > 0) {
-            
+        
         std::vector<uint32_t>  roc_reg;
         roc_reg.reserve(RocRegisters.size());
             
-        try {
-          for (const int reg : RocRegisters) {
-                // ROC registers store 16-bit words, don't know how to declare an array
-                // of shorts for ODBXX, use uint32_t
-            uint32_t dat = _dtc_i->fDtc->ReadROCRegister(DTCLib::DTC_Link_ID(ilink),reg,100); 
-            roc_reg.emplace_back(dat);
-          }
-              
+        rc = ReadRocRegisters(ilink,RocRegisters,roc_reg);
+
+        if (rc == 0) {
           char buf[100];
           sprintf(buf,"%s/DTC%i/ROC%i",node_eq_path.data(),_dtc_i->PcieAddr(),ilink);
-              
+          
           midas::odb roc = {{"RegData",{1u}}};
           roc.connect(buf);
           roc["RegData"] = roc_reg;
-        }
-        catch (...) {
-          TLOG(TLVL_ERROR) << "failed to read DTC:" << _dtc_i->PcieAddr() << " ROC:" << ilink << " registers";
-//-----------------------------------------------------------------------------
-// set DTC status to -1
-//-----------------------------------------------------------------------------
-            // TODO
         }
       }
 //-----------------------------------------------------------------------------
@@ -627,6 +654,6 @@ int TEqTrkDtc::HandlePeriodic() {
   }
 
   TLOG(TLVL_DEBUG+1) << "-- END";
-  return 0;
+  return rc;
 }
 

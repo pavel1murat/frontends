@@ -94,6 +94,14 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
       TLOG(TLVL_ERROR) << "coudn't execute DtcInterface::ConfigureJA ... BAIL OUT";
     }
   }
+//-----------------------------------------------------------------------------
+// GET DESIGN INFO
+//-----------------------------------------------------------------------------
+  else if (cmd == "get_design_info") {
+    //    ss << std::endl;
+    try         { dtc_i->PrintStatus(ss); }
+    catch (...) { ss << "ERROR : coudn't print status of the DTC ... BAIL OUT" << std::endl; }
+  }  
   else if (cmd == "hard_reset") {
 //-----------------------------------------------------------------------------
 // HARD RESET
