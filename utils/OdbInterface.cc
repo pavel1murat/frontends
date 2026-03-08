@@ -238,6 +238,12 @@ int OdbInterface::GetEnabled(HNDLE hConf) {
 }
 
 //-----------------------------------------------------------------------------
+int OdbInterface::GetRunNumber() {
+  int rn = GetInteger(0,"/Runinfo/Run number");
+  return rn;
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetStatus(HNDLE hConf) {
   INT   data;
   int   sz = sizeof(data);

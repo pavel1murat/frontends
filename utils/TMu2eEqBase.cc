@@ -14,7 +14,7 @@ TMu2eEqBase::TMu2eEqBase(const char* Name, const char* Title, int Subsystem) :
   _title    (Title    ),
   _subsystem(Subsystem)
 {
-  TLOG(TLVL_DEBUG) << std::format("-- START: Name:{} Title:{}",Name,Title); 
+  TLOG(TLVL_DEBUG) << std::format("-- START: _name:{} _title:{}",_name,_title); 
 
   _odb_i                      = OdbInterface::Instance();
   _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
@@ -43,7 +43,7 @@ int TMu2eEqBase::BeginRun(HNDLE H_RunConf) {
 }
 
 //-----------------------------------------------------------------------------
-int TMu2eEqBase::EndRun(HNDLE H_RunConf) {
+int TMu2eEqBase::EndRun(int RunNumber, HNDLE H_RunConf) {
   return 0;
 }
 
@@ -59,6 +59,11 @@ int TMu2eEqBase::InitVarNames() {
 
 //-----------------------------------------------------------------------------
 int TMu2eEqBase::HandlePeriodic() {
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+int TMu2eEqBase::CheckAlarms() {
   return 0;
 }
 

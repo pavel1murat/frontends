@@ -69,7 +69,8 @@ public:
   virtual TMFeResult  Init               ();
   virtual int         InitVarNames       ();
   virtual int         HandlePeriodic     ();
+  virtual int         CheckAlarms        ();
   virtual int         BeginRun           (HNDLE H_RunConf);
-  virtual int         EndRun             (HNDLE H_RunConf);
+  virtual int         EndRun             (int RunNumber, HNDLE H_RunConf);
 };
 #endif

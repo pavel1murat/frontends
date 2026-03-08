@@ -128,7 +128,7 @@ TMFeResult NodeFrontend::HandleFrontendInit(const std::vector<std::string>& args
 // 2. ARTDAQ
 //-----------------------------------------------------------------------------
   if (odb_i->GetEnabled( h_artdaq_conf)) { 
-    TEqArtdaq* eq = new TEqArtdaq("ARTDAQ","Artdaq");
+    TEqArtdaq* eq = new TEqArtdaq("Artdaq","ARTDAQ");
     eqm->AddEquipmentItem(eq);
   }
 //-----------------------------------------------------------------------------

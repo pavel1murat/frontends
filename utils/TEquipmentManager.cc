@@ -151,7 +151,7 @@ TMFeResult TEquipmentManager::HandleEndRun   (int RunNumber) {
 
   for (auto eq: _eq_list) {
     // begin run returns either 0 (success) or a negative number
-    rc = eq->EndRun(_h_active_run_conf);
+    rc = eq->EndRun(RunNumber,_h_active_run_conf);
   }
 
   printf("end_of_run %d\n", RunNumber);
@@ -215,6 +215,15 @@ void TEquipmentManager::HandlePeriodic() {
   for (auto eq : _eq_list) {
     if (eq->MonitoringLevel() > 0) {
       eq->HandlePeriodic();
+    }
+  }
+
+//-----------------------------------------------------------------------------
+// check and set alarms in an independent loop
+//-----------------------------------------------------------------------------
+  for (auto eq : _eq_list) {
+    if (eq->MonitoringLevel() > 0) {
+      eq->CheckAlarms();
     }
   }
 

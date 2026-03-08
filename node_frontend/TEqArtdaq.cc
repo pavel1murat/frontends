@@ -67,7 +67,7 @@ TEqArtdaq::TEqArtdaq(const char* Name, const char* Title) : TMu2eEqBase(Name,Tit
 // boardreaders start from 10000+1000*partition+100+1;
 // init XML RPC            10000+1000*partition+11
 //-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG) << std::format("-- START _host_label:{}",_host_label);
+  TLOG(TLVL_DEBUG) << std::format("-- START _name:{} _host_label:{}",_name,_host_label);
 //-----------------------------------------------------------------------------
 // read ARTDAQ configuration from ODB
 //-----------------------------------------------------------------------------
@@ -87,9 +87,7 @@ TEqArtdaq::TEqArtdaq(const char* Name, const char* Title) : TMu2eEqBase(Name,Tit
 //                   dsxx - dispatchers
 //-----------------------------------------------------------------------------
     db_get_key(hdb, h_component, &component);
-    TLOG(TLVL_DEBUG) << "i:" << i
-                     << " component.name:" << component.name
-                     << " component.type:" << component.type;
+    TLOG(TLVL_DEBUG) << std::format("i:{:2} component.name:{} component.type:{}",i,component.name,component.type);
 //------------------------------------------------------------------------------
 // "Artdaq" can also be disabled - on a node ? or want a global flag ?
 // stay with local for now...
@@ -136,7 +134,7 @@ TEqArtdaq::TEqArtdaq(const char* Name, const char* Title) : TMu2eEqBase(Name,Tit
   
   _monitoringLevel = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq");
 
-  TLOG(TLVL_DEBUG) << std::format("_monitoringLevel:{}",_monitoringLevel);
+  TLOG(TLVL_DEBUG) << std::format("_name:{} _monitoringLevel:{}",_name,_monitoringLevel);
 
   InitVarNames();
   
@@ -144,7 +142,6 @@ TEqArtdaq::TEqArtdaq(const char* Name, const char* Title) : TMu2eEqBase(Name,Tit
 // hotlinks - start from one function handling both DTCs
 // command processor : 'ProcessCommand' function
 //-----------------------------------------------------------------------------
-  // HNDLE hdb            = _odb_i->GetDbHandle();
   std::string cmd_path = _odb_i->GetCmdConfigPath(HostLabel(),_name);
   HNDLE h_cmd          = _odb_i->GetHandle(0,cmd_path.data());
   HNDLE h_cmd_run      = _odb_i->GetHandle(h_cmd,"Run");
@@ -152,7 +149,7 @@ TEqArtdaq::TEqArtdaq(const char* Name, const char* Title) : TMu2eEqBase(Name,Tit
   TLOG(TLVL_DEBUG) << std::format("before db_open_record: cmd_path:{} h_cmd:{} h_cmd_run:{}",cmd_path,h_cmd,h_cmd_run);
     
   if (db_open_record(hdb,h_cmd_run,&_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
-    std::string m = std::format("cannot open ARTDAQ hotlink in ODB");
+    std::string m = std::format("cannot open Artdaq hotlink in ODB");
     cm_msg(MERROR, __func__,m.data());
     TLOG(TLVL_ERROR) << m;
   }
@@ -187,6 +184,8 @@ int TEqArtdaq::InitVarNames() {
   
   for (int i=0; i<nac; i++) {
     ArtdaqComponent_t* ac = &_list_of_ac[i];
+
+    TLOG(TLVL_DEBUG) << std::format("ARTDAQ component name:{}",ac->name);
 
     std::vector<std::string> var_names;
     if (ac->type == kBoardReader) {
