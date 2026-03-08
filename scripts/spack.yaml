@@ -33,6 +33,8 @@ spack:
   - midas@2025-05-03
   - gobject-introspection@1.76.1
   - python-venv arch=None-None-x86_64_v3
+  - cairo+X
+  - emacs gui=x11 toolkit=athena
   view: true
   concretizer:
     unify: true

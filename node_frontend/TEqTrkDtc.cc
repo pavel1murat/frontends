@@ -250,13 +250,86 @@ int TEqTrkDtc::BeginRun(HNDLE H_RunConf) {
 }
 //-----------------------------------------------------------------------------
 // in the end of run, read out ROC registers and dump them
+// for now, dump $DAQ_OUTPUT_TOP/logs/node_frontend/{:6d}_registers.txt
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::EndRun(HNDLE H_RunConf) {
+int TEqTrkDtc::EndRun(int RunNumber, HNDLE H_RunConf) {
   int rc(0);
     
   TLOG(TLVL_DEBUG) << "-- START: DTC" << _dtc_i->PcieAddr() << ":" << _dtc_i;
+  SetStatus(1);
 
-  std::vector<uint32_t> reg_data;
+  std::vector<uint32_t>  dtc_reg;
+  dtc_reg.reserve(DtcRegisters.size());
+        
+  for (const int reg : DtcRegisters) {
+    uint32_t dat(0);
+    try {
+      _dtc_i->fDtc->GetDevice()->read_register(reg,100,&dat);
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "failed to read register:" << reg;
+      dat = 0xFFFFFFFF;
+    }
+    dtc_reg.emplace_back(dat);
+  }
+
+  std::vector<uint32_t> roc_reg[6];
+
+  for (int lnk=0; lnk<6; lnk++) {
+    if (_dtc_i->LinkEnabled(lnk) == 0) continue;
+    if (_dtc_i->LinkEnabled(lnk) == 0) continue;
+    ReadRocRegisters(lnk,RocRegisters,roc_reg[lnk]);
+  }
+
+//-----------------------------------------------------------------------------
+// just save it
+//-----------------------------------------------------------------------------
+  std::mutex mtx; // keep it thread-safe .. why ?
+
+  {
+    std::lock_guard<std::mutex> lock(mtx);
+    std::ofstream output_file;
+
+    const char* daq_output_top = getenv("DAQ_OUTPUT_TOP");
+    
+    std::string fn = std::format("{}/logs/node_frontend/{:06d}_registers_dtc{}.txt",daq_output_top,RunNumber,_dtc_i->PcieAddr());
+    
+    output_file.open(fn.data(),std::ofstream::trunc);
+    if (not output_file.is_open()) {
+      TLOG(TLVL_ERROR) << std::format("failed to open _logfile:{} in ofstream::trunc mode",fn); 
+    }
+    else {
+//-----------------------------------------------------------------------------
+// file opened OK, start from DTC registers
+//-----------------------------------------------------------------------------
+      int n_dtc_regs = DtcRegisters.size();
+      for (int i=0; i<n_dtc_regs; ++i) {
+        int reg = DtcRegisters.begin()[i];
+        output_file << std::format("DTC reg:0x{:04x} : 0x{:04x}\n",reg,dtc_reg[i]);
+      }
+//-----------------------------------------------------------------------------
+// now ROC registers
+//-----------------------------------------------------------------------------
+      int n_roc_regs = RocRegisters.size();
+      for (int i=0; i<n_roc_regs; ++i) {
+        output_file << std::format("ROC reg:{:4d} :",RocRegisters.begin()[i]);
+        for (int lnk=0; lnk<6; lnk++) {
+          if ((_dtc_i->LinkEnabled(lnk) == 0) or (_dtc_i->LinkEnabled(lnk) == 0)) {
+            output_file << "      ";
+          }
+          else {
+            std::vector<uint32_t>* rr = &roc_reg[lnk];
+            output_file << std::format(" 0x{:04x}",rr->at(i));
+          }
+        }
+        output_file << std::endl;
+      }
+      
+      output_file.close();
+    }
+    
+    SetStatus(rc);
+  }
 
   
   TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
@@ -400,6 +473,8 @@ void TEqTrkDtc::ReadNonHistRegisters() {
 }
 
 //-----------------------------------------------------------------------------
+// Link ne -1...
+//------------------------------------------------------------------------------
 int TEqTrkDtc::ReadRocRegisters(int Link, const std::vector<int>& Registers, std::vector<uint32_t>& RegData) {
   int rc(0);
 
@@ -438,8 +513,6 @@ int TEqTrkDtc::HandlePeriodic() {
   midas::odb o_runinfo("/Runinfo");
   int running_state          = o_runinfo["State"];
   int transition_in_progress = o_runinfo["Transition in progress"];
-
-  //  TEquipmentManager* tem = TEquipmentManager::Instance();
 
   try {
     std::vector<float> dtc_tv;

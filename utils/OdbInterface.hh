@@ -21,6 +21,7 @@ public:
 
   std::string GetConfigDir();
   std::string GetOutputDir();
+  int         GetRunNumber();
 
   int         GetEnabled              (HNDLE h_Conf); //
   int         GetStatus               (HNDLE h_Conf); //

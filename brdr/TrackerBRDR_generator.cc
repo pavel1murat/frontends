@@ -104,7 +104,8 @@ namespace mu2e {
     size_t                                _nEventsDbg;
     int                                   _pcieAddr;
     int                                   _linkMask;           // from ODB
-
+    ulong                                 _last_ewt;
+    int                                   _first_event;
                                                                // 101:simulate data internally, DTC not used; default:0
 
     int                                   _readData;           // 1: read data, 0: save empty fragment
@@ -272,6 +273,8 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 //-----------------------------------------------------------------------------
   _tfmHost                    = odb_i->GetTfmHostName  (h_active_run_conf);
   _partition_id               = odb_i->GetPartitionID  (h_active_run_conf);
+  _last_ewt                   = 0;
+  _first_event                = 1;
 
   std::string private_subnet  = odb_i->GetPrivateSubnet(h_active_run_conf);
   std::string public_subnet   = odb_i->GetPublicSubnet (h_active_run_conf);
@@ -333,7 +336,6 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
 // don't touch DCS ! 
 //-----------------------------------------------------------------------------
   _dtc_i->PrintStatus();
-  //  _dtc_i->PrintRocStatus();
 //-----------------------------------------------------------------------------
 // finally, initialize the environment for the XML-RPC messaging client
 // use ARTDAQ port numbering convention
@@ -483,7 +485,7 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
                      << " err_code:0x" << std::hex << err_code
                      << std::format("roc_nb: {:5}{:5}{:5}{:5}{:5}{:5}",
                                     roc_nb[0],roc_nb[1],roc_nb[2],roc_nb[3],roc_nb[4],roc_nb[5]);
-  
+
   if (nerr != 0) {
 //-----------------------------------------------------------------------------
 // send alarm message and set the boardreader status to -1, also log the message
@@ -531,14 +533,14 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
   ulong              tstamp    = ev_counter();
   DTC_EventWindowTag event_tag = DTC_EventWindowTag(tstamp);
 
-  TLOG(TLVL_DEBUG+1) << "label:"         << _artdaqLabel
-                     << " event:"        << ev_counter() 
-                     << " START tstamp:" << tstamp;
+  TLOG(TLVL_DEBUG+1) << std::format("artdaqLabel:{} event:{} tstamp:{}",_artdaqLabel,ev_counter(),tstamp);
   int sz(0);
   try {
 //------------------------------------------------------------------------------
 // sz: 1 (or 0, if nothing has been read out)
 //     so far, get a single (DTC) subevent
+// emulated CFO seems to produce an extra event with the duplicate EWT -
+// see if it is possible to skip it - look at the first subevent
 //-----------------------------------------------------------------------------
     subevents = _dtc->GetSubEventData(event_tag,match_ts);
     sz        = subevents.size();
@@ -546,6 +548,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
   catch (...) {
     TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " DTC EXCEPTION ";
     cm_msg(MERROR,_artdaqLabel.data(),Form("event: %10li DTC EXCEPTION subevents.size():%i ",ev_counter(),sz));
+    cm_msg_flush_buffer();
   }
 
   TLOG(TLVL_DEBUG+1) << std::format("label:{} ev_counter:{} sz:{}",_artdaqLabel,ev_counter(),sz);
@@ -560,6 +563,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
     // message("alarm", msg);
 
     cm_msg(MERROR, _artdaqLabel.data(),Form("event: %10li subevents.size():%i",ev_counter(),sz));
+    cm_msg_flush_buffer();
     TLOG(TLVL_ERROR) << "event:" << ev_counter() << " subevents.size():" << sz;
     
     artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::DTCEVT, tstamp);
@@ -613,36 +617,28 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
 // this is essentially it, now - diagnostics 
 //-----------------------------------------------------------------------------
-        uint64_t ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
+        // uint64_t ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
 
         if ((_debug_level > 0) and (ev_counter() < _nEventsDbg)) { 
-          TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel
-                             << " subevent:" << i
-                             << " EW tag:" << ew_tag
-                             << " nbytes: " << nb;
+          TLOG(TLVL_DEBUG+1) << std::format("label:{} subevent:{} ew_tag:{} nbytes:{}",_artdaqLabel,i,ew_tag,nb);
           _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2,0,&std::cout);
         }
         rc = 0;
       }
       else {
 //-----------------------------------------------------------------------------
-// ERROR: read zero bytes
+// ERROR: read subevent of zero bytes in length
 //-----------------------------------------------------------------------------
-        TLOG(TLVL_ERROR) << "label:" << _artdaqLabel
-                         << " zero length read, event:" << ev_counter();
-        
+        TLOG(TLVL_ERROR) << std::format("label:{} zero length event ev_counter():{}",_artdaqLabel,ev_counter());
         message("alarm", _artdaqLabel+"::ReadData::ERROR event="+std::to_string(ev_counter())+" nbytes=0") ;
       }
     }
   }
-      
+
   int print_event = (ev_counter() % _printFreq) == 0;
   if (print_event) {
-    TLOG(TLVL_DEBUG+1) << "-- END: label:" << _artdaqLabel
-                       << " event:"        << ev_counter()
-                       << " readSuccess:"  << readSuccess
-                       << " sz:"           << sz
-                       << " timeout:"      << timeout << " nbytes:" << nbytes << " rc:" << rc;
+    TLOG(TLVL_DEBUG+1) << std::format("-- END: label:{} ev_counter():{} readSuccess:{}",_artdaqLabel,ev_counter(),readSuccess)
+                       << std::format("sz:{} timeout:{} nbytes:{} rc:{}", sz,timeout,nbytes,rc);
   }
 
   return rc;
@@ -663,9 +659,6 @@ bool mu2e::TrackerBRDR::readEvent(artdaq::FragmentPtrs& Frags) {
 // make sure even a fake fragment goes in
 //-----------------------------------------------------------------------------
   if (_readData) {
-//-----------------------------------------------------------------------------
-// read data 
-//-----------------------------------------------------------------------------
     int rc = readData(Frags);
     if (rc < 0) {
       TLOG(TLVL_ERROR) << "label:" << _artdaqLabel << " rc(readData):" << rc;
