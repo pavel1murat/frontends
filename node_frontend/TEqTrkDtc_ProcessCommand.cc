@@ -297,7 +297,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // SET ROC DELAY(s)
 //-----------------------------------------------------------------------------
   else if (cmd == "set_roc_delays") {
-    std::thread t(&TEqTrkDtc::SetRocDelays,eq_dtc,h_cmd);
+    std::thread t(&TEqTrkDtc::SetRocDelay,eq_dtc,h_cmd);
     t.detach();
   }
 //-----------------------------------------------------------------------------

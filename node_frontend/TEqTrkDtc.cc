@@ -95,6 +95,8 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     _dtc_i->fJAMode         = _odb_i->GetJAMode           (H_Dtc);
     _dtc_i->fRocLaneMask    = _odb_i->GetUInt32           (H_Dtc,"RocLaneMask");
 
+    _dtc_i->fDtcDelay5ns    = _odb_i->GetInteger          (H_Dtc,"delay_5ns");
+
     TLOG(TLVL_DEBUG) << "subsystem:"         << subsystem
                      << std::format(" fw_version:0x{:08x}",fw_version)
                      << " _readout_mode:"    << std::dec << _dtc_i->fRocReadoutMode
@@ -142,6 +144,9 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
         _odb_i->SetRocID         (h_link,roc_id     );
         _odb_i->SetRocDesignInfo (h_link,design_info);
         _odb_i->SetRocFwGitCommit(h_link,git_commit );
+
+        int roc_delay_5ns = _odb_i->GetInteger(h_link,"delay_5ns");
+        _dtc_i->fRocDelay5ns[i] = roc_delay_5ns;
       }
     }
 //-----------------------------------------------------------------------------

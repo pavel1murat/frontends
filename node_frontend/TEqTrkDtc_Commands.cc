@@ -1546,8 +1546,8 @@ int TEqTrkDtc::SetCalDac(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 // set [coarse] delays, in units of 5ns, of ROCs handled by this DTC
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::SetRocDelays(HNDLE H_Cmd) {
-  int rc(0), tmo_ms(100);
+int TEqTrkDtc::SetRocDelay(HNDLE H_Cmd) {
+  int rc(0); // , tmo_ms(100);
   
   TLOG(TLVL_DEBUG) << "-- START";
 
@@ -1588,50 +1588,13 @@ int TEqTrkDtc::SetRocDelays(HNDLE H_Cmd) {
 
   int dtc_delay_5ns = _odb_i->GetInteger(h_dtc,"delay_5ns");
   TLOG(TLVL_DEBUG) << std::format("dtc_config_path:{} h_dtc:{} dtc_delay_5ns:{:5d}",dtc_config_path,h_dtc,dtc_delay_5ns);
-    
-  for (int lnk=lnk1; lnk<lnk2; lnk++) {
 
-    if (print_level > 0) {
-      sstr << " -- link:" << lnk;
-    }
-
-    if (not _dtc_i->LinkEnabled(lnk)) {
-      sstr << std::format(" : disabled\n");
-      continue;
-    }
-    else if (not _dtc_i->LinkLocked(lnk)) {
-      sstr << " ERROR : link enabled but not locked\n";
-      TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} link:{} enabled but not locked",_host_label,_dtc_i->PcieAddr(),lnk);
-    }
-
-    std::string  link_config_path = std::format("Link{:d}",lnk);
-    HNDLE        h_link           = _odb_i->GetHandle(h_dtc,link_config_path);
-    
-    int roc_delay_5ns = _odb_i->GetInteger(h_link,"delay_5ns");
-//-----------------------------------------------------------------------------
-// the total delay is the sum of the two, all in units of 5 ns
-//-----------------------------------------------------------------------------
-    int delay_5ns = dtc_delay_5ns+roc_delay_5ns;
-    
-    TLOG(TLVL_DEBUG) << std::format("link:{} link_config_path:{} h_link:{} roc_delay_5ns:{:5d} delay_5n:{:5d}",
-                                    lnk,link_config_path,h_link,roc_delay_5ns,delay_5ns);
-    if (doit != 0) {
-      try {
-        _dtc_i->Dtc()->WriteROCRegister(DTC_Link_ID(lnk),4,delay_5ns,false,tmo_ms);
-        sstr << std::format(" : SUCCESS, delay set to {:4d} x 5ns ns",delay_5ns) ;
-      }
-      catch(...) {
-        sstr << " : ERROR writing DTC:{} ROC{} register 4. Continue with the remaining registers" << std::endl;
-        rc -= 1;
-      }
-    }
-    sstr << std::endl;
-  }
+  rc = _dtc_i->SetRocDelay(-1,(uint16_t) dtc_delay_5ns, &sstr);
   
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  int write_rc = TMu2eEqBase::WriteOutput(sstr.str());
   
   SetStatus(rc);
-  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{} cmd_rc:{}",rc,cmd_rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{} write_rc:{}",rc,write_rc);
   return rc;
 }
 

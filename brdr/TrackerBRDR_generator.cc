@@ -562,23 +562,25 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
     // std::string msg = std::format("{} event:{} ZERO PAYLOAD (n_subevents=0) action:stop_run",__func__,ev_counter());
     // message("alarm", msg);
 
-    cm_msg(MERROR, _artdaqLabel.data(),Form("event: %10li subevents.size():%i",ev_counter(),sz));
-    cm_msg_flush_buffer();
-    TLOG(TLVL_ERROR) << "event:" << ev_counter() << " subevents.size():" << sz;
-    
-    artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::DTCEVT, tstamp);
-    int event_size = sizeof(DTCLib::DTC_EventHeader);
-    frag->resizeBytes(event_size);
-      
-    DTCLib::DTC_EventHeader* hdr = (DTCLib::DTC_EventHeader*) frag->dataBegin();
-    hdr->inclusive_event_byte_count = event_size;
-    hdr->num_dtcs       = 1;
-    hdr->event_tag_low  = (tstamp      ) & 0xFFFFFFFF;
-    hdr->event_tag_high = (tstamp >> 32) & 0x0000FFFF;
-//-----------------------------------------------------------------------------
-// now copy the empty fragment
-//-----------------------------------------------------------------------------
-    Frags.emplace_back(frag);
+// PM 2026-03-10    cm_msg(MERROR, _artdaqLabel.data(),Form("event: %10li subevents.size():%i",ev_counter(),sz));
+// PM 2026-03-10    cm_msg_flush_buffer();
+// PM 2026-03-10    TLOG(TLVL_ERROR) << "event:" << ev_counter() << " subevents.size():" << sz;
+// PM 2026-03-10    
+// PM 2026-03-10    artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::DTCEVT, tstamp);
+// PM 2026-03-10    int event_size = sizeof(DTCLib::DTC_EventHeader);
+// PM 2026-03-10    frag->resizeBytes(event_size);
+// PM 2026-03-10      
+// PM 2026-03-10    DTCLib::DTC_EventHeader* hdr = (DTCLib::DTC_EventHeader*) frag->dataBegin();
+// PM 2026-03-10    hdr->inclusive_event_byte_count = event_size;
+// PM 2026-03-10    hdr->num_dtcs       = 1;
+// PM 2026-03-10    hdr->event_tag_low  = (tstamp      ) & 0xFFFFFFFF;
+// PM 2026-03-10    hdr->event_tag_high = (tstamp >> 32) & 0x0000FFFF;
+// PM 2026-03-10//-----------------------------------------------------------------------------
+// PM 2026-03-10// now copy the empty fragment
+// PM 2026-03-10//-----------------------------------------------------------------------------
+// PM 2026-03-10    Frags.emplace_back(frag);
+// PM 2026-03-10
+    return 0;
   }
   else {
 //-----------------------------------------------------------------------------
