@@ -228,8 +228,8 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                                 hv_channel = self.client.odb_get(panel_odb_path+'/hv_channel');
 
                                 hv_data_odb_path = f'/Equipment/{rpi}/Variables/LVHV[{24+hv_channel}]'
-                                hv = self.client.odb_get(hv_data_odb_path)
-                            
+                                panel_hv = self.client.odb_get(hv_data_odb_path)
+                                TRACE.TRACE(TRACE.TLVL_DEBUG,f'hv_data_odb_path:{hv_data_odb_path} panel_hv:{panel_hv}',TRACE_NAME)
                         
                             f.write(f'station slot:{s:02} id:{station_id:02} plane:{plane} panel:{panel} {panel_name} HV:{panel_hv}\n')
 
@@ -244,7 +244,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         + f' -a subject="new run: {run_number} config:{config_name}"' \
         + f' -m {fn}'
 
-        TRACE.TRACE(TRACE.TLVL_DEBUG,f'begin_of_run command:{cmd}')
+        TRACE.TRACE(TRACE.TLVL_DEBUG,f'begin_of_run command:{cmd}',TRACE_NAME)
         proc = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
 
 # search for 'Message successfully transmitted, ID=512', parse out the message ID

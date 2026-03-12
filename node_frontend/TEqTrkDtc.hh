@@ -96,7 +96,7 @@ public:
   int         SaveChannelMap   (HNDLE H_Cmd);                 // save active channel map from ODB to disk
   int         SaveThresholds   (HNDLE H_Cmd);                 // save thresholds from disk to ODB
   int         SetCalDac        (std::ostream& Stream);
-  int         SetRocDelays     (HNDLE H_Cmd);
+  int         SetRocDelay      (HNDLE H_Cmd);
   int         SetThresholds    (HNDLE H_Cmd);                 // load thresholds from ODB to firmware
   int         TestCommand      (std::ostream& Stream);
   int         WriteRocRegister (std::ostream& Stream);

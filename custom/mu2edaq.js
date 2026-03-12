@@ -335,7 +335,7 @@ async function mu2e_command_set_odb_B(cmd) {
 function mu2e_odb_load_table(cmd) {
   const table     = document.getElementById(cmd.table_id);
   table.innerHTML = '';
-  const cmd_parameter_path = cmd.func_parameter_path(cmd)+`/${cmd.name}`;
+  const cmd_parameter_path = cmd.func_parameter_path(cmd); // +`/${cmd.name}`;
   odb_browser(cmd.table_id,cmd_parameter_path,0);
 }
 

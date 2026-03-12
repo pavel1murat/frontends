@@ -59,17 +59,20 @@ function tfm_choose_node_id(evt, id) {
   evt.currentTarget.className += " active";
 
   let num    = id.substring(4,7);
-  g_node = Number(num); // parse the number out of 'nodeXXX'
+  g_node     = Number(num);                 // parse the number out of 'nodeXXX'
   g_hostname = tfm_get_node_name(g_node);
   console.log(`g_node=${g_node} g_hostname:${g_hostname}`);
 }
 
 //-----------------------------------------------------------------------------
 // 'createTable' is a function loading the DTC control page
+// 'id' is the node ID (number)
 //-----------------------------------------------------------------------------
-function tfm_update_node_id(evt, id) {
+function tfm_update_node_id(evt,id) {
   tfm_choose_node_id(evt,id);
-  updateNodeTable(g_node);
+  // this takes active process label as a second parameter - make it null , so the first process
+  // becomes the default
+  updateNodeTable(g_node, null);
 }
 
 //-----------------------------------------------------------------------------      
@@ -206,7 +209,7 @@ async function tfm_command_set_odb(cmd) {
 //-----------------------------------------------------------------------------
 async function tfm_command_set_odb_B(cmd) {
 
-  const ppath = cmd.func_parameter_path(g_hostname);
+  const ppath = cmd.func_parameter_path(cmd);
   
   const paths=[ppath+'/Name',
                ppath+'/ParameterPath',

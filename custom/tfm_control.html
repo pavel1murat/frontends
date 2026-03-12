@@ -63,6 +63,10 @@
       let np = process_list.length;
       for (let i=0; i<np; i++) {
         const p = process_list[i];
+        // if active-proces_label is undefined, choose (highlight) the first process as active
+        if (active_process_label == null) {
+          active_process_label = p;
+        }
         let btn = document.createElement('button');
         // btn.style.display = "block";
         btn.className = "process_tabs"
@@ -126,6 +130,7 @@
       //-----------------------------------------------------------------------------
       // update cmd_params
       //-----------------------------------------------------------------------------
+      g_process_label = active_process_label;
       if (active_process_label != null) {
         const table     = document.getElementById('cmd_params');
         table.innerHTML = '';
@@ -219,9 +224,14 @@
       let cmd      = new Command('load_parameters','cmd_params','/Mu2e/ActiveRunConfiguration/DAQ/Tfm');
       let btn      = tfm_make_simple_button(cmd);
       td2.appendChild(btn);
-//-----------------------------------------------------------------------------
-// create a "get_state" drop-button
-//-----------------------------------------------------------------------------
+
+      // output of everything trace-related goes to trace.log
+      let cmd_b  = new Command_B('cleanup','cleanup',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"artdaq.log");
+      let btn_b = tfm_make_exec_button_B(cmd_b);
+      td2.appendChild(btn_b);
+      //-----------------------------------------------------------------------------
+      // create a "get_state" drop-button
+      //-----------------------------------------------------------------------------
       cmd = new Command('get_state','cmd_params'   ,'/Mu2e/Commands/DAQ/Tfm');
       btn = tfm_make_dropup_button(cmd);
       td2.appendChild(btn);
@@ -231,7 +241,7 @@
       td2.appendChild(btn1);
       
       // which logfile the output should go? - artdaq.log
-      let cmd_b  = new Command_B('print_fcl','print_fcl',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,"artdaq.log");
+      cmd_b  = new Command_B('print_fcl','print_fcl',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,"artdaq.log");
       let btn2 = tfm_make_dropup_button_B(cmd_b);
       td2.appendChild(btn2);
       
