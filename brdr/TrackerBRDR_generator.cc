@@ -113,6 +113,7 @@ namespace mu2e {
     int                                   _printFreq;          // printout frequency
     int                                   _maxEventsPerSubrun; // 
     int                                   _readoutMode;        // 0:digis; 1:ROC pattern (all defined externally); 
+    bool                                  _sendSubruns;
 
     trkdaq::DtcInterface*                 _dtc_i;
     DTCLib::DTC*                          _dtc;
@@ -219,6 +220,7 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   , _printFreq         (ps.get<int>                     ("printFreq"          ,         100))  // 
   , _maxEventsPerSubrun(ps.get<int>                     ("maxEventsPerSubrun" ,       10000))  // 
   , _readoutMode       (ps.get<int>                     ("readoutMode"        ,           1))  // 
+  , _sendSubruns       (ps.get<bool>                    ("sendSubruns"        ,        true))  // only one has to do that
   
 {
   _fragmentType = mu2e::toFragmentType(_sFragmentType);
@@ -778,9 +780,10 @@ bool mu2e::TrackerBRDR::getNext_(artdaq::FragmentPtrs& Frags) {
 // if needed, increment the subrun number
 //-----------------------------------------------------------------------------
   if ((CommandableFragmentGenerator::ev_counter() % _maxEventsPerSubrun) == 0) {
-
-    auto endOfSubrunFrag = artdaq::MetadataFragment::CreateEndOfSubrunFragment(artdaq::Globals::my_rank_, ev_counter() + 1, 1 + (ev_counter() / _maxEventsPerSubrun), 0);
-    Frags.emplace_back(std::move(endOfSubrunFrag));
+    if (_sendSubruns) {
+      auto endOfSubrunFrag = artdaq::MetadataFragment::CreateEndOfSubrunFragment(artdaq::Globals::my_rank_, ev_counter() + 1, 1 + (ev_counter() / _maxEventsPerSubrun), 0);
+      Frags.emplace_back(std::move(endOfSubrunFrag));
+    }
   }
   
   TLOG(TLVL_DEBUG+1) << "label:" << _artdaqLabel << " event:" << ev_counter() << " END";
