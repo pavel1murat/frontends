@@ -229,12 +229,12 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 
                                 hv_data_odb_path = f'/Equipment/{rpi}/Variables/LVHV[{24+hv_channel}]'
                                 panel_hv = self.client.odb_get(hv_data_odb_path)
-                                TRACE.TRACE(TRACE.TLVL_DEBUG,f'hv_data_odb_path:{hv_data_odb_path} panel_hv:{panel_hv}',TRACE_NAME)
+                                TRACE.TRACE(TRACE.TLVL_DEBUG,f'hv_data_odb_path:{hv_data_odb_path} panel_hv:{panel_hv:10.2f}',TRACE_NAME)
                         
-                            f.write(f'station slot:{s:02} id:{station_id:02} plane:{plane} panel:{panel} {panel_name} HV:{panel_hv}\n')
+                            f.write(f'station slot:{s:02} id:{station_id:02} plane:{plane} panel:{panel} {panel_name} HV:{panel_hv:10.2f}\n')
 
                     else:
-                        f.write(f'station slot:{s:02} id:{station_id:02} plane:{plane} panel:{-1} {-1} HV:{-1}\n')
+                        f.write(f'station slot:{s:02} id:{station_id:02} plane:{plane} panel:{-1} {-1} HV:{-1:10.2f}\n')
 
         f.close()
 #

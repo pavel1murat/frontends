@@ -1,4 +1,8 @@
 <style>
+td, th {
+    outline: 1px solid red !important;
+    background-color: rgba(255, 0, 0, 0.1);
+}
 /* ------------------------------------------------------------------------------
   positioning
 ------------------------------------------------------------------------------ */
@@ -104,6 +108,13 @@ body {
   overflow: hidden;
   border: 1px solid #ccc;
   background-color: #f1f1f1;
+  /* outline: 1px solid red  !important; debugging deature */
+  display: flex;
+  width  : max-content; /* Makes the div only as wide as the buttons */
+}
+
+.dtctabs {
+  flex: 1; /* Optional: ensures buttons take up equal space */
 }
 
 /* Style the buttons inside the tab */
