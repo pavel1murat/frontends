@@ -34,6 +34,7 @@
       td.colspan   = 4;
 
       tr.appendChild(td);
+
       thead.appendChild(tr);
       table.appendChild(thead);
 
@@ -291,14 +292,27 @@
       let thead = document.createElement('thead');
       let tr = document.createElement('tr');
       let td = document.createElement('td');
-      td.colSpan = 8;
+      td.colSpan = 7;
       td.innerHTML = `<div class="mtableheader">Tracker controls</div>`;
       tr.appendChild(td);
-      thead.appendChild(tr);
 
+      td = document.createElement('td');
+      td.colSpan = 3;
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      // td.colSpan = 1;
+      td.innerHTML = `
+        <div class="mtableheader">
+          <a href="https://mu2einternalwiki.fnal.gov/wiki/Tracker_control_page#" target="_blank">help</a>
+        </div>`
+      tr.appendChild(td);
+      thead.appendChild(tr);
+      
+      // ----------------------------------------------------------- 2nd row
       tr = document.createElement('tr');
       td = document.createElement('td');
-      td.colSpan = 8;
+      td.colSpan = 11;
 
       // load tracker config table for active configuration - thus 'trk_config_path'
       let cmd_b = new Command_B('load parameters','load_parameters',mu2e_odb_load_table,'cmd_params',trk_config_path,"trkdtc.log");
@@ -341,17 +355,18 @@
       tr.appendChild(td);
       thead.appendChild(tr);
       tracker_cmd_table.appendChild(thead);
-        
+      
+      // ---------------------------------------------------- body : station buttons
       let tbody = document.createElement('tbody');
       tr = document.createElement('tr');
 
       td = document.createElement('td');
-      td.colSpan = 3;
+      td.colSpan = 5;
       td.innerText = 'Zstation:';
       tr.appendChild(td);
 
       td = document.createElement('td');
-      td.colSpan = 5;
+      td.colSpan = 6;
       
       td.innerHTML = `<div class="tab" id="trk_station_tabs"> </div>`;
       tr.appendChild(td);
@@ -373,7 +388,6 @@
         const div_station_tabs = document.getElementById("trk_station_tabs");
         for (let is=first_station; is<last_station+1; is++) {
           let iss = is.toString().padStart(2,'0');
-          // div_station_tabs.innerHTML += `<button class="trk_station_tab" id='trk_station_${is}' onclick="trk_update_station_id(event,'${is}')">${iss}</button>`
           let btn = document.createElement('button');
           btn.id        = `trk_station_${is}`
           btn.className = 'trk_station_tab';
