@@ -126,7 +126,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
         self.config_name             = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
         self.artdaq_partition_number = self.client.odb_get("/Mu2e/ActiveRunConfiguration/DAQ/PartitionID")
-        self.cmd_top_path            = "/Mu2e/Commands/DAQ/Tfm"
+        self.tfm_cmd_odb_path            = "/Mu2e/Commands/DAQ/Tfm"
         self.tfm_odb_path            = "/Mu2e/ActiveRunConfiguration/DAQ/Tfm"
 
         TRACE.INFO(f'artdaq_partition_number={self.artdaq_partition_number}')
@@ -180,7 +180,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 # register hotlink
 # try to change priority by re-registering the same callback
 #------------------------------------------------------------------------------
-        self.client.odb_watch(self.cmd_top_path+'/Run', self.process_command)
+        self.client.odb_watch(self.tfm_cmd_odb_path+'/Run', self.process_command)
         # self.client.register_transition_callback(midas.TR_START, 502, self._tr_start_callback)
 #------------------------------------------------------------------------------
 # start screen process tailing the logfile
@@ -386,11 +386,13 @@ class TfmFrontend(midas.frontend.FrontendBase):
 # generate fcl's for a given number of artdaq processes for a given run configuration
 # host    = 'all' : generate FCL's for all hosts
 # process = 'all' : generate FCLs for all processes
+# 2026-03-18: TO BE FIXED, remove parameter_path etc
 #------------------------------------------------------------------------------
-    def process_cmd_generate_fcl(self,parameter_path):
+    def process_cmd_generate_fcl(self):
         rc = 0;
         
-        TRACE.TRACE(TRACE.TLVL_INFO,f'-- START: parameter_path:{parameter_path}',TRACE_NAME);
+        TRACE.TRACE(TRACE.TLVL_INFO,f'-- START: TO BE FIXED, RETURN',TRACE_NAME);
+        return rc;
 
         ppath          = parameter_path; # +'/generate_fcl'
         par            = self.client.odb_get(ppath);
@@ -427,19 +429,18 @@ class TfmFrontend(midas.frontend.FrontendBase):
 # 1. set state to BUSY  (1:yellow)
 # 2. print fcl file to artdaq.log
 # 3. set state to READY (0:green)
+# 2026-03-18: validated
 #------------------------------------------------------------------------------
-    def process_cmd_print_fcl(self,parameter_path):
+    def process_cmd_print_fcl(self):
         rc = 0;
         
-        TRACE.INFO(f'-- START: parameter_path:{parameter_path}',TRACE_NAME);
-
-        ppath    = parameter_path; ##            +'/print_fcl'
-        par      = self.client.odb_get(ppath);
-        run_conf = par["run_conf"];
+        par      = self.client.odb_get(self.tfm_cmd_odb_path);
         host     = par["host"    ];
         process  = par["process" ];
 
-        fcl_file = os.getenv("MU2E_DAQ_DIR")+f'/config/artdaq/{run_conf}/{process}.fcl'
+        TRACE.INFO(f'-- START: host:{host} process:{process}',TRACE_NAME);
+
+        fcl_file = os.getenv("MU2E_DAQ_DIR")+f'/config/artdaq/{self.config_name}/{process}.fcl'
         
         TRACE.INFO(f'fcl_file:{fcl_file} logfile:{self.message_fn}',TRACE_NAME);
 #------------------------------------------------------------------------------
@@ -464,19 +465,19 @@ class TfmFrontend(midas.frontend.FrontendBase):
         """
         callback : 
         """
-        run      = self.client.odb_get(self.cmd_top_path+'/Run' )
-        cmd_name = self.client.odb_get(self.cmd_top_path+'/Name')
-        logfile  = self.client.odb_get(self.cmd_top_path+'/logfile')
+        run      = self.client.odb_get(self.tfm_cmd_odb_path+'/Run' )
+        cmd_name = self.client.odb_get(self.tfm_cmd_odb_path+'/Name')
+        logfile  = self.client.odb_get(self.tfm_cmd_odb_path+'/logfile')
         
         TRACE.TRACE(TRACE.TLVL_DEBUG,f'path:{path} cmd_name:{cmd_name} run:{run}',TRACE_NAME);
         if (run != 1):
 #-------^----------------------------------------------------------------------
 # likely, self-resetting the request
 #------------------------------------------------------------------------------
-            TRACE.TRACE(TRACE.TLVL_WARNING,f'{self.cmd_top_path}/Run:{run}, BAIL OUT',TRACE_NAME);
+            TRACE.TRACE(TRACE.TLVL_WARNING,f'{self.tfm_cmd_odb_path}/Run:{run}, BAIL OUT',TRACE_NAME);
             return
 #-------v----------------------------------------------------------------------
-        parameter_path = self.client.odb_get(self.cmd_top_path+'/ParameterPath')
+        parameter_path = self.client.odb_get(self.tfm_cmd_odb_path+'/ParameterPath')
 #------------------------------------------------------------------------------
 # mark TFM as busy
 #------------------------------------------------------------------------------
@@ -490,22 +491,22 @@ class TfmFrontend(midas.frontend.FrontendBase):
         elif (cmd_name.upper() == 'STOP_RUN'):
             rc = self.client.stop_run(True);
         elif (cmd_name.upper() == 'GENERATE_FCL'):
-            rc = self.process_cmd_generate_fcl(parameter_path);
+            rc = self.process_cmd_generate_fcl();
         elif (cmd_name.upper() == 'GET_STATE'):
             rc = self.process_cmd_get_state(parameter_path);
         elif (cmd_name.upper() == 'PRINT_FCL'):
-            rc = self.process_cmd_print_fcl(parameter_path);
+            rc = self.process_cmd_print_fcl();
         elif (cmd_name.upper() == 'RESET_OUTPUT'):
             rc = self.process_cmd_reset_output(parameter_path,logfile);
 #------------------------------------------------------------------------------
 # when done, set state to rc; 0=ready)
 #------------------------------------------------------------------------------
+        self.client.odb_set(self.tfm_cmd_odb_path+'/Run'     ,0)
+        self.client.odb_set(self.tfm_cmd_odb_path+'/Finished',1)
+
         self.client.odb_set(self.tfm_odb_path+'/Status'  ,rc)
-        self.client.odb_set(self.tfm_odb_path+'/Run'     ,0)
-        self.client.odb_set(self.tfm_odb_path+'/Finished',1)
 
         return
-    
 
 
 if __name__ == "__main__":

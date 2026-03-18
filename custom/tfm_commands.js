@@ -265,6 +265,23 @@ async function tfm_command_set_odb_B(cmd) {
 }
 
 //-----------------------------------------------------------------------------
+// input Command_B type, 
+//-----------------------------------------------------------------------------
+async function tfm_node_command_set_odb_B(cmd) {
+  
+  try {
+    const ppath         = cmd.func_parameter_path();
+    const process_label = tfm_get_artdaq_process_label(g_process);
+    const rpc           = await mjsonrpc_db_paste([ppath+'/host',ppath+'/process'], [g_hostname,process_label]);
+    // and after that proceed with the standard part
+    mu2e_command_set_odb_B(cmd);
+  }
+  catch(error) {
+    mjsonrpc_error_alert(error);
+  }
+}
+
+//-----------------------------------------------------------------------------
 // load table with the DTC parameters
 //-----------------------------------------------------------------------------
 function tfm_load_table(table_id,odb_path) {
