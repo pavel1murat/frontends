@@ -83,11 +83,6 @@ async function trk_choose_panel_id(evt, panel_id) {
 }
 
 //-----------------------------------------------------------------------------
-function trk_cmd_parameter_path(cmd) {
-  return '/Mu2e/Commands/Tracker';
-}
-
-//-----------------------------------------------------------------------------
 // and this one updates ODB
 // the command parameters record is expected to be in /Mu2e/Commands/Tracker/TRK/${cmd}
 // TEquipmentTracker will finally update /Finished

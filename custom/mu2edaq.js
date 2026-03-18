@@ -62,8 +62,9 @@ function tfm_config_parameter_path(hostname) { return `/Mu2e/ActiveRunConfigurat
 function test_cmd_parameter_path(cmd) { return `/Mu2e/Commands/Test`; }
 
 //-----------------------------------------------------------------------------
-function trk_config_path(cmd) { return `/Mu2e/ActiveRunConfiguration/Tracker`; }
-function trk_cmd_path   (cmd) { return `/Mu2e/Commands/Tracker`; }
+function trk_config_path       (cmd) { return `/Mu2e/ActiveRunConfiguration/Tracker`; }
+function trk_cmd_parameter_path(cmd) { return '/Mu2e/Commands/Tracker'; }
+function trk_cmd_path          (cmd) { return `/Mu2e/Commands/Tracker`; }
 
 //-----------------------------------------------------------------------------
 function trk_panel_config_path(cmd) {
