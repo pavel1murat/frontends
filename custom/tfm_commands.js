@@ -36,8 +36,9 @@ function tfm_get_node_id(node_name) {
 
   let node_id = null;
   let tabs = document.getElementsByClassName("nodetabs");
+
   for (let i=0; i<tabs.length; i++) {
-    if (node_name == tabs[i].innerText) {
+    if ((node_name == tabs[i].innerText) || (node_name == null)){
       node_id = Number(tabs[i].id.substring(4,7));
       break;
     }
@@ -49,12 +50,15 @@ function tfm_get_node_id(node_name) {
 //-----------------------------------------------------------------------------      
 // node id = 'nodeXXX' - provide for 1000 nodes
 //-----------------------------------------------------------------------------
-function tfm_choose_node_id(evt, id) {
+function tfm_choose_node_id(evt) {
   let i, tabs;
+
   tabs = document.getElementsByClassName("nodetabs");
   for (i=0; i<tabs.length; i++) {
     tabs[i].className = tabs[i].className.replace(" active", "");
   }
+
+  let id = evt.currentTarget.id;
   document.getElementById(id).style.display = "block";
   evt.currentTarget.className += " active";
 
@@ -68,11 +72,13 @@ function tfm_choose_node_id(evt, id) {
 // 'createTable' is a function loading the DTC control page
 // 'id' is the node ID (number)
 //-----------------------------------------------------------------------------
-function tfm_update_node_id(evt,id) {
-  tfm_choose_node_id(evt,id);
+function tfm_update_node_id(evt) {
+  tfm_choose_node_id(evt);
   // this takes active process label as a second parameter - make it null , so the first process
   // becomes the default
-  updateNodeTable(g_node, null);
+  if (g_node != null) {
+    updateNodeTable(g_node, null);
+  }
 }
 
 //-----------------------------------------------------------------------------      

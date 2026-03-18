@@ -158,11 +158,22 @@
     //-----------------------------------------------------------------------------
     const tfm_table     = document.getElementById('tfm_table');
     tfm_table.innerHTML = '';
+    let thead = document.createElement('thead');
       
-    tfm_tbody = document.createElement('tbody');
-    tr1 = document.createElement('tr');
-    tr1.innerHTML ='<td> <div class="mtableheader" colspan=2> Trigger Farm Manager (TFM) </div> </td>';
+    tr = document.createElement('tr');
+    tr.innerHTML ='<td> <div class="mtableheader" colspan=2> Trigger Farm Manager (TFM) </div> </td>';
 
+    td = document.createElement('td');
+    // td.colSpan = 1;
+    td.innerHTML = `
+      <div class="mtableheader">
+        <a href="https://mu2einternalwiki.fnal.gov/wiki/Tracker_control_page#" target="_blank">help</a>
+      </div>`
+    tr.appendChild(td);
+    thead.appendChild(tr);
+    tfm_table.appendChild(thead);
+    
+    tfm_tbody = document.createElement('tbody');
     const  paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes",];
     mjsonrpc_db_get_values(paths).then(function(rpc) {
       let list_of_nodes  = rpc.result.data[0];
@@ -172,6 +183,7 @@
       let div     = null;
       let node_id = 0;
       let nnodes  = 0;
+      let btn;
       
       let new_row = 1;
       for (const key in list_of_nodes) {
@@ -190,17 +202,20 @@
           new_row = 0;
         }
         
-        let btn = document.createElement('button');
+        btn = document.createElement('button');
         btn.className = 'nodetabs';
         if (node.enabled == 0) btn.className += ' disabled';
         btn.id        = 'node'+node_id.toString().padStart(3,'0');
-        btn.onclick   = function() { tfm_update_node_id(event,btn.id); }
+        btn.onclick   = function() { tfm_update_node_id(event); }
         btn.innerHTML = node_name;
         div.appendChild(btn);
         
         nnodes += 1;
         
         if ((node_name == 'mu2e-dl-01') || (nnodes >= 9)) {
+          // the first table head row has two data fields, align
+          td = document.createElement('td');
+          row.appendChild(td);
           tfm_tbody.appendChild(row);
           
           // start new row
@@ -211,6 +226,8 @@
       }
       
       if (nnodes > 0) {
+        td = document.createElement('td');
+        row.appendChild(td);
         tfm_tbody.appendChild(row);
       }
       //-----------------------------------------------------------------------------
@@ -219,16 +236,16 @@
       let tr2 = document.createElement('tr');
       
       let td2     = document.createElement('td');
-      td2.colspan = 2;
+      td2.colSpan = 2;
 
-      let cmd      = new Command('load_parameters','cmd_params','/Mu2e/ActiveRunConfiguration/DAQ/Tfm');
-      let btn      = tfm_make_simple_button(cmd);
+      let cmd   = new Command('load_parameters','cmd_params','/Mu2e/ActiveRunConfiguration/DAQ/Tfm');
+      btn       = tfm_make_simple_button(cmd);
       td2.appendChild(btn);
 
       // output of everything trace-related goes to trace.log
-      let cmd_b  = new Command_B('cleanup','cleanup',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"artdaq.log");
-      let btn_b = tfm_make_exec_button_B(cmd_b);
-      td2.appendChild(btn_b);
+      cmd    = new Command_B('cleanup','cleanup',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"artdaq.log");
+      btn    = tfm_make_exec_button_B(cmd);
+      td2.appendChild(btn);
       //-----------------------------------------------------------------------------
       // create a "get_state" drop-button
       //-----------------------------------------------------------------------------
@@ -236,50 +253,57 @@
       btn = tfm_make_dropup_button(cmd);
       td2.appendChild(btn);
       
-      cmd  = new Command('generate_fcl','cmd_params','/Mu2e/Commands/DAQ/Tfm');
-      let btn1 = tfm_make_dropup_button(cmd);
-      td2.appendChild(btn1);
+      cmd     = new Command('generate_fcl','cmd_params','/Mu2e/Commands/DAQ/Tfm');
+      btn     = tfm_make_dropup_button(cmd);
+      td2.appendChild(btn);
       
       // which logfile the output should go? - artdaq.log
-      cmd_b  = new Command_B('print_fcl','print_fcl',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,"artdaq.log");
-      let btn2 = tfm_make_dropup_button_B(cmd_b);
-      td2.appendChild(btn2);
+      cmd    = new Command_B('print_fcl','print_fcl',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,"artdaq.log");
+      btn    = tfm_make_dropup_button_B(cmd);
+      td2.appendChild(btn);
       
       // output of everything trace-related goes to trace.log
-      cmd_b  = new Command_B('tlvls','tlvls',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      let btn3 = tfm_make_exec_button_B(cmd_b);
-      td2.appendChild(btn3);
+      cmd    = new Command_B('tlvls','tlvls',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn    = tfm_make_exec_button_B(cmd);
+      td2.appendChild(btn);
       
-      cmd_b  = new Command_B('tshow','tshow',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn3 = mu2e_make_dropup_button_B(cmd_b);
-      td2.appendChild(btn3);
+      cmd  = new Command_B('tshow','tshow',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn3 = mu2e_make_dropup_button_B(cmd);
+      td2.appendChild(btn);
       
-      cmd_b  = new Command_B('treset','treset',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn3 = tfm_make_exec_button_B(cmd_b);
-      td2.appendChild(btn3);
+      cmd  = new Command_B('treset','treset',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn  = tfm_make_exec_button_B(cmd);
+      td2.appendChild(btn);
 
-      cmd_b  = new Command_B('tonM','tonM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn3 = tfm_make_exec_button_B(cmd_b);
-      td2.appendChild(btn3);
+      cmd  = new Command_B('tonM','tonM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn  = tfm_make_exec_button_B(cmd);
+      td2.appendChild(btn);
 
-      cmd_b  = new Command_B('toffM','toffM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn3 = tfm_make_exec_button_B(cmd_b);
-      td2.appendChild(btn3);
+      cmd  = new Command_B('toffM','toffM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn3 = tfm_make_exec_button_B(cmd);
+      td2.appendChild(btn);
       
-      cmd_b  = new Command_B('tonS','tonS',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn3 = tfm_make_exec_button_B(cmd_b);
-      td2.appendChild(btn3);
+      cmd  = new Command_B('tonS','tonS',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn = tfm_make_exec_button_B(cmd);
+      td2.appendChild(btn);
 
-      cmd_b  = new Command_B('toffS','toffS',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn3 = tfm_make_exec_button_B(cmd_b);
-      td2.appendChild(btn3);
+      cmd  = new Command_B('toffS','toffS',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
+      btn  = tfm_make_exec_button_B(cmd);
+      td2.appendChild(btn);
       
       // and the last action button not using ODB
       cmd  = new Command_B('reset_output','reset_output',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,null);
-      btn3 = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn3);
+      btn  = tfm_make_exec_button_B(cmd);
+      td2.appendChild(btn);
       
+      cmd  = new Command_B('clear_farm_status','clear_farm_status',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,null);
+      btn  = tfm_make_exec_button_B(cmd);
+      td2.appendChild(btn);
       tr2.appendChild(td2);
+
+      // fill empty space under "help" 
+//      td2 = document.createElement('td');
+//      tr2.appendChild(td2);
       
       tfm_tbody.appendChild(tr2);
       tfm_table.appendChild(tfm_tbody);
@@ -287,7 +311,7 @@
       //-----------------------------------------------------------------------------
       // set active node button
       //-----------------------------------------------------------------------------
-      if (g_hostname != null) {
+      if (g_hostname != 'undefined') {
         g_node = tfm_get_node_id(g_hostname);
       }
       
@@ -308,7 +332,7 @@
     //-----------------------------------------------------------------------------
     //  end
     //-----------------------------------------------------------------------------
-  }    
+  }
 
 //-----------------------------------------------------------------------------
 // loadPage is the function doing the job
