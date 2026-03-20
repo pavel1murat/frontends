@@ -499,9 +499,10 @@ class TfmFrontend(midas.frontend.FrontendBase):
         elif (cmd_name.upper() == 'RESET_OUTPUT'):
             rc = self.process_cmd_reset_output(parameter_path,logfile);
 #------------------------------------------------------------------------------
-# when done, set state to rc; 0=ready)
+# when done, set state to rc; 0=ready ... setting /Run to zero causes an extra call,
+# is that needed ? - not really, comment that out
 #------------------------------------------------------------------------------
-        self.client.odb_set(self.tfm_cmd_odb_path+'/Run'     ,0)
+        # self.client.odb_set(self.tfm_cmd_odb_path+'/Run'     ,0)
         self.client.odb_set(self.tfm_cmd_odb_path+'/Finished',1)
 
         self.client.odb_set(self.tfm_odb_path+'/Status'  ,rc)

@@ -223,6 +223,14 @@ async function tfm_command_set_odb_B(cmd) {
                ppath+'/Run',
                ppath+'/logfile',
   ];
+  
+  // check if previous command ahs finished, if not - bail out
+  let rpc = await mjsonrpc_db_get_values([ppath+'/Finished']);
+  let finished = rpc.result.data[0];
+  if (finished == 0) {
+    console.log(`previous command not finished`);
+    return;
+  }
 
   let logfile = cmd.logfile;
   
@@ -237,24 +245,20 @@ async function tfm_command_set_odb_B(cmd) {
   catch(error) {
     mjsonrpc_error_alert(error);
   };
-  
-  let done = 0;
 
-  while(done == 0) {
-      // check whether the command has finished
-    const paths=[ppath+'/Run', ppath+'/Finished'];
-    let run      = 1;
-    let finished = 0;
+  finished = 0;
+  while (finished != 1) {
+    // check whether the command has finished
+    // somewhere here need to implement timeout
+    const paths=[ppath+'/Finished'];
     sleep(500);
     try {
       let rpc = await mjsonrpc_db_get_values(paths);
-      run      = rpc.result.data[0];
-      finished = rpc.result.data[1];
+      finished = rpc.result.data[0];
     }
     catch(error) {
       mjsonrpc_error_alert(error);
     };
-    done = finished;
   };
   
   // display the logfile. THis is the only non-generic place
