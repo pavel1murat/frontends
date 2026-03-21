@@ -335,8 +335,8 @@ class TfmFrontend(midas.frontend.FrontendBase):
 #
 # clear status of all processes onthe farm in ODB
 #------------------------------------------------------------------------------
-    def clear_farm_status(self,parameter_path):
-        TRACE.INFO(f'-- START: parameter_path:{parameter_path}',TRACE_NAME);
+    def clear_farm_status(self):
+        TRACE.INFO(f'-- START',TRACE_NAME);
         rc = self._fm.clear_farm_status();
         TRACE.INFO(f'-- END  : rc:{rc}',TRACE_NAME);
         
@@ -487,7 +487,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         if   (cmd_name.upper() == 'CONFIGURE'):
             rc = self.process_cmd_configure(parameter_path);
         elif (cmd_name.upper() == 'CLEAR_FARM_STATUS'):
-            rc = self.clear_farm_status(True);
+            rc = self.clear_farm_status();
         elif (cmd_name.upper() == 'STOP_RUN'):
             rc = self.client.stop_run(True);
         elif (cmd_name.upper() == 'GENERATE_FCL'):

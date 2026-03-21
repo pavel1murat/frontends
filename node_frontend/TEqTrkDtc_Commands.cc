@@ -75,7 +75,7 @@ int TEqTrkDtc::DigiRW(std::ostream& Stream) {
   int  print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
    
   printf("dtc_i->fLinkMask: 0x%04x\n",_dtc_i->fLinkMask);
-  rc = _dtc_i->ControlRoc_DigiRW(&par,&pout,link,print_level,Stream);
+  rc = _dtc_i->ControlRoc_DigiRW(&par,&pout,link,print_level,&Stream);
   
   SetStatus(rc);
   TLOG(TLVL_DEBUG) << "--- END";
@@ -1397,7 +1397,7 @@ int TEqTrkDtc::ResetDigis(std::ostream& Stream) {
   
   rc = _dtc_i->ResetDigis(link);
 
-  if (rc == 0) Stream << " -- reset_digis OK";
+  if (rc == 0) Stream << std::format(" -- link:{} reset_digis OK\n",link);
   else         Stream << std::format(" -- ERROR: failed reset_roc link:{} rc:{}\n",link,rc);
   
   SetStatus(rc); 
@@ -1586,10 +1586,12 @@ int TEqTrkDtc::SetRocDelay(HNDLE H_Cmd) {
   HNDLE h_dtc = _odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr());
   _odb_i->SetStatus(h_dtc,1);
 
-  int dtc_delay_5ns = _odb_i->GetInteger(h_dtc,"delay_5ns");
-  TLOG(TLVL_DEBUG) << std::format("dtc_config_path:{} h_dtc:{} dtc_delay_5ns:{:5d}",dtc_config_path,h_dtc,dtc_delay_5ns);
+  int dtc_ewm_delay_5ns = _odb_i->GetInteger(h_dtc,"ewm_delay_5ns");
+  TLOG(TLVL_DEBUG) << std::format("dtc_config_path:{} h_dtc:{} dtc_ewm_delay_5ns:{:5d}",dtc_config_path,h_dtc,dtc_ewm_delay_5ns);
 
-  rc = _dtc_i->SetRocDelay(-1,(uint16_t) dtc_delay_5ns, &sstr);
+  // for now, ignore ROC delays
+
+  rc = _dtc_i->SetRocDelay(-1,(uint16_t) dtc_ewm_delay_5ns, &sstr);
   
   int write_rc = TMu2eEqBase::WriteOutput(sstr.str());
   
