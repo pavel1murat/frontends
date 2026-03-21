@@ -50,7 +50,7 @@ function dtc_config_path(cmd) {
 // address of parameters of the command itself adds '/cmd.name'
 //-----------------------------------------------------------------------------
 function dtc_cmd_parameter_path(cmd) {
-  const path = `/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/${cmd.name}`;
+  const path = `/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}`;
   return path;
 }
 

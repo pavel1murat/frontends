@@ -46,6 +46,7 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
   TLOG(TLVL_DEBUG) << "-- START: H_RunConf:" << H_RunConf << " H_Dtc:" << H_Dtc;
   
   _handle              = H_Dtc;
+  HNDLE h_daq          = _odb_i->GetHandle(H_RunConf,"DAQ");
 
   int dtc_enabled      = _odb_i->GetEnabled       (H_Dtc);
   int pcie_addr        = _odb_i->GetDtcPcieAddress(H_Dtc);
@@ -95,7 +96,10 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     _dtc_i->fJAMode         = _odb_i->GetJAMode           (H_Dtc);
     _dtc_i->fRocLaneMask    = _odb_i->GetUInt32           (H_Dtc,"RocLaneMask");
 
-    _dtc_i->fDtcDelay5ns    = _odb_i->GetInteger          (H_Dtc,"delay_5ns");
+    _dtc_i->fDtcEwmDelay5ns = _odb_i->GetInteger          (H_Dtc,"ewm_delay_5ns");
+
+    _dtc_i->fDigitizationStart5ns = _odb_i->GetInteger    (h_daq,"digitization_start_5ns");
+    _dtc_i->fDigitizationStop5ns  = _odb_i->GetInteger    (h_daq,"digitization_stop_5ns" );
 
     TLOG(TLVL_DEBUG) << "subsystem:"         << subsystem
                      << std::format(" fw_version:0x{:08x}",fw_version)
@@ -104,7 +108,8 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
                      << " sample_edge_mode:" << _dtc_i->fSampleEdgeMode
                      << " event_mode:"       << _dtc_i->fEventMode
                      << " emulate_cfo:"      << _dtc_i->fEmulateCfo
-                     << " roc_lane_mask:0x"  << std::hex << _dtc_i->fRocLaneMask      ;
+                     << std::format(" roc_lane_mask:0x{:04x}",_dtc_i->fRocLaneMask)
+                     << std::format(" DTC ewm_delay_5ns:{}",_dtc_i->fDtcEwmDelay5ns) ;
 //-----------------------------------------------------------------------------
 // loop over links, redefine the enabled link mask (also in ODB)
 // also store in ODB IDs of the ROCs
@@ -145,8 +150,8 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
         _odb_i->SetRocDesignInfo (h_link,design_info);
         _odb_i->SetRocFwGitCommit(h_link,git_commit );
 
-        int roc_delay_5ns = _odb_i->GetInteger(h_link,"delay_5ns");
-        _dtc_i->fRocDelay5ns[i] = roc_delay_5ns;
+        int roc_ewm_delay_5ns      = _odb_i->GetInteger(h_link,"ewm_delay_5ns");
+        _dtc_i->fRocEwmDelay5ns[i] = roc_ewm_delay_5ns;
       }
     }
 //-----------------------------------------------------------------------------
