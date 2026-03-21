@@ -217,6 +217,12 @@ function artdaq_process_control(hostname,process) {
 }
 
 //-----------------------------------------------------------------------------
+function cfo_control(hostname,process) {
+//  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}&facility=tfm`;
+  window.open(`cfo_control.html?hostname=${hostname}&process=${process}`,'_blank');
+}
+
+//-----------------------------------------------------------------------------
 function node_control(hostname) {
 //  window.location.href = `node_control.html?hostname=${hostname}`;
   window.open(`node_control.html?hostname=${hostname}`,'_blank');

@@ -75,7 +75,7 @@ int TEqTrkDtc::DigiRW(std::ostream& Stream) {
   int  print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
    
   printf("dtc_i->fLinkMask: 0x%04x\n",_dtc_i->fLinkMask);
-  rc = _dtc_i->ControlRoc_DigiRW(&par,&pout,link,print_level,&Stream);
+  rc = _dtc_i->ControlRoc_DigiRW(&par,&pout,link,print_level,Stream);
   
   SetStatus(rc);
   TLOG(TLVL_DEBUG) << "--- END";
