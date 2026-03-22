@@ -51,6 +51,7 @@ public:
 //-----------------------------------------------------------------------------
   int         GetNDTCs                (HNDLE h_DB, HNDLE h_CFO, int* NDTCs);
   
+  HNDLE       GetCfoCmdHandle         (HNDLE h_RunConf);
   HNDLE       GetCfoConfHandle        (HNDLE h_RunConf);
 
   uint64_t    GetNEvents              (HNDLE h_DB, HNDLE h_DTC);
@@ -58,19 +59,20 @@ public:
   //  uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);
   // temporarily, back to INT
   int         GetFirstEWTag           (HNDLE h_CFO);
-
-  int         GetCfoEnabled           (HNDLE h_CFO);
+//-----------------------------------------------------------------------------
+// CFO
+//-----------------------------------------------------------------------------
+  // int         GetCfoEnabled           (HNDLE h_CFO);
   int         GetCfoEmulatedMode      (HNDLE h_CFO);
   int         GetCfoEventMode         (HNDLE h_CFO);
   int         GetCfoNEventsPerTrain   (HNDLE h_CFO);
   std::string GetCfoRunPlanDir        ();
   std::string GetCfoRunPlan           (HNDLE h_CFO);
-
   int         GetCfoSleepTime         (HNDLE h_CFO);
 //-----------------------------------------------------------------------------
 // commands
+// 'HostLabel' - short, w/o the domain name
 //------------------------------------------------------------------------------
-                                        // 'HostLabel' - short, w/o the domain name
   std::string GetCmdConfigPath        (std::string& HostLabel, std::string& EqName); // ???? what is this ???
 
   HNDLE       GetCommandHandle        (const std::string& Subsystem);

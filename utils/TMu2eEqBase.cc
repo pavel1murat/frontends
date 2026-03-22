@@ -38,12 +38,12 @@ TMu2eEqBase::~TMu2eEqBase() {
 }
 
 //-----------------------------------------------------------------------------
-int TMu2eEqBase::BeginRun(HNDLE H_RunConf) {
+int TMu2eEqBase::BeginRun(int RunNumber) {
   return 0;
 }
 
 //-----------------------------------------------------------------------------
-int TMu2eEqBase::EndRun(int RunNumber, HNDLE H_RunConf) {
+int TMu2eEqBase::EndRun(int RunNumber) {
   return 0;
 }
 
@@ -110,6 +110,11 @@ void TMu2eEqBase::SetStatus(int Status) {
 //-----------------------------------------------------------------------------
 int TMu2eEqBase::GetStatus() {
   return _odb_i->GetStatus(_handle);
+}
+
+//-----------------------------------------------------------------------------
+int TMu2eEqBase::GetEnabled() {
+  return _odb_i->GetEnabled(_handle);
 }
 
 //-----------------------------------------------------------------------------

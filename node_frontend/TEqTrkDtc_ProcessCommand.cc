@@ -13,7 +13,8 @@
 //-----------------------------------------------------------------------------
 // an equipment item can process commands sent to it only sequentially
 // however different items can run in parallel
-// also, can run command processing as a detached thread 
+// also, can run command processing as a detached thread
+// this function is static - MIDAS callback
 //-----------------------------------------------------------------------------
 void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "-- START";
@@ -346,7 +347,8 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     TLOG(TLVL_ERROR) << ss.str();
   }
 //-----------------------------------------------------------------------------
-// write output to the equipment log - need to revert the line order 
+// write output to the equipment log - need to revert the line order
+// this printout shows up BEFORE the command output
 //-----------------------------------------------------------------------------
   cmd_rc = eq_dtc->WriteOutput(ss.str());
   

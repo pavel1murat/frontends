@@ -229,13 +229,13 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
 //-----------------------------------------------------------------------------
 // can afford printing every time - once per run
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::BeginRun(HNDLE H_RunConf) {
+int TEqTrkDtc::BeginRun(int RunNumber) {
   int rc(0);
     
   TLOG(TLVL_DEBUG) << "-- START: DTC" << _dtc_i->PcieAddr() << ":" << _dtc_i;
 
-  int   event_mode        = _odb_i->GetEventMode     (H_RunConf);
-  int   roc_readout_mode  = _odb_i->GetRocReadoutMode(H_RunConf);
+  int   event_mode        = _odb_i->GetEventMode     (_h_active_run_conf);
+  int   roc_readout_mode  = _odb_i->GetRocReadoutMode(_h_active_run_conf);
 
   TLOG(TLVL_DEBUG) << "event mode:"        << event_mode
                    << " roc_readout_mode:" << roc_readout_mode;
@@ -262,7 +262,7 @@ int TEqTrkDtc::BeginRun(HNDLE H_RunConf) {
 // in the end of run, read out ROC registers and dump them
 // for now, dump $DAQ_OUTPUT_TOP/logs/node_frontend/{:6d}_registers.txt
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::EndRun(int RunNumber, HNDLE H_RunConf) {
+int TEqTrkDtc::EndRun(int RunNumber) {
   int rc(0);
     
   TLOG(TLVL_DEBUG) << "-- START: DTC" << _dtc_i->PcieAddr() << ":" << _dtc_i;

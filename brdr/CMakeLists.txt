@@ -40,7 +40,7 @@ link_directories(${MIDAS_INSTALL_DIR}/lib)
 cet_build_plugin(TrackerBRDR artdaq::commandableGenerator 
                  LIBRARIES REG
                  otsdaq-mu2e-tracker::Ui
-                 artdaq-core-mu2e::Overlays 
+                 artdaq-core-mu2e_Overlays 
                  canvas::canvas 
                  mu2e-pcie-utils::DTCInterface
                  frontends::utils

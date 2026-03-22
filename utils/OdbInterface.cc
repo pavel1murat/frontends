@@ -217,45 +217,28 @@ int OdbInterface::GetInteger(HNDLE hDir, const char* Key, int* Data) {
   return rc;
 }
 
-// obsolete
-// int OdbInterface::GetInteger(HNDLE hDB, HNDLE hDir, const char* Key, int* Data) {
-//   return GetInteger(hDir,Key,Data);
-// }
-
 //-----------------------------------------------------------------------------
 int OdbInterface::GetEnabled(HNDLE hConf) {
-  INT   data;
-  int   sz = sizeof(data);
-  if (db_get_value(_hDB, hConf, "Enabled", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
-    return data;
-  }
-  else {
-    KEY dbkey;
-    db_get_key(_hDB,hConf,&dbkey);
-    TLOG(TLVL_ERROR) << "no " << dbkey.name << ".Enabled field, return 0 (disabled)";
-    return 0;
-  }
+  TLOG(TLVL_DEBUG+1) << "-- START";
+  int enabled = GetInteger(hConf,"Enabled");
+  TLOG(TLVL_DEBUG+1) << "-- END";
+  return enabled;
 }
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetRunNumber() {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   int rn = GetInteger(0,"/Runinfo/Run number");
+  TLOG(TLVL_DEBUG+1) << std::format("-- END rn:{}",rn);
   return rn;
 }
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetStatus(HNDLE hConf) {
-  INT   data;
-  int   sz = sizeof(data);
-  if (db_get_value(_hDB, hConf, "Status", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
-    return data;
-  }
-  else {
-    KEY dbkey;
-    db_get_key(_hDB,hConf,&dbkey);
-    TLOG(TLVL_ERROR) << "no " << dbkey.name << ".Enabled field, return 0 (disabled)";
-    return 0;
-  }
+  TLOG(TLVL_DEBUG+1) << "-- START";
+  int status = GetInteger(hConf,"Status");
+  TLOG(TLVL_DEBUG+1) << std::format("-- END: status:{}",status);
+  return status;
 }
 
 //-----------------------------------------------------------------------------
@@ -275,43 +258,43 @@ HNDLE OdbInterface::GetArtdaqConfHandle(HNDLE h_RunConf, const std::string& Host
 }
 
 HNDLE OdbInterface::GetArtdaqCmdHandle(const std::string& Host) {
-  char path[128];
-  sprintf(path,"/Mu2e/Commands/DAQ/Nodes/%s/Artdaq",Host.data());
+  std::string path = std::format("/Mu2e/Commands/DAQ/Nodes/{}/Artdaq",Host);
   return GetHandle(0,path);
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetCfoConfHandle(HNDLE h_RunConf) {
-  const char* key {"DAQ/CFO"};
-  HNDLE    h(0);
-  
-  if (db_find_key(_hDB, h_RunConf, key, &h) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << "no handle for:" << key << ", got handle=" << h;
-  }
-  return h;
+HNDLE OdbInterface::GetCfoCmdHandle(HNDLE h_RunConf) {
+  return GetHandle(0,"/Mu2e/Commands/DAQ/CFO");
 }
+
+HNDLE OdbInterface::GetCfoConfHandle(HNDLE h_RunConf) {
+  return GetHandle(h_RunConf,"DAQ/CFO");
+}
+
+std::string OdbInterface::GetCfoRunPlan(HNDLE h_Cfo) {
+  TLOG(TLVL_DEBUG+1) << "-- START";
+  std::string s = GetString(h_Cfo,"run_plan");
+  TLOG(TLVL_DEBUG+1) << std::format("-- END run_plan:{}",s);
+  return s;
+}
+
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetCmdConfigPath(std::string& HostLabel, std::string& EqName) {
   return std::format("/Mu2e/Commands/DAQ/Nodes/{}/{}",HostLabel,EqName);
 }
 
-//-----------------------------------------------------------------------------
-int OdbInterface::GetCfoEnabled(HNDLE hCFO) {
-  INT   data;
-  int   sz = sizeof(data);
-  if (db_get_value(_hDB, hCFO, "Enabled", &data, &sz, TID_INT, FALSE) == DB_SUCCESS) {
-    return data;
-  }
-  else {
-    TLOG(TLVL_ERROR) << "no CFO Enabled, return 0 (disabled)";
-    return 0;
-  }
-}
+// //-----------------------------------------------------------------------------
+// int OdbInterface::GetCfoEnabled(HNDLE hCFO) {
+//   TLOG(TLVL_DEBUG+1) << "-- START";
+//   int enabled =  GetInteger(hCFO,"Enabled");
+//   TLOG(TLVL_DEBUG+1) << std::format("-- END enabled:{}",enabled);
+//   return enabled;
+// }
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetCfoEmulatedMode(HNDLE hCFO) {
-  return GetInteger(hCFO,"EmulatedMode");
+  return GetInteger(hCFO,"emulated_mode");
 }
 
 //-----------------------------------------------------------------------------
@@ -404,11 +387,13 @@ std::string OdbInterface::GetRunConfigName(HNDLE hConf) {
 //-----------------------------------------------------------------------------
 int OdbInterface::GetDtcEmulatesCfo(HNDLE hDTC) {
   const char* key {"EmulatesCFO"};
+  TLOG(TLVL_DEBUG+1) << "-- START";
   INT   data(0);       // if not found, want all links to be disabled
   int   sz = sizeof(data);
   if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << key << "not found, return " << data;
   }
+  TLOG(TLVL_DEBUG+1) << "-- END";
   return data;
 }
 
@@ -640,22 +625,6 @@ HNDLE OdbInterface::GetHostConfHandle(const std::string& Host, HNDLE hRunConf) {
 }
 
 //-----------------------------------------------------------------------------
-// stored in "/Mu2e/CfoRunPlanDir" may be an environment variable
-//-----------------------------------------------------------------------------
-std::string OdbInterface::GetCfoRunPlanDir() {
-  std::string s = GetString(_hDB,0,"/Mu2e/CfoRunPlanDir");
-  if (s[0] == '$') {
-    s = getenv(s.substr(1).data());
-  }
-  return s;
-}
-
-//-----------------------------------------------------------------------------
-std::string OdbInterface::GetCfoRunPlan(HNDLE hCFO) {
-  return GetString(_hDB,hCFO,"RunPlan");
-}
-
-//-----------------------------------------------------------------------------
 int OdbInterface::GetPcieAddress(HNDLE hCard) {
   const char* key {"PcieAddress"};
   INT   data(-1);
@@ -721,29 +690,45 @@ int OdbInterface::GetOnSpill(HNDLE h_RunConf) {
 //-----------------------------------------------------------------------------
 // need to substitute the env vars
 //-----------------------------------------------------------------------------
+std::string OdbInterface::GetCfoRunPlanDir() {
+  TLOG(TLVL_DEBUG+1) << "-- START";
+  std::string s = GetString(0,"Mu2e/CfoRunPlanDir");
+  TLOG(TLVL_DEBUG+1) << "-- END";
+
+  return expand_env_vars(s);
+}
+
 std::string OdbInterface::GetConfigDir() {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   std::string s = GetString(0,"Mu2e/ConfigDir");
+  TLOG(TLVL_DEBUG+1) << "-- END";
+
   return expand_env_vars(s);
 }
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetOutputDir() {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   std::string s = GetString(0,"Mu2e/OutputDir");
+  TLOG(TLVL_DEBUG+1) << "-- END";
   return expand_env_vars(s);
 }
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetPrivateSubnet(HNDLE hRunConf) {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   return GetString(hRunConf,"DAQ/PrivateSubnet");
 }
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetPublicSubnet(HNDLE hRunConf) {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   return GetString(hRunConf,"DAQ/PublicSubnet");
 }
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetTfmHostName(HNDLE hRunConf) {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   return GetString(hRunConf,"DAQ/Tfm/RpcHost");
 }
 
@@ -761,22 +746,26 @@ int OdbInterface::SetRocID(HNDLE hLink, std::string& RocID) {
 //-----------------------------------------------------------------------------
 int OdbInterface::SetRocDesignInfo(HNDLE hLink, std::string& DesignInfo) {
   int rc(0);
+  TLOG(TLVL_DEBUG+1) << "-- START";
   HNDLE h = GetHandle(hLink,"DetectorElement/RocDesignInfo");
   if (db_set_data(_hDB,h,(void*) DesignInfo.data(),strlen(DesignInfo.data())+1,1,TID_STRING) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "failed to set design info:" << DesignInfo;
     rc = -1;
   }
+  TLOG(TLVL_DEBUG+1) << "-- END";
   return rc;
 }
 
 //-----------------------------------------------------------------------------
 int OdbInterface::SetRocFwGitCommit(HNDLE hLink, std::string& Commit) {
   int rc(0);
+  TLOG(TLVL_DEBUG+1) << "-- START";
   HNDLE h = GetHandle(hLink,"DetectorElement/RocGitCommit");
   if (db_set_data(_hDB,h,(void*) Commit.data(),strlen(Commit.data())+1,1,TID_STRING) != DB_SUCCESS) {
     TLOG(TLVL_ERROR) << "failed to set git commit:" << Commit;
     rc = -1;
   }
+  TLOG(TLVL_DEBUG+1) << "-- END";
   return rc;
 }
 
@@ -784,39 +773,46 @@ int OdbInterface::SetRocFwGitCommit(HNDLE hLink, std::string& Commit) {
 // commands
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetCommandHandle(const std::string& Subsystem) {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   std::string path = "/Mu2e/Commands/"+Subsystem;
   return GetHandle(0,path);
 }
 
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetCmdParameterHandle(HNDLE h_Cmd) {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   std::string parameter_path = GetString(h_Cmd,"ParameterPath");
   return GetHandle(0,parameter_path);
 }
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetCmdParameterPath(HNDLE h_Cmd) {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   return GetString(h_Cmd,"ParameterPath");
 }
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetCommand_Run(HNDLE h_Cmd) {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   return GetInteger(h_Cmd,"Run");
 }
 
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetCommand_Name(HNDLE h_Cmd) {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   return GetString(h_Cmd,"Name");
 }
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetCommand_Finished(HNDLE h_Cmd) {
+  TLOG(TLVL_DEBUG+1) << "-- START";
   return GetInteger(h_Cmd,"Finished");
 }
 
 //-----------------------------------------------------------------------------
 int OdbInterface::SetArray(HNDLE hDir, const char* Key, int DataType, void* Data, int NElements) {
   int rc(0), sz(0);
+  TLOG(TLVL_DEBUG+1) << "-- START";
 
   if      (DataType == TID_INT32 ) sz= sizeof(int32_t );
   else if (DataType == TID_WORD  ) sz= sizeof(uint16_t);
