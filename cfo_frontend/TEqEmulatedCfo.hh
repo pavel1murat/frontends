@@ -45,7 +45,7 @@ public:
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  TEqEmulatedCfo(const char* Name, const char* Title);
+  TEqEmulatedCfo(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_CfoConf);
   ~TEqEmulatedCfo();
 
   virtual TMFeResult Init          ()                override;

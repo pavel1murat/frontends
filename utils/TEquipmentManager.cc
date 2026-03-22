@@ -133,7 +133,7 @@ TMFeResult TEquipmentManager::HandleBeginRun(int RunNumber)  {
   if (handle_begin_run) {
     for (auto eq: _eq_list) {
                                         // begin run returns either 0 (success) or a negative number
-      rc = eq->BeginRun(_h_active_run_conf);
+      rc = eq->BeginRun(RunNumber);
     }
   }
   
@@ -150,8 +150,8 @@ TMFeResult TEquipmentManager::HandleEndRun   (int RunNumber) {
   fMfe->Msg(MINFO, "HandleEndRun", "End run %d!", RunNumber);
 
   for (auto eq: _eq_list) {
-    // begin run returns either 0 (success) or a negative number
-    rc = eq->EndRun(RunNumber,_h_active_run_conf);
+    // end run returns either 0 (success) or a negative number
+    rc = eq->EndRun(RunNumber);
   }
 
   printf("end_of_run %d\n", RunNumber);

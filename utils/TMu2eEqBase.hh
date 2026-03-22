@@ -22,6 +22,7 @@ public:
     kExm         = 5,
     kArtdaq      = 6,
     kDisk        = 7,
+    kDaq         = 8,
   };
   
   std::string   _name;                  // equipment name, for now: 'DTC0','DTC1','ARTDAQ','DISK' (capitalized)
@@ -52,6 +53,7 @@ public:
   std::string&        HostLabel   () { return _host_label    ; }
   std::string&        FullHostName() { return _full_host_name; }
   int                 GetStatus   ();
+  int                 GetEnabled  ();
 
   OdbInterface*       Odb_i       () { return _odb_i         ; }
 
@@ -70,7 +72,7 @@ public:
   virtual int         InitVarNames       ();
   virtual int         HandlePeriodic     ();
   virtual int         CheckAlarms        ();
-  virtual int         BeginRun           (HNDLE H_RunConf);
-  virtual int         EndRun             (int RunNumber, HNDLE H_RunConf);
+  virtual int         BeginRun           (int RunNumber);
+  virtual int         EndRun             (int RunNumber);
 };
 #endif

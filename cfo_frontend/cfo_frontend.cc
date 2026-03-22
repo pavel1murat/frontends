@@ -21,7 +21,7 @@
 #include "utils/utils.hh"
 #include "utils/TEquipmentManager.hh"
 #include "cfo_frontend/TEqEmulatedCfo.hh"
-#include "cfo_frontend/TEqExternalCfo.hh"
+#include "cfo_frontend/TEqHardwareCfo.hh"
 
 //-----------------------------------------------------------------------------
 class CfoFrontend: public TMFrontend {
@@ -72,7 +72,7 @@ CfoFrontend::CfoFrontend() : TMFrontend() {
 // at this point, the connection to ODB is already established
 //-----------------------------------------------------------------------------
 TMFeResult CfoFrontend::HandleFrontendInit(const std::vector<std::string>& args) {
-  int        rc(0);
+  // int        rc(0);
   TMFeResult res(TMFeOk());
   
   TLOG(TLVL_DEBUG) << std::format("-- START");
@@ -86,34 +86,24 @@ TMFeResult CfoFrontend::HandleFrontendInit(const std::vector<std::string>& args)
 //-----------------------------------------------------------------------------
 // expected equipment: emulated or 'external' CFO
 //-----------------------------------------------------------------------------
-  OdbInterface* odb_i     = OdbInterface::Instance();
+  OdbInterface* odb_i = OdbInterface::Instance();
 
-  // _h_daq_host_conf        = odb_i->GetHostConfHandle(_host_label);
-
-  HNDLE h_active_run_conf = odb_i->GetActiveRunConfigHandle();
-  HNDLE h_cfo_conf        = odb_i->GetCfoConfHandle(h_active_run_conf);
-  int emulated_mode       = odb_i->GetCfoEmulatedMode(h_cfo_conf);
+  HNDLE h_run_conf    = odb_i->GetActiveRunConfigHandle();
+  HNDLE h_cfo_conf    = odb_i->GetCfoConfHandle(h_run_conf);
+  int   emulated_mode = odb_i->GetCfoEmulatedMode(h_cfo_conf);
 
   TMu2eEqBase* eq(nullptr);
   if (emulated_mode == 1) {
-    eq = (TMu2eEqBase*) new TEqEmulatedCfo("CFO","CFO");
+    eq = (TMu2eEqBase*) new TEqEmulatedCfo("CFO","CFO",h_run_conf,h_cfo_conf);
   }
   else if (emulated_mode == 0) {
-    eq = (TMu2eEqBase*) new TEqExternalCfo("CFO","CFO");
-  }
-  else {
-    std::string msg = std::format("undefined CFO emulated mode:{}. BAIL OUT",emulated_mode);
-    TLOG(TLVL_ERROR) << msg;
-    rc = -1;
-    res = TMFeResult(rc,msg);
+    eq = (TMu2eEqBase*) new TEqHardwareCfo("CFO","CFO",h_run_conf,h_cfo_conf);
   }
 
-  if (rc == 0) {
-    eqm->AddEquipmentItem(eq);
-    // add eq to the list of equipment pieces
-    // equipment stores backward pointer to the frontend
-    FeAddEquipment(eqm);
-  }
+  eqm->AddEquipmentItem(eq);
+                                        // add eq to the list of equipment pieces
+                                        // equipment stores backward pointer to the frontend
+  FeAddEquipment(eqm);
     
   TLOG(TLVL_DEBUG) << std::format("-- END");
   return res;

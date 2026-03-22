@@ -35,7 +35,7 @@ cet_make_exec(NAME      cfo_emu_frontend
 cet_make_exec(NAME      cfo_frontend
               SOURCE    cfo_frontend.cc 
                         TEqEmulatedCfo.cc 
-                        TEqExternalCfo.cc 
+                        TEqHardwareCfo.cc TEqHardwareCfo_ProcessCommand.cc TEqHardwareCfo_Commands.cc 
                         #                      TEquipmentCfo_Rpc.cc 
               LIBRARIES frontends_utils
                         otsdaq-mu2e-tracker::Ui

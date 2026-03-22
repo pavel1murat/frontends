@@ -79,50 +79,73 @@ TMFeResult NodeFrontend::HandleFrontendInit(const std::vector<std::string>& args
 // expected types of equipment
 // 1. DTC's
 //-----------------------------------------------------------------------------
-  OdbInterface* odb_i     = OdbInterface::Instance();
+  OdbInterface* odb_i = OdbInterface::Instance();
 
-  _h_daq_host_conf        = odb_i->GetHostConfHandle(_host_label);
-
-  HNDLE hdb               = odb_i->GetDbHandle();
-  HNDLE h_active_run_conf = odb_i->GetActiveRunConfigHandle();
-  HNDLE h_artdaq_conf     = odb_i->GetArtdaqConfHandle(h_active_run_conf,_host_label);
-
+  HNDLE hdb           = odb_i->GetDbHandle();
+  HNDLE h_run_conf    = odb_i->GetActiveRunConfigHandle();
+  HNDLE h_artdaq_conf = odb_i->GetArtdaqConfHandle(h_run_conf,_host_label);
+//-----------------------------------------------------------------------------
+// loop over subkeys in the directory - it may have a variable format - CFO vs DTC, for example
+//-----------------------------------------------------------------------------
   HNDLE h_i;
-  KEY   k_i;
-
   for (int i=0; db_enum_key(hdb,_h_daq_host_conf,i,&h_i) != DB_NO_MORE_SUBKEYS; i++) {
 //-----------------------------------------------------------------------------
 // skip 'Artdaq','Disk', etc folders
 //-----------------------------------------------------------------------------
-    db_get_key(hdb,h_i,&k_i);
+    KEY   key;
+    db_get_key(hdb,h_i,&key);
     
-    TLOG(TLVL_DEBUG) << "k[i].name:" << k_i.name;
+    TLOG(TLVL_DEBUG) << std::format("i:{:2} key[i].name:",i,key.name);
     
-    if (strstr(k_i.name,"DTC") != k_i.name)           continue;
+    if (strstr(key.name,"DTC") == key.name) {
 //-----------------------------------------------------------------------------
 // equipment names are capitalized, command names - not necessarily
 // name is 'DTC0' or 'DTC1' , capitalize the subsystem name
 // DTC name stub in ODB is also fully capitalized
 //-----------------------------------------------------------------------------
-    std::string subsystem = odb_i->GetString(h_i,"Subsystem");
-    std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
-    int dtc_enabled       = odb_i->GetEnabled(h_i);
-    int pcie_addr         = odb_i->GetInteger(h_i,"PcieAddress");
+      std::string subsystem = odb_i->GetString(h_i,"Subsystem");
+      std::transform(subsystem.begin(),subsystem.end(),subsystem.begin(),::toupper);
+      int enabled           = odb_i->GetEnabled(h_i);
+      int pcie_addr         = odb_i->GetInteger(h_i,"PcieAddress");
 
-    TLOG(TLVL_DEBUG) << std::format("subsystem:{} pcie_addr:{} enabled:{}",subsystem,pcie_addr,dtc_enabled);
+      TLOG(TLVL_DEBUG) << std::format("subsystem:{} pcie_addr:{} enabled:{}",subsystem,pcie_addr,enabled);
    
-    if (dtc_enabled) {
-      std::string name = std::format("DTC{}",pcie_addr);
-      TMu2eEqBase* eq;
-      if      (subsystem == "CRV"    ) {
-        eq = (TMu2eEqBase*) new TEqCrvDtc(name.data(),name.data(),h_active_run_conf,h_i);
+      if (enabled) {
+        std::string name = std::format("DTC{}",pcie_addr);
+        TMu2eEqBase* eq;
+        if      (subsystem == "CRV"    ) {
+          eq = (TMu2eEqBase*) new TEqCrvDtc(name.data(),name.data(),h_run_conf,h_i);
+        }
+        else if (subsystem == "TRACKER") {
+          eq = (TMu2eEqBase*) new TEqTrkDtc(name.data(),name.data(),h_run_conf,h_i);
+        }
+        eqm->AddEquipmentItem(eq);
+        TLOG(TLVL_DEBUG) << std::format("subsystem:{} name:{} title:{}",eq->Subsystem(),eq->Name(),eq->Title());
       }
-      else if (subsystem == "TRACKER") {
-        eq = (TMu2eEqBase*) new TEqTrkDtc(name.data(),name.data(),h_active_run_conf,h_i);
-      }
-      eqm->AddEquipmentItem(eq);
-      TLOG(TLVL_DEBUG) << std::format("subsystem:{} name:{} title:{}",eq->Subsystem(),eq->Name(),eq->Title());
     }
+//     else if (strstr(key.name,"CFO") == key.name) {
+// //-----------------------------------------------------------------------------
+// // future - CFO also handled by the node_frontend, not now...CFO: emulated of hardware
+// //-----------------------------------------------------------------------------
+//       int enabled       = odb_i->GetEnabled(h_i);
+//       int pcie_addr     = odb_i->GetInteger(h_i,"PcieAddress");
+
+//       TLOG(TLVL_DEBUG) << std::format("pcie_addr:{} enabled:{}",pcie_addr,enabled);
+   
+//       if (enabled) {
+//                                         // there is only one CFO
+//         TMu2eEqBase* eq;
+//         int emulated_mode = odb_i->GetInteger(h_i,"emulated_mode");
+//         if (emulated_mode == 1) {
+//           eq = (TMu2eEqBase*) new TEmulatedCfo("CFO","CFO",h_active_run_conf,h_i);
+//         }
+//         else {
+//           eq = (TMu2eEqBase*) new THardwareCfo("CFO","CFO",h_active_run_conf,h_i);
+//         }
+//         eqm->AddEquipmentItem(eq);
+//         TLOG(TLVL_DEBUG) << std::format("added CFO: subsystem:{} name:{} title:{}",eq->Subsystem(),eq->Name(),eq->Title());
+//       }
+//     }
   }
 //-----------------------------------------------------------------------------
 // 2. ARTDAQ

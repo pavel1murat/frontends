@@ -63,8 +63,8 @@ public:
   
   int         ReadRocRegisters (int Link, const std::vector<int>& Registers, std::vector<uint32_t>& RegData);
   
-  virtual int BeginRun         (HNDLE H_RunConf) override;
-  virtual int EndRun           (int RunNumber, HNDLE H_RunConf) override;
+  virtual int BeginRun         (int RunNumber) override;
+  virtual int EndRun           (int RunNumber) override;
   
   int         ConfigureJA      (std::ostream& Stream);
   int         DigiRW           (std::ostream& Stream);
