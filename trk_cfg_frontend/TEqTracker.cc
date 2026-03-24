@@ -24,21 +24,14 @@ TEqTracker::TEqTracker(const char* Name, const char* Title): TMu2eEqBase(Name,Ti
 //-----------------------------------------------------------------------------
 // cache the ODB handle, as need to loop over the keys in InitArtdaq
 //-----------------------------------------------------------------------------
-  _odb_i                      = OdbInterface::Instance();
-  _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
-  std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
-  std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
-  std::string active_run_conf = _odb_i->GetRunConfigName(_h_active_run_conf);
+  // std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
+  // std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
+  // std::string active_run_conf = _odb_i->GetRunConfigName(_h_active_run_conf);
 //-----------------------------------------------------------------------------
 // now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
 // nodes/DTC's to be monitored 
 // MIDAS 'host_name' could be 'local'..
 //-----------------------------------------------------------------------------
-  _host_label     = get_short_host_name(public_subnet.data());
-  _full_host_name = get_full_host_name (private_subnet.data());
-
-  _h_daq_host_conf = _odb_i->GetHostConfHandle(_host_label);
-
   _ss_ac_path      = "/Mu2e/ActiveRunConfiguration/Tracker";
   _h_tracker_conf  = _odb_i->GetHandle(0,_ss_ac_path);
 

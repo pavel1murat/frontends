@@ -35,9 +35,11 @@ midas_host=${midas_host%?}
 echo LINENO:$LINENO verbose=$verbose remote_mode=$remote_node midas_host:$midas_host
 
 if   [ $remote_node == $local_node ] ; then
+    # local node
     logdir=$DAQ_OUTPUT_TOP/logs/$frontend; if [ ! -d $logdir ] ; then mkdir -p $logdir ; fi
-    $frontend -h $midas_host:$midas_port >| $DAQ_OUTPUT_TOP/logs/$frontend/$frontend.$local_node.log 2>&1 &
+    $frontend >| $DAQ_OUTPUT_TOP/logs/$frontend/$frontend.$local_node.log 2>&1 &
 else
+    # remote node
     cmd="export MU2E_DAQ_DIR=$MU2E_DAQ_DIR"
     cmd=$cmd"; cd $MU2E_DAQ_DIR"
     cmd=$cmd"; source setup_daq.sh $spack_env"

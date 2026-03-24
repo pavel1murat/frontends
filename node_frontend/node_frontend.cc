@@ -31,10 +31,7 @@ class NodeFrontend: public TMFrontend {
 public:
 
   std::string           _host_label;
-  // std::ofstream         _fout;
   std::streambuf*       _coutbuf;
-
-  HNDLE                 _h_daq_host_conf;
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -84,18 +81,19 @@ TMFeResult NodeFrontend::HandleFrontendInit(const std::vector<std::string>& args
   HNDLE hdb           = odb_i->GetDbHandle();
   HNDLE h_run_conf    = odb_i->GetActiveRunConfigHandle();
   HNDLE h_artdaq_conf = odb_i->GetArtdaqConfHandle(h_run_conf,_host_label);
+  HNDLE h_host_conf   = odb_i->GetHostConfHandle(h_run_conf,_host_label);
 //-----------------------------------------------------------------------------
 // loop over subkeys in the directory - it may have a variable format - CFO vs DTC, for example
 //-----------------------------------------------------------------------------
   HNDLE h_i;
-  for (int i=0; db_enum_key(hdb,_h_daq_host_conf,i,&h_i) != DB_NO_MORE_SUBKEYS; i++) {
+  for (int i=0; db_enum_key(hdb,h_host_conf,i,&h_i) != DB_NO_MORE_SUBKEYS; i++) {
 //-----------------------------------------------------------------------------
 // skip 'Artdaq','Disk', etc folders
 //-----------------------------------------------------------------------------
     KEY   key;
     db_get_key(hdb,h_i,&key);
     
-    TLOG(TLVL_DEBUG) << std::format("i:{:2} key[i].name:",i,key.name);
+    TLOG(TLVL_DEBUG) << std::format("i:{:2} key[i].name:() key[i].type:{}",i,key.name,key.type);
     
     if (strstr(key.name,"DTC") == key.name) {
 //-----------------------------------------------------------------------------
@@ -155,7 +153,7 @@ TMFeResult NodeFrontend::HandleFrontendInit(const std::vector<std::string>& args
     eqm->AddEquipmentItem(eq);
   }
 //-----------------------------------------------------------------------------
-// 3. disk
+// 3. disk - always ??? - where does the status come from ?
 //-----------------------------------------------------------------------------
   TEqDisk* eq_disk = new TEqDisk("DISK","Disk");
   eqm->AddEquipmentItem(eq_disk); // _eq_list.emplace_back(eq_disk);

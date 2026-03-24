@@ -96,10 +96,10 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     _dtc_i->fJAMode         = _odb_i->GetJAMode           (H_Dtc);
     _dtc_i->fRocLaneMask    = _odb_i->GetUInt32           (H_Dtc,"RocLaneMask");
 
-    _dtc_i->fDtcEwmDelay5ns = _odb_i->GetInteger          (H_Dtc,"ewm_delay_5ns");
+    //    _dtc_i->fDtcEwmDelay5ns = _odb_i->GetInteger          (H_Dtc,"ewm_delay_5ns");
 
-    _dtc_i->fDigitizationStart5ns = _odb_i->GetInteger    (h_daq,"digitization_start_5ns");
-    _dtc_i->fDigitizationStop5ns  = _odb_i->GetInteger    (h_daq,"digitization_stop_5ns" );
+    // _dtc_i->fDigitizationStart5ns = _odb_i->GetInteger    (h_daq,"digitization_start_5ns");
+    // _dtc_i->fDigitizationStop5ns  = _odb_i->GetInteger    (h_daq,"digitization_stop_5ns" );
 
     TLOG(TLVL_DEBUG) << "subsystem:"         << subsystem
                      << std::format(" fw_version:0x{:08x}",fw_version)
@@ -108,8 +108,8 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
                      << " sample_edge_mode:" << _dtc_i->fSampleEdgeMode
                      << " event_mode:"       << _dtc_i->fEventMode
                      << " emulate_cfo:"      << _dtc_i->fEmulateCfo
-                     << std::format(" roc_lane_mask:0x{:04x}",_dtc_i->fRocLaneMask)
-                     << std::format(" DTC ewm_delay_5ns:{}",_dtc_i->fDtcEwmDelay5ns) ;
+                     << std::format(" roc_lane_mask:0x{:04x}",_dtc_i->fRocLaneMask) ;
+    //                     << std::format(" DTC ewm_delay_5ns:{}",_dtc_i->fDtcEwmDelay5ns) ;
 //-----------------------------------------------------------------------------
 // loop over links, redefine the enabled link mask (also in ODB)
 // also store in ODB IDs of the ROCs
@@ -220,7 +220,7 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
   }
   
   std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-  _logfile             = std::format("{}/trkdtc.log",data_dir);
+  _logfile             = std::format("{}trkdtc.log",data_dir);
 
   TLOG(TLVL_DEBUG) << "-- END";
 }

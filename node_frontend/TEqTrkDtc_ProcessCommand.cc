@@ -61,6 +61,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   std::string cmd            = odb_i->GetString (h_cmd,"Name");
   std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
   int link                   = odb_i->GetInteger(h_cmd,"link");
+  std::string logfile        = odb_i->GetString (h_cmd,"logfile");
 //-----------------------------------------------------------------------------
 // this is address of the parameter record
 //-----------------------------------------------------------------------------
@@ -71,11 +72,11 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   TEquipmentManager* eqm = TEquipmentManager::Instance();
 
   std::string eq_name = std::format("DTC{}",pcie_addr);
-  TEqTrkDtc*            eq_dtc = (TEqTrkDtc*) eqm->FindEquipmentItem(eq_name);
-  trkdaq::DtcInterface* dtc_i  = eq_dtc->Dtc_i();
+  TEqTrkDtc*            eq = (TEqTrkDtc*) eqm->FindEquipmentItem(eq_name);
+  trkdaq::DtcInterface* dtc_i  = eq->Dtc_i();
 
   ss << std::format("-- label:{} host:{} cmd:{} pcie_addr:{} link:{}",
-                    eq_dtc->HostLabel(),eq_dtc->FullHostName(),cmd,dtc_i->PcieAddr(),link);
+                    eq->HostLabel(),eq->FullHostName(),cmd,dtc_i->PcieAddr(),link);
 //-----------------------------------------------------------------------------
 // CONFIGURE_JA
 //------------------------------------------------------------------------------
@@ -97,13 +98,13 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     TLOG(TLVL_DEBUG) << std::format("arrived at {}",cmd);
  
-    cmd_rc = eq_dtc->DumpSettings(ss);
+    cmd_rc = eq->DumpSettings(ss);
   }
 //-----------------------------------------------------------------------------
 // FIND_ALIGNMENT
 //-----------------------------------------------------------------------------
   else if (cmd == "find_alignment") {
-    std::thread t(&TEqTrkDtc::FindAlignment,eq_dtc,h_cmd);
+    std::thread t(&TEqTrkDtc::FindAlignment,eq,h_cmd);
     t.detach();
   }
 //-----------------------------------------------------------------------------
@@ -111,28 +112,28 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
   else if (cmd == "find_thresholds") {
     ss << std::endl;
-    cmd_rc = eq_dtc->FindThresholds(ss);
+    cmd_rc = eq->FindThresholds(ss);
   }
 //-----------------------------------------------------------------------------
 // GET KEY ... TODO
 //-----------------------------------------------------------------------------
   else if (cmd == "get_key") {
     ss << std::endl;
-    cmd_rc = eq_dtc->GetKey(ss);
+    cmd_rc = eq->GetKey(ss);
   }
   else if (cmd == "digi_rw") {
 //-----------------------------------------------------------------------------
 // CONTROL_ROC_DIGI_RW
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->DigiRW(ss);
+    cmd_rc = eq->DigiRW(ss);
   }
   else if (cmd == "get_design_info") {
 //-----------------------------------------------------------------------------
 // get ROC design info - print output of 3 separate commands together
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->GetRocDesignInfo(ss);
+    cmd_rc = eq->GetRocDesignInfo(ss);
   }
   else if (cmd == "hard_reset") {
 //-----------------------------------------------------------------------------
@@ -152,22 +153,20 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // init_readout
 //-----------------------------------------------------------------------------
-    cmd_rc = eq_dtc->InitReadout(ss);
+    cmd_rc = eq->InitReadout(ss);
   }
 //-----------------------------------------------------------------------------
 // LOAD_THRESHOLDS - execute per-DTC commands as threads
 //-----------------------------------------------------------------------------
   else if (cmd == "load_thresholds") {
-    std::thread t(&TEqTrkDtc::LoadThresholds,eq_dtc,h_cmd);
+    std::thread t(&TEqTrkDtc::LoadThresholds,eq,h_cmd);
     t.detach();
   }
 //-----------------------------------------------------------------------------
 // MEASURE_THRESHOLDS
 //-----------------------------------------------------------------------------
   else if (cmd == "measure_thresholds") {
-    // ss << std::endl;
-    // cmd_rc = eq_dtc->MeasureThresholds(ss);
-    std::thread t(&TEqTrkDtc::MeasureThresholds,eq_dtc,h_cmd);
+    std::thread t(&TEqTrkDtc::MeasureThresholds,eq,h_cmd);
     t.detach();
   }
 //-----------------------------------------------------------------------------
@@ -186,32 +185,29 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // PRINT ROC STATUS
 //-----------------------------------------------------------------------------
   else if (cmd == "print_roc_status") {
-    ss << std::endl;
-    try {
-      cmd_rc = eq_dtc->PrintRocStatus(ss);
-    }
-    catch (...) { ss << " ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
+    std::thread t(&TEqTrkDtc::PrintRocStatus,eq,h_cmd);
+    t.detach();
   }  
   else if (cmd == "pulser_off") {
 //-----------------------------------------------------------------------------
 // PULSER_OFF
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->PulserOff(ss);
+    cmd_rc = eq->PulserOff(ss);
   }
   else if (cmd == "program_roc") {
 //-----------------------------------------------------------------------------
 // PROGRAM_ROC
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->ProgramRoc(ss);
+    cmd_rc = eq->ProgramRoc(ss);
   }
   else if (cmd == "pulser_on") {
 //-----------------------------------------------------------------------------
 // PULSER_ON
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->PulserOn(ss);
+    cmd_rc = eq->PulserOn(ss);
   }
   else if (cmd == "rates") {
 //-----------------------------------------------------------------------------
@@ -220,70 +216,77 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at rates";
  
-    cmd_rc = eq_dtc->Rates(ss);
+    cmd_rc = eq->Rates(ss);
   }
   else if (cmd == "read") {
 //-----------------------------------------------------------------------------
 // CONTROL_ROC_READ : link comes from ODB
 //-----------------------------------------------------------------------------
-    eq_dtc->Read(ss);
+    eq->Read(ss);
   }
   else if (cmd == "read_ddr") {
     ss << std::endl;
-    cmd_rc = eq_dtc->ReadDDR(ss);
+    cmd_rc = eq->ReadDDR(ss);
   }
   else if (cmd == "read_device_id") {
 //-----------------------------------------------------------------------------
 // read device ID
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->ReadDeviceID(ss);
+    cmd_rc = eq->ReadDeviceID(ss);
   }
   else if (cmd == "read_mnid") {
 //-----------------------------------------------------------------------------
 // read panel MinnesotaID
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->ReadMnID(ss);
+    cmd_rc = eq->ReadMnID(ss);
   }
   else if (cmd == "read_ilp") {
 //-----------------------------------------------------------------------------
 // read ILP
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->ReadIlp(ss);
+    cmd_rc = eq->ReadIlp(ss);
   }
   else if (cmd == "read_register") {
 //-----------------------------------------------------------------------------
 // read ILP
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->ReadRegister(ss);
+    cmd_rc = eq->ReadRegister(ss);
   }
   else if (cmd == "read_roc_register") {
 //-----------------------------------------------------------------------------
 // read ROC register
 //-----------------------------------------------------------------------------
-    cmd_rc = eq_dtc->ReadRocRegister(ss);
+    cmd_rc = eq->ReadRocRegister(ss);
   }
   else if (cmd == "read_spi") {
 //-----------------------------------------------------------------------------
 // get formatted SPI output for a given ROC
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->ReadSpi(ss);
+    cmd_rc = eq->ReadSpi(ss);
+  }
+//-----------------------------------------------------------------------------
+// READ_SUBEVENTS (interactive readout test)
+//-----------------------------------------------------------------------------
+  else if (cmd == "read_subevents") {
+    std::thread t(&TEqTrkDtc::ReadSubevents,eq,h_cmd);
+    t.detach();
   }
   else if (cmd == "reboot_mcu") {
-    cmd_rc = eq_dtc->RebootMcu(ss);
+    cmd_rc = eq->RebootMcu(ss);
   }
   else if (cmd == "reset_output") {
-    cmd_rc = eq_dtc->ResetOutput();
+    cmd_rc = eq->ResetOutput();
   }
   else if (cmd == "reset_digis") {
-    cmd_rc = eq_dtc->ResetDigis(ss);
+    cmd_rc = eq->ResetDigis(ss);
   }
   else if (cmd == "reset_roc") {
-    cmd_rc = eq_dtc->ResetRoc(ss);
+    cmd_rc = eq->ResetRoc(ss);
   }
 //-----------------------------------------------------------------------------
 // RESET ROC
@@ -292,20 +295,20 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     TLOG(TLVL_DEBUG) << "arrived at set_caldaq";
  
-     cmd_rc = eq_dtc->SetCalDac(ss);
+     cmd_rc = eq->SetCalDac(ss);
   }
 //-----------------------------------------------------------------------------
 // SET ROC DELAY(s)
 //-----------------------------------------------------------------------------
   else if (cmd == "set_roc_delays") {
-    std::thread t(&TEqTrkDtc::SetRocDelay,eq_dtc,h_cmd);
+    std::thread t(&TEqTrkDtc::SetRocDelay,eq,h_cmd);
     t.detach();
   }
 //-----------------------------------------------------------------------------
 // LOASET_THRESHOLDS
 //-----------------------------------------------------------------------------
   else if (cmd == "set_thresholds") {
-    std::thread t(&TEqTrkDtc::SetThresholds,eq_dtc,h_cmd);
+    std::thread t(&TEqTrkDtc::SetThresholds,eq,h_cmd);
     t.detach();
   }
   else if (cmd == "soft_reset") {
@@ -327,20 +330,20 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // what starts the thread ??  - this is open so far
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->TestCommand(ss);
+    cmd_rc = eq->TestCommand(ss);
   }
   else if (cmd == "write_register") {
 //-----------------------------------------------------------------------------
 // WRITE_REGISTER
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->WriteRegister(ss);
+    cmd_rc = eq->WriteRegister(ss);
   }
   else if (cmd == "write_roc_register") {
 //-----------------------------------------------------------------------------
 // WRITE_ROC_REGISTER
 //-----------------------------------------------------------------------------
-    cmd_rc = eq_dtc->WriteRocRegister(ss);
+    cmd_rc = eq->WriteRocRegister(ss);
   }
   else {
     ss << " ERROR: Unknown command:" << cmd;
@@ -350,7 +353,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // write output to the equipment log - need to revert the line order
 // this printout shows up BEFORE the command output
 //-----------------------------------------------------------------------------
-  cmd_rc = eq_dtc->WriteOutput(ss.str());
+  cmd_rc = eq->WriteOutput(ss.str(),logfile);
   
   TLOG(TLVL_DEBUG) << "-- END:" << " cmd_rc:" << cmd_rc;
 }

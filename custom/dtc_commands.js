@@ -161,19 +161,19 @@ async function dtc_command_set_odb_B(cmd) {
   
   if (logfile == null) { logfile   = g_logfile; }
   else                 { g_logfile = logfile  ; }
-//-----------------------------------------------------------------------------
-// passing parameters
-//-----------------------------------------------------------------------------
-  const paths=[ppath+'/Name',
-               ppath+'/ParameterPath',
-               ppath+'/Run',
-               ppath+'/logfile',
-  ];
+    //-----------------------------------------------------------------------------
+    // passing parameters, setting Run to 1 sets everythign in action
+    //-----------------------------------------------------------------------------
+    const paths=[ppath+'/Name',
+                 ppath+'/ParameterPath',
+                 ppath+'/logfile',
+                 ppath+'/Run',
+    ];
 
-  try {
-    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,1,logfile]);
-    let result=rpc.result;	      
-  }
+    try {
+        let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,logfile,1]);
+        let result=rpc.result;	      
+    }
   catch(error) {
     mjsonrpc_error_alert(error);
   };

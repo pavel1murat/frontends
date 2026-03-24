@@ -71,17 +71,17 @@ TEqArtdaq::TEqArtdaq(const char* Name, const char* Title) : TMu2eEqBase(Name,Tit
 //-----------------------------------------------------------------------------
 // read ARTDAQ configuration from ODB
 //-----------------------------------------------------------------------------
-  HNDLE hdb           = _odb_i->GetDbHandle();
-  HNDLE h_artdaq_conf = _odb_i->GetArtdaqConfHandle(_h_active_run_conf,_host_label);
-  int partition_id    = _odb_i->GetPartitionID(_h_active_run_conf);
-  
+  _handle           = _odb_i->GetArtdaqConfHandle(_h_active_run_conf,_host_label);
+  int partition_id  = _odb_i->GetPartitionID(_h_active_run_conf);
+
+  HNDLE hdb = _odb_i->GetDbHandle();
   HNDLE h_component;
   KEY   component;
-  for (int i=0; db_enum_key(hdb, h_artdaq_conf, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
+  for (int i=0; db_enum_key(hdb, _handle, i, &h_component) != DB_NO_MORE_SUBKEYS; ++i) {
 //-----------------------------------------------------------------------------
 // use the component label 
 // component names:
-//                   brxx - board readers
+//                   brxx - board readers, br00 reads CFO
 //                   ebxx - event builders
 //                   dlxx - data loggers
 //                   dsxx - dispatchers
@@ -155,7 +155,7 @@ TEqArtdaq::TEqArtdaq(const char* Name, const char* Title) : TMu2eEqBase(Name,Tit
   }
 
   std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-  _logfile             = std::format("{}/artdaq.log",data_dir);
+  _logfile             = std::format("{}artdaq.log",data_dir);
   
   TLOG(TLVL_DEBUG) << "-- END";
 }

@@ -55,6 +55,8 @@ public:
   int                 GetStatus   ();
   int                 GetEnabled  ();
 
+  std::string         GetFullLogfileName(const std::string& Logfile);
+
   OdbInterface*       Odb_i       () { return _odb_i         ; }
 
   int                 MonitoringLevel() { return _monitoringLevel ; }

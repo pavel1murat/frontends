@@ -216,22 +216,59 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
   HNDLE         h_dtc     = _odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr());
   HNDLE         h_daq     = _odb_i->GetDaqConfigHandle();
   
-  uint32_t roc_readout_mode = _odb_i->GetInteger(h_daq,"RocReadoutMode");
-  uint32_t roc_lane_mask    = _odb_i->GetUInt32(h_dtc,"RocLaneMask");
+  uint32_t roc_readout_mode       = _odb_i->GetInteger(h_daq,"RocReadoutMode"        );
+  uint32_t digitization_start_5ns = _odb_i->GetInteger(h_daq,"digitization_start_5ns");
+  uint32_t digitization_stop_5ns  = _odb_i->GetInteger(h_daq,"digitization_stop_5ns" );
+  uint32_t roc_lane_mask          = _odb_i->GetUInt32 (h_dtc,"RocLaneMask"           );
+  uint32_t dtc_ewm_delay_5ns      = _odb_i->GetUInt32 (h_dtc,"ewm_delay_5ns"         );
 
-  TLOG(TLVL_DEBUG) << "roc_readout_mode:" << roc_readout_mode
-                   << " roc_lane_mask:0x" << std::hex << roc_lane_mask;
+  TLOG(TLVL_DEBUG) << std::format("roc_readout_mode:{} roc_lane_mask:0x{:04x}",roc_readout_mode,roc_lane_mask);
 
+  SetStatus(1);
+  
   Stream << std::endl;
-  try {
-    _dtc_i->SetRocLaneMask(roc_lane_mask);
-    rc = _dtc_i->InitReadout(-1,roc_readout_mode,&Stream);
 
-    Stream << " emulate_cfo:" << _dtc_i->EmulateCfo()
-           << " roc_readout_mode:" << roc_readout_mode << " rc:" << rc;
+  _dtc_i->SetRocLaneMask(roc_lane_mask);
+
+  rc = _dtc_i->InitReadout(-1,roc_readout_mode,&Stream);
+  if (rc < 0) {
+    TLOG(TLVL_ERROR) << std::format("node:{} DTC:{} : failed to initialize the DTC readout. BAIL OUT",
+                                    HostLabel(),_dtc_i->PcieAddr());
+    SetStatus(rc);
+    return rc;
   }
-  catch (...) {
-    Stream << "ERROR : coudn't init DTC readout";
+//-----------------------------------------------------------------------------
+// set delays. seems to work
+//-----------------------------------------------------------------------------
+  rc = _dtc_i->SetRocDelay(-1,dtc_ewm_delay_5ns,&Stream);
+  if (rc < 0) {
+    SetStatus(rc);
+    return rc;
+  }
+//-----------------------------------------------------------------------------
+// set readout window - after reset ... leave a way to skip the initialization
+//-----------------------------------------------------------------------------
+  TLOG(TLVL_DEBUG) << std::format("digitization_start_5ns:{} digitization_stop_5ns:{}",digitization_start_5ns,digitization_stop_5ns);
+    
+  if (digitization_stop_5ns > digitization_start_5ns) {
+    int print_level(2);
+    rc = _dtc_i->SetRocDigitizationWindow(-1,digitization_start_5ns,digitization_stop_5ns,print_level,Stream);
+    if (rc < 0) {
+      SetStatus(rc);
+      return rc;
+    }
+  }
+
+  if (rc == 0) {
+    Stream << std::format(" emulate_cfo:{} roc_readout_mode:{} roc_lane_mask:0x{:04x} rc:{}",
+                          _dtc_i->EmulateCfo(),roc_readout_mode,roc_lane_mask,rc);
+  }
+  else {
+    std::string msg = std::format("host:{} DTC:{} coudn't init readout",HostLabel(),_dtc_i->PcieAddr());
+    Stream << "ERROR:" << msg << "\n";
+    TLOG(TLVL_ERROR) << msg;
+    cm_msg(MERROR,__func__,msg.data());
+    cm_msg_flush_buffer();
   }
   
   SetStatus(rc); 
@@ -396,7 +433,8 @@ int TEqTrkDtc::LoadChannelMap(HNDLE h_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
-
+  SetStatus(1);
+  
   // in the end, ProcessCommand should send ss.str() as a message to some log
   std::stringstream sstr;
 
@@ -422,13 +460,11 @@ int TEqTrkDtc::LoadChannelMap(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
 // write output to the equipment log - need to revert the line order 
 //-----------------------------------------------------------------------------
-//  _odb_i->SetStatus(h_dtc,rc);
-
   sstr << std::format("NOT IMPLEMENTED YET\n");
   int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
   
   SetStatus(rc); 
-  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
 }
 
@@ -585,7 +621,7 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
   int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
   
   SetStatus(rc); 
-  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
 }
 
@@ -679,27 +715,30 @@ int TEqTrkDtc::MeasureThresholds(HNDLE H_Cmd) { // (std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 // link=-1: print status of all enabled ROCs
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::PrintRocStatus(std::ostream& Stream) {
+int TEqTrkDtc::PrintRocStatus(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
 
   SetStatus(1);                         // BUSY
-  
-  HNDLE  h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
+  HNDLE       h_cmd_par   = _odb_i->GetCmdParameterHandle(H_Cmd);
+  std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+  int         link        = _odb_i->GetInteger(H_Cmd,"link"    );
 
-  int link        = _odb_i->GetInteger(h_cmd,"link");
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
   
-  TLOG(TLVL_DEBUG) << std::format("link:{}",link);
+  TLOG(TLVL_DEBUG) << std::format("link:{} logfile:{}",link,logfile);
   try         {
-    rc = _dtc_i->PrintRocStatus(1,link,Stream);
+    rc = _dtc_i->PrintRocStatus(1,link,sstr);
   }
   catch (...) {
-    Stream << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl;
+    sstr << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl;
   }
-
+                                        // logfile is not qualified with the path
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   SetStatus(rc); 
-  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return 0;
 }
 
@@ -979,7 +1018,6 @@ int TEqTrkDtc::Read(std::ostream& Stream) {
   TLOG(TLVL_DEBUG) << "conf_name:" << conf_name;
   
   HNDLE         h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  //  std::string   cmd_name  = _odb_i->GetString(h_cmd,"Name");
   HNDLE         h_cmd_par = _odb_i->GetCmdParameterHandle(h_cmd);
 
   trkdaq::ControlRoc_Read_Input_t0 par;
@@ -1363,6 +1401,40 @@ int TEqTrkDtc::ReadDDR(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
+int TEqTrkDtc::ReadSubevents(HNDLE H_Cmd) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  std::stringstream sstr;
+
+  SetStatus(0);
+  StartMessage(H_Cmd,sstr);
+  
+  HNDLE       h_cmd_par   = _odb_i->GetCmdParameterHandle(H_Cmd);
+  
+  std::string logfile     = _odb_i->GetString (H_Cmd    ,"logfile"    );
+  int         first_ewt   = _odb_i->GetInteger(h_cmd_par,"first_ewt"  );
+  int         print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
+  int         validate    = _odb_i->GetInteger(h_cmd_par,"validate"   );
+  std::string output_fn   = _odb_i->GetString (h_cmd_par,"output_fn"  );
+  
+  TLOG(TLVL_DEBUG) << std::format("print_level:{} logfile:{}",print_level,logfile);
+//-----------------------------------------------------------------------------
+// write output to the equipment log - need to revert the line order 
+//-----------------------------------------------------------------------------
+  std::vector<std::unique_ptr<DTCLib::DTC_SubEvent>> list_of_subevents;
+
+  _dtc_i->ReadSubevents(list_of_subevents,first_ewt,print_level,sstr,validate,output_fn);
+
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  
+  SetStatus(rc); 
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 int TEqTrkDtc::RebootMcu(std::ostream& Stream) {
   int rc(0);
   midas::odb o   ("/Mu2e/Commands/Tracker/DTC/reboot_mcu");
@@ -1372,8 +1444,6 @@ int TEqTrkDtc::RebootMcu(std::ostream& Stream) {
 
   int link         = _odb_i->GetInteger(h_cmd    ,"link"       ); // o["link"       ];
 
-  //  int print_level  = o["print_level"];
-  
   rc = _dtc_i->RebootMcu(link);
 
   if (rc == 0) Stream << " -- reboot_mcu OK";
@@ -1556,15 +1626,15 @@ int TEqTrkDtc::SetRocDelay(HNDLE H_Cmd) {
 
   StartMessage(H_Cmd,sstr);
 
-  HNDLE         h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
+  //  HNDLE         h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
   
 
   // int doit        = o["doit"] ;
   // int print_level = o["print_level"] ;
 
   int link        = _odb_i->GetInteger(H_Cmd    ,"link"       );
-  int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
-  int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
+  //  int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
+  // int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
 
   // delay itself comes from a different place - the DTC parameter record
   
