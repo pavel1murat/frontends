@@ -29,8 +29,6 @@ public:
   std::string           _host_label;
   // std::ofstream         _fout;
   // std::streambuf*       _coutbuf;
-
-  HNDLE                 _h_daq_host_conf;
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -68,15 +66,10 @@ TMFeResult TrackerCfgFrontend::HandleFrontendInit(const std::vector<std::string>
 // add already initialize equipment to the equipment manager
 //-----------------------------------------------------------------------------
   TEquipmentManager* eqm = new TEquipmentManager(_host_label.data(),__FILE__);
-
 //-----------------------------------------------------------------------------
 // expected types of equipment : 
 // 1. tracker itself
 //-----------------------------------------------------------------------------
-  OdbInterface* odb_i = OdbInterface::Instance();
-
-  _h_daq_host_conf = odb_i->GetHostConfHandle(_host_label);
-
   TEqTracker* eq = new TEqTracker("TRACKER","Tracker");
 
   eqm->AddEquipmentItem(eq);

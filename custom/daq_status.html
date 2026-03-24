@@ -55,7 +55,7 @@
       const cfo_path   = `/Mu2e/ActiveRunConfiguration/DAQ/CFO`;
       const tfm_cell_2 = document.createElement("td");
       tfm_cell_2.colSpan = 1;
-      tfm_cell_2.innerHTML = `<button onclick="cfo_status()">CFO</button>`;
+      tfm_cell_2.innerHTML = `<button onclick="cfo_control()">CFO</button>`;
       setInterval(() => {set_colors(cfo_path,tfm_cell_2);},2000);
       
       tfm_r1.appendChild(tfm_cell_2);

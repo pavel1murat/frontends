@@ -16,7 +16,7 @@
 #include "tmfe.h"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "cfo_ext_frontend"
+#define  TRACE_NAME "cfo_frontend"
 
 #include "utils/utils.hh"
 #include "utils/TEquipmentManager.hh"

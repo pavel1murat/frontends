@@ -61,14 +61,13 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
 
   fEqConfBuffer = "SYSTEM";
 
-  _odb_i                      = OdbInterface::Instance();
-  _h_active_run_conf          = _odb_i->GetActiveRunConfigHandle();
-  std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
-  std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
-  _full_host_name             = get_full_host_name (private_subnet.data());
-  _host_label                 = get_short_host_name(public_subnet.data());
-  _h_daq_host_conf            = _odb_i->GetHostConfHandle(_host_label);
-
+  _odb_i                     = OdbInterface::Instance();
+  _h_active_run_conf         = _odb_i->GetActiveRunConfigHandle();
+  std::string private_subnet = _odb_i->GetPrivateSubnet(_h_active_run_conf);
+  std::string public_subnet  = _odb_i->GetPublicSubnet (_h_active_run_conf);
+  _full_host_name            = get_full_host_name (private_subnet.data());
+  _host_label                = get_short_host_name(public_subnet.data());
+  _h_daq_host_conf           = _odb_i->GetHostConfHandle(_h_active_run_conf,_host_label);
 
   TLOG(TLVL_DEBUG) << "active_run_conf:"  << _odb_i->GetString(_h_active_run_conf,"Name")
                    << " public_subnet:"   << public_subnet
@@ -94,6 +93,7 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
   bool ok = true;
   for (auto eq: _eq_list) {
                                         // begin run returns either 0 (success) or a negative number
+    TLOG(TLVL_DEBUG) << std::format("checking status of eq->Name():{} at eq->HostLabel():{}",eq->Name(),eq->HostLabel());
     int status = eq->GetStatus();
     if (status < 0) {
       ok = false;

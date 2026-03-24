@@ -34,6 +34,29 @@ function artdaq_process_config_path(cmd) {
 }
 
 //-----------------------------------------------------------------------------
+function cfo_config_path(cmd) {
+  const path = '/Mu2e/ActiveRunConfiguration/DAQ/CFO';
+  return path;
+}
+
+//-----------------------------------------------------------------------------
+// command name is added elsewhere
+function cfo_cmd_parameter_path(cmd) {
+  const path = '/Mu2e/Commands/DAQ/CFO';
+  return path;
+}
+
+//-----------------------------------------------------------------------------
+// load table with the CFO parameters
+// has to follow the Command_B interface for mu2e_make_exec_button
+//-----------------------------------------------------------------------------
+function cfo_load_parameters(cmd) {
+  const table     = document.getElementById('cmd_params');
+  table.innerHTML = '';
+  odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/CFO`,0);
+}
+
+//-----------------------------------------------------------------------------
 function node_artdaq_parameter_path(cmd) {
   return `/Mu2e/Commands/DAQ/Nodes/${g_hostname}/Artdaq`;
 }
@@ -156,15 +179,6 @@ async function writeToLog(filePath,textLine) {
 }
 
 //-----------------------------------------------------------------------------
-// load ODB table corresponding to a given 'odb_path' to HTML table with a given 'table_id'
-//-----------------------------------------------------------------------------
-function odb_load_table(odb_path,table_id) {
-  const table     = document.getElementById(table_id);
-  table.innerHTML = '';
-  odb_browser(table_id,odb_path,0);
-}
-
-//-----------------------------------------------------------------------------
 // not sure this function works - may need more debugging (or the way I tried to use it
 // was wrong
 //-----------------------------------------------------------------------------
@@ -260,24 +274,22 @@ async function fetch_url(url, divId) {
 // and how many of them are there
 //-----------------------------------------------------------------------------
 function make_load_table_button(cmda) {
-  let btn    = document.createElement('input');
-  btn.type    = 'button'
-  btn.value   = cmda.title;
-//  btn.onclick = function() { odb_load_table(cmda.parameter_path,cmda.table_id) ; }
-  btn.onclick = function() { cmda.func(cmda.parameter_path,cmda.table_id) ; }
-  return btn;
+    let btn     = document.createElement('input');
+    btn.type    = 'button'
+    btn.value   = cmda.title;
+    btn.onclick = function() { cmda.func(cmda.parameter_path,cmda.table_id) ; }
+    return btn;
 }
 
 //-----------------------------------------------------------------------------
 // cmda.func takes only one parameter - cmda
 //-----------------------------------------------------------------------------
 function make_set_odb_button(cmda) {
-  let btn    = document.createElement('input');
-  btn.type    = 'button'
-  btn.value   = cmda.title;
-//  btn.onclick = function() { odb_load_table(cmda.parameter_path,cmda.table_id) ; }
-  btn.onclick = function() { cmda.func(cmda) ; }
-  return btn;
+    let btn    = document.createElement('input');
+    btn.type    = 'button'
+    btn.value   = cmda.title;
+    btn.onclick = function() { cmda.func(cmda) ; }
+    return btn;
 }
 
 //-----------------------------------------------------------------------------
@@ -339,6 +351,24 @@ async function mu2e_command_set_odb_B(cmd) {
 // load ODB table corresponding to a given 'odb_path' to HTML table with a given 'table_id'
 // input: cmd: Command_B
 //-----------------------------------------------------------------------------
+function mu2e_load_conf_table(cmd) {
+  const table     = document.getElementById(cmd.table_id);
+  table.innerHTML = '';
+  const cmd_parameter_path = cmd.func_parameter_path(cmd); // +`/${cmd.name}`;
+  odb_browser(cmd.table_id,cmd_parameter_path,0);
+}
+
+// parameter - Command_B
+// assume that func_parameter_path points to the object command top directory
+// and the command parameter path has an extra '/'+cmd.name in it
+//-----------------------------------------------------------------------------
+function mu2e_load_cmd_table(cmd) {
+  const table     = document.getElementById(cmd.table_id);
+  table.innerHTML = '';
+  const cmd_parameter_path = cmd.func_parameter_path(cmd)+'/'+cmd.name;
+  odb_browser(cmd.table_id,cmd_parameter_path,0);
+}
+
 function mu2e_odb_load_table(cmd) {
   const table     = document.getElementById(cmd.table_id);
   table.innerHTML = '';
@@ -363,7 +393,7 @@ function mu2e_make_dropup_button_B(cmd) {
   const d1_1   = document.createElement('div');
   d1_1.innerHTML = 'Load Parameters'
   // cmd.parameter_path corresponds to the ODB handle which has the command name one of its members
-  d1_1.onclick   = function() { mu2e_odb_load_table(cmd) ; };
+  d1_1.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
   d1.appendChild(d1_1);
 
   const d1_2   = document.createElement('div');

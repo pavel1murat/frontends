@@ -77,7 +77,7 @@ public:
   int         LoadChannelMap   (HNDLE H_Cmd);                 // load map from disk to ODB
   int         LoadThresholds   (HNDLE H_Cmd);                 // load thresholds from disk to ODB
   int         MeasureThresholds(HNDLE H_Cmd);                 // std::ostream& Stream);
-  int         PrintRocStatus   (std::ostream& Stream);
+  int         PrintRocStatus   (HNDLE H_Cmd);
   int         ProgramRoc       (std::ostream& Stream);
   int         PulserOff        (std::ostream& Stream);
   int         PulserOn         (std::ostream& Stream);
@@ -90,6 +90,7 @@ public:
   int         ReadRegister     (std::ostream& Stream);
   int         ReadRocRegister  (std::ostream& Stream);
   int         ReadSpi          (std::ostream& Stream);
+  int         ReadSubevents    (HNDLE H_Cmd);
   int         ResetDigis       (std::ostream& Stream);
   int         ResetRoc         (std::ostream& Stream);
   int         RebootMcu        (std::ostream& Stream);

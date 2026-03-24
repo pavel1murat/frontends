@@ -252,9 +252,11 @@ HNDLE OdbInterface::GetActiveRunConfigHandle() {
 // this could become DAQ/Nodes/mu2edaqXXX
 //-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetArtdaqConfHandle(HNDLE h_RunConf, const std::string& Host) {
-  char key[128];
-  sprintf(key,"DAQ/Nodes/%s/Artdaq",Host.data());
-  return GetHandle(_hDB,h_RunConf,key);
+  TLOG(TLVL_DEBUG+1) << std::format("--START: h_RunConf:{} Host:{}",h_RunConf,Host);
+  std::string path = std::format("DAQ/Nodes/{}/Artdaq",Host);
+  HNDLE h = GetHandle(h_RunConf,path);
+  TLOG(TLVL_DEBUG+1) << std::format("-- END: path:{} h:{}",path,h);
+  return h;
 }
 
 HNDLE OdbInterface::GetArtdaqCmdHandle(const std::string& Host) {
@@ -308,6 +310,15 @@ int OdbInterface::GetCfoEventMode(HNDLE hCFO) {
     TLOG(TLVL_ERROR) << "no CFO EventMode, return 0";
     return 0;
   }
+}
+
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetDiskConfHandle(HNDLE h_RunConf, const std::string& Host) {
+  TLOG(TLVL_DEBUG+1) << std::format("--START: h_RunConf:{} Host:{}",h_RunConf,Host);
+  std::string path = std::format("DAQ/Nodes/{}/Disk",Host);
+  HNDLE h = GetHandle(h_RunConf,path);
+  TLOG(TLVL_DEBUG+1) << std::format("-- END: path:{} h:{}",path,h);
+  return h;
 }
 
 //-----------------------------------------------------------------------------
@@ -616,12 +627,9 @@ HNDLE OdbInterface::GetFrontendConfHandle(HNDLE hRunConf, const std::string& Hos
 }
 
 //-----------------------------------------------------------------------------
-HNDLE OdbInterface::GetHostConfHandle(const std::string& Host, HNDLE hRunConf) {
-  HNDLE h_conf(hRunConf);
-  if (h_conf == -1) h_conf = GetHandle(0,"/Mu2e/ActiveRunConfiguration");
-  
-  std::string key = "DAQ/Nodes/"+Host;
-  return GetHandle(_hDB,h_conf,key.data());
+HNDLE OdbInterface::GetHostConfHandle(HNDLE H_RunConf, const std::string& HostLabel) {
+  std::string key = "DAQ/Nodes/"+HostLabel;
+  return GetHandle(H_RunConf,key);
 }
 
 //-----------------------------------------------------------------------------
@@ -692,10 +700,11 @@ int OdbInterface::GetOnSpill(HNDLE h_RunConf) {
 //-----------------------------------------------------------------------------
 std::string OdbInterface::GetCfoRunPlanDir() {
   TLOG(TLVL_DEBUG+1) << "-- START";
-  std::string s = GetString(0,"Mu2e/CfoRunPlanDir");
-  TLOG(TLVL_DEBUG+1) << "-- END";
 
-  return expand_env_vars(s);
+  std::string s = expand_env_vars(GetString(0,"Mu2e/CfoRunPlanDir"));
+
+  TLOG(TLVL_DEBUG+1) << std::format("-- END: run_plan_dir:{}",s);
+  return s;
 }
 
 std::string OdbInterface::GetConfigDir() {

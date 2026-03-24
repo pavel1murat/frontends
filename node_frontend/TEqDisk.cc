@@ -21,12 +21,14 @@ using nlohmann::json;
 
 //-----------------------------------------------------------------------------
 TEqDisk::TEqDisk(const char* Name, const char* Title) : TMu2eEqBase(Name,Title,TMu2eEqBase::kDisk) {
-   std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-  _logfile             = std::format("{}/hosts.log",data_dir);
-  _monitoringLevel = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Disk");
 
-  _prev_ctime_sec = std::time(nullptr);
-  _prev_fsize_gb  = 0.;
+  _handle               = _odb_i->GetDiskConfHandle(_h_active_run_conf,_host_label);
+   std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+  _logfile              = std::format("{}hosts.log",data_dir);
+  _monitoringLevel      = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Disk");
+
+  _prev_ctime_sec       = std::time(nullptr);
+  _prev_fsize_gb        = 0.;
 
   int rc = InitVarNames();
 }

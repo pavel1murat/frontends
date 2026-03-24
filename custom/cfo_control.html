@@ -15,7 +15,6 @@
         <script src="global_variables.js"></script>
         <script src="mu2edaq.js">         </script>
         <script src="mu2e_mess_001.js">   </script>
-        <script src="dtc_commands.js">    </script>
         
         <title>CFO</title>
         
@@ -33,10 +32,9 @@
              
              document.title = 'CFO@'+g_hostname;
              let title       = document.getElementById('table-title');
-             title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
+             title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' CFO control page';
 //-----------------------------------------------------------------------------
-//  create DTC commands table
-// 'dtctabs' is just a class for selecting tabs, no special properties
+//  create CFO commands table
 //-----------------------------------------------------------------------------
              const cmd_table = document.getElementById('cfo_cmd_table');
              cmd_table.innerHTML = '';
@@ -55,7 +53,7 @@
              td = document.createElement('td');
              td.innerHTML = `
                  <div class="mtableheader">
-                     <a href="https://mu2einternalwiki.fnal.gov/wiki/DTC_control_page#DTC_control_commands" target="_blank">help</a>
+                     <a href="https://mu2einternalwiki.fnal.gov/wiki/CFO_control_page#CFO_control_commands" target="_blank">help</a>
                  </div>`
              tr.appendChild(td);
              
@@ -64,43 +62,59 @@
              let tbody = document.createElement('tbody');
              /*  second row - 9 cells*/
              tr = document.createElement('tr');
-             tr.innerHTML = `
-                 <td colspan=9>
-                     <input type=button value='load parameters'  onClick='cfo_load_parameters()'>
-                     <div class="dropup">
-                         <input type=button class="dropbtn" value='init readout'>
-                         <div class="dropup-content">
-                             <div onClick='dtc_load_cmd_parameters("init_readout")'> Load Parameters </div>
-                             <div onClick='dtc_command_set_odb("init_readout","trkdtc.log")'            > Run             </div>
-                         </div>
-                     </div>
-                     <div class="dropup">
-                         <input type=button class="dropbtn" value='configure_ja'>
-                         <div class="dropup-content">
-                             <div onClick='dtc_load_cmd_parameters("configure_ja")'> Load Parameters </div>
-                             <div onClick='dtc_command_set_odb("configure_ja","trkdtc.log")'            > Run             </div>
-                         </div>
-                     </div>
-                     <input type=button value='print status'     onClick='dtc_command_set_odb("print_status"    ,"trkdtc.log")'>
-                     <input type=button value='reset output'     onClick='dtc_command_set_odb("reset_output"    ,"trkdtc.log")'>
-                 </td>
-                 <td> Register </td>
-                 <td> Value    </td>
-             `;
+             td = document.createElement('td');
+             td.colSpan = 9;
+
+             let cmd = new Command_B('load_parameters','load_parameters',mu2e_load_conf_table,'cmd_params',cfo_config_path,'trkdtc.log');
+             let btn = mu2e_make_exec_button_B(cmd);
+             td.appendChild(btn);
+
+             cmd = new Command_B('init_readout','init_readout',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
+             btn  = mu2e_make_dropup_button_B(cmd);
+             td.appendChild(btn);
+
+             cmd = new Command_B('configure_ja','configure_ja',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
+             btn  = mu2e_make_dropup_button_B(cmd);
+             td.appendChild(btn);
+
+             cmd = new Command_B('print_status','print_status',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+             btn = mu2e_make_exec_button_B(cmd);
+             td.appendChild(btn);
+
+             cmd = new Command_B('reset_output','reset_output',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+             btn = mu2e_make_exec_button_B(cmd);
+             td.appendChild(btn);
+             tr.appendChild(td);
+
+             td = document.createElement('td');
+             td.InnerHTML = 'Register';
+             tr.appendChild(td);
+
+             td = document.createElement('td');
+             td.InnerHTML = 'Value';
+             tr.appendChild(td);
+             
              tbody.appendChild(tr);
          
              tr = document.createElement('tr');
-         
              td = document.createElement('td');
              td.colSpan = 6;
              
-             td.innerHTML = `
-                 <input type=button value='compile run plan'  onClick='cfo_command_set_odb("cfo_compile_run_plan","trkdtc.log")'>
-             <input type=button value='launch run plan'  onClick='cfo_command_set_odb("cfo_launch_run_plan","trkdtc.log")'>
-             <input type=button value='read subevents'   onClick='cfo_command_set_odb("read_subevents"     ,"trkdtc.log")'>
-             <input type=button value='soft reset'       onClick='cfo_command_set_odb("soft_reset"         ,"trkdtc.log")'>
-             <input type=button value='hard reset'        onClick='cfo_command_set_odb("hard_reset"         ,"trkdtc.log")'>
-             `;
+             cmd = new Command_B('compile_run_plan','compile_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+             btn = mu2e_make_exec_button_B(cmd);
+             td.appendChild(btn);
+
+             cmd = new Command_B('launch_run_plan','launch_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+             btn = mu2e_make_exec_button_B(cmd);
+             td.appendChild(btn);
+
+             cmd = new Command_B('soft_reset','soft_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+             btn = mu2e_make_exec_button_B(cmd);
+             td.appendChild(btn);
+
+             cmd = new Command_B('hard_reset','hard_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+             btn = mu2e_make_exec_button_B(cmd);
+             td.appendChild(btn);
              tr.appendChild(td);
 
              // PARAMETERS: title,name,cmd,table_name,path_func,log: output of everything trace-related goes to trace.log
@@ -109,8 +123,8 @@
              tr.appendChild(td);
              
              td = document.createElement('td');
-             cmdb = new Command_B('write CFO register','write_register',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
-             let btn  = mu2e_make_exec_button_B(cmdb);
+             cmdb = new Command_B('write CFO register','write_register',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
+             btn  = mu2e_make_exec_button_B(cmdb);
              td.appendChild(btn);
              tr.appendChild(td);
              
@@ -138,7 +152,7 @@
              tr.appendChild(td);
              
              td = document.createElement('td');
-             cmdb = new Command_B('read_register','read_register',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+             cmdb = new Command_B('read_register','read_register',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
              btn  = mu2e_make_exec_button_B(cmdb);
              td.appendChild(btn);
              tr.appendChild(td);
@@ -166,7 +180,7 @@
          and use javascript to fill internal details
          P.M.: having show_facilities etc here is important
     -->
-    <body class="mcss" onload="mhttpd_init('dtc_control'); show_facilities(); msg_load();">
+    <body class="mcss" onload="mhttpd_init('cfo_control'); show_facilities(); msg_load();">
         <div id="mheader"></div>
         <div id="msidenav"></div>
         <div id="mmain">

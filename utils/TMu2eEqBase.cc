@@ -28,7 +28,7 @@ TMu2eEqBase::TMu2eEqBase(const char* Name, const char* Title, int Subsystem) :
 //-----------------------------------------------------------------------------
   _host_label      = get_short_host_name(public_subnet.data());
   _full_host_name  = get_full_host_name (private_subnet.data());
-  _h_daq_host_conf = _odb_i->GetHostConfHandle(_host_label);
+  _h_daq_host_conf = _odb_i->GetHostConfHandle(_h_active_run_conf,_host_label);
   _monitoringLevel = 0;
   TLOG(TLVL_DEBUG) << std::format("-- END: _host_label:{} _full_host_name:{}",_host_label,_full_host_name); 
 }
@@ -65,6 +65,21 @@ int TMu2eEqBase::HandlePeriodic() {
 //-----------------------------------------------------------------------------
 int TMu2eEqBase::CheckAlarms() {
   return 0;
+}
+
+//-----------------------------------------------------------------------------
+// the logfiles are supposed to be located in ODB("/Logger/Data dir")
+// returned directory name ends with the '/'
+//-----------------------------------------------------------------------------
+std::string TMu2eEqBase::GetFullLogfileName(const std::string& Logfile) {
+  TLOG(TLVL_DEBUG+1) << std::format("-- START: Logfile:{}",Logfile);
+
+  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+                                        // no need in the intermediate '/' here
+  std::string full_fn  = std::format("{}{}",data_dir,Logfile);
+
+  TLOG(TLVL_DEBUG+1) << std::format("-- END full_fn:{}",full_fn);
+  return full_fn;
 }
 
 //-----------------------------------------------------------------------------
@@ -144,7 +159,7 @@ int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& Logfi
   std::string fn = _logfile;
   if (Logfile != "") {
     std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-    fn = std::format("{}/{}",data_dir,Logfile);
+    fn = std::format("{}{}",data_dir,Logfile);
   }
 
   TLOG(TLVL_DEBUG) << std::format("using fn:{}",fn);
