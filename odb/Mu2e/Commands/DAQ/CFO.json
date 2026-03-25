@@ -1,0 +1,57 @@
+{
+  "/MIDAS version" : "2.1",
+  "/MIDAS git revision" : "Sat May 3 17:22:36 2025 +0200 - midas-2025-01-a-192-gdb1819ac-dirty on branch HEAD",
+  "/filename" : "CFO.json",
+  "/ODB path" : "/Mu2e/Commands/DAQ/CFO",
+
+  "Name/key" : { "type" : 12, "item_size" : 17, "access_mode" : 7, "last_written" : 1774394789 },
+  "Name" : "soft_reset",
+  "ParameterPath/key" : { "type" : 12, "item_size" : 55, "access_mode" : 7, "last_written" : 1774394789 },
+  "ParameterPath" : "/Mu2e/Commands/DAQ/CFO/soft_reset",
+  "logfile/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1774394789 },
+  "logfile" : "trkdtc.log",
+  "# -------------------------/key" : { "type" : 12, "item_size" : 32, "access_mode" : 7, "last_written" : 1773974746 },
+  "# -------------------------" : "-------------------------",
+  "Run/key" : { "type" : 7, "notify_count" : 1, "access_mode" : 7, "last_written" : 1774394789 },
+  "Run" : 1,
+  "Finished/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1774394789 },
+  "Finished" : 0,
+  "ReturnCode/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1773974746 },
+  "ReturnCode" : 0,
+  "compile_run_plan" : {
+    "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1774319515 },
+    "print_level" : 1
+  },
+  "halt" : {
+  },
+  "hard_reset" : {
+  },
+  "init_readout" : {
+    "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1774322226 },
+    "print_level" : 1
+  },
+  "launch_run_plan" : {
+  },
+  "load_parameters" : {
+  },
+  "print_status" : {
+  },
+  "write_register" : {
+    "register/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+    "register" : 0,
+    "value/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+    "value" : 0
+  },
+  "read_register" : {
+    "register/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+    "register" : 0,
+    "value/key" : { "type" : 7, "access_mode" : 7, "last_written" : 0 },
+    "value" : 0
+  },
+  "reset_output" : {
+    "print_level/key" : { "type" : 7, "access_mode" : 7, "last_written" : 1773975459 },
+    "print_level" : 1
+  },
+  "soft_reset" : {
+  }
+}
