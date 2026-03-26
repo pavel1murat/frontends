@@ -52,7 +52,7 @@ def test_003():
 
 def test_004():
     logger.info("Initializing %s" % "test_004")
-    client = midas.client.MidasClient("test_004", None, "tracker", None)
+    client = midas.client.MidasClient("test_004", None, None, None)
    
     daq   = client.odb_get("/Mu2e/ActiveRunConfiguration/DAQ")
     TRACE.INFO(f'start_5ns:{daq["digitization_start_5ns"]} stop_5ns:{daq["digitization_stop_5ns"]}',TRACE_NAME)

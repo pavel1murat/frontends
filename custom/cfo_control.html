@@ -69,12 +69,20 @@
       let btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
 
+      cmd = new Command_B('configure_ja','configure_ja',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
+      btn  = mu2e_make_dropup_button_B(cmd);
+      td.appendChild(btn);
+
       cmd = new Command_B('init_readout','init_readout',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
       btn  = mu2e_make_dropup_button_B(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_B('configure_ja','configure_ja',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
-      btn  = mu2e_make_dropup_button_B(cmd);
+      cmd = new Command_B('soft_reset','soft_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+      btn = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
+      cmd = new Command_B('hard_reset','hard_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+      btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
 
       cmd = new Command_B('print_status','print_status',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
@@ -112,13 +120,6 @@
       btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_B('soft_reset','soft_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
-
-      cmd = new Command_B('hard_reset','hard_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
       tr.appendChild(td);
 
       // PARAMETERS: title,name,cmd,table_name,path_func,log: output of everything trace-related goes to trace.log

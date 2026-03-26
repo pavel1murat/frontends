@@ -50,19 +50,18 @@ TMFeResult TEqHardwareCfo::Init() {
 // the CFO is disabled in the run configuration
 // an emulated CFO configuration includs a link to the DTC
 //-----------------------------------------------------------------------------
-  // _event_mode            = _odb_i->GetEventMode(_h_active_run_conf);
   _pcie_addr             = _odb_i->GetInteger(_handle,"pcie_addr"); // needed by the boardreader
    int timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
    int event_mode        = _odb_i->GetInteger(_handle,"event_mode");
+   int ja_mode           = _odb_i->GetInteger(_handle,"ja_mode");
   
   TLOG(TLVL_DEBUG) << std::format("event_mode:{} pcie_addr:{} timing_chain_mask:0x{:08x}",event_mode,_pcie_addr,timing_chain_mask);
 
-  _cfo_i             = trkdaq::CfoInterface::Instance(_pcie_addr,timing_chain_mask);
-  _cfo_i->fJAMode    = _odb_i->GetJAMode   (_handle);
+  _cfo_i                 = trkdaq::CfoInterface::Instance(_pcie_addr,timing_chain_mask);
+  
+  _cfo_i->fJAMode        = ja_mode;
   _cfo_i->SetEventMode(event_mode);
  
-  // TLOG(TLVL_DEBUG) << "--- DONE, run plan:" << _run_plan;
-  
   int enabled  = _odb_i->GetEnabled(_handle);
   if (enabled == 0) {
     std::string msg("CFO disabled, return ERROR");
@@ -133,7 +132,7 @@ int TEqHardwareCfo::BeginRun(int RunNumber)  {
   _cfo_i->InitReadout(run_plan_fn,timing_chain_mask);
   _cfo_i->LaunchRunPlan();
 
-  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END: launched run plan:{} rc:{}",run_plan_fn,rc);
 
   return rc;
 };
@@ -147,6 +146,7 @@ int TEqHardwareCfo::EndRun(int RunNumber)  {
 // in 'external' mode, [re-]initialize and start executing the run plan
 //-----------------------------------------------------------------------------
   _cfo_i->Halt();
+  _cfo_i->fCfo->SoftReset();
 
   TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
 

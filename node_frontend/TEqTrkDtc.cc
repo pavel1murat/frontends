@@ -237,8 +237,8 @@ int TEqTrkDtc::BeginRun(int RunNumber) {
   int   event_mode        = _odb_i->GetEventMode     (_h_active_run_conf);
   int   roc_readout_mode  = _odb_i->GetRocReadoutMode(_h_active_run_conf);
 
-  TLOG(TLVL_DEBUG) << "event mode:"        << event_mode
-                   << " roc_readout_mode:" << roc_readout_mode;
+  TLOG(TLVL_DEBUG) << std::format("event mode:{} roc_readout_mode:{}",event_mode,roc_readout_mode);
+  
   if (_dtc_i) {
     _dtc_i->fEventMode      = event_mode;
     _dtc_i->fRocReadoutMode = roc_readout_mode;
