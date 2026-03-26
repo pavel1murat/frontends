@@ -102,36 +102,42 @@ function trk_panel_config_path(cmd) {
 // common javascript functions
 // DAQ colors. Each element has 'Enabled' and 'Status' field
 //-----------------------------------------------------------------------------
-function set_colors(path, cell) {
+async function set_colors(path, cell) {
   // Fetch values for Enabled and Status
   const path_enabled = path+`/Enabled`;
   const path_status  = path+`/Status`;
-  mjsonrpc_db_get_values([path_enabled, path_status]).then(function (rpc) {
-    let enabled = rpc.result.data[0];
-    let status = rpc.result.data[1];
+  try {
+    let rpc = await mjsonrpc_db_get_values([path_enabled, path_status]); // .then(function (rpc) {
+    const enabled = rpc.result.data[0];
+    const status  = rpc.result.data[1];
     
     // Apply color styles
     if (enabled === 0) {
       cell.style.backgroundColor = "gray";
       cell.style.color = "white";
-    } else if (enabled === 1) {
+    }
+    else if (enabled === 1) {
       if (status === 0) {
         cell.style.backgroundColor = "green";
         cell.style.color = "white";
-      } else if (status < 0) {
+      }
+      else if (status < 0) {
         cell.style.backgroundColor = "red";
         cell.style.color = "white";
-      } else if (status > 0) {
+      }
+      else if (status > 0) {
         cell.style.backgroundColor = "yellow";
         cell.style.color = "black";
       }
-    } else {
+    }
+    else {
       cell.style.backgroundColor = "gray";
       cell.style.color = "white";
     }
-  }).catch(function (error) {
+  }
+  catch(error) {
     console.error("Error fetching values:", error);
-  });
+  };
 }
 
 //-----------------------------------------------------------------------------
@@ -231,9 +237,11 @@ function artdaq_process_control(hostname,process) {
 }
 
 //-----------------------------------------------------------------------------
-function cfo_control(hostname,process) {
+// the second parameter may not be necessary, keep it for the moment
+//-----------------------------------------------------------------------------
+function cfo_control(hostname,pcie) {
 //  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}&facility=tfm`;
-  window.open(`cfo_control.html?hostname=${hostname}&process=${process}`,'_blank');
+  window.open(`cfo_control.html?hostname=${hostname}`,'_blank');
 }
 
 //-----------------------------------------------------------------------------

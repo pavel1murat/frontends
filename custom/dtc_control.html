@@ -326,15 +326,6 @@
        btn  = mu2e_make_dropup_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('print_status','print_status',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
-       btn = mu2e_make_exec_button_B(cmd);
-       td.appendChild(btn);
-       
-       // order: title, name, ...
-       cmd = new Command_B('print ROC status','print_roc_status',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
-       btn = mu2e_make_exec_button_B(cmd);
-       td.appendChild(btn);
-
        tr.appendChild(td);
 
        td = document.createElement('td');
@@ -362,6 +353,15 @@
        btn  = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
        tr.appendChild(td);
+
+       cmd = new Command_B('print_status','print_status',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
+       
+       // order: title, name, ...
+       cmd = new Command_B('print ROC status','print_roc_status',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
 
        cmd = new Command_B('reset output','reset_output',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn = mu2e_make_exec_button_B(cmd);

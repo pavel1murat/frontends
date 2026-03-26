@@ -193,20 +193,37 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
     def send_begin_run_elog_message(self,run_number):
 
         config_name   = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
-        
-        nev_per_train = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/NeventsPerTrain')
-        ew_length     = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/EventWindowSize')
-        sleep_time_ms = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/SleepTimeMs')
-        cfo_emu_mode  = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO/EmulatedMode')
 
-        tracker_odb_path = '/Mu2e/ActiveRunConfiguration/Tracker';
-        
         fn = f'/tmp/begin_run_msg_{run_number}.txt'
         f = open(fn, "w")
-        f.write(f'begin run:{run_number} configuration:{config_name}')
-        f.write(f' CFO: emulated_mode:{cfo_emu_mode} run:{nev_per_train}/{ew_length}/{sleep_time_ms}\n')
+        f.write(f'begin run:{run_number} configuration:{config_name}\n\n')
+#------------------------------------------------------------------------------
+# CFO information - if could be either emulated or HW CFO
+#------------------------------------------------------------------------------
+        cfo = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/CFO');
+        
+        cfo_emulated_mode      = cfo['emulated_mode']
+        if (cfo_emulated_mode == 1):
+            nev_per_train = cfo['NeventsPerTrain']
+            ew_length     = cfo['EventWindowSize']
+            sleep_time_ms = cfo['SleepTimeMs']
+            f.write(f' CFO mode: emulated  nev_per_train:{nev_per_train} ew_length:{ew_length} sleep_time_ms:{sleep_time_ms}\n\n')
+        else:
+            run_plan          = cfo['run_plan']
+            timing_chain_mask = cfo['timing_chain_mask']
+            event_mode        = cfo['event_mode']
+            f.write(f' CFO mode: hardware run_plan:{run_plan} timing_chain_mask:0x{timing_chain_mask:08x} event_mode:{event_mode}\n\n')
 
-        # towards saving the station HV settings in the beginning of the run
+        daq = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ');
+        digitization_start_5ns = daq['digitization_start_5ns'];
+        digitization_stop_5ns  = daq['digitization_stop_5ns'];
+        f.write(f'DAQ : digitization_start_5ns:{digitization_start_5ns} digitization_stop_5ns:{digitization_stop_5ns}\n\n')
+
+#------------------------------------------------------------------------------
+# tracker information
+#------------------------------------------------------------------------------
+        f.write(f'TRACKER configuration:\n\n')
+        tracker_odb_path = '/Mu2e/ActiveRunConfiguration/Tracker';
         s1 =  self.client.odb_get(tracker_odb_path+'/FirstStation')
         s2 =  self.client.odb_get(tracker_odb_path+'/LastStation')
         for s in range(s1,s2+1):

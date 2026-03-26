@@ -132,10 +132,10 @@ TEqCrvDtc::TEqCrvDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     }
   }
 
-  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-  _logfile             = std::format("{}/crvdtc.log",data_dir);
+  // std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+  // _logfile             = std::format("{}/crvdtc.log",data_dir);
 
-  TLOG(TLVL_DEBUG) << "-- END _logfile:" << _logfile;
+  TLOG(TLVL_DEBUG) << "-- END";
 }
 
 //-----------------------------------------------------------------------------

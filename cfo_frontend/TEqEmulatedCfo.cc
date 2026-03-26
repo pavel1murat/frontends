@@ -11,7 +11,7 @@
 #define  TRACE_NAME "TEqEmulatedCfo"
 
 //-----------------------------------------------------------------------------
-TEqEmulatedCfo::TEqEmulatedCfo(const char* eqname, const char* eqfilename, HNDLE H_RunConf, HNDLE H_CfoConf):
+TEqEmulatedCfo::TEqEmulatedCfo(const char* eqname, const char* eqfilename, HNDLE H_RunConf, HNDLE H_Conf):
   TMu2eEqBase(eqname,eqfilename) {
   // fEqConfEventID          = 3;
   // fEqConfPeriodMilliSec   = 30000;  // 30 sec ?
@@ -19,7 +19,7 @@ TEqEmulatedCfo::TEqEmulatedCfo(const char* eqname, const char* eqfilename, HNDLE
   // fEqConfWriteEventsToOdb = true;
 
   _cfo_i  = nullptr;
-  _handle = H_CfoConf;
+  _handle = H_Conf;
   Init();
 }
 

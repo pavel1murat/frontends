@@ -11,7 +11,7 @@
 #define  TRACE_NAME "TEqHardwareCfo"
 
 //-----------------------------------------------------------------------------
-TEqHardwareCfo::TEqHardwareCfo(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_CfoConf):
+TEqHardwareCfo::TEqHardwareCfo(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Cfo):
   TMu2eEqBase(Name,Title,TMu2eEqBase::kDaq) {
   // fEqConfEventID          = 3;
   // fEqConfPeriodMilliSec   = 30000;  // 30 sec ?
@@ -20,7 +20,7 @@ TEqHardwareCfo::TEqHardwareCfo(const char* Name, const char* Title, HNDLE H_RunC
 
   TLOG(TLVL_DEBUG) << "-- START";
   
-  _handle = H_CfoConf;
+  _handle = H_Cfo;
   _cfo_i  = nullptr;
   Init();
   
@@ -51,9 +51,9 @@ TMFeResult TEqHardwareCfo::Init() {
 // an emulated CFO configuration includs a link to the DTC
 //-----------------------------------------------------------------------------
   // _event_mode            = _odb_i->GetEventMode(_h_active_run_conf);
-  _pcie_addr             = _odb_i->GetInteger  (_handle,"pcie_addr"); // needed by the boardreader
-   int timing_chain_mask = _odb_i->GetInteger  (_handle,"timing_chain_mask");
-   int event_mode        = _odb_i->GetInteger  (_handle,"event_mode");
+  _pcie_addr             = _odb_i->GetInteger(_handle,"pcie_addr"); // needed by the boardreader
+   int timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
+   int event_mode        = _odb_i->GetInteger(_handle,"event_mode");
   
   TLOG(TLVL_DEBUG) << std::format("event_mode:{} pcie_addr:{} timing_chain_mask:0x{:08x}",event_mode,_pcie_addr,timing_chain_mask);
 
@@ -126,7 +126,7 @@ int TEqHardwareCfo::BeginRun(int RunNumber)  {
   std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
   std::string run_plan          = _odb_i->GetCfoRunPlan(_handle);
   std::string run_plan_fn       = run_plan_dir+'/'+run_plan+".bin";
-  int         timing_chain_mask = _odb_i->GetInteger(_handle,"timing_chain_mask");
+  int         timing_chain_mask = _odb_i->GetUInt32(_handle,"timing_chain_mask");  // timing_chain_mask is a UINT32
 
   TLOG(TLVL_DEBUG) << std::format("run_plan_dir:{} run_plan:{} run_plan_fn:{}",run_plan_dir,run_plan,run_plan_fn);
 

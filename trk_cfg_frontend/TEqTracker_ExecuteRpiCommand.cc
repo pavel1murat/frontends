@@ -96,7 +96,7 @@ int TEqTracker::ExecuteRpiCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
 // [dangerous] assumption that we have a DTC per plane, so everything is simple
 //-----------------------------------------------------------------------------
       HNDLE       h_dtc     = odb_i->GetHandle(h_plane,"DTC");
-      int         pcie_addr = odb_i->GetDtcPcieAddress(h_dtc);
+      // int         pcie_addr = odb_i->GetDtcPcieAddress(h_dtc);
       std::string node      = odb_i->GetDtcHostLabel  (h_dtc);
       // tbd
 

@@ -77,8 +77,14 @@ void TEqHardwareCfo::ProcessCommand(int hDB, int hKey, void* Info) {
 // COMPILE_RUN_PLAN
 //-----------------------------------------------------------------------------
   else if (cmd == "compile_run_plan") {
-    // ss << std::endl;
     std::thread t(&TEqHardwareCfo::CompileRunPlan,eq,h_cmd);
+    t.detach();
+  }
+//-----------------------------------------------------------------------------
+// HALT
+//-----------------------------------------------------------------------------
+  else if (cmd == "halt") {
+    std::thread t(&TEqHardwareCfo::Halt,eq,h_cmd);
     t.detach();
   }
 //-----------------------------------------------------------------------------
@@ -98,9 +104,8 @@ void TEqHardwareCfo::ProcessCommand(int hDB, int hKey, void* Info) {
 // init_readout
 //-----------------------------------------------------------------------------
   else if (cmd == "init_readout") {
-    eq->SetStatus(1);
-    cmd_rc = eq->InitReadout(h_cmd);
-    eq->SetStatus(cmd_rc);
+    std::thread t(&TEqHardwareCfo::InitReadout,eq,h_cmd);
+    t.detach();
   }
 //-----------------------------------------------------------------------------
 // LAUNCH_RUN_PLAN

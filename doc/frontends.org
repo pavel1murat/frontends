@@ -211,10 +211,6 @@ requestSender -c /scratch/mu2e/mu2etrk/daquser_002_namitha/run_records/108236/eb
 * DQM                                                                        
 - DQM jobs are started by the file:../conf/mu2e_config_fe.py
 - ARTDAQ env vars need to be set for that
-* DIGIs
-- reg 0x0b : can write smth to and read back to test
-- reg 0xA4 : 0 if DIGI state machines are locked in
-- reg 0xD0 : counts number of markers
 * [[file:dtc.org][DTC]]
 * [[file:elog.org][elog]]
 * runinfo database (PostgreSQL)                                              

@@ -22,20 +22,12 @@ TEqTracker::TEqTracker(const char* Name, const char* Title): TMu2eEqBase(Name,Ti
 
   fg_EqTracker            = this;
 //-----------------------------------------------------------------------------
-// cache the ODB handle, as need to loop over the keys in InitArtdaq
+// 
 //-----------------------------------------------------------------------------
-  // std::string private_subnet  = _odb_i->GetPrivateSubnet(_h_active_run_conf);
-  // std::string public_subnet   = _odb_i->GetPublicSubnet (_h_active_run_conf);
-  // std::string active_run_conf = _odb_i->GetRunConfigName(_h_active_run_conf);
-//-----------------------------------------------------------------------------
-// now go to /Mu2e/RunConfigurations/$detector_conf/DAQ to get a list of 
-// nodes/DTC's to be monitored 
-// MIDAS 'host_name' could be 'local'..
-//-----------------------------------------------------------------------------
-  _ss_ac_path      = "/Mu2e/ActiveRunConfiguration/Tracker";
-  _h_tracker_conf  = _odb_i->GetHandle(0,_ss_ac_path);
+  _ss_ac_path      = "/Mu2e/ActiveRunConfiguration/Tracker";  // active conf path
+  _handle          = _odb_i->GetHandle(0,_ss_ac_path);        // belongs to the base class
 
-  _ss_cmd_path     = "/Mu2e/Commands/Tracker";
+  _ss_cmd_path     = "/Mu2e/Commands/Tracker";                // command path
 //-----------------------------------------------------------------------------
 // register hotlink to /Mu2e/Commands/Tracker/Run
 //-----------------------------------------------------------------------------
@@ -44,13 +36,6 @@ TEqTracker::TEqTracker(const char* Name, const char* Title): TMu2eEqBase(Name,Ti
 
   if (db_open_record(hdb, h_run,&_run,sizeof(_run), MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
     cm_msg(MERROR, __func__,"failed to open hotlink in ODB");
-    TLOG(TLVL_ERROR) << "failed to open hotlink in ODB";
-  }
-
-  HNDLE h_test_run = _odb_i->GetHandle(0,"/Mu2e/Commands/Test/Run");
-
-  if (db_open_record(hdb, h_test_run,&_run,sizeof(_run), MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
-    cm_msg(MERROR, __func__,"failed to open hotlink for /Mu2e/Commands/Test/Run in ODB");
     TLOG(TLVL_ERROR) << "failed to open hotlink in ODB";
   }
 
@@ -75,18 +60,20 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // start from checking the tracker status
 //-----------------------------------------------------------------------------
+  TEqTracker* eq = TEqTracker::Instance();
   OdbInterface* odb_i = OdbInterface::Instance();
 
   HNDLE h_trk_cfg = odb_i->GetTrackerConfigHandle();  // returns handle of '/Mu2e/Commands/Tracker'
-  int status = odb_i->GetStatus(h_trk_cfg);
+
+  int status = eq->GetStatus();
   if (status != 0) {
     TLOG(TLVL_WARNING) << std::format("status:{} 1=BUSY. BAIL OUT",status);
     return;
   }
 //-----------------------------------------------------------------------------
-// 1. set tracker status as BUSY
+// 1. set tracker status as BUSY, there is only one tracker
 //-----------------------------------------------------------------------------
-  odb_i->SetStatus(h_trk_cfg,1);
+  eq->SetStatus(1);
 
   KEY key;
   db_get_key(hDB,hKey,&key);
@@ -133,6 +120,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
     std::string msg = std::format("cmd:{} is not implemented yet",cmd);
     TLOG(TLVL_ERROR) << msg;
     cm_msg(MERROR, __func__,msg.data());
+    cm_msg_flush_buffer();
   }
 //-----------------------------------------------------------------------------
 // first fan-out level: decide on the backend, the same backend may be
@@ -154,10 +142,11 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
       // std::thread t(TEqTracker::ExecuteTrackerCommand,fg_EqTracker->_h_cmd);
       // t.detach();
     }
-
+//-----------------------------------------------------------------------------
+// make it a thread for wait not to interfere with the communication with MIDAS
+//-----------------------------------------------------------------------------
     std::thread t(&TEqTracker::WaitForCompletion,fg_EqTracker->_h_cmd);
     t.detach();
-    // WaitForCompletion(fg_EqTracker->_h_cmd);
   }
 
   // int finished = odb_i->GetInteger(fg_EqTracker->_h_cmd,"Finished"  );
@@ -174,6 +163,7 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
 // "per-DTC" commands
 // for no-DTC commands it should be fast as all "ReturnCode" and "Finished"
 // fields should check out during the first iteration
+// different tracker commands have different timeout values
 //-----------------------------------------------------------------------------
   int return_code(0);
   
@@ -182,6 +172,8 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
 
   int wait_time(0);
   int n_not_finished = 100;
+
+  TEqTracker* eq = TEqTracker::Instance();
   
   OdbInterface* odb_i = OdbInterface::Instance();
   HNDLE h_trk_cfg   = odb_i->GetTrackerConfigHandle();
@@ -228,15 +220,15 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
 // either all finished, or timeout
 //-----------------------------------------------------------------------------
   if (n_not_finished != 0) {
-    odb_i->SetInteger(h_Cmd    ,"ReturnCode",-1);
-    odb_i->SetInteger(h_trk_cfg,"Status"    ,-1);
+    odb_i->SetInteger(h_Cmd,"ReturnCode",-1);
+    eq->SetStatus(-1);
   }
   else {
-    odb_i->SetInteger(h_Cmd    ,"ReturnCode", return_code);
-    odb_i->SetInteger(h_trk_cfg,"Status"    ,-return_code);
+    odb_i->SetInteger(h_Cmd,"ReturnCode", return_code);
+    eq->SetStatus(-return_code);
   }
 //-----------------------------------------------------------------------------
-// mark execution as completed
+// mark execution as completed, don't touch 'Run' - no need
 //-----------------------------------------------------------------------------
   odb_i->SetInteger(h_Cmd    ,"Finished",1);
 

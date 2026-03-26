@@ -98,8 +98,8 @@
         let values  = Object.values (nodesp);
         let entries = Object.entries(nodesp);
 
-        nkeys = keys.length;
-        for (let i = 1; i < nkeys; i+=2) {
+        nnodes = keys.length;
+        for (let i = 1; i <= nnodes; i+=2) {
           //-----------------------------------------------------------------------------
           // create a row for nodes
           //-----------------------------------------------------------------------------
@@ -120,28 +120,30 @@
           // two cells for two DTCs, one or even both could be absent
           //-----------------------------------------------------------------------------
           for (let idtc=0; idtc<2; idtc++) {
-            const cell = document.createElement("td");
+            let cell = document.createElement("td");
             cell.className = "status-cell";
-            // check if the DTC exists
-            const dtc_id   = 'DTC'+idtc;
-            const dtc_path = node_path+'/'+dtc_id;
-            let exists     = null;                 // odb_path_exists(node_path,dtc_id);
-
-            mjsonrpc_db_get_values([dtc_path]).then(function (rpc) {
+            // each cell houses either a DTC or a CFO - check if one of the exists
+            const dtc_path = node_path+'/DTC'+idtc;
+            const cfo_path = node_path+'/CFO'+idtc;
+            
+            mjsonrpc_db_get_values([dtc_path, cfo_path]).then(function (rpc) {
               let res = rpc.result.data[0];
-              set_colors(dtc_path,cell);
               if (res != null) {
-                exists = 1;
+                set_colors(dtc_path,cell);
                 cell.innerHTML = `<button onclick="dtc_control('${hostname}',${idtc})">DTC${idtc}</button>`;
-                
-                // Load initial values and set up polling for updates
-                // set colors and poll for updates
                 setInterval(() => {set_colors(dtc_path,cell);},2000);
               }
+              else {
+                res = rpc.result.data[1]; // check for CFO 
+                if (res != null) {
+                  set_colors(cfo_path,cell);
+                  cell.innerHTML = `<button onclick="cfo_control('${hostname},${idtc}')">CFO${idtc}</button>`;
+                  setInterval(() => {set_colors(cfo_path,cell);},2000);
+                }
+              }
             }).catch(function (error) {
-              console.error("Error fetching values:", error);
+              console.error("Error fetching DTC/CFO", error)
             });
-            
             row.appendChild(cell);
           }
           //-----------------------------------------------------------------------------
@@ -162,7 +164,6 @@
               if ((typeof process_label == 'string') && (process_label != 'Enabled') && (process_label != 'Status')) {
                 const cell = document.createElement("td");
                 cell.className = "status-cell";
-                // cell.innerHTML = `<button onclick="artdaq_process_control('${hostname}','${label}')">${label}</button>`;
                 cell.innerHTML = `<button onclick="tfm_control('${hostname}','${process_label}')">${process_label}</button>`;
                 
                 // Load initial values and set up polling for updates

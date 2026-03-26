@@ -63,12 +63,6 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   int link                   = odb_i->GetInteger(h_cmd,"link");
   std::string logfile        = odb_i->GetString (h_cmd,"logfile");
 //-----------------------------------------------------------------------------
-// this is address of the parameter record
-//-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG) << std::format("cmd:{} parameter_path:{}",cmd,parameter_path);
-//-----------------------------------------------------------------------------
-// should be already defined at this point
-//-----------------------------------------------------------------------------
   TEquipmentManager* eqm = TEquipmentManager::Instance();
 
   std::string eq_name = std::format("DTC{}",pcie_addr);
@@ -77,6 +71,8 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 
   ss << std::format("-- label:{} host:{} cmd:{} pcie_addr:{} link:{}",
                     eq->HostLabel(),eq->FullHostName(),cmd,dtc_i->PcieAddr(),link);
+
+  TLOG(TLVL_DEBUG) << std::format("cmd:{} parameter_path:{} logfile:{}",cmd,parameter_path,logfile);
 //-----------------------------------------------------------------------------
 // CONFIGURE_JA
 //------------------------------------------------------------------------------
@@ -195,13 +191,6 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     cmd_rc = eq->PulserOff(ss);
   }
-  else if (cmd == "program_roc") {
-//-----------------------------------------------------------------------------
-// PROGRAM_ROC
-//-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->ProgramRoc(ss);
-  }
   else if (cmd == "pulser_on") {
 //-----------------------------------------------------------------------------
 // PULSER_ON
@@ -280,7 +269,7 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     cmd_rc = eq->RebootMcu(ss);
   }
   else if (cmd == "reset_output") {
-    cmd_rc = eq->ResetOutput();
+    cmd_rc = eq->ResetOutput(logfile);
   }
   else if (cmd == "reset_digis") {
     cmd_rc = eq->ResetDigis(ss);

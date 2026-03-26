@@ -1,4 +1,8 @@
-import  midas,TRACE
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+
+import  midas,TRACE ; TRACE_NAME = 'test_odb' ;
 import  midas.client
 import  os, psycopg2
 import  json
@@ -44,6 +48,14 @@ def test_003():
 
     val   = client.odb_get("/Mu2e/ActiveRunConfiguration/DAQ/FclTemplates/br_demo/daq/fragment_receiver/fragment_ids")
     TRACE.INFO(f'val:{val} len(val):{len(val)}')
+
+
+def test_004():
+    logger.info("Initializing %s" % "test_004")
+    client = midas.client.MidasClient("test_004", None, "tracker", None)
+   
+    daq   = client.odb_get("/Mu2e/ActiveRunConfiguration/DAQ")
+    TRACE.INFO(f'start_5ns:{daq["digitization_start_5ns"]} stop_5ns:{daq["digitization_stop_5ns"]}',TRACE_NAME)
 
 
 #------------------------------------------------------------------------------
@@ -108,4 +120,4 @@ if __name__ == "__main__":
 
 #    test1()
 #    test2_set_thresholds(25,'MN261')
-    test_003();
+    test_004();
