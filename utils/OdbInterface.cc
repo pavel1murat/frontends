@@ -459,7 +459,7 @@ int OdbInterface::GetJAMode(HNDLE hDTC) {
   INT   data(0);       // if not found, want all links to be disabled
   int   sz = sizeof(data);
   if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "JAMode not found, return " << data;
+    TLOG(TLVL_ERROR) << key << ": JAMode not found, return " << data;
   }
   return data;
 }
@@ -686,13 +686,7 @@ int OdbInterface::GetPartitionID(HNDLE h_RunConf) {
 
 //-----------------------------------------------------------------------------
 int OdbInterface::GetOnSpill(HNDLE h_RunConf) {
-  const char* key {"DAQ/OnSpill"};
-  INT   data(0);       // if not found, want all links to be disabled
-  int   sz = sizeof(data);
-  if (db_get_value(_hDB, h_RunConf, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << "not found, return " << data;
-  }
-  return data;
+  return GetInteger(h_RunConf,"DAQ/OnSpill");
 }
 
 //-----------------------------------------------------------------------------

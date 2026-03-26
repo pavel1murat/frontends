@@ -240,7 +240,7 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 // set delays. seems to work
 //-----------------------------------------------------------------------------
-  rc = _dtc_i->SetRocDelay(-1,dtc_ewm_delay_5ns,&Stream);
+  rc = _dtc_i->SetRocDelay(-1,dtc_ewm_delay_5ns,Stream);
   if (rc < 0) {
     SetStatus(rc);
     return rc;
@@ -1641,7 +1641,7 @@ int TEqTrkDtc::SetRocDelay(HNDLE H_Cmd) {
 
   // for now, ignore ROC delays
 
-  rc = _dtc_i->SetRocDelay(-1,(uint16_t) dtc_ewm_delay_5ns, &sstr);
+  rc = _dtc_i->SetRocDelay(-1,(uint16_t) dtc_ewm_delay_5ns, sstr);
   
   int write_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
