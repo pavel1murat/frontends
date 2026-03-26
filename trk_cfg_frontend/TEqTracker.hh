@@ -18,13 +18,7 @@ class TEqTracker : public TMu2eEqBase {
     kCmdTracker   = 3,
   };
 public:
-  HNDLE                          _h_active_run_conf;
   HNDLE                          _h_daq_host_conf;
-  HNDLE                          _h_tracker_conf;
-  HNDLE                          _h_frontend_conf;
-  std::string                    _full_host_name;  // on private network, for communicatioin
-  std::string                    _host_label;      // on public network, for ODB
-  OdbInterface*                  _odb_i;
   int                            _run;
   std::string                    _ss_ac_path;      // "/Mu2e/ActiveRunConfiguration/Tracker"
   std::string                    _ss_cmd_path;     // "/Mu2e/Commands/Tracker"
@@ -64,9 +58,11 @@ public:
 //-----------------------------------------------------------------------------
   TEqTracker(const char* Name, const char* Title);
 
+  static TEqTracker* Instance() { return fg_EqTracker; }
+
   virtual TMFeResult Init               () override;
 //-----------------------------------------------------------------------------
-// this is MIDAS callback
+// MIDAS callback
 //-----------------------------------------------------------------------------
   static  void       ProcessCommand   (int hDB, int hKey, void* Info);
 //-----------------------------------------------------------------------------

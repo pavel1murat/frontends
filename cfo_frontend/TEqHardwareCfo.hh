@@ -44,6 +44,7 @@ public:
 
   int          ConfigureJA   (HNDLE H_Cmd);
   int          CompileRunPlan(HNDLE H_Cmd);
+  int          Halt          (HNDLE H_Cmd);
   int          InitReadout   (HNDLE H_Cmd);
   int          LaunchRunPlan (HNDLE H_Cmd);
   int          ReadRegister  (HNDLE H_Cmd);

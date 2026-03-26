@@ -220,7 +220,7 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
   uint32_t digitization_start_5ns = _odb_i->GetInteger(h_daq,"digitization_start_5ns");
   uint32_t digitization_stop_5ns  = _odb_i->GetInteger(h_daq,"digitization_stop_5ns" );
   uint32_t roc_lane_mask          = _odb_i->GetUInt32 (h_dtc,"RocLaneMask"           );
-  uint32_t dtc_ewm_delay_5ns      = _odb_i->GetUInt32 (h_dtc,"ewm_delay_5ns"         );
+  uint32_t dtc_ewm_delay_5ns      = _odb_i->GetInteger(h_dtc,"ewm_delay_5ns"         );
 
   TLOG(TLVL_DEBUG) << std::format("roc_readout_mode:{} roc_lane_mask:0x{:04x}",roc_readout_mode,roc_lane_mask);
 
@@ -251,7 +251,7 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
   TLOG(TLVL_DEBUG) << std::format("digitization_start_5ns:{} digitization_stop_5ns:{}",digitization_start_5ns,digitization_stop_5ns);
     
   if (digitization_stop_5ns > digitization_start_5ns) {
-    int print_level(2);
+    int print_level(0);
     rc = _dtc_i->SetRocDigitizationWindow(-1,digitization_start_5ns,digitization_stop_5ns,print_level,Stream);
     if (rc < 0) {
       SetStatus(rc);
@@ -292,9 +292,10 @@ int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
   HNDLE h_dtc     = _odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr()); // Handle(0,dtc_path);
   _odb_i->SetStatus(h_dtc,1);
 
-  int link        = _odb_i->GetInteger(H_Cmd    ,"link"       );
-  int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
-  int doit        = _odb_i->GetInteger(h_cmd_par,"doit");
+  int link            = _odb_i->GetInteger(H_Cmd    ,"link"       );
+  std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
+  int print_level     = _odb_i->GetInteger(h_cmd_par,"print_level");
+  int doit            = _odb_i->GetInteger(h_cmd_par,"doit");
 
   TLOG(TLVL_DEBUG) << std::format("link:{} print_level:{} doit:{}",link,print_level,doit);
 
@@ -310,7 +311,7 @@ int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
   }
 
   sstr << std::format(" rc:{} n_bitslips:{}",rc,n_bitslips);
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
 
   SetStatus(rc);
   TLOG(TLVL_DEBUG) << std::format("-- END: rc:{} cmd_rc:{} n_bitslips:{}",rc,cmd_rc,n_bitslips);
@@ -429,7 +430,7 @@ int TEqTrkDtc::FindThresholds(std::ostream& Stream ) {
 }
 
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::LoadChannelMap(HNDLE h_Cmd) {
+int TEqTrkDtc::LoadChannelMap(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
@@ -438,11 +439,12 @@ int TEqTrkDtc::LoadChannelMap(HNDLE h_Cmd) {
   // in the end, ProcessCommand should send ss.str() as a message to some log
   std::stringstream sstr;
 
-  StartMessage(h_Cmd,sstr);
+  StartMessage(H_Cmd,sstr);
   
-  int link        = _odb_i->GetInteger(h_Cmd    ,"link"       );
+  int         link    = _odb_i->GetInteger(H_Cmd    ,"link"       );
+  std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
   
-  HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(h_Cmd);
+  HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
   int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
   int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
 
@@ -461,7 +463,7 @@ int TEqTrkDtc::LoadChannelMap(HNDLE h_Cmd) {
 // write output to the equipment log - need to revert the line order 
 //-----------------------------------------------------------------------------
   sstr << std::format("NOT IMPLEMENTED YET\n");
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
   SetStatus(rc); 
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
@@ -469,7 +471,7 @@ int TEqTrkDtc::LoadChannelMap(HNDLE h_Cmd) {
 }
 
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
+int TEqTrkDtc::LoadThresholds(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
@@ -477,13 +479,14 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
   // in the end, ProcessCommand should send ss.str() as a message to some log
   std::stringstream sstr;
 
-  StartMessage(h_Cmd,sstr);
+  StartMessage(H_Cmd,sstr);
   
-  int link        = _odb_i->GetInteger(h_Cmd    ,"link"       );
+  int         link    = _odb_i->GetInteger(H_Cmd    ,"link"       );
+  std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
   
-  HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(h_Cmd);
-  int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
-  int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
+  HNDLE h_cmd_par     = _odb_i->GetCmdParameterHandle(H_Cmd);
+  int doit            = _odb_i->GetInteger(h_cmd_par,"doit"       );
+  int print_level     = _odb_i->GetInteger(h_cmd_par,"print_level");
 
   
   
@@ -618,7 +621,7 @@ int TEqTrkDtc::LoadThresholds(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
 // write output to the equipment log - need to revert the line order 
 //-----------------------------------------------------------------------------
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
   SetStatus(rc); 
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
@@ -642,7 +645,8 @@ int TEqTrkDtc::MeasureThresholds(HNDLE H_Cmd) { // (std::ostream& Stream) {
   HNDLE      h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
 
   std::string cmd_name = _odb_i->GetString (H_Cmd,"Name");
-  int   link           = _odb_i->GetInteger(H_Cmd,"link");
+  int         link     = _odb_i->GetInteger(H_Cmd,"link");
+  std::string logfile  = _odb_i->GetString (H_Cmd,"logfile");
 
   int   print_level    = _odb_i->GetInteger(h_cmd_par,"print_level");
   
@@ -703,10 +707,9 @@ int TEqTrkDtc::MeasureThresholds(HNDLE H_Cmd) { // (std::ostream& Stream) {
 // print summary table for all 6 links, sum(cal+hv) only
 //-----------------------------------------------------------------------------
     _dtc_i->PrintSumThresholds(thr,sstr);
-    
   }
 
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   SetStatus(rc); 
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
@@ -721,7 +724,7 @@ int TEqTrkDtc::PrintRocStatus(HNDLE H_Cmd) {
   TLOG(TLVL_DEBUG) << "-- START";
 
   SetStatus(1);                         // BUSY
-  HNDLE       h_cmd_par   = _odb_i->GetCmdParameterHandle(H_Cmd);
+  // HNDLE       h_cmd_par   = _odb_i->GetCmdParameterHandle(H_Cmd);
   std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
   int         link        = _odb_i->GetInteger(H_Cmd,"link"    );
 
@@ -739,31 +742,6 @@ int TEqTrkDtc::PrintRocStatus(HNDLE H_Cmd) {
   int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   SetStatus(rc); 
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
-  return 0;
-}
-
-//-----------------------------------------------------------------------------
-int TEqTrkDtc::ProgramRoc(std::ostream& Stream) {
-  int rc(0);
-  TLOG(TLVL_DEBUG) << "-- START TEqTrkDtc::" << __func__;
-  
-  // HNDLE         h_cmd     = _odb_i->GetDtcCmdHandle(_host_label,_dtc_i->PcieAddr());
-  // HNDLE         h_cmd_par = _odb_i->GetCmdParameterHandle(h_cmd);
-
-  // int link        = _odb_i->GetInteger(h_cmd,"link"       );
-  // int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
-
-  // if (link == -1) Stream << std::endl;
-
-  // try {
-  //   _dtc_i->FindAlignments(link,n_bitslips,print_level,Stream);
-  // }
-  // catch (...) {
-  //   Stream << " -- ERROR : coudn't execute FindAlignments for link:" << link << " ... BAIL OUT" << std::endl;
-  // }
-  
-  SetStatus(rc); 
-  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
   return 0;
 }
 
@@ -1430,7 +1408,7 @@ int TEqTrkDtc::ReadSubevents(HNDLE H_Cmd) {
   int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
   SetStatus(rc); 
-  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
 }
 
@@ -1498,7 +1476,7 @@ int TEqTrkDtc::ResetRoc(std::ostream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::SaveChannelMap(HNDLE h_Cmd) {
+int TEqTrkDtc::SaveChannelMap(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
@@ -1506,11 +1484,12 @@ int TEqTrkDtc::SaveChannelMap(HNDLE h_Cmd) {
   // in the end, ProcessCommand should send ss.str() as a message to some log
   std::stringstream sstr;
 
-  StartMessage(h_Cmd,sstr);
+  StartMessage(H_Cmd,sstr);
   
-  int link        = _odb_i->GetInteger(h_Cmd    ,"link"       );
+  int link            = _odb_i->GetInteger(H_Cmd,"link"       );
+  std::string logfile = _odb_i->GetString (H_Cmd,"logfile"    );
   
-  HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(h_Cmd);
+  HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
   int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
   int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
 
@@ -1531,15 +1510,15 @@ int TEqTrkDtc::SaveChannelMap(HNDLE h_Cmd) {
 //  _odb_i->SetStatus(h_dtc,rc);
 
   sstr << std::format("NOT IMPLEMENTED YET\n");
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
   SetStatus(rc); 
-  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
 }
 
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::SaveThresholds(HNDLE h_Cmd) {
+int TEqTrkDtc::SaveThresholds(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
@@ -1547,15 +1526,14 @@ int TEqTrkDtc::SaveThresholds(HNDLE h_Cmd) {
   // in the end, ProcessCommand should send ss.str() as a message to some log
   std::stringstream sstr;
 
-  StartMessage(h_Cmd,sstr);
+  StartMessage(H_Cmd,sstr);
   
-  int link        = _odb_i->GetInteger(h_Cmd    ,"link"       );
+  int link            = _odb_i->GetInteger(H_Cmd    ,"link"       );
+  std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
   
-  HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(h_Cmd);
-  int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
+  HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
+  //  int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
   int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
-
-  
   
   int lnk1 = link;
   int lnk2 = lnk1+1;
@@ -1571,11 +1549,11 @@ int TEqTrkDtc::SaveThresholds(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
   // _odb_i->SetStatus(h_dtc,rc);
 
-  sstr << std::format("NOT IMPLEMENTED YET\n");
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  sstr << std::format("NOT IMPLEMENTED YET, dont forget to uncomment doit\n");
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
   SetStatus(rc); 
-  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
 }
 
@@ -1632,7 +1610,9 @@ int TEqTrkDtc::SetRocDelay(HNDLE H_Cmd) {
   // int doit        = o["doit"] ;
   // int print_level = o["print_level"] ;
 
-  int link        = _odb_i->GetInteger(H_Cmd    ,"link"       );
+  int         link    = _odb_i->GetInteger(H_Cmd    ,"link"       );
+  std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
+
   //  int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
   // int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
 
@@ -1663,7 +1643,7 @@ int TEqTrkDtc::SetRocDelay(HNDLE H_Cmd) {
 
   rc = _dtc_i->SetRocDelay(-1,(uint16_t) dtc_ewm_delay_5ns, &sstr);
   
-  int write_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  int write_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
   SetStatus(rc);
   TLOG(TLVL_DEBUG) << std::format("-- END: rc:{} write_rc:{}",rc,write_rc);
@@ -1689,6 +1669,7 @@ int TEqTrkDtc::SetThresholds(HNDLE H_Cmd) {
   // int print_level = o["print_level"] ;
 
   int link        = _odb_i->GetInteger(H_Cmd,"link"       );
+  std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
 
   int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
   int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
@@ -1775,7 +1756,7 @@ int TEqTrkDtc::SetThresholds(HNDLE H_Cmd) {
     sstr << std::endl;
   }
   
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
   SetStatus(rc);
   TLOG(TLVL_DEBUG) << std::format("-- END: rc:{} cmd_rc:{}",rc,cmd_rc);

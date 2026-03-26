@@ -24,7 +24,7 @@
 int TEqHardwareCfo::ConfigureJA(HNDLE H_Cmd) {
   int rc(0);
   
-  TLOG(TLVL_DEBUG) << "-- START";
+  TLOG(TLVL_DEBUG) << std::format("-- START: H_Cmd:{}",H_Cmd);
 
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
@@ -54,7 +54,7 @@ int TEqHardwareCfo::ConfigureJA(HNDLE H_Cmd) {
 int TEqHardwareCfo::CompileRunPlan(HNDLE H_Cmd) {
   int rc(0);
   
-  TLOG(TLVL_DEBUG) << "-- START";
+  TLOG(TLVL_DEBUG) << std::format("-- START: H_Cmd:{}",H_Cmd);
 
   SetStatus(1);
   
@@ -88,13 +88,42 @@ int TEqHardwareCfo::CompileRunPlan(HNDLE H_Cmd) {
 }
 
 //-----------------------------------------------------------------------------
+// HALT execution of run plan
+//-----------------------------------------------------------------------------
+int TEqHardwareCfo::Halt(HNDLE H_Cmd) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  SetStatus(1);
+  
+  std::string logfile      = _odb_i->GetString (H_Cmd    ,"logfile"    );
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  rc = _cfo_i->Halt();
+
+  sstr << std::format(" halt: rc:{}",rc);
+
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+
+  SetStatus(rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END : rc:{} cmd_rc:{}",rc,cmd_rc);
+
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 // 'emulate_cfo' - from the DTC configuration
 //-----------------------------------------------------------------------------
 int TEqHardwareCfo::InitReadout(HNDLE H_Cmd) {
   int rc(0);
 
-  TLOG(TLVL_DEBUG) << "-- START";
+  TLOG(TLVL_DEBUG) << std::format("-- START: H_Cmd:{}",H_Cmd);
   
+  SetStatus(0); 
+
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
  
@@ -103,7 +132,7 @@ int TEqHardwareCfo::InitReadout(HNDLE H_Cmd) {
 
   std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
   std::string run_plan          = _odb_i->GetString (_handle,"run_plan"         );
-  int         timing_chain_mask = _odb_i->GetInteger(_handle,"timing_chain_mask");
+  uint32_t    timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
   // int         print_level       = _odb_i->GetInteger(h_cmd_par,"print_level");
 
   std::string run_plan_fn = run_plan_dir+'/'+run_plan+".bin";

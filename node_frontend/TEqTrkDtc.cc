@@ -46,7 +46,7 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
   TLOG(TLVL_DEBUG) << "-- START: H_RunConf:" << H_RunConf << " H_Dtc:" << H_Dtc;
   
   _handle              = H_Dtc;
-  HNDLE h_daq          = _odb_i->GetHandle(H_RunConf,"DAQ");
+  //  HNDLE h_daq          = _odb_i->GetHandle(H_RunConf,"DAQ");
 
   int dtc_enabled      = _odb_i->GetEnabled       (H_Dtc);
   int pcie_addr        = _odb_i->GetDtcPcieAddress(H_Dtc);

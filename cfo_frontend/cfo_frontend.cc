@@ -101,9 +101,14 @@ TMFeResult CfoFrontend::HandleFrontendInit(const std::vector<std::string>& args)
   }
 
   eqm->AddEquipmentItem(eq);
-                                        // add eq to the list of equipment pieces
+                       // add eq to the list of equipment pieces
                                         // equipment stores backward pointer to the frontend
   FeAddEquipment(eqm);
+//-----------------------------------------------------------------------------
+// register for transitions: the CFO frontend starts after the DTC frontends (500) and stops before them
+//-----------------------------------------------------------------------------
+  cm_set_transition_sequence(TR_START,520);
+  cm_set_transition_sequence(TR_STOP ,480);
     
   TLOG(TLVL_DEBUG) << std::format("-- END");
   return res;

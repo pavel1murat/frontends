@@ -76,7 +76,7 @@ std::string TMu2eEqBase::GetFullLogfileName(const std::string& Logfile) {
 
   std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
                                         // no need in the intermediate '/' here
-  std::string full_fn  = std::format("{}{}",data_dir,Logfile);
+  std::string full_fn  = std::format("{}/{}",data_dir,Logfile);
 
   TLOG(TLVL_DEBUG+1) << std::format("-- END full_fn:{}",full_fn);
   return full_fn;
@@ -86,23 +86,26 @@ std::string TMu2eEqBase::GetFullLogfileName(const std::string& Logfile) {
 // the logfiles are supposed to be located in ODB("/Logger/Data dir")
 //-----------------------------------------------------------------------------
 int TMu2eEqBase::ResetOutput(const std::string& Logfile) {
+  int rc(0);
 
-  std::string fn(_logfile);
+  TLOG(TLVL_DEBUG) << "--- START Logfile:" << Logfile; 
+
                                         // show as BUSY
   _odb_i->SetStatus(_handle,1);
   
-  if (Logfile != "") {
-    std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-    fn = std::format("{}/{}",data_dir,Logfile);
+  if (Logfile == "") {
+    TLOG(TLVL_ERROR) << std::format("logfile is not defined, BAIL OUT");
+    return -1;
   }
-
-  TLOG(TLVL_DEBUG) << "--- START _logfile:" << _logfile; 
 
   std::mutex mtx; // For thread-safe output
 
   {
     std::lock_guard<std::mutex> lock(mtx);
     std::ofstream output_file;
+
+    std::string fn = GetFullLogfileName(Logfile);
+    
     output_file.open(fn.data(),std::ofstream::trunc);
     if (not output_file.is_open()) {
       TLOG(TLVL_ERROR) << std::format("failed to open _logfile:{} in ofstream::trunc mode",fn); 
@@ -156,11 +159,12 @@ int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& Logfi
 
   std::mutex mtx; // For thread-safe output
 
-  std::string fn = _logfile;
-  if (Logfile != "") {
-    std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-    fn = std::format("{}{}",data_dir,Logfile);
+  if (Logfile == "") {
+    TLOG(TLVL_ERROR) << std::format("Logfile is not defined, BAIL OUT");
+    return -1;
   }
+
+  std::string fn = GetFullLogfileName(Logfile);
 
   TLOG(TLVL_DEBUG) << std::format("using fn:{}",fn);
 //-----------------------------------------------------------------------------

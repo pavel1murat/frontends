@@ -78,7 +78,6 @@ public:
   int         LoadThresholds   (HNDLE H_Cmd);                 // load thresholds from disk to ODB
   int         MeasureThresholds(HNDLE H_Cmd);                 // std::ostream& Stream);
   int         PrintRocStatus   (HNDLE H_Cmd);
-  int         ProgramRoc       (std::ostream& Stream);
   int         PulserOff        (std::ostream& Stream);
   int         PulserOn         (std::ostream& Stream);
   int         Rates            (std::ostream& Stream);

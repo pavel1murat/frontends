@@ -66,6 +66,7 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   std::string cmd            = odb_i->GetString (h_cmd,"Name");
   std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
   int link                   = odb_i->GetInteger(h_cmd,"link");
+  std::string logfile        = odb_i->GetString (h_cmd,"logfile");
 //-----------------------------------------------------------------------------
 // this is address of the parameter record
 //-----------------------------------------------------------------------------
@@ -76,10 +77,10 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // should be already defined at this point
 //-----------------------------------------------------------------------------
   std::string eq_name = std::format("DTC{}",pcie_addr);
-  TEqCrvDtc*             eq_dtc = (TEqCrvDtc*) TEquipmentManager::Instance()->FindEquipmentItem(eq_name);
-  mu2edaq::DtcInterface* dtc_i  = eq_dtc->Dtc_i();
+  TEqCrvDtc*             eq = (TEqCrvDtc*) TEquipmentManager::Instance()->FindEquipmentItem(eq_name);
+  mu2edaq::DtcInterface* dtc_i  = eq->Dtc_i();
 
-  ss << "--host_label:" << eq_dtc->HostLabel() << " host_name:" << eq_dtc->FullHostName()
+  ss << "--host_label:" << eq->HostLabel() << " host_name:" << eq->FullHostName()
      << " cmd:" << cmd << " pcie_addr:" << dtc_i->PcieAddr()
      << " link:" << link; // << " parameter_path:" << parameter_path;
 //-----------------------------------------------------------------------------
@@ -117,7 +118,7 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // init_readout
 //-----------------------------------------------------------------------------
     // ss << std::endl;
-    cmd_rc = eq_dtc->InitReadout(ss);
+    cmd_rc = eq->InitReadout(ss);
   }
 //-----------------------------------------------------------------------------
 // PRINT STATUS
@@ -133,7 +134,7 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   else if (cmd == "print_roc_status") {
     ss << std::endl;
     try {
-      cmd_rc = eq_dtc->PrintRocStatus(ss);
+      cmd_rc = eq->PrintRocStatus(ss);
     }
     catch (...) { ss << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
   }  
@@ -142,16 +143,16 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // read register
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->ReadRegister(ss);
+    cmd_rc = eq->ReadRegister(ss);
   }
   else if (cmd == "read_roc_register") {
 //-----------------------------------------------------------------------------
 // read ROC register
 //-----------------------------------------------------------------------------
-    cmd_rc = eq_dtc->ReadRocRegister(ss);
+    cmd_rc = eq->ReadRocRegister(ss);
   }
   else if (cmd == "reset_output") {
-    cmd_rc = eq_dtc->ResetOutput();
+    cmd_rc = eq->ResetOutput(logfile);
   }
   else if (cmd == "soft_reset") {
 //-----------------------------------------------------------------------------
@@ -167,13 +168,13 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // read ILP
 //-----------------------------------------------------------------------------
     ss << std::endl;
-    cmd_rc = eq_dtc->WriteRegister(ss);
+    cmd_rc = eq->WriteRegister(ss);
   }
   else if (cmd == "write_roc_register") {
 //-----------------------------------------------------------------------------
 // WRITE_ROC_REGISTER
 //-----------------------------------------------------------------------------
-    cmd_rc = eq_dtc->WriteRocRegister(ss);
+    cmd_rc = eq->WriteRocRegister(ss);
   }
   else {
     ss << " ERROR: Unknown command:" << cmd;
@@ -182,7 +183,7 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // write output to the equipment log - need to revert the line order 
 //-----------------------------------------------------------------------------
-  cmd_rc = eq_dtc->WriteOutput(ss.str());
+  cmd_rc = eq->WriteOutput(ss.str(),logfile);
   
 //-----------------------------------------------------------------------------
 // done, avoid second call - leave "Run" = 1;, before setting it to 1 again,

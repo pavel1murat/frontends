@@ -527,7 +527,7 @@ int TEqArtdaq::Tlvls(std::ostream& Stream) {
   HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
   HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
 
-  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+  //  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
 
   std::string cmd = std::format("trace_cntl tids");
 
@@ -552,15 +552,12 @@ int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& 
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
 
-  HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
-  HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
+  HNDLE       h_cmd_par    = Odb_i()->GetCmdParameterHandle(H_Cmd);
 
-  int print_level          = Odb_i()->GetInteger(h_cmd_par,"print_level");
+  std::string logfile      = Odb_i()->GetString (H_Cmd,"logfile");
+  int         print_level  = Odb_i()->GetInteger(h_cmd_par,"print_level");
   std::string grep_pattern = Odb_i()->GetString(h_cmd_par,"grep_pattern");
 
-  std::string path = Odb_i()->GetString(0,"/Logger/Data dir");
-
-  std::string fn = std::format("{}/{}",path,"trace.log");
   // tshow | tdelta -ct 1 -d 1
 
   // declare -f tshow  : { test -n "${PAGER-}" && trace_cntl show "$@" | $PAGER || trace_cntl show "$@" }
@@ -568,6 +565,8 @@ int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& 
   
   // std::string par_tshow ("");
   // std::string par_tdelta("-ct 1 -d 1");
+
+  std::string fn = GetFullLogfileName(logfile);
   
   std::string cmd = std::format("trace_cntl show | trace_delta -ct 1 -d 1 ");
   if (grep_pattern != "") {
@@ -581,7 +580,7 @@ int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& 
 
   sstr << "-- Tshow done\n";
   
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
   return rc;
@@ -599,14 +598,11 @@ int TEqArtdaq::Treset(HNDLE H_Cmd) { // std::ostream& Stream, const std::string&
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
 
-  HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
-  HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
+  HNDLE       h_cmd_par   = Odb_i()->GetCmdParameterHandle(H_Cmd);
 
-  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+  std::string logfile     = Odb_i()->GetString (H_Cmd,"logfile");
+  int         print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
 
-  std::string path = Odb_i()->GetString(0,"/Logger/Data dir");
-
-  std::string fn = std::format("{}/{}",path,"trace.log");
   // tshow | tdelta -ct 1 -d 1
 
   // declare -f tshow  : { test -n "${PAGER-}" && trace_cntl show "$@" | $PAGER || trace_cntl show "$@" }
@@ -621,9 +617,10 @@ int TEqArtdaq::Treset(HNDLE H_Cmd) { // std::ostream& Stream, const std::string&
   
   std::string output = popen_shell_command(cmd);
 
+  sstr << output << "\n";
   sstr << "-- Treset done\n";
   
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str());
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
   return rc;
