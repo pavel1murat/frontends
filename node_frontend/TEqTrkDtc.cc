@@ -264,8 +264,13 @@ int TEqTrkDtc::BeginRun(int RunNumber) {
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::EndRun(int RunNumber) {
   int rc(0);
+
     
   TLOG(TLVL_DEBUG) << "-- START: DTC" << _dtc_i->PcieAddr() << ":" << _dtc_i;
+  TLOG(TLVL_DEBUG) << "-- END ... do nothing ... rc:" << rc;
+
+  return 0;
+  
   SetStatus(1);
 
   std::vector<uint32_t>  dtc_reg;
@@ -288,7 +293,12 @@ int TEqTrkDtc::EndRun(int RunNumber) {
   for (int lnk=0; lnk<6; lnk++) {
     if (_dtc_i->LinkEnabled(lnk) == 0) continue;
     if (_dtc_i->LinkEnabled(lnk) == 0) continue;
-    ReadRocRegisters(lnk,RocRegisters,roc_reg[lnk]);
+    rc = ReadRocRegisters(lnk,RocRegisters,roc_reg[lnk]);
+    if (rc < 0) {
+      SetStatus(rc);
+      TLOG(TLVL_ERROR) << std::format("-- END BAILING OUT, rc:{}",rc);
+      return rc;
+    }
   }
 
 //-----------------------------------------------------------------------------

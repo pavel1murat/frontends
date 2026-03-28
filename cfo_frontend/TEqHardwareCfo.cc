@@ -127,9 +127,11 @@ int TEqHardwareCfo::BeginRun(int RunNumber)  {
   std::string run_plan_fn       = run_plan_dir+'/'+run_plan+".bin";
   int         timing_chain_mask = _odb_i->GetUInt32(_handle,"timing_chain_mask");  // timing_chain_mask is a UINT32
 
-  TLOG(TLVL_DEBUG) << std::format("run_plan_dir:{} run_plan:{} run_plan_fn:{}",run_plan_dir,run_plan,run_plan_fn);
+  TLOG(TLVL_DEBUG) << std::format("run_plan_fn:{} timing_chain_mask:0x{:08x}",run_plan_fn,timing_chain_mask);
 
   _cfo_i->InitReadout(run_plan_fn,timing_chain_mask);
+
+  sleep(2);
   _cfo_i->LaunchRunPlan();
 
   TLOG(TLVL_DEBUG) << std::format("-- END: launched run plan:{} rc:{}",run_plan_fn,rc);

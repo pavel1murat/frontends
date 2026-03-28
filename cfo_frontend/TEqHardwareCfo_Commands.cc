@@ -122,36 +122,36 @@ int TEqHardwareCfo::InitReadout(HNDLE H_Cmd) {
 
   TLOG(TLVL_DEBUG) << std::format("-- START: H_Cmd:{}",H_Cmd);
   
-  SetStatus(0); 
+  SetStatus(1); 
 
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
  
-  //  HNDLE       h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
-  std::string logfile   = _odb_i->GetString (H_Cmd,"logfile" );
-
+  std::string logfile           = _odb_i->GetString (H_Cmd,"logfile" );
   std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
   std::string run_plan          = _odb_i->GetString (_handle,"run_plan"         );
   uint32_t    timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
-  // int         print_level       = _odb_i->GetInteger(h_cmd_par,"print_level");
 
   std::string run_plan_fn = run_plan_dir+'/'+run_plan+".bin";
   TLOG(TLVL_DEBUG) << std::format("run_plan_fn:{}",run_plan_fn);
   
   sstr << std::endl;
+
   rc = _cfo_i->InitReadout(run_plan_fn.data(),timing_chain_mask);
 
   sstr << std::format(" run_plan_fn:{} time_chain_mask:0x{:08x} rc:{}",run_plan_fn,timing_chain_mask,rc);
+
   if (rc < 0) {
     std::string msg = std::format("failed to initialize the CFO readout for run_plan_fn:{}",run_plan_fn);
     cm_msg(MERROR,__func__,msg.data());
     cm_msg_flush_buffer();
     TLOG(TLVL_ERROR) << msg;
   }
+
+  SetStatus(rc); 
   
   int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
-  SetStatus(rc); 
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   
   return rc;

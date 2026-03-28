@@ -12,6 +12,8 @@ import  midas
 import  midas.frontend 
 import  midas.event
 
+from contextlib import redirect_stdout
+
 import  TRACE
 TRACE_NAME = "tfm_fe"
 
@@ -452,8 +454,31 @@ class TfmFrontend(midas.frontend.FrontendBase):
                 for line in reversed(lines):
                     logfile.write(line)
 
+        TRACE.INFO(f'-- END',TRACE_NAME);
 
-        TRACE.TRACE(TRACE.TLVL_INFO,f'-- END',TRACE_NAME);
+        return rc;
+    
+#------------------------------------------------------------------------------
+    def process_cmd_print_procinfos(self):
+        rc = 0;
+        
+        par      = self.client.odb_get(self.tfm_cmd_odb_path);
+
+        TRACE.INFO(f'-- START',TRACE_NAME);
+#------------------------------------------------------------------------------
+# remember that MIDAS displays the logfile in the reverse order
+# so this ptintout will be reversed....
+#------------------------------------------------------------------------------
+        with open(self.message_fn,"a") as logfile:
+            with redirect_stdout(logfile):
+                print('----- a');
+                for p in self._fm.procinfos:
+                    p.print();
+
+                print('----- a');
+
+
+        TRACE.INFO(f'-- END',TRACE_NAME);
         return rc;
     
 #-------v-----------------------------------------------------------------------
@@ -496,6 +521,8 @@ class TfmFrontend(midas.frontend.FrontendBase):
             rc = self.process_cmd_get_state(parameter_path);
         elif (cmd_name.upper() == 'PRINT_FCL'):
             rc = self.process_cmd_print_fcl();
+        elif (cmd_name.upper() == 'PRINT_PROCINFOS'):
+            rc = self.process_cmd_print_procinfos();
         elif (cmd_name.upper() == 'RESET_OUTPUT'):
             rc = self.process_cmd_reset_output(parameter_path,logfile);
 #------------------------------------------------------------------------------
