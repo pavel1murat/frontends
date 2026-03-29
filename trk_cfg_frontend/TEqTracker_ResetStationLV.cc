@@ -19,7 +19,7 @@
 TMFeResult TEqTracker::ResetStationLV(const std::string& CmdParameterPath) {
   std::string tracker_config_path{"/Mu2e/ActiveRunConfiguration/Tracker"};
   std::string tracker_cmd_path   {"/Mu2e/Commands/Tracker"};
-  std::string cmd                {"reset_station_lv"};
+  std::string cmd                {"reset_lv"};
 
   TLOG(TLVL_DEBUG) << "--- START TEqTracker::" << __func__; 
 
@@ -71,8 +71,6 @@ TMFeResult TEqTracker::ResetStationLV(const std::string& CmdParameterPath) {
 //-----------------------------------------------------------------------------
 // the execution is complete, '/Finished' and '/ReturnCode' tell the story
 //-----------------------------------------------------------------------------
-  odb_i->SetInteger(h_cmd,"Run",0);
-  
   TLOG(TLVL_DEBUG) << "--- END TEqTracker::" << __func__; 
 
   return TMFeOk();

@@ -89,9 +89,6 @@
       btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_B('reset_output','reset_output',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
       tr.appendChild(td);
 
       td = document.createElement('td');
@@ -108,6 +105,10 @@
       td = document.createElement('td');
       td.colSpan = 6;
       
+      cmd = new Command_B('reset_output','reset_output',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+      btn = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
       cmd = new Command_B('compile_run_plan','compile_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
       btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);

@@ -100,7 +100,7 @@ int TEqTracker::ExecuteRpiCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
       std::string node      = odb_i->GetDtcHostLabel  (h_dtc);
       // tbd
 
-      if (cmd == "reset_station_lv") ResetStationLV(cmd_parameter_path);
+      if (cmd == "reset_lv") ResetStationLV(cmd_parameter_path);
       else {
         TLOG(TLVL_ERROR) << std::format("unknown command:{}",cmd);
         rc = -1;

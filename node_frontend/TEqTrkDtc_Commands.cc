@@ -229,7 +229,7 @@ int TEqTrkDtc::InitReadout(std::ostream& Stream) {
   Stream << std::endl;
 
   _dtc_i->SetRocLaneMask(roc_lane_mask);
-
+                                                       // soft_reset(DTC) + init_cfo + reset_rocs + init_roc_readout_mode + release_buffers
   rc = _dtc_i->InitReadout(-1,roc_readout_mode,&Stream);
   if (rc < 0) {
     TLOG(TLVL_ERROR) << std::format("node:{} DTC:{} : failed to initialize the DTC readout. BAIL OUT",
