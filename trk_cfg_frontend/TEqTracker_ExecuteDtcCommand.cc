@@ -73,8 +73,6 @@ int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
   TLOG(TLVL_DEBUG) << std::format("first_station:{} last_station:{} first_plane:{} last_plane:{}",
                                   first_station, last_station, first_plane, last_plane);
 
-  // odb_i->SetInteger(h_trk_cfg,"Status",1);
-
   std::string cmd_parameter_path = odb_i->GetTrackerCmdParameterPath(cmd);
 //-----------------------------------------------------------------------------
 // loop over all active DTCs and execute 'PULSER_ON'
@@ -116,7 +114,6 @@ int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
       if (dtc_status == 0) {
         odb_i->SetString (h_dtc_cmd,"Name"         ,cmd);
         odb_i->SetString (h_dtc_cmd,"ParameterPath",cmd_parameter_path);
-        
         odb_i->SetInteger(h_dtc_cmd,"link"         ,lnk);
         odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);
 //-----------------------------------------------------------------------------

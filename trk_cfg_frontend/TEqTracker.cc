@@ -99,6 +99,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 
   if      (cmd == "digi_rw"         ) fg_EqTracker->_cmd_type = kCmdDtc;
   else if (cmd == "find_alignment"  ) fg_EqTracker->_cmd_type = kCmdDtc;
+  else if (cmd == "init_readout"    ) fg_EqTracker->_cmd_type = kCmdDtc;
   else if (cmd == "pulser_on"       ) fg_EqTracker->_cmd_type = kCmdDtc;
   else if (cmd == "pulser_off"      ) fg_EqTracker->_cmd_type = kCmdDtc;
   else if (cmd == "read"            ) fg_EqTracker->_cmd_type = kCmdDtc;  // "read" loads channel masks
@@ -113,7 +114,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
     odb_i->SetStatus(h_trk_cfg,rc);
     return;
   }
-  else if (cmd == "reset_station_lv") fg_EqTracker->_cmd_type = kCmdRpi;
+  else if (cmd == "reset_lv"        ) fg_EqTracker->_cmd_type = kCmdRpi;
   else if (cmd == "set_thresholds"  ) fg_EqTracker->_cmd_type = kCmdDtc;
   else if (cmd == "test_command"    ) fg_EqTracker->_cmd_type = kCmdTracker;
   else {

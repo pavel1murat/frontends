@@ -147,8 +147,9 @@ int TEqHardwareCfo::EndRun(int RunNumber)  {
 //-----------------------------------------------------------------------------
 // in 'external' mode, [re-]initialize and start executing the run plan
 //-----------------------------------------------------------------------------
+  _cfo_i->Cfo()->DisableLinks();
   _cfo_i->Halt();
-  _cfo_i->fCfo->SoftReset();
+  _cfo_i->Cfo()->SoftReset();
 
   TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
 

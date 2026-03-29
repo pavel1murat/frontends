@@ -39,105 +39,159 @@
        tbody.appendChild(tr);
        
        tr = document.createElement('tr');
-       tr.innerHTML = `
-         <td colspan=2>
-           <div class="dropup">
-             <input type=button class="dropbtn" value='read'>
-             <div class="dropup-content">
-               <div onClick='dtc_load_cmd_parameters("read")'> Load Parameters </div>
-               <div onClick='dtc_command_set_odb("read","trkdtc.log")'            > Run             </div>
-             </div>
-           </div>
-           <div class="dropup">
-             <input type=button class="dropbtn" value='digi_rw'>
-             <div class="dropup-content">
-               <div onClick='dtc_load_cmd_parameters("digi_rw")'> Load Parameters </div>
-               <div onClick='dtc_command_set_odb("digi_rw","trkdtc.log")'            > Run             </div>
-             </div>
-           </div>
-           <div class="dropup">
-             <input type=button class="dropbtn" value='pulser_on'>
-             <div class="dropup-content">
-               <div onClick='dtc_load_cmd_parameters("pulser_on")'> Load Parameters </div>
-               <div onClick='dtc_command_set_odb("pulser_on","trkdtc.log")'            > Run             </div>
-             </div>
-           </div>
-           <div class="dropup">
-             <input type=button class="dropbtn" value='pulser_off'>
-             <div class="dropup-content">
-               <div onClick='dtc_load_cmd_parameters("pulser_off")'> Load Parameters </div>
-               <div onClick='dtc_command_set_odb("pulser_off","trkdtc.log")'            > Run             </div>
-             </div>
-           </div>
-           <div class="dropup">
-             <input type=button class="dropbtn" value='rates'>
-             <div class="dropup-content">
-               <div onClick='dtc_load_cmd_parameters("rates")'> Load Parameters </div>
-               <div onClick='dtc_command_set_odb("rates","trkdtc.log")'            > Run             </div>
-             </div>
-           </div>
-           <div class="dropup">
-             <input type=button class="dropbtn" value='read_ddr'>
-             <div class="dropup-content">
-               <div onClick='dtc_load_cmd_parameters("read_ddr")'> Load Parameters </div>
-               <div onClick='dtc_command_set_odb("read_ddr","trkdtc.log")'            > Run             </div>
-             </div>
-           </div>
-           <div class="dropup">
-             <input type=button class="dropbtn" value='set_thresholds'>
-             <div class="dropup-content">
-               <div onClick='dtc_load_cmd_parameters("set_thresholds")'> Load Parameters </div>
-               <div onClick='dtc_command_set_odb("set_thresholds","trkdtc.log")'            > Run             </div>
-             </div>
-           </div>
-           <div class="dropup">
-             <input type=button class="dropbtn" value='load_thresholds'>
-             <div class="dropup-content">
-               <div onClick='dtc_load_cmd_parameters("load_thresholds")'> Load Parameters </div>
-               <div onClick='dtc_command_set_odb("load_thresholds","trkdtc.log")'            > Run             </div>
-             </div>
-           </div>
-           <div class="dropup">
-             <input type=button class="dropbtn" value='set_caldac'>
-             <div class="dropup-content">
-               <div onClick='dtc_load_cmd_parameters("set_caldac")'> Load Parameters </div>
-               <div onClick='dtc_command_set_odb("set_caldac","trkdtc.log")'            > Run             </div>
-             </div>
-           </div>
-           <div class="dropup">
-             <input type=button class="dropbtn" value='dump_settings'>
-             <div class="dropup-content">
-               <div onClick='dtc_load_cmd_parameters("dump_settings")'> Load Parameters </div>
-               <div onClick='dtc_command_set_odb("dump_settings","trkdtc.log")'            > Run             </div>
-             </div>
-           </div>
-         </td>
-         <td> <div> Register </div> </td>
-         <td> <div> Value    </div> </td>
-       `;
+
+       let td, cmd, btn;
+       
+       td = document.createElement('td');
+       td.colSpan = 2;
+       
+       cmd = new Command_B('read','read',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+       
+       cmd = new Command_B('digi_rw','digi_rw',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+       
+       cmd = new Command_B('pulser_on','pulser_on',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+       
+       cmd = new Command_B('pulser_off','pulser_off',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+       
+       cmd = new Command_B('rates','rates',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+       
+       cmd = new Command_B('read_ddr','read_ddr',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+       
+       cmd = new Command_B('set_thresholds','set_thresholds',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+       
+       cmd = new Command_B('load_thresholds','load_thresholds',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+       
+       cmd = new Command_B('set_caldac','set_caldac',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+       
+       cmd = new Command_B('dump_settings','dump_settings',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+
+       tr.appendChild(td);
+
+       td = document.createElement('td');
+       td.innerHTML = `<div> Register </div>`
+       tr.appendChild(td);
+
+       td = document.createElement('td');
+       td.innerHTML = `<div> Value </div>`
+       tr.appendChild(td);
+
        tbody.appendChild(tr);
 
-       tr = document.createElement('tr');
-       let td = document.createElement('td');
+       // 2026-03-29 PM       <div class="dropup">
+       // 2026-03-29 PM       <input type=button class="dropbtn" value='read'>
+       // 2026-03-29 PM       <div class="dropup-content">
+       // 2026-03-29 PM       <div onClick='dtc_load_cmd_parameters("read")'> Load Parameters </div>
+       // 2026-03-29 PM       <div onClick='dtc_command_set_odb("read","trkdtc.log")'            > Run             </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       
+       // 2026-03-29 PM       <div class="dropup">
+       // 2026-03-29 PM       <input type=button class="dropbtn" value='digi_rw'>
+       // 2026-03-29 PM       <div class="dropup-content">
+       // 2026-03-29 PM       <div onClick='dtc_load_cmd_parameters("digi_rw")'> Load Parameters </div>
+       // 2026-03-29 PM       <div onClick='dtc_command_set_odb("digi_rw","trkdtc.log")'            > Run             </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       
+       // 2026-03-29 PM
+       // 2026-03-29 PM       <div class="dropup">
+       // 2026-03-29 PM       <input type=button class="dropbtn" value='pulser_on'>
+       // 2026-03-29 PM       <div class="dropup-content">
+       // 2026-03-29 PM       <div onClick='dtc_load_cmd_parameters("pulser_on")'> Load Parameters </div>
+       // 2026-03-29 PM       <div onClick='dtc_command_set_odb("pulser_on","trkdtc.log")'            > Run             </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       <div class="dropup">
+       // 2026-03-29 PM       <input type=button class="dropbtn" value='pulser_off'>
+       // 2026-03-29 PM       <div class="dropup-content">
+       // 2026-03-29 PM       <div onClick='dtc_load_cmd_parameters("pulser_off")'> Load Parameters </div>
+       // 2026-03-29 PM       <div onClick='dtc_command_set_odb("pulser_off","trkdtc.log")'            > Run             </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       <div class="dropup">
+       // 2026-03-29 PM       <input type=button class="dropbtn" value='rates'>
+       // 2026-03-29 PM       <div class="dropup-content">
+       // 2026-03-29 PM       <div onClick='dtc_load_cmd_parameters("rates")'> Load Parameters </div>
+       // 2026-03-29 PM       <div onClick='dtc_command_set_odb("rates","trkdtc.log")'            > Run             </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       <div class="dropup">
+       // 2026-03-29 PM       <input type=button class="dropbtn" value='read_ddr'>
+       // 2026-03-29 PM       <div class="dropup-content">
+       // 2026-03-29 PM       <div onClick='dtc_load_cmd_parameters("read_ddr")'> Load Parameters </div>
+       // 2026-03-29 PM       <div onClick='dtc_command_set_odb("read_ddr","trkdtc.log")'            > Run             </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       <div class="dropup">
+       // 2026-03-29 PM       <input type=button class="dropbtn" value='set_thresholds'>
+       // 2026-03-29 PM       <div class="dropup-content">
+       // 2026-03-29 PM       <div onClick='dtc_load_cmd_parameters("set_thresholds")'> Load Parameters </div>
+       // 2026-03-29 PM       <div onClick='dtc_command_set_odb("set_thresholds","trkdtc.log")'            > Run             </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       <div class="dropup">
+       // 2026-03-29 PM       <input type=button class="dropbtn" value='load_thresholds'>
+       // 2026-03-29 PM       <div class="dropup-content">
+       // 2026-03-29 PM       <div onClick='dtc_load_cmd_parameters("load_thresholds")'> Load Parameters </div>
+       // 2026-03-29 PM       <div onClick='dtc_command_set_odb("load_thresholds","trkdtc.log")'            > Run             </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       <div class="dropup">
+       // 2026-03-29 PM       <input type=button class="dropbtn" value='set_caldac'>
+       // 2026-03-29 PM       <div class="dropup-content">
+       // 2026-03-29 PM       <div onClick='dtc_load_cmd_parameters("set_caldac")'> Load Parameters </div>
+       // 2026-03-29 PM       <div onClick='dtc_command_set_odb("set_caldac","trkdtc.log")'            > Run             </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       <div class="dropup">
+       // 2026-03-29 PM       <input type=button class="dropbtn" value='dump_settings'>
+       // 2026-03-29 PM       <div class="dropup-content">
+       // 2026-03-29 PM       <div onClick='dtc_load_cmd_parameters("dump_settings")'> Load Parameters </div>
+       // 2026-03-29 PM       <div onClick='dtc_command_set_odb("dump_settings","trkdtc.log")'            > Run             </div>
+       // 2026-03-29 PM       </div>
+       // 2026-03-29 PM       </div>
 
-       let cmdb, btn;
-       cmdb = new Command_B('reset_roc','reset_roc',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       tr = document.createElement('tr');
+       td = document.createElement('td');
+
+       let cmdb;
+       cmdb = new Command_B('reset_roc','reset_roc',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn  = mu2e_make_exec_button_B(cmdb);
        td.appendChild(btn);
        
-       cmdb = new Command_B('read_spi','read_spi',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmdb = new Command_B('read_spi','read_spi',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn  = mu2e_make_exec_button_B(cmdb);
        td.appendChild(btn);
        
-       cmdb = new Command_B('read_ilp','read_ilp',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmdb = new Command_B('read_ilp','read_ilp',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn  = mu2e_make_exec_button_B(cmdb);
        td.appendChild(btn);
        
-       cmdb = new Command_B('read_mnid','read_mnid',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmdb = new Command_B('read_mnid','read_mnid',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn  = mu2e_make_exec_button_B(cmdb);
        td.appendChild(btn);
        
-       cmdb = new Command_B('get_key','get_key',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmdb = new Command_B('get_key','get_key',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn  = mu2e_make_exec_button_B(cmdb);
        td.appendChild(btn);
        
@@ -306,23 +360,23 @@
 
        let cmd, btn;
        
-       cmd = new Command_B('load_parameters','load_parameters',mu2e_load_conf_table,'cmd_params', dtc_config_path,'trkdtc.log');
+       cmd = new Command_B('load_parameters'    ,'load_parameters'    , mu2e_load_conf_table ,'cmd_params', dtc_config_path       ,'trkdtc.log');
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('init_readout','init_readout',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('init_readout'       ,'init_readout'       , dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn = mu2e_make_dropup_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('configure_ja','configure_ja',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('configure_ja'       ,'configure_ja'       , dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn = mu2e_make_dropup_button_B(cmd);
        td.appendChild(btn);
        
-       cmd = new Command_B('cfo_launch_run_plan','cfo_launch_run_plan',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('cfo_launch_run_plan','cfo_launch_run_plan', dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn = mu2e_make_dropup_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('read_subevents'     ,'read_subevents'     ,dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('read_subevents'     ,'read_subevents'     , dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn  = mu2e_make_dropup_button_B(cmd);
        td.appendChild(btn);
 
@@ -345,27 +399,28 @@
        td = document.createElement('td');
        td.colSpan = 7;
 
-       cmd = new Command_B('soft_reset'         ,'soft_reset'         ,dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('reset output','reset_output',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
+
+       cmd = new Command_B('soft_reset'         ,'soft_reset'         ,dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn  = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('hard_reset'         ,'hard_reset'         ,dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('hard_reset'         ,'hard_reset'         ,dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn  = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
        tr.appendChild(td);
 
-       cmd = new Command_B('print_status','print_status',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('print_status','print_status',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
        
        // order: title, name, ...
-       cmd = new Command_B('print ROC status','print_roc_status',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('print ROC status','print_roc_status',dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('reset output','reset_output',dtc_command_set_odb_B,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
-       btn = mu2e_make_exec_button_B(cmd);
-       td.appendChild(btn);
        tr.appendChild(td);
 
        // PARAMETERS: title,name,cmd,table_name,path_func,log: output of everything trace-related goes to trace.log
@@ -437,6 +492,8 @@
        //-----------------------------------------------------------------------------
 
        createRocCommandsTable();
+
+       dtc_load_parameters();
      }
          
          
