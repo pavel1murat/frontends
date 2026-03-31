@@ -25,160 +25,170 @@
 // an element ID should be unique within the page
 //-----------------------------------------------------------------------------
 
-    function loadPage() {
-      const urlParams = new URLSearchParams(window.location.search);
-      g_hostname      = urlParams.get('hostname') || 'none';  // 
-      if (g_pcie == -1) { g_pcie = parseInt(urlParams.get('pcie')) || 0; } ;
+     function loadPage() {
+       const urlParams = new URLSearchParams(window.location.search);
+       g_hostname      = urlParams.get('hostname') || 'none';  // 
+       if (g_pcie == -1) { g_pcie = parseInt(urlParams.get('pcie')) || 0; } ;
       
-      document.title = 'CFO@'+g_hostname;
-      let title       = document.getElementById('table-title');
-      title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' CFO control page';
+       document.title = 'CFO@'+g_hostname;
+       let title       = document.getElementById('table-title');
+       title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' CFO control page';
 //-----------------------------------------------------------------------------
 //  create CFO commands table
 //-----------------------------------------------------------------------------
-      const cmd_table = document.getElementById('cfo_cmd_table');
-      cmd_table.innerHTML = '';
-      
-      let thead = document.createElement('thead');
-      /*  first row */
-      let tr = document.createElement('tr');
-      let td = document.createElement('td');
-      td.colSpan = 9;
-      td.innerHTML = `<div class="mtableheader">CFO Commands</div>`;
-      tr.appendChild(td);
-      
-      td = document.createElement('td');
-      tr.appendChild(td);
-      
-      td = document.createElement('td');
-      td.innerHTML = `
-        <div class="mtableheader">
-          <a href="https://mu2einternalwiki.fnal.gov/wiki/CFO_control_page#CFO_control_commands" target="_blank">help</a>
-        </div>`
-      tr.appendChild(td);
-      
-      thead.appendChild(tr);
-      
-      let tbody = document.createElement('tbody');
-      /*  second row - 9 cells*/
-      tr = document.createElement('tr');
-      td = document.createElement('td');
-      td.colSpan = 9;
+       const cmd_table = document.getElementById('cfo_cmd_table');
+       cmd_table.innerHTML = '';
+       
+       let thead = document.createElement('thead');
+       /*  first row */
+       let tr = document.createElement('tr');
+       let td = document.createElement('td');
+       td.colSpan = 9;
+       td.innerHTML = `<div class="mtableheader">CFO Commands</div>`;
+       tr.appendChild(td);
+       
+       td = document.createElement('td');
+       tr.appendChild(td);
+       
+       td = document.createElement('td');
+       td.innerHTML = `
+         <div class="mtableheader">
+           <a href="https://mu2einternalwiki.fnal.gov/wiki/CFO_control_page#CFO_control_commands" target="_blank">help</a>
+         </div>`
+       tr.appendChild(td);
+       
+       thead.appendChild(tr);
+       
+       let tbody = document.createElement('tbody');
+       /*  second row - 9 cells*/
+       tr = document.createElement('tr');
+       td = document.createElement('td');
+       td.colSpan = 9;
 
-      let cmd = new Command_B('load_parameters','load_parameters',mu2e_load_conf_table,'cmd_params',cfo_config_path,'trkdtc.log');
-      let btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
+       let cmd = new Command_B('load_parameters','load_parameters',mu2e_load_conf_table,'cmd_params',cfo_config_path,'trkdtc.log');
+       let btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
 
-      cmd = new Command_B('configure_ja','configure_ja',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
-      btn  = mu2e_make_dropup_button_B(cmd);
-      td.appendChild(btn);
+       cmd = new Command_B('configure_ja','configure_ja',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
 
-      cmd = new Command_B('init_readout','init_readout',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
-      btn  = mu2e_make_dropup_button_B(cmd);
-      td.appendChild(btn);
+       cmd = new Command_B('init_readout','init_readout',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
 
-      cmd = new Command_B('soft_reset','soft_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
+       cmd = new Command_B('soft_reset','soft_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
 
-      cmd = new Command_B('hard_reset','hard_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
+       cmd = new Command_B('hard_reset','hard_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
 
-      cmd = new Command_B('print_status','print_status',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
+       cmd = new Command_B('print_status','print_status',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
 
-      tr.appendChild(td);
+       tr.appendChild(td);
 
-      td = document.createElement('td');
-      td.InnerHTML = 'Register';
-      tr.appendChild(td);
+       td = document.createElement('td');
+       td.InnerHTML = 'Register';
+       tr.appendChild(td);
 
-      td = document.createElement('td');
-      td.InnerHTML = 'Value';
-      tr.appendChild(td);
+       td = document.createElement('td');
+       td.InnerHTML = 'Value';
+       tr.appendChild(td);
       
-      tbody.appendChild(tr);
-      
-      tr = document.createElement('tr');
-      td = document.createElement('td');
-      td.colSpan = 6;
-      
-      cmd = new Command_B('reset_output','reset_output',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
+       tbody.appendChild(tr);
+       
+       tr = document.createElement('tr');
+       td = document.createElement('td');
+       td.colSpan = 6;
+       
+       cmd = new Command_B('reset_output','reset_output',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
 
-      cmd = new Command_B('compile_run_plan','compile_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
+       cmd = new Command_B('compile_run_plan','compile_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
 
-      cmd = new Command_B('launch_run_plan','launch_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
+       cmd = new Command_B('launch_run_plan','launch_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
 
-      cmd = new Command_B('halt','halt',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
+       cmd = new Command_B('halt','halt',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
 
-      tr.appendChild(td);
+       tr.appendChild(td);
 
-      // PARAMETERS: title,name,cmd,table_name,path_func,log: output of everything trace-related goes to trace.log
-      td = document.createElement('td');
-      td.colSpan = 2;
-      tr.appendChild(td);
+       // PARAMETERS: title,name,cmd,table_name,path_func,log: output of everything trace-related goes to trace.log
+       td = document.createElement('td');
+       td.colSpan = 2;
+       tr.appendChild(td);
+       
+       td = document.createElement('td');
+       cmdb = new Command_B('write CFO register','write_register',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_exec_button_B(cmdb);
+       td.appendChild(btn);
+       tr.appendChild(td);
       
-      td = document.createElement('td');
-      cmdb = new Command_B('write CFO register','write_register',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
-      btn  = mu2e_make_exec_button_B(cmdb);
-      td.appendChild(btn);
-      tr.appendChild(td);
+       // read and write need to know a) PCIE b) link in question
       
-      // read and write need to know a) PCIE b) link in question
-      
-      td = document.createElement('td');
-      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/CFO/write_register/register" data-odb-editable="1" data-format="%x"></div>`;
-      tr.appendChild(td);
-      
-      td = document.createElement('td');
-      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/CFO/write_register/value"    data-odb-editable="1" data-format="%x"></div>`;
-      tr.appendChild(td);
-      
-      tbody.appendChild(tr);
+       td = document.createElement('td');
+       td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/CFO/write_register/register" data-odb-editable="1" data-format="%x"></div>`;
+       tr.appendChild(td);
+       
+       td = document.createElement('td');
+       td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/CFO/write_register/value"    data-odb-editable="1" data-format="%x"></div>`;
+       tr.appendChild(td);
+       
+       tbody.appendChild(tr);
 
-             // -------------------------------------- read register row
-      tr = document.createElement('tr');
-      
-      td = document.createElement('td');
-      td.colSpan = 6;
-      tr.appendChild(td);
-      
-      td = document.createElement('td');
-      td.colSpan = 2;
-      tr.appendChild(td);
-      
-      td = document.createElement('td');
-      cmdb = new Command_B('read_register','read_register',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
-      btn  = mu2e_make_exec_button_B(cmdb);
-      td.appendChild(btn);
-      tr.appendChild(td);
-      
-      td  = document.createElement('td');
-      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/CFO/read_register/register" data-odb-editable="1" data-format="%x"></div>`;
-      tr.appendChild(td);
-      
-      td = document.createElement('td');
-      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/CFO/read_register/value"    data-odb-editable="1" data-format="%x"></div>`;
-      tr.appendChild(td);
-      
-      tbody.appendChild(tr);
-      
-      cmd_table.appendChild(thead);
-      cmd_table.appendChild(tbody);
-    }
+       // -------------------------------------- read register row
+       tr = document.createElement('tr');
+       
+       td = document.createElement('td');
+       td.colSpan = 6;
+
+       cmd = new Command_B('set_run_plan','set_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_dropup_button_B(cmd);
+       td.appendChild(btn);
+
+       cmd = new Command_B('end_run','end_run',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
+
+       tr.appendChild(td);
+       
+       td = document.createElement('td');
+       td.colSpan = 2;
+       
+       tr.appendChild(td);
+       
+       td = document.createElement('td');
+       cmdb = new Command_B('read_register','read_register',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
+       btn  = mu2e_make_exec_button_B(cmdb);
+       td.appendChild(btn);
+       tr.appendChild(td);
+       
+       td  = document.createElement('td');
+       td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/CFO/read_register/register" data-odb-editable="1" data-format="%x"></div>`;
+       tr.appendChild(td);
+       
+       td = document.createElement('td');
+       td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/CFO/read_register/value"    data-odb-editable="1" data-format="%x"></div>`;
+       tr.appendChild(td);
+       
+       tbody.appendChild(tr);
+       
+       cmd_table.appendChild(thead);
+       cmd_table.appendChild(tbody);
+     }
          
          
-    document.addEventListener("DOMContentLoaded", loadPage);
+     document.addEventListener("DOMContentLoaded", loadPage);
     </script>
   </head>
   <!--

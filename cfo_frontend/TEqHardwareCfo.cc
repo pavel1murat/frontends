@@ -44,16 +44,16 @@ TMFeResult TEqHardwareCfo::Init() {
 // in principle, can compile the run plan on the fly, make it a next step
 // CfoGetRunPlan returns a string - filename of the compiled run plan file 
 //---------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG) << "--- START";
+  TLOG(TLVL_DEBUG) << "-- START";
 //-----------------------------------------------------------------------------
 // hardware CFO is a separate hardware unit, and that can't be enabled if
 // the CFO is disabled in the run configuration
 // an emulated CFO configuration includs a link to the DTC
 //-----------------------------------------------------------------------------
-  _pcie_addr             = _odb_i->GetInteger(_handle,"pcie_addr"); // needed by the boardreader
-   int timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
-   int event_mode        = _odb_i->GetInteger(_handle,"event_mode");
-   int ja_mode           = _odb_i->GetInteger(_handle,"ja_mode");
+  _pcie_addr            = _odb_i->GetInteger(_handle,"pcie_addr"); // needed by the boardreader
+  int timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
+  int event_mode        = _odb_i->GetInteger(_handle,"event_mode");
+  int ja_mode           = _odb_i->GetInteger(_handle,"ja_mode");
   
   TLOG(TLVL_DEBUG) << std::format("event_mode:{} pcie_addr:{} timing_chain_mask:0x{:08x}",event_mode,_pcie_addr,timing_chain_mask);
 
@@ -72,21 +72,21 @@ TMFeResult TEqHardwareCfo::Init() {
 // hotlinks - start from one function handling both DTCs
 // command processor : 'ProcessCommand' function
 //-----------------------------------------------------------------------------
-    HNDLE hdb       = _odb_i->GetDbHandle();
-    HNDLE h_cmd     = _odb_i->GetCfoCmdHandle(_h_active_run_conf);
-    HNDLE h_cmd_run = _odb_i->GetHandle(h_cmd,"Run");
-
-    TLOG(TLVL_DEBUG) << std::format("before db_open_record: h_cmd_run:{} _cmd_run:{}",h_cmd_run,_cmd_run);
-    
-    if (db_open_record(hdb,h_cmd_run,&_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
-      std::string msg = std::format("cannot open CFO hotlink in ODB");
-      cm_msg(MERROR, __func__,msg.data());
-      TLOG(TLVL_ERROR) << msg;
-    }
-
+  HNDLE hdb       = _odb_i->GetDbHandle();
+  HNDLE h_cmd     = _odb_i->GetCfoCmdHandle(_h_active_run_conf);
+  HNDLE h_cmd_run = _odb_i->GetHandle(h_cmd,"Run");
+  
+  TLOG(TLVL_DEBUG) << std::format("before db_open_record: h_cmd_run:{} _cmd_run:{}",h_cmd_run,_cmd_run);
+  
+  if (db_open_record(hdb,h_cmd_run,&_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+    std::string msg = std::format("cannot open CFO hotlink in ODB");
+    cm_msg(MERROR, __func__,msg.data());
+    TLOG(TLVL_ERROR) << msg;
+  }
+  
   //EqSetStatus("Started...", "white");
   //fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
-
+  
   int rc(0);
 
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
@@ -101,14 +101,13 @@ TMFeResult TEqHardwareCfo::Init() {
 int TEqHardwareCfo::HandlePeriodic() {
   int rc(0);
 
-  TLOG(TLVL_DEBUG+1) << "--- START";
-  TLOG(TLVL_DEBUG+1) << "--- END";
+  TLOG(TLVL_DEBUG+1) << "-- START";
+  TLOG(TLVL_DEBUG+1) << "-- END";
 
   //  EqSetStatus(Form("OK"),"#00FF00");
 
   return rc;
 }
-
 
 //-----------------------------------------------------------------------------
 // at begin rum, the CFO starts executing the run plan
@@ -140,6 +139,9 @@ int TEqHardwareCfo::BeginRun(int RunNumber)  {
 };
 
 //-----------------------------------------------------------------------------
+// for now , the run number is not actually used, can fake for testing
+// faking means calling ::EndRun interactively
+//-----------------------------------------------------------------------------
 int TEqHardwareCfo::EndRun(int RunNumber)  {
   int rc(0);
   
@@ -147,6 +149,18 @@ int TEqHardwareCfo::EndRun(int RunNumber)  {
 //-----------------------------------------------------------------------------
 // in 'external' mode, [re-]initialize and start executing the run plan
 //-----------------------------------------------------------------------------
+  _cfo_i->Cfo()->DisableLinks();
+  _cfo_i->Halt();
+  _cfo_i->Cfo()->SoftReset();
+                                        // this stops sending the HB's
+                                        // at this point, load a "null HB" run plan
+  
+  std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
+  std::string null_hb_plan_fn   = run_plan_dir+'/'+"null_hb.bin";
+ 
+  _cfo_i->InitReadout(null_hb_plan_fn);
+  _cfo_i->LaunchRunPlan();
+                                        // and end it correctly
   _cfo_i->Cfo()->DisableLinks();
   _cfo_i->Halt();
   _cfo_i->Cfo()->SoftReset();
