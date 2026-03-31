@@ -81,6 +81,12 @@ void TEqHardwareCfo::ProcessCommand(int hDB, int hKey, void* Info) {
     t.detach();
   }
 //-----------------------------------------------------------------------------
+// END_RUN: prototype
+//-----------------------------------------------------------------------------
+  else if (cmd == "end_run") {
+    eq->EndRun(-1);
+  }
+//-----------------------------------------------------------------------------
 // HALT
 //-----------------------------------------------------------------------------
   else if (cmd == "halt") {
@@ -139,6 +145,13 @@ void TEqHardwareCfo::ProcessCommand(int hDB, int hKey, void* Info) {
                                         // figure which logfile to reset
     
     cmd_rc = eq->ResetOutput(logfile);
+  }
+//-----------------------------------------------------------------------------
+// SET_RUN_PLAN
+//-----------------------------------------------------------------------------
+  else if (cmd == "set_run_plan") {
+    std::thread t(&TEqHardwareCfo::SetRunPlan,eq,h_cmd);
+    t.detach();
   }
   else if (cmd == "soft_reset") {
 //-----------------------------------------------------------------------------

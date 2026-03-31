@@ -415,12 +415,83 @@ function mu2e_make_dropup_button_B(cmd) {
 }
 
 //-----------------------------------------------------------------------------
+function mu2e_make_custom_dropup_button(cmd) {
+
+  let btn       = document.createElement('div');
+  btn.className = 'dropup';
+  
+  // ---------------------------------------------------- create button itself
+  let inp       = document.createElement('input');
+  // inp.id        = 'target-area';
+  inp.type      = 'button';
+  inp.className = 'dropbtn';
+  inp.value     = cmd.name;
+  btn.appendChild(inp);
+
+  let mmenu = document.createElement('div');
+  mmenu.id        = 'context-menu';
+  mmenu.className = 'custom-menu';
+  //
+  //  let ul, li;
+  //
+  //  ul = document.createElement('ul');
+  //
+  //  li = document.createElement('li');
+  //  li.innerHTML = 'load_parameters';
+  //  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
+  //
+  //  ul.appendChild(li);
+  //
+  //  li = document.createElement('li');
+  //  li.innerHTML = 'edit_item';
+  //  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
+  //
+  //  ul.appendChild(li);
+  //
+  //  li = document.createElement('li');
+  //  li.innerHTML = 'copy_link';
+  //  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
+  //
+  //  ul.appendChild(li);
+  //
+  //  li = document.createElement('li');
+  //  li.innerHTML = 'delete';
+  //  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
+  //
+  //  ul.appendChild(li);
+  //
+  //  mmenu.appendChild(ul);
+  //  
+  //
+  //  btn.addEventListener('contextmenu', (e) => {
+  //    e.preventDefault();
+  //                 
+  //    const { clientX: mouseX, clientY: mouseY } = e;
+  //    
+  //    // Show the menu first so we can calculate its height
+  //    mmenu.style.display = 'block';
+  //    const menuHeight = menu.offsetHeight;
+  //    
+  //    // Position it ABOVE the cursor (Drop-up)
+  //    mmenu.style.left = `${mouseX}px`;
+  //    mmenu.style.top  = `${mouseY - menuHeight}px`; 
+  //  });
+  //
+  //  // 2026-03-30 PM : hide menu when clicking elsewhere
+  //  document.addEventListener('click', () => {
+  //    mmenu.style.display = 'none';
+  //  });
+
+  btn.appendChild(mmenu);
+  return btn;
+}
+
+//-----------------------------------------------------------------------------
 function mu2e_make_exec_button_B(cmd) {
   let btn    = document.createElement('input');
   btn.type    = 'button'
   btn.value   = cmd.title;
   btn.onclick = function() { cmd.func(cmd) ; }
-  // btn.onclick = test_mu2e_odb_load_table(cmd); 
   return btn;
 }
 

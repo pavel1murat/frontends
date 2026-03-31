@@ -156,24 +156,24 @@ body {
 ------------------------------------------------------------------------------ */
 .dropbtn {
   background-color: #bdb;
-  color: black;
-  padding:   10px;
-  font-size: 12px;
-  border: none;
+  color           : black;
+  padding         :   10px;
+  font-size       : 12px;
+  border          : none;
 }
 
 .dropup {
   position: relative;
-  display: inline-block;
+  display : inline-block;
 }
 
 .dropup-content {
-  display: none;
-  position: absolute;
+  display         : none;
+  position        : absolute;
   background-color: #f1f1f1;
-  min-width: 160px;
-  bottom: 20px;
-  z-index: 2;
+  min-width       : 160px;
+  bottom          : 20px;
+  z-index         : 2;
 }
 
 .dropup-content a {
@@ -201,4 +201,33 @@ body {
 .dropup:hover .dropbtn {
   background-color:   #bdb   /*  #2980B9;  */
 }
+
+/* ------------------------------------------------------------------------------
+  new custom menu
+------------------------------------------------------------------------------ */
+.custom-menu {
+    display   : none;       /* Hidden by default */
+    position  : fixed;
+    background: #fff;
+    border    : 1px solid #ccc;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+    z-index   : 1000;
+    width     : 150px;
+}
+
+.custom-menu ul {
+    list-style: none;
+    padding   : 2px 2px;
+    margin    : 0;
+}
+
+.custom-menu li {
+    padding: 2px 2px;
+    cursor : pointer;
+}
+
+.custom-menu li:hover {
+    background-color: #f0f0f0;
+}
+
 </style>

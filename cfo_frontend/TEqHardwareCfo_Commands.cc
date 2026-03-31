@@ -214,6 +214,39 @@ int TEqHardwareCfo::ReadRegister(HNDLE H_Cmd) {
 }
 
 //-----------------------------------------------------------------------------
+// load into the FPGA memory already compiled run plan - to avoid ambiguities,
+// use the one defined in the CFO configuration ??? 
+//-----------------------------------------------------------------------------
+int TEqHardwareCfo::SetRunPlan(HNDLE H_Cmd) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  SetStatus(1);
+  
+  HNDLE       h_cmd_par    = _odb_i->GetCmdParameterHandle(H_Cmd);
+
+  std::string logfile      = _odb_i->GetString (H_Cmd    ,"logfile" );
+  std::string run_plan_dir = _odb_i->GetCfoRunPlanDir();
+  std::string run_plan     = _odb_i->GetString (h_cmd_par,"run_plan");
+
+  std::string run_plan_fn  = run_plan_dir+'/'+run_plan+".bin";
+  TLOG(TLVL_DEBUG) << std::format("run_plan_fn:{}",run_plan_fn);
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  _cfo_i->SetRunPlan(run_plan_fn);
+
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+
+  SetStatus(rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END : rc:{} cmd_rc:{}",rc,cmd_rc);
+
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 int TEqHardwareCfo::WriteRegister(HNDLE H_Cmd) {
   int rc(0);
   

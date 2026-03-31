@@ -366,6 +366,7 @@
 
        cmd = new Command_B('init_readout'       ,'init_readout'       , dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
        btn = mu2e_make_dropup_button_B(cmd);
+       // btn = mu2e_make_custom_dropup_button(cmd);
        td.appendChild(btn);
 
        cmd = new Command_B('configure_ja'       ,'configure_ja'       , dtc_command_set_odb_C,'cmd_params', dtc_cmd_parameter_path,'trkdtc.log');
@@ -498,6 +499,8 @@
          
          
      document.addEventListener("DOMContentLoaded", loadPage);
+
+    
     </script>
   </head>
 
