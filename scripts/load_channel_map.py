@@ -18,6 +18,9 @@
 #                     load_channel_map.py --slot=10 --thr=15
 # or
 #                     load_channel_map.py --slot=10 --channel=1
+# or
+#                     load_channel_map.py --save --slot=10 --fn=slot_10.json
+#                     load_channel_map.py --load --slot=10 --thr=15mV --fn=slot_10.json
 #------------------------------------------------------------------------------
 import  midas,TRACE
 import  midas.client
@@ -37,8 +40,9 @@ class LoadChannelMap:
     def __init__(self):
         self.slot       = None;
         self.threshold  = None;
-        self.channel    = None;
+        self.channels   = [];
         self.diag_level = 0;
+        self.op         = None;
         
 # ---------------------------------------------------------------------
     def Print(self,Name,level,Message):
@@ -56,7 +60,7 @@ class LoadChannelMap:
 
         try:
             optlist, args = getopt.getopt(sys.argv[1:], '',
-                     ['channel=', 'diag_level=', 'slot=', 'threshold=' ] )
+                     ['diag_level=', 'enable=', 'load', 'reset', 'save', 'slot=', 'thr=' ] )
  
         except getopt.GetoptError:
             self.Print(name,0,'%s' % sys.argv)
@@ -67,16 +71,25 @@ class LoadChannelMap:
 
             # print('key,val = ',key,val)
 
-            if   (key == '--channel'):
-                self.channel = int(val)
-            elif (key == '--diag_level'):
+            if (key == '--diag_level'):
                 self.diag_level = int(val)
+            elif   (key == '--enable'):
+                self.op = 'enable';
+                for ch in val.split(','):
+                    self.channels.append(int(ch));
+            elif   (key == '--load'):
+                self.op = 'load';
+            elif   (key == '--reset'):
+                self.op = 'reset';
+            elif   (key == '--save'):
+                self.op = 'save';
             elif   (key == '--slot'):
                 self.slot = int(val)
-            elif   (key == '--threshold'):
+            elif   (key in ('-t', '--thr')):
                 self.threshold = int(val)
 
-        self.Print(name,1,'channel   = %s' % self.channel)
+        self.Print(name,1,'channels  = %s' % self.channels)
+        self.Print(name,1,'op        = %s' % self.op)
         self.Print(name,1,'slot      = %s' % self.slot)
         self.Print(name,1,'threshold = %s' % self.threshold)
         self.Print(name,1,'diag_level= %s' % self.diag_level)
@@ -162,11 +175,99 @@ class LoadChannelMap:
 #            client.odb_set(panel_odb_path+f'/threshold_{d["type"]}[{ich}]',d["threshold"]);
 #
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+    def save_channel_map(self,slot):
+
+        logger.info("Initializing : save_channel_map")
+
+        node            = socket.gethostname().split('.')[0];
+        experiment_name = "tracker";
+        client          = midas.client.MidasClient("save_channel_map",node,experiment_name,None)
+
+        ro_cfg_path     = '/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration';
+
+        slot_path       = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{slot:02d}'
+        print(slot_path);
+
+        fn = f'disabled_channel_map_slot_{slot:02d}.json'
+        print (f'-------------- opening file:{fn}')
+        
+        with open(fn, 'w') as file:
+#------------------------------------------------------------------------------
+# print data
+#------------------------------------------------------------------------------
+            r               = [];
+#------------------------------------------------------------------------------
+# /Plane_0{ipl}/Panel_0{link[panel_name]}'
+# loop over the planes
+# print('--- looping over the panels');
+#------------------------------------------------------------------------------
+            for plane in range(0,2):
+                for panel in range(0,6):
+                    panel_odb_path = slot_path+f'/Plane_{plane:02d}/Panel_{panel:02d}';
+                    panel_name     = client.odb_get(panel_odb_path+'/Name');
+                    print(f'-- panel_name:{panel_name} ODB path:{panel_odb_path}');
+
+                    chmask = client.odb_get(panel_odb_path+f'/ch_mask')
+                   
+                    for ch in range(0,96):
+                        if (chmask[ch] == 0):
+                            d = {}
+                            d['name'   ] = panel_name;
+                            d['channel'] = ch;
+                            d['status' ] = 0
+                            r.append(d);
+#------------------------------------------------------------------------------
+# now the list of masked off channels is defined
+#---------------v--------------------------------------------------------------
+            json.dump(r,file,indent=4);
+#------------------------------------------------------------------------------
+# done
+#------------------------------------------------------------------------------
+        return 0;
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+    def reset_channel_map(self,slot):
+
+        logger.info("Initializing : reset_channel_map")
+
+        node            = socket.gethostname().split('.')[0];
+        experiment_name = "tracker";
+        client          = midas.client.MidasClient("reset_channel_map",node,experiment_name,None)
+
+        ro_cfg_path     = '/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration';
+
+        slot_path       = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{slot:02d}'
+        print(slot_path);
+
+#------------------------------------------------------------------------------
+# /Plane_0{ipl}/Panel_0{link[panel_name]}'
+# loop over the planes
+# print('--- looping over the panels');
+#------------------------------------------------------------------------------
+
+        for plane in range(0,2):
+            for panel in range(0,6):
+                panel_odb_path = slot_path+f'/Plane_{plane:02d}/Panel_{panel:02d}';
+                panel_name     = client.odb_get(panel_odb_path+'/Name');
+                print(f'-- panel_name:{panel_name} ODB path:{panel_odb_path}');
+
+                zero = [0]*100;
+                client.odb_set(panel_odb_path+f'/ch_mask',zero)
+                    
+#------------------------------------------------------------------------------
+# done
+#------------------------------------------------------------------------------
+        return 0;
 
 #------------------------------------------------------------------------------
 # enable readout of only one channel for all panels of a station in a fiven slot
 #---v--------------------------------------------------------------------------
-    def enable_one_channel(self,slot,channel):
+    def enable(self,slot,enabled_channels):
 
         logger.info("Initializing : enable_one_channel")
 
@@ -185,23 +286,34 @@ class LoadChannelMap:
             
                 # initialize the channel map, all channels good
             
-                chmask = [];
-                for ch in range(0,96):
-                    if (ch == channel) : chmask.append(1)
-                    else               : chmask.append(0)
+                chmask = [0]*96;
+                for ch in enabled_channels:
+                    chmask[ch] = 1;
 
-                for ich in range(0,96):
-                    client.odb_set(panel_odb_path+f'/ch_mask[{ich}]',chmask[ich])
+                client.odb_set(panel_odb_path+f'/ch_mask',chmask)
 
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
     x = LoadChannelMap();
     x.parse_parameters();
-
-    if (x.slot != None):
-        if (x.channel == None):
-            # load channel map from a file
+#------------------------------------------------------------------------------
+# figure out what to do
+#------------------------------------------------------------------------------
+    if (x.op == 'load'):
+        if (x.slot != None):
             x.load_channel_map(x.slot)
-        else:
-            # set just one channel
-            x.enable_one_channel(x.slot,x.channel)
+
+    elif (x.op == 'save'):
+        if (x.slot != None):
+            # save bad channels into a file to be used later
+            rc = x.save_channel_map(x.slot);
+
+    elif (x.op == 'enable'):
+        if (x.slot != None):
+            # reset all channel flags to zero
+            rc = x.enable(x.slot,x.channels);
+
+    elif (x.op == 'reset'):
+        if (x.slot != None):
+            # reset all channel flags to zero
+            rc = x.reset_channel_map(x.slot);

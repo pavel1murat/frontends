@@ -48,23 +48,59 @@ int TEqTrkDtc::ConfigureJA(std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 // takes parameters from ODB
 //-----------------------------------------------------------------------------
-int TEqTrkDtc::DigiRW(std::ostream& Stream) {
+int TEqTrkDtc::DigiRead(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "--- START";
 
-  HNDLE h_cmd = _odb_i->GetDtcCmdHandle(HostLabel(),_dtc_i->PcieAddr());
+  SetStatus(1);
 
-  std::string cmd            = _odb_i->GetString(h_cmd,"Name");
-  // std::string parameter_path = _odb_i->GetString(h_cmd,"ParameterPath");
- 
-  // HNDLE h_cmd_par            = _odb_i->GetHandle(0,parameter_path);
-  HNDLE         h_cmd_par = _odb_i->GetCmdParameterHandle(h_cmd);
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
+  
+  HNDLE h_dtc     = _odb_i->GetDtcConfigHandle(_host_label,_dtc_i->PcieAddr()); // Handle(0,dtc_path);
+  _odb_i->SetStatus(h_dtc,1);
     
+  int         link    = _odb_i->GetInteger(H_Cmd,"link"   );
+  std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+
+  int hvcal        = _odb_i->GetUInt16 (h_cmd_par,"hvcal"      );   //
+  int address      = _odb_i->GetUInt16 (h_cmd_par,"address"    ); //
+  int  print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
+   
+  uint32_t res;
+  rc = _dtc_i->DigiRead(address,hvcal,res,link,print_level,sstr);
+  
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  
+  SetStatus(rc);
+  TLOG(TLVL_DEBUG) << std::format("--- END rc:{} cmd_rc:{}",rc,cmd_rc);
+
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+// takes parameters from ODB
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::DigiRW(HNDLE H_Cmd) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "--- START";
+
+  SetStatus(1);
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
+
   trkdaq::ControlRoc_DigiRW_Input_t  par;
   trkdaq::ControlRoc_DigiRW_Output_t pout;
     
-  int  link        = _odb_i->GetInteger(h_cmd,"link");
+  int         link    = _odb_i->GetInteger(H_Cmd,"link");
+  std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
 
   par.rw           = _odb_i->GetUInt16 (h_cmd_par,"rw");         //
   par.hvcal        = _odb_i->GetUInt16 (h_cmd_par,"hvcal");      //
@@ -75,10 +111,46 @@ int TEqTrkDtc::DigiRW(std::ostream& Stream) {
   int  print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
    
   printf("dtc_i->fLinkMask: 0x%04x\n",_dtc_i->fLinkMask);
-  rc = _dtc_i->ControlRoc_DigiRW(&par,&pout,link,print_level,Stream);
+  rc = _dtc_i->ControlRoc_DigiRW(&par,&pout,link,print_level,sstr);
+  
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
   
   SetStatus(rc);
-  TLOG(TLVL_DEBUG) << "--- END";
+  TLOG(TLVL_DEBUG) << std::format("--- END rc:{} cmd_rc:{}",rc,cmd_rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+// takes parameters from ODB
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::DigiWrite(HNDLE H_Cmd) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "--- START";
+  SetStatus(1);
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
+  
+    
+  int         link    = _odb_i->GetInteger(H_Cmd,"link"   );
+  std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+
+  int hvcal        = _odb_i->GetUInt16 (h_cmd_par,"hvcal"  );     //
+  int address      = _odb_i->GetUInt16 (h_cmd_par,"address");     //
+  uint16_t data    = _odb_i->GetUInt16 (h_cmd_par,"data"   );     //
+  int  print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
+   
+  // uint16_t data;
+  rc = _dtc_i->DigiWrite(address,hvcal,data,link,print_level,sstr);
+  
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  
+  SetStatus(rc);
+  TLOG(TLVL_DEBUG) << std::format("--- END rc:{} cmd_rc:{}",rc,cmd_rc);
+
   return rc;
 }
 
