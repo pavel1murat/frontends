@@ -301,14 +301,15 @@ function trk_command_msg(cmd) {
 //-----------------------------------------------------------------------------
 // load table with the tracekr parameters
 //-----------------------------------------------------------------------------
-function trk_load_parameters(station) {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/Tracker`,0);
-}
+// 2026-03-31 PMfunction trk_load_parameters(station) {
+// 2026-03-31 PM  const table     = document.getElementById('cmd_params');
+// 2026-03-31 PM  table.innerHTML = '';
+// 2026-03-31 PM  odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/Tracker`,0);
+// 2026-03-31 PM}
 
 //-----------------------------------------------------------------------------
 // load table with the station parameters
+// 2026-03-31 PM : this one is needed
 //-----------------------------------------------------------------------------
 function trk_station_load_parameters(station) {
   const table     = document.getElementById('cmd_params');
@@ -320,19 +321,19 @@ function trk_station_load_parameters(station) {
 //-----------------------------------------------------------------------------
 // load parameters
 //-----------------------------------------------------------------------------
-function trk_load_parameters_reset_station_lv(station) {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  const istn = station.toString().padStart(2,'0');
-
-  var paths=["/Mu2e/ActiveRunConfiguration/Tracker/Station_"+istn+"/RPI/Name"];
-  mjsonrpc_db_get_values(paths).then(function(rpc) {
-    let rpi      = rpc.result.data[0];
-    odb_browser('cmd_params',`/Mu2e/Commands/Tracker/RPI/${rpi}/reset_station_lv`,0);
-  }).catch(function(error) {
-    mjsonrpc_error_alert(error);
-  });
-};
+// 2026-03-31 PMfunction trk_load_parameters_reset_station_lv(station) {
+// 2026-03-31 PM  const table     = document.getElementById('cmd_params');
+// 2026-03-31 PM  table.innerHTML = '';
+// 2026-03-31 PM  const istn = station.toString().padStart(2,'0');
+// 2026-03-31 PM
+// 2026-03-31 PM  var paths=["/Mu2e/ActiveRunConfiguration/Tracker/Station_"+istn+"/RPI/Name"];
+// 2026-03-31 PM  mjsonrpc_db_get_values(paths).then(function(rpc) {
+// 2026-03-31 PM    let rpi      = rpc.result.data[0];
+// 2026-03-31 PM    odb_browser('cmd_params',`/Mu2e/Commands/Tracker/RPI/${rpi}/reset_station_lv`,0);
+// 2026-03-31 PM  }).catch(function(error) {
+// 2026-03-31 PM    mjsonrpc_error_alert(error);
+// 2026-03-31 PM  });
+// 2026-03-31 PM};
 
 //-----------------------------------------------------------------------------
 // load table with the Panel parameters
@@ -354,11 +355,11 @@ function trk_panel_load_cmd_parameters(cmd) {
 }
       
 //-----------------------------------------------------------------------------
-function trk_load_parameters_init_readout() {
-  const table     = document.getElementById('cmd_params');
-  table.innerHTML = '';
-  odb_browser('cmd_params','/Mu2e/Commands/Tracker/init_readout',0);
-}
+// 2026-03-31 PMfunction trk_load_parameters_init_readout() {
+// 2026-03-31 PM  const table     = document.getElementById('cmd_params');
+// 2026-03-31 PM  table.innerHTML = '';
+// 2026-03-31 PM  odb_browser('cmd_params','/Mu2e/Commands/Tracker/init_readout',0);
+// 2026-03-31 PM}
       
 //-----------------------------------------------------------------------------
 // load station / plane / panel and call mu2e_command_set_odb_B

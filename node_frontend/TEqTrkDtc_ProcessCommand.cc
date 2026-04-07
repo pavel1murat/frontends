@@ -110,19 +110,26 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     ss << std::endl;
     cmd_rc = eq->FindThresholds(ss);
   }
+  else if (cmd == "digi_read") {
 //-----------------------------------------------------------------------------
-// GET KEY ... TODO
+// DIGI_READ
 //-----------------------------------------------------------------------------
-  else if (cmd == "get_key") {
-    ss << std::endl;
-    cmd_rc = eq->GetKey(ss);
+    std::thread t(&TEqTrkDtc::DigiRead,eq,h_cmd);
+    t.detach();
   }
   else if (cmd == "digi_rw") {
 //-----------------------------------------------------------------------------
-// CONTROL_ROC_DIGI_RW
+// DIGI_RW
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->DigiRW(ss);
+    std::thread t(&TEqTrkDtc::DigiRW,eq,h_cmd);
+    t.detach();
+  }
+  else if (cmd == "digi_write") {
+//-----------------------------------------------------------------------------
+// DIGI_WRITE
+//-----------------------------------------------------------------------------
+    std::thread t(&TEqTrkDtc::DigiWrite,eq,h_cmd);
+    t.detach();
   }
   else if (cmd == "get_design_info") {
 //-----------------------------------------------------------------------------
@@ -130,6 +137,13 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
     ss << std::endl;
     cmd_rc = eq->GetRocDesignInfo(ss);
+  }
+//-----------------------------------------------------------------------------
+// GET KEY
+//-----------------------------------------------------------------------------
+  else if (cmd == "get_key") {
+    ss << std::endl;
+    cmd_rc = eq->GetKey(ss);
   }
   else if (cmd == "hard_reset") {
 //-----------------------------------------------------------------------------

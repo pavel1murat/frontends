@@ -67,7 +67,9 @@ public:
   virtual int EndRun           (int RunNumber) override;
   
   int         ConfigureJA      (std::ostream& Stream);
-  int         DigiRW           (std::ostream& Stream);
+  int         DigiRead         (HNDLE H_Cmd);
+  int         DigiRW           (HNDLE H_Cmd);
+  int         DigiWrite        (HNDLE H_Cmd);
   int         DumpSettings     (std::ostream& Stream);
   int         FindAlignment    (HNDLE H_Cmd);
   int         FindThresholds   (std::ostream& Stream);

@@ -311,8 +311,8 @@ async function mu2e_command_set_odb_B(cmd) {
   const paths=[ppath+'/Name',
                ppath+'/ParameterPath',
                ppath+'/Finished',
-               ppath+'/Run',
                ppath+'/logfile',
+               ppath+'/Run',                         // better be the last one
   ];
 
   let logfile = cmd.logfile;
@@ -322,7 +322,7 @@ async function mu2e_command_set_odb_B(cmd) {
   
   try {
     
-    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,1,logfile]);
+    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,logfile,1]);
     let result=rpc.result;	      
   }
   catch(error) {
@@ -422,7 +422,7 @@ function mu2e_make_custom_dropup_button(cmd) {
   
   // ---------------------------------------------------- create button itself
   let inp       = document.createElement('input');
-  // inp.id        = 'target-area';
+  btn.id        = 'target-area';
   inp.type      = 'button';
   inp.className = 'dropbtn';
   inp.value     = cmd.name;
@@ -431,56 +431,56 @@ function mu2e_make_custom_dropup_button(cmd) {
   let mmenu = document.createElement('div');
   mmenu.id        = 'context-menu';
   mmenu.className = 'custom-menu';
-  //
-  //  let ul, li;
-  //
-  //  ul = document.createElement('ul');
-  //
-  //  li = document.createElement('li');
-  //  li.innerHTML = 'load_parameters';
-  //  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
-  //
-  //  ul.appendChild(li);
-  //
-  //  li = document.createElement('li');
-  //  li.innerHTML = 'edit_item';
-  //  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
-  //
-  //  ul.appendChild(li);
-  //
-  //  li = document.createElement('li');
-  //  li.innerHTML = 'copy_link';
-  //  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
-  //
-  //  ul.appendChild(li);
-  //
-  //  li = document.createElement('li');
-  //  li.innerHTML = 'delete';
-  //  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
-  //
-  //  ul.appendChild(li);
-  //
-  //  mmenu.appendChild(ul);
-  //  
-  //
-  //  btn.addEventListener('contextmenu', (e) => {
-  //    e.preventDefault();
-  //                 
-  //    const { clientX: mouseX, clientY: mouseY } = e;
-  //    
-  //    // Show the menu first so we can calculate its height
-  //    mmenu.style.display = 'block';
-  //    const menuHeight = menu.offsetHeight;
-  //    
-  //    // Position it ABOVE the cursor (Drop-up)
-  //    mmenu.style.left = `${mouseX}px`;
-  //    mmenu.style.top  = `${mouseY - menuHeight}px`; 
-  //  });
-  //
-  //  // 2026-03-30 PM : hide menu when clicking elsewhere
-  //  document.addEventListener('click', () => {
-  //    mmenu.style.display = 'none';
-  //  });
+  
+  let ul, li;
+  
+  ul = document.createElement('ul');
+  
+  li = document.createElement('li');
+  li.innerHTML = 'load_parametersA';
+  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
+  
+  ul.appendChild(li);
+  
+  li = document.createElement('li');
+  li.innerHTML = 'edit_itemA';
+  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
+  
+  ul.appendChild(li);
+  
+  li = document.createElement('li');
+  li.innerHTML = 'copy_linkA';
+  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
+  
+  ul.appendChild(li);
+  
+  li = document.createElement('li');
+  li.innerHTML = 'deleteA';
+  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
+  
+  ul.appendChild(li);
+  
+  mmenu.appendChild(ul);
+  
+  
+  btn.addEventListener('contextmenu', (e) => {
+    // e.preventDefault();
+                 
+    const { clientX: mouseX, clientY: mouseY } = e;
+    
+    // Show the menu first so we can calculate its height
+    mmenu.style.display = 'block';
+    const menuHeight = menu.offsetHeight;
+    
+    // Position it ABOVE the cursor (Drop-up)
+    mmenu.style.left = `${mouseX}px`;
+    mmenu.style.top  = `${mouseY - menuHeight}px`; 
+  });
+  
+  // 2026-03-30 PM : hide menu when clicking elsewhere
+  document.addEventListener('click', () => {
+    mmenu.style.display = 'none';
+  });
 
   btn.appendChild(mmenu);
   return btn;
