@@ -152,7 +152,7 @@ void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     cmd_rc = eq->ReadRocRegister(ss);
   }
   else if (cmd == "reset_output") {
-    cmd_rc = eq->ResetOutput(logfile);
+    cmd_rc = eq->ResetOutput(h_cmd);
   }
   else if (cmd == "soft_reset") {
 //-----------------------------------------------------------------------------

@@ -19,9 +19,6 @@
 void TEqHardwareCfo::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "-- START";
 
-  // in the end, ProcessCommand should send ss.str() as a message to some log
-  std::stringstream ss;
-
   OdbInterface* odb_i = OdbInterface::Instance();
 //-----------------------------------------------------------------------------
 // based on the key, figure out own name and the node name
@@ -55,23 +52,14 @@ void TEqHardwareCfo::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
   TEquipmentManager*    eqm   = TEquipmentManager::Instance();
   TEqHardwareCfo*       eq    = (TEqHardwareCfo*) eqm->FindEquipmentItem("CFO");
-  trkdaq::CfoInterface* cfo_i = eq->Cfo_i();
+  //  trkdaq::CfoInterface* cfo_i = eq->Cfo_i();
 
-  ss << std::format("-- label:{} host:{} cmd:{} pcie_addr:{}",
-                    eq->HostLabel(),eq->FullHostName(),cmd,cfo_i->PcieAddr());
 //-----------------------------------------------------------------------------
 // CONFIGURE_JA
 //------------------------------------------------------------------------------
   int cmd_rc(0);
   if      (cmd == "configure_ja") {
-    try {
-      eq->SetStatus(1);
-      cmd_rc = cfo_i->ConfigureJA();             // use defaults from the dtc_i settings
-      eq->SetStatus(cmd_rc);
-    }
-    catch(...) {
-      TLOG(TLVL_ERROR) << "coudn't execute DtcInterface::ConfigureJA ... BAIL OUT";
-    }
+    cmd_rc = eq->ConfigureJA(h_cmd);             // use defaults from the dtc_i settings
   }
 //-----------------------------------------------------------------------------
 // COMPILE_RUN_PLAN
@@ -97,14 +85,7 @@ void TEqHardwareCfo::ProcessCommand(int hDB, int hKey, void* Info) {
 // HARD RESET
 //-----------------------------------------------------------------------------
   else if (cmd == "hard_reset") {
-    TLOG(TLVL_DEBUG) << "arrived at hard_reset";
- 
-    try         {
-      eq->SetStatus(1);
-      cfo_i->Cfo()->HardReset();
-      eq->SetStatus(0);
-      ss << " hard reset OK" << std::endl; }
-    catch (...) { ss << "ERROR : coudn't hard reset the CFO ... BAIL OUT" << std::endl; }
+    eq->HardReset(h_cmd);
   }
 //-----------------------------------------------------------------------------
 // init_readout
@@ -124,27 +105,16 @@ void TEqHardwareCfo::ProcessCommand(int hDB, int hKey, void* Info) {
 // PRINT STATUS
 //-----------------------------------------------------------------------------
   else if (cmd == "print_status") {
-    ss << std::endl;
-    try         {
-      eq->SetStatus(1);
-      cfo_i->PrintStatus(ss);
-      eq->SetStatus(0);
-    }
-    catch (...) { ss << "ERROR : coudn't print status of the DTC ... BAIL OUT" << std::endl; }
+    cmd_rc = eq->PrintStatus(h_cmd);
   }  
   else if (cmd == "read_register") {
 //-----------------------------------------------------------------------------
 // read register
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    eq->SetStatus(1);
     cmd_rc = eq->ReadRegister(h_cmd);
-    eq->SetStatus(cmd_rc);
   }
   else if (cmd == "reset_output") {
-                                        // figure which logfile to reset
-    
-    cmd_rc = eq->ResetOutput(logfile);
+    cmd_rc = eq->ResetOutput(h_cmd);
   }
 //-----------------------------------------------------------------------------
 // SET_RUN_PLAN
@@ -157,30 +127,17 @@ void TEqHardwareCfo::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // SOFT RESET
 //-----------------------------------------------------------------------------
-    try         {
-      eq->SetStatus(1);
-      cfo_i->Cfo()->SoftReset();
-      eq->SetStatus(0);
-      ss << " soft reset OK" << std::endl; }
-    catch (...) { ss << "ERROR : coudn't soft reset the CFO ... BAIL OUT" << std::endl; }
+    eq->SoftReset(h_cmd);
   }
   else if (cmd == "write_register") {
 //-----------------------------------------------------------------------------
 // WRITE_REGISTER
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    eq->SetStatus(1);
     cmd_rc = eq->WriteRegister(h_cmd);
-    eq->SetStatus(cmd_rc);
   }
   else {
-    ss << " ERROR: Unknown command:" << cmd;
-    TLOG(TLVL_ERROR) << ss.str();
+    eq->UnknownCommand(h_cmd);
   }
-//-----------------------------------------------------------------------------
-// write output to the equipment log - need to revert the line order 
-//-----------------------------------------------------------------------------
-  cmd_rc = eq->WriteOutput(ss.str(),logfile);
   
   TLOG(TLVL_DEBUG) << "-- END:" << " cmd_rc:" << cmd_rc;
 }

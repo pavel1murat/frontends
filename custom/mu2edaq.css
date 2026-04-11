@@ -51,16 +51,6 @@ body {
     background-color: #f5f5f5;
 }
 
-/* ------------------------------------------------------------------------------
-  output window
------------------------------------------------------------------------------- */
-#myDIV {
-    padding   : 0px;
-    height    : 1050px ; /*980px;*/
-    width     : 55% ; /* 600px; */
-    overflow  : auto;
-    background: #bdb;
-}
 
 #roctabs {
     padding   : 10px;
@@ -205,29 +195,57 @@ body {
 /* ------------------------------------------------------------------------------
   new custom menu
 ------------------------------------------------------------------------------ */
-.custom-menu {
-    display   : none;       /* Hidden by default */
-    position  : fixed;
-    background: #fff;
+.btn {
+    display    : inline-block;
+    padding    : 2px 6px;
+    margin     : 1px;
+    background : #bdb;    /* #3498db; */
+    color      : black;
+    cursor     : pointer;
+    user-select: none;
+    border     : 1px solid #ccc;
+}
+
+.btn:active {
+  background-color: #8d8;
+}
+
+.daq_menu {
+    display   : none;
+    position  : absolute;
+    background-color:   #bdb;   /*  #2980B9;  */
+    color     : black
+    /* background: white; */
     border    : 1px solid #ccc;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
-    z-index   : 1000;
-    width     : 150px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index   : 3
 }
 
-.custom-menu ul {
-    list-style: none;
-    padding   : 2px 2px;
-    margin    : 0;
+.daq_menu div {
+    padding   : 2px 6px;
+    cursor    : pointer;
+    background:   #bdb   /*  #2980B9;  */
+    color     : black
 }
 
-.custom-menu li {
-    padding: 2px 2px;
-    cursor : pointer;
+.daq_menu div:hover {
+    background: #229933;
+    color     : white;
 }
+/*
+scrollong buffer
+*/
 
-.custom-menu li:hover {
-    background-color: #f0f0f0;
+#messageFrameA {
+    height          : 99vh;          /* Limit the height */
+    overflow-y      : auto;       /* Add vertical scrollbar when needed */
+    background-color: #ebffeb; /* Terminal black */
+    color           : black;         /* Classic matrix green */
+    font-family     : monospace;
+    padding         : 1px;
+    border          : 1px solid #333;
+    white-space     : pre-wrap;  /* Preserves newlines and wraps long lines */
+    display         : flex;
+    flex-direction  : column; /* Allows us to manage message order easily */
 }
-
 </style>

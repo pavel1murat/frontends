@@ -523,9 +523,10 @@ int TEqArtdaq::ProcessStatus(std::ostream& Stream) {
 int TEqArtdaq::Tlvls(std::ostream& Stream) {
   int rc(0);
   TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);
 
   HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
-  HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
+  //  HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
 
   //  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
 
@@ -548,6 +549,7 @@ int TEqArtdaq::Tlvls(std::ostream& Stream) {
 int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& Logfile) {
   int rc(0);
   TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);
 
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
@@ -580,9 +582,10 @@ int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& 
 
   sstr << "-- Tshow done\n";
   
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  SetCommandFinished(H_Cmd,rc);
   
-  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
   return rc;
 }
 
@@ -594,6 +597,7 @@ int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& 
 int TEqArtdaq::Treset(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& Logfile) {
   int rc(0);
   TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);
 
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
@@ -620,9 +624,10 @@ int TEqArtdaq::Treset(HNDLE H_Cmd) { // std::ostream& Stream, const std::string&
   sstr << output << "\n";
   sstr << "-- Treset done\n";
   
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  SetCommandFinished(H_Cmd,rc); 
   
-  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
   return rc;
 }
 

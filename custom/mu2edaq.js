@@ -28,6 +28,25 @@ class Command_B {
 }
 
 //-----------------------------------------------------------------------------
+class Command_D { // aaaa
+  constructor(title,name,menu_id,f_handle_left_click,table_id,f_parameter_path,logfile) { // hack
+    this.title               = title;
+    this.name                = name;
+    this.menu_id             = menu_id;              // defines right click actions
+    this.f_handle_left_click = f_handle_left_click;  // the number of parameters : TBD
+    this.table_id            = table_id;             // ID of the HTML table element to be used by MIDAS JS for displaying
+    this.func_parameter_path = f_parameter_path;
+    if (logfile == 'trkdtc.log') {
+      // this is a transitioning step
+      logfile = `${g_hostname}_dtc_${g_pcie}.log`
+    }
+    else {
+      this.logfile             = logfile;
+    }
+  }  
+}
+
+//-----------------------------------------------------------------------------
 function artdaq_process_config_path(cmd) {
   const path = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/Artdaq/${g_process_label}`;
   return path;
@@ -91,9 +110,9 @@ function trk_cmd_path          (cmd) { return `/Mu2e/Commands/Tracker`; }
 
 //-----------------------------------------------------------------------------
 function trk_panel_config_path(cmd) {
-  const stn = g_station.toString().padStart(2,'0');
-  const pln = g_plane.toString().padStart(2,'0');
-  const pnl = g_panel.toString().padStart(2,'0');
+  const stn  = g_station.toString().padStart(2,'0');
+  const pln  = g_plane.toString().padStart(2,'0');
+  const pnl  = g_panel.toString().padStart(2,'0');
   const path = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${stn}/Plane_${pln}/Panel_${pnl}`;
   return path;
 }
@@ -174,14 +193,35 @@ function displayFile(filePath, elementId) {
 }
 
 //-----------------------------------------------------------------------------
-async function writeToLog(filePath,textLine) {
-  fetch(filePath,{
-      method : 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body   : JSON.stringify({ content: textLine })
-  }).then(res => res.json())
-    .then(result => console.log("Server says:",result))
-    .catch(err =>console.error("Failed:",err));
+// cmd.logfile is a stream, it has two files - .msg and .log - associated with it
+// normally, read the output of the last command from .msg file
+//-----------------------------------------------------------------------------
+async function display_result_new(cmd,elementId) {
+
+  const filename = cmd.logfile;
+  
+  const response = await fetch(`http://localhost:3226/logs?stream=${encodeURIComponent(filename)}`);
+  const data     = await response.text();  // .text(), not .json()
+    
+  const buffer   = document.getElementById(elementId);
+
+  const entry    = document.createElement('div');
+  entry.style.borderBottom = "1px solid #222";
+  entry.style.padding      = "2px 0";
+
+  if (cmd.name == 'reset_output') {
+    buffer.innerText = data;
+  }
+  else {
+    // output of the last command: place it at the TOP of the list
+    entry.innerText     = data;
+    buffer.prepend(entry);
+  }
+  
+  // Auto-scroll to top so the newest is always visible
+  buffer.scrollTop = 0;
+
+  // console.log(e.innerHTML);
 }
 
 //-----------------------------------------------------------------------------
@@ -329,30 +369,27 @@ async function mu2e_command_set_odb_B(cmd) {
     mjsonrpc_error_alert(error);
   };
   
-  let done = 0;
+  let finished = 0;
 
-  while(done == 0) {
+  while (finished == 0) {
       // check whether the command has finished
     const paths=[ppath+'/Run', ppath+'/Finished'];
-    let run      = 1;
-    let finished = 0;
     sleep(100);
     try {
       let rpc = await mjsonrpc_db_get_values(paths);
-      run      = rpc.result.data[0];
       finished = rpc.result.data[1];
     }
     catch(error) {
       mjsonrpc_error_alert(error);
     };
-    done = finished;
   };
   
   // display the logfile. THis is the only non-generic place
   // if the command was a struct with the logfile being one of its parameters,
   // this function became completely generic
 
-  displayFile(logfile, 'messageFrame');
+//2026-04-09 PM  displayFile(logfile, 'messageFrame');
+  display_result_new(cmd,'messageFrameA');
 }
 
 //-----------------------------------------------------------------------------
@@ -382,6 +419,12 @@ function mu2e_odb_load_table(cmd) {
   table.innerHTML = '';
   const cmd_parameter_path = cmd.func_parameter_path(cmd); // +`/${cmd.name}`;
   odb_browser(cmd.table_id,cmd_parameter_path,0);
+}
+
+//-----------------------------------------------------------------------------
+function mu2e_load_help_page(cmd) {
+  const url = 'https://mu2einternalwiki.fnal.gov/wiki/DTC_control_page#ROC_control_commands';
+  window.open(url,'_blank');
 }
 
 //-----------------------------------------------------------------------------
@@ -415,74 +458,73 @@ function mu2e_make_dropup_button_B(cmd) {
 }
 
 //-----------------------------------------------------------------------------
-function mu2e_make_custom_dropup_button(cmd) {
+function hideAllMenus() {
+  const menus = document.querySelectorAll(".daq_menu");
+  menus.forEach(m => {
+    m.style.display = "none";
+  });
+}
 
-  let btn       = document.createElement('div');
-  btn.className = 'dropup';
-  
-  // ---------------------------------------------------- create button itself
-  let inp       = document.createElement('input');
-  btn.id        = 'target-area';
-  inp.type      = 'button';
-  inp.className = 'dropbtn';
-  inp.value     = cmd.name;
-  btn.appendChild(inp);
+//-----------------------------------------------------------------------------
+function showMenu(e, menu) {
+  e.preventDefault();
+  hideAllMenus();
+  menu.style.display = "block";
+  menu.style.left    = e.pageX + 15 + "px";
+  menu.style.top     = e.pageY + 15 + "px";
+  menu.style.position = "fixed";   
+  e.stopPropagation();
+}
 
-  let mmenu = document.createElement('div');
-  mmenu.id        = 'context-menu';
-  mmenu.className = 'custom-menu';
+//-----------------------------------------------------------------------------
+// parameter of type Command_D
+//-----------------------------------------------------------------------------
+function mu2e_make_dropup_button_D(cmd) {
+
+  let btn = document.createElement('div');
+  btn.className = 'btn';
+  btn.innerHTML = cmd.name;
+  btn.cmd       = cmd;
+  // left click
+  btn.addEventListener("click", () => cmd.f_handle_left_click(cmd));
+
+  // a command also has a menu
+  // Right click - deals with the menu
+  const m = document.getElementById(cmd.menu_id);
+
+  let mn = m.cloneNode(m);
+  btn.appendChild(mn);
   
-  let ul, li;
+  mn.menu_actions = {};
   
-  ul = document.createElement('ul');
-  
-  li = document.createElement('li');
-  li.innerHTML = 'load_parametersA';
-  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
-  
-  ul.appendChild(li);
-  
-  li = document.createElement('li');
-  li.innerHTML = 'edit_itemA';
-  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
-  
-  ul.appendChild(li);
-  
-  li = document.createElement('li');
-  li.innerHTML = 'copy_linkA';
-  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
-  
-  ul.appendChild(li);
-  
-  li = document.createElement('li');
-  li.innerHTML = 'deleteA';
-  li.onclick   = function() { mu2e_load_cmd_table(cmd) ; };
-  
-  ul.appendChild(li);
-  
-  mmenu.appendChild(ul);
-  
-  
-  btn.addEventListener('contextmenu', (e) => {
-    // e.preventDefault();
-                 
-    const { clientX: mouseX, clientY: mouseY } = e;
-    
-    // Show the menu first so we can calculate its height
-    mmenu.style.display = 'block';
-    const menuHeight = menu.offsetHeight;
-    
-    // Position it ABOVE the cursor (Drop-up)
-    mmenu.style.left = `${mouseX}px`;
-    mmenu.style.top  = `${mouseY - menuHeight}px`; 
+  const items = mn.querySelectorAll('div');
+  items.forEach(item => {
+    if (item.dataset.action == 'load_cmd_par') {
+      mn.menu_actions['load_cmd_par'] = mu2e_load_cmd_table;
+    }
+    else if (item.dataset.action == 'help') {
+      mn.menu_actions['help'] = mu2e_load_help_page;
+    }
   });
   
-  // 2026-03-30 PM : hide menu when clicking elsewhere
-  document.addEventListener('click', () => {
-    mmenu.style.display = 'none';
+  btn.addEventListener("contextmenu", (e) => showMenu(e, mn));
+  
+  // Menu handler
+  mn.addEventListener("click", (e) => {
+    const action = e.target.dataset.action;   // 'dataset.action' seems to get translated into 'data-action' in HTML
+    if (action && mn.menu_actions[action]) {
+      // can pass parameters when it is called
+      mn.menu_actions[action](cmd);
+      hideAllMenus();
+    }
   });
-
-  btn.appendChild(mmenu);
+  
+  mn.addEventListener("click", e => {
+    e.stopPropagation();
+  });
+  
+  btn.addEventListener("contextmenu", (e) => showMenu(e, mn));
+  
   return btn;
 }
 

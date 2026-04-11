@@ -25,6 +25,7 @@ int TEqHardwareCfo::ConfigureJA(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << std::format("-- START: H_Cmd:{}",H_Cmd);
+  SetStatus(1);
 
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
@@ -34,17 +35,16 @@ int TEqHardwareCfo::ConfigureJA(HNDLE H_Cmd) {
 
   std::string logfile   = _odb_i->GetString (h_cmd    ,"logfile"    );
 
-  std::string cmd_path  = std::format("/Mu2e/Commands/DAQ/CFO");
+  // int         clock_source = _odb_i->GetInteger(h_cmd_par,"clock_source");
+  // int         reset        = _odb_i->GetInteger(h_cmd_par,"reset"       );
 
-  SetStatus(rc);
-  rc = _cfo_i->ConfigureJA();
-  SetStatus(rc);
+  rc = _cfo_i->ConfigureJA(sstr);
 
   sstr << std::format(" ConfigureJA done, rc:{}",rc);
 
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
 
-  SetStatus(rc);
   TLOG(TLVL_DEBUG) << std::format("-- END : rc:{} cmd_rc:{}",rc,cmd_rc);
   
   return 0;
@@ -55,9 +55,11 @@ int TEqHardwareCfo::CompileRunPlan(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << std::format("-- START: H_Cmd:{}",H_Cmd);
-
   SetStatus(1);
   
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
   HNDLE       h_cmd        = _odb_i->GetCfoCmdHandle(_h_active_run_conf);
   HNDLE       h_cmd_par    = _odb_i->GetCmdParameterHandle(H_Cmd);
 
@@ -65,9 +67,6 @@ int TEqHardwareCfo::CompileRunPlan(HNDLE H_Cmd) {
   int         print_level  = _odb_i->GetInteger(h_cmd_par,"print_level");
   std::string run_plan_dir = _odb_i->GetCfoRunPlanDir();
   std::string run_plan     = _odb_i->GetCfoRunPlan(_handle);
-
-  std::stringstream sstr;
-  StartMessage(H_Cmd,sstr);
 
                                         // GetRunPlan returns a name stub, make a full file name out of that
                                         // convention : ".txt" --> ".bin"
@@ -79,11 +78,10 @@ int TEqHardwareCfo::CompileRunPlan(HNDLE H_Cmd) {
   
   _cfo_i->CompileRunPlan(input_fn,output_fn,print_level,sstr);
 
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
 
-  SetStatus(rc);
   TLOG(TLVL_DEBUG) << std::format("-- END : rc:{} cmd_rc:{}",rc,cmd_rc);
-
   return rc;
 }
 
@@ -94,34 +92,64 @@ int TEqHardwareCfo::Halt(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
-
   SetStatus(1);
   
-  std::string logfile      = _odb_i->GetString (H_Cmd    ,"logfile"    );
-
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
+
+  std::string logfile      = _odb_i->GetString (H_Cmd    ,"logfile"    );
 
   rc = _cfo_i->Halt();
 
   sstr << std::format(" halt: rc:{}",rc);
 
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
 
-  SetStatus(rc);
+  SetCommandFinished(H_Cmd,rc); 
   TLOG(TLVL_DEBUG) << std::format("-- END : rc:{} cmd_rc:{}",rc,cmd_rc);
 
   return rc;
 }
 
 //-----------------------------------------------------------------------------
-// 'emulate_cfo' - from the DTC configuration
+// HARD RESET
+//-----------------------------------------------------------------------------
+int TEqHardwareCfo::HardReset(HNDLE H_Cmd) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);                         // BUSY
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+  
+  std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+
+  try         {
+    _cfo_i->Cfo()->HardReset();
+    sstr << " hard reset OK" << std::endl;
+  }
+  catch (...) {
+    sstr << "ERROR : coudn't hard reset the CFO ... BAIL OUT" << std::endl;
+  }
+                                        // logfile is not qualified with the path
+                                        // this is transition !
+  
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
+
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} log_rc:{}",rc,log_rc);
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
+// from the DTC configuration
+// run plan alwys comes from the CFO ODB configuration - can change on the fly
 //-----------------------------------------------------------------------------
 int TEqHardwareCfo::InitReadout(HNDLE H_Cmd) {
   int rc(0);
 
   TLOG(TLVL_DEBUG) << std::format("-- START: H_Cmd:{}",H_Cmd);
-  
   SetStatus(1); 
 
   std::stringstream sstr;
@@ -130,14 +158,14 @@ int TEqHardwareCfo::InitReadout(HNDLE H_Cmd) {
   std::string logfile           = _odb_i->GetString (H_Cmd,"logfile" );
   std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
   std::string run_plan          = _odb_i->GetString (_handle,"run_plan"         );
-  uint32_t    timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
+  int         timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
 
   std::string run_plan_fn = run_plan_dir+'/'+run_plan+".bin";
   TLOG(TLVL_DEBUG) << std::format("run_plan_fn:{}",run_plan_fn);
   
   sstr << std::endl;
 
-  rc = _cfo_i->InitReadout(run_plan_fn.data(),timing_chain_mask);
+  rc = _cfo_i->InitReadout(run_plan_fn.data(),timing_chain_mask,sstr);
 
   sstr << std::format(" run_plan_fn:{} time_chain_mask:0x{:08x} rc:{}",run_plan_fn,timing_chain_mask,rc);
 
@@ -147,10 +175,9 @@ int TEqHardwareCfo::InitReadout(HNDLE H_Cmd) {
     cm_msg_flush_buffer();
     TLOG(TLVL_ERROR) << msg;
   }
-
-  SetStatus(rc); 
-  
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+ 
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
   
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   
@@ -164,31 +191,56 @@ int TEqHardwareCfo::LaunchRunPlan(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
-
   SetStatus(1);
   
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
   //   HNDLE       h_cmd_par    = _odb_i->GetCmdParameterHandle(H_Cmd);
 
   std::string logfile      = _odb_i->GetString (H_Cmd    ,"logfile"    );
   // int         print_level  = _odb_i->GetInteger(h_cmd_par,"print_level");
 
-  std::stringstream sstr;
-  StartMessage(H_Cmd,sstr);
-
   _cfo_i->LaunchRunPlan();
 
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
-
-  SetStatus(rc);
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc);
+  
   TLOG(TLVL_DEBUG) << std::format("-- END : rc:{} cmd_rc:{}",rc,cmd_rc);
-
   return rc;
+}
+
+//-----------------------------------------------------------------------------
+// print DTC status
+//-----------------------------------------------------------------------------
+int TEqHardwareCfo::PrintStatus(HNDLE H_Cmd) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);                         // BUSY
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+  
+  // HNDLE       h_cmd_par   = _odb_i->GetCmdParameterHandle(H_Cmd);
+  std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+
+  TLOG(TLVL_DEBUG) << std::format("logfile:{}",logfile);
+  _cfo_i->PrintStatus(sstr);
+                                        // logfile is not qualified with the path
+                                        // this is transition ! 
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
+
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} log_rc:{}",rc,log_rc);
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
 int TEqHardwareCfo::ReadRegister(HNDLE H_Cmd) {
   int rc(0);
   TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);
   
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
@@ -204,10 +256,12 @@ int TEqHardwareCfo::ReadRegister(HNDLE H_Cmd) {
     _odb_i->SetUInt32(h_cmd_par,"value",val);
     sstr << " -- read_dtc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
   }
-  catch (...) { sstr << " ERROR : dtc_read_register ... BAIL OUT" << std::endl; }
+  catch (...) {
+    sstr << " ERROR : dtc_read_register ... BAIL OUT" << std::endl;
+  }
 
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
-  SetStatus(rc);
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
   
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
@@ -221,9 +275,11 @@ int TEqHardwareCfo::SetRunPlan(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
-
   SetStatus(1);
   
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
   HNDLE       h_cmd_par    = _odb_i->GetCmdParameterHandle(H_Cmd);
 
   std::string logfile      = _odb_i->GetString (H_Cmd    ,"logfile" );
@@ -233,17 +289,45 @@ int TEqHardwareCfo::SetRunPlan(HNDLE H_Cmd) {
   std::string run_plan_fn  = run_plan_dir+'/'+run_plan+".bin";
   TLOG(TLVL_DEBUG) << std::format("run_plan_fn:{}",run_plan_fn);
 
-  std::stringstream sstr;
-  StartMessage(H_Cmd,sstr);
-
   _cfo_i->SetRunPlan(run_plan_fn);
 
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
 
-  SetStatus(rc);
   TLOG(TLVL_DEBUG) << std::format("-- END : rc:{} cmd_rc:{}",rc,cmd_rc);
 
   return rc;
+}
+
+//-----------------------------------------------------------------------------
+// SOFT RESET
+//-----------------------------------------------------------------------------
+int TEqHardwareCfo::SoftReset(HNDLE H_Cmd) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);                         // BUSY
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+  
+  std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+
+  try         {
+    _cfo_i->Cfo()->SoftReset();
+    sstr << " soft reset OK" << std::endl;
+  }
+  catch (...) {
+    sstr << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl;
+  }
+                                        // logfile is not qualified with the path
+                                        // this is transition !
+  
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
+
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} log_rc:{}",rc,log_rc);
+  return 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -251,6 +335,7 @@ int TEqHardwareCfo::WriteRegister(HNDLE H_Cmd) {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);
   
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
@@ -270,8 +355,9 @@ int TEqHardwareCfo::WriteRegister(HNDLE H_Cmd) {
     sstr << " ERROR : dtc_write_register ... BAIL OUT" << std::endl;
   }
 
-  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
-  SetStatus(rc); 
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
+
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
 }

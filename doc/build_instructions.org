@@ -1,6 +1,9 @@
 #+startup:fold -*- buffer-read-only:t -*- 
 * ------------------------------------------------------------------------------
 * installation under spack                                                   
+- <2026-04-10 Fri> add two mode packages:
+  - node-js
+  - spdlog - smart logging
 - last update: <2025-11-24 Thu> - versions are time-dependent
   fermi 0.23: remotes/origin/v0.23.0-fermi
   spack 0.23: tags/v0.23.0

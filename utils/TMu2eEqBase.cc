@@ -68,7 +68,7 @@ int TMu2eEqBase::CheckAlarms() {
 }
 
 //-----------------------------------------------------------------------------
-// the logfiles are supposed to be located in ODB("/Logger/Data dir")
+// the logfiles are supposed to be located in ${ODB("/Logger/Data dir")}/logs)
 // returned directory name ends with the '/'
 //-----------------------------------------------------------------------------
 std::string TMu2eEqBase::GetFullLogfileName(const std::string& Logfile) {
@@ -76,7 +76,7 @@ std::string TMu2eEqBase::GetFullLogfileName(const std::string& Logfile) {
 
   std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
                                         // no need in the intermediate '/' here
-  std::string full_fn  = std::format("{}/{}",data_dir,Logfile);
+  std::string full_fn  = std::format("{}/logs/{}",data_dir,Logfile);
 
   TLOG(TLVL_DEBUG+1) << std::format("-- END full_fn:{}",full_fn);
   return full_fn;
@@ -85,17 +85,20 @@ std::string TMu2eEqBase::GetFullLogfileName(const std::string& Logfile) {
 //-----------------------------------------------------------------------------
 // the logfiles are supposed to be located in ODB("/Logger/Data dir")
 //-----------------------------------------------------------------------------
-int TMu2eEqBase::ResetOutput(const std::string& Logfile) {
+int TMu2eEqBase::ResetOutput(HNDLE H_Cmd) {
   int rc(0);
 
-  TLOG(TLVL_DEBUG) << "--- START Logfile:" << Logfile; 
+  std::string logstream = _odb_i->GetString (H_Cmd,"logfile" );
 
-                                        // show as BUSY
-  _odb_i->SetStatus(_handle,1);
+  TLOG(TLVL_DEBUG) << "--- START LogStream:" << logstream; 
+
+  SetStatus(1);                         // show as BUSY
   
-  if (Logfile == "") {
-    TLOG(TLVL_ERROR) << std::format("logfile is not defined, BAIL OUT");
-    return -1;
+  if (logstream == "") {
+    rc = -1;
+    TLOG(TLVL_ERROR) << std::format("logstream is not defined, rc:{}. BAIL OUT",rc);
+    SetCommandFinished(H_Cmd,rc);
+    return rc;
   }
 
   std::mutex mtx; // For thread-safe output
@@ -104,21 +107,31 @@ int TMu2eEqBase::ResetOutput(const std::string& Logfile) {
     std::lock_guard<std::mutex> lock(mtx);
     std::ofstream output_file;
 
-    std::string fn = GetFullLogfileName(Logfile);
+    std::string fn = GetFullLogfileName(logstream+".msg");
     
     output_file.open(fn.data(),std::ofstream::trunc);
     if (not output_file.is_open()) {
-      TLOG(TLVL_ERROR) << std::format("failed to open _logfile:{} in ofstream::trunc mode",fn); 
+      rc = -2;
+      TLOG(TLVL_ERROR) << std::format("failed to open fn:{} in ofstream::trunc mode",fn); 
     }
     else {
       output_file.close();
-      _odb_i->SetStatus(_handle,0);
     }
   }
+
+  SetCommandFinished(H_Cmd,rc);
   
-  TLOG(TLVL_DEBUG) << "--- END";
-  return 0;
+  TLOG(TLVL_DEBUG) << std::format("--- END, rc:{}",rc);
+  return rc;
 }
+
+//-----------------------------------------------------------------------------
+// mark command as completed, set status
+//-----------------------------------------------------------------------------
+void TMu2eEqBase::SetCommandFinished(HNDLE H_Cmd, int Status) {
+  _odb_i->SetStatus(_handle,Status);
+  _odb_i->SetInteger(H_Cmd,"Finished",1);
+};
 
 //-----------------------------------------------------------------------------
 void TMu2eEqBase::SetStatus(int Status) {
@@ -149,42 +162,105 @@ int TMu2eEqBase::StartMessage(HNDLE h_Cmd, std::stringstream& Stream) {
 }
 
 //-----------------------------------------------------------------------------
+// set DTC in ERROR
+//-----------------------------------------------------------------------------
+int TMu2eEqBase::UnknownCommand(HNDLE H_Cmd) {
+  int rc(-1);
+  
+  TLOG(TLVL_DEBUG) << "-- START";
+
+  std::string cmd_name = _odb_i->GetString (H_Cmd,"Name"   );
+  std::string logfile  = _odb_i->GetString (H_Cmd,"logfile");
+  
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  sstr << std::format("ERROR: UNKNOWN COMMAND:{}\n",cmd_name);
+
+  TLOG(TLVL_ERROR) << std::format("unknown command:{}",cmd_name);
+
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
+  
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} log_rc:{}",rc,log_rc);
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
 // make sure that a command can redirect its output
 //-----------------------------------------------------------------------------
-int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& Logfile) {
+int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& LogStream, int Mode) {
 
-  TLOG(TLVL_DEBUG) << std::format("-- START: _logfile:{} Logfile:{} Output size:{}",_logfile,Logfile,Output.length()); 
+  TLOG(TLVL_DEBUG) << std::format("-- START: _logfile:{} LogStream:{} Mode:{} Output size:{}",_logfile,LogStream,Mode,Output.length()); 
 
   std::vector<std::string> vs = splitString(Output,'\n');
+  int ns = vs.size();
 
-  std::mutex mtx; // For thread-safe output
+  std::mutex mtx;                       // For thread-safe output
 
-  if (Logfile == "") {
-    TLOG(TLVL_ERROR) << std::format("Logfile is not defined, BAIL OUT");
+  if (LogStream == "") {
+    TLOG(TLVL_ERROR) << std::format("LogStream is not defined, BAIL OUT");
     return -1;
   }
-
-  std::string fn = GetFullLogfileName(Logfile);
-
-  TLOG(TLVL_DEBUG) << std::format("using fn:{}",fn);
 //-----------------------------------------------------------------------------
+// assume all logfiles are in the same directory - is it a good assumption ?
+// ${experiment}/logfiles ?  mu2edaq22_dtc0.log
 // make sure writing to disk is thread-safe
 //-----------------------------------------------------------------------------
   {
     std::lock_guard<std::mutex> lock(mtx);
 
-    std::ofstream output_file;
-    output_file.open(fn.data(),std::ios::app);
-    if (not output_file.is_open()) {
-      TLOG(TLVL_ERROR) << std::format("failed to open log file:{} in ios::app mode",fn); 
-    }
-    else {
-      int ns = vs.size();
-      for (int i=ns-1; i>=0; i--) {
-        output_file << vs[i] << std::endl;
-        TLOG(TLVL_DEBUG+1) << vs[i];
+    if (Mode == 0) {
+                                        // today's default: use MIDAS facility
+
+      std::string fn = GetFullLogfileName(LogStream);
+      TLOG(TLVL_DEBUG) << std::format("using fn:{}",fn);
+
+      std::ofstream output_file;
+      output_file.open(fn.data(),std::ios::app);
+      if (not output_file.is_open()) {
+        TLOG(TLVL_ERROR) << std::format("failed to open log file:{} in ios::app mode",fn); 
+      }
+      else {
+        for (int i=ns-1; i>=0; i--) {
+          output_file << vs[i] << std::endl;
+          TLOG(TLVL_DEBUG+1) << vs[i];
+        }
       }
       output_file.close();
+    }
+    else if (Mode == 1) {
+//-----------------------------------------------------------------------------
+// use node-js
+// 1. write last message into a separate file : 
+//-----------------------------------------------------------------------------
+      std::string cmd_output_fn = GetFullLogfileName(LogStream+".msg");
+
+      std::ofstream cmd_output;
+      cmd_output.open(cmd_output_fn.data(),std::ios::out);
+      if (not cmd_output.is_open()) {
+        TLOG(TLVL_ERROR) << std::format("failed to open message file:{} in ios::out mode",cmd_output_fn); 
+      }
+      
+      for (int i=0; i<ns; i++) {
+        cmd_output << vs[i] << std::endl;
+        TLOG(TLVL_DEBUG+1) << vs[i];
+      }
+      cmd_output.close();
+//-----------------------------------------------------------------------------
+// append message to the log file - that should be a rolling one...
+//-----------------------------------------------------------------------------
+      std::string   log_fn = GetFullLogfileName(LogStream+".log");
+      std::ofstream log_file;
+      log_file.open(log_fn,std::ios::app);
+      if (not log_file.is_open()) {
+        TLOG(TLVL_ERROR) << std::format("failed to open log file:{} in ios::app mode",log_fn); 
+      }
+      for (int i=0; i<ns; i++) {
+        log_file << vs[i] << std::endl;
+        TLOG(TLVL_DEBUG+1) << vs[i];
+      }
+      log_file.close();
     }
   }
   
