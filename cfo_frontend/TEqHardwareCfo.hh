@@ -45,10 +45,13 @@ public:
   int          ConfigureJA   (HNDLE H_Cmd);
   int          CompileRunPlan(HNDLE H_Cmd);
   int          Halt          (HNDLE H_Cmd);
+  int          HardReset     (HNDLE H_Cmd);
   int          InitReadout   (HNDLE H_Cmd);
   int          LaunchRunPlan (HNDLE H_Cmd);
+  int          PrintStatus   (HNDLE H_Cmd);
   int          ReadRegister  (HNDLE H_Cmd);
   int          SetRunPlan    (HNDLE H_Cmd);
+  int          SoftReset     (HNDLE H_Cmd);
   int          WriteRegister (HNDLE H_Cmd);
 
   static  void ProcessCommand(int hDB, int hKey, void* Info);

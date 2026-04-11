@@ -61,13 +61,17 @@ public:
 
   int                 MonitoringLevel() { return _monitoringLevel ; }
 
-  int                 ResetOutput (const std::string& Logfile);
-  virtual int         StartMessage(HNDLE H_Cmd,               std::stringstream& SStr); 
-  virtual int         WriteOutput (const std::string& Output, const std::string& Logfile);
+  int                 ResetOutput   (HNDLE H_Cmd);
+  virtual int         StartMessage  (HNDLE H_Cmd,std::stringstream& SStr);
+  virtual int         UnknownCommand(HNDLE H_Cmd);
+  
+                                        // transition
+  virtual int         WriteOutput (const std::string& Output, const std::string& Logfile, int Mode = 0);
 
   void                SetName(const char* Name) { _name = Name; }
 
-  void                SetStatus(int Status);
+  void                SetStatus         (int Status);
+  void                SetCommandFinished(HNDLE H_Cmd, int Status);
 
   virtual TMFeResult  Init               ();
   virtual int         InitVarNames       ();

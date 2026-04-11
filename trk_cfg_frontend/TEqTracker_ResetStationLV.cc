@@ -25,7 +25,7 @@ TMFeResult TEqTracker::ResetStationLV(const std::string& CmdParameterPath) {
 
   OdbInterface* odb_i = OdbInterface::Instance();
   
-  HNDLE h_cmd     = odb_i->GetHandle(0,tracker_cmd_path);
+  // HNDLE h_cmd     = odb_i->GetHandle(0,tracker_cmd_path);
 
   HNDLE h_cmd_par = odb_i->GetHandle(0,CmdParameterPath);
   int station     = odb_i->GetInteger(h_cmd_par,"station");

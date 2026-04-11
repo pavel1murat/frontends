@@ -119,7 +119,6 @@ int TEqHardwareCfo::BeginRun(int RunNumber)  {
   TLOG(TLVL_DEBUG) << std::format("-- START: run_number:{}",RunNumber);
 //-----------------------------------------------------------------------------
 // in 'external' mode, [re-]initialize and start executing the run plan
-//
 //-----------------------------------------------------------------------------
   std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
   std::string run_plan          = _odb_i->GetCfoRunPlan(_handle);

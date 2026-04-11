@@ -19,9 +19,6 @@
 void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "-- START";
 
-  // in the end, ProcessCommand should send ss.str() as a message to some log
-  std::stringstream ss;
-
   OdbInterface* odb_i = OdbInterface::Instance();
 //-----------------------------------------------------------------------------
 // based on the key, figure out own name and the node name
@@ -60,17 +57,14 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     
   std::string cmd            = odb_i->GetString (h_cmd,"Name");
   std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
-  int link                   = odb_i->GetInteger(h_cmd,"link");
+  int         link           = odb_i->GetInteger(h_cmd,"link");
   std::string logfile        = odb_i->GetString (h_cmd,"logfile");
 //-----------------------------------------------------------------------------
   TEquipmentManager* eqm = TEquipmentManager::Instance();
 
-  std::string eq_name = std::format("DTC{}",pcie_addr);
-  TEqTrkDtc*            eq = (TEqTrkDtc*) eqm->FindEquipmentItem(eq_name);
-  trkdaq::DtcInterface* dtc_i  = eq->Dtc_i();
-
-  ss << std::format("-- label:{} host:{} cmd:{} pcie_addr:{} link:{}",
-                    eq->HostLabel(),eq->FullHostName(),cmd,dtc_i->PcieAddr(),link);
+  std::string           eq_name = std::format("DTC{}",pcie_addr);
+  TEqTrkDtc*            eq      = (TEqTrkDtc*) eqm->FindEquipmentItem(eq_name);
+  trkdaq::DtcInterface* dtc_i   = eq->Dtc_i();
 
   TLOG(TLVL_DEBUG) << std::format("cmd:{} parameter_path:{} logfile:{}",cmd,parameter_path,logfile);
 //-----------------------------------------------------------------------------
@@ -78,23 +72,13 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //------------------------------------------------------------------------------
   int cmd_rc(0);
   if      (cmd == "configure_ja") {
-    try {
-      odb_i->SetInteger(h_dtc,"Status",1);
-      cmd_rc = dtc_i->ConfigureJA();             // use defaults from the dtc_i settings
-      odb_i->SetInteger(h_dtc,"Status",0);
-    }
-    catch(...) {
-      TLOG(TLVL_ERROR) << "coudn't execute DtcInterface::ConfigureJA ... BAIL OUT";
-    }
+    cmd_rc = eq->ConfigureJA(h_cmd);
   }
 //-----------------------------------------------------------------------------
 // DUMP_SETTINGS
 //-----------------------------------------------------------------------------
   else if (cmd == "dump_settings") {
-    ss << std::endl;
-    TLOG(TLVL_DEBUG) << std::format("arrived at {}",cmd);
- 
-    cmd_rc = eq->DumpSettings(ss);
+    cmd_rc = eq->DumpSettings(h_cmd);
   }
 //-----------------------------------------------------------------------------
 // FIND_ALIGNMENT
@@ -107,8 +91,8 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // FIND_THRESHOLDS
 //-----------------------------------------------------------------------------
   else if (cmd == "find_thresholds") {
-    ss << std::endl;
-    cmd_rc = eq->FindThresholds(ss);
+    std::thread t(&TEqTrkDtc::FindThresholds,eq,h_cmd);
+    t.detach();
   }
   else if (cmd == "digi_read") {
 //-----------------------------------------------------------------------------
@@ -133,37 +117,29 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
   }
   else if (cmd == "get_design_info") {
 //-----------------------------------------------------------------------------
-// get ROC design info - print output of 3 separate commands together
+// fast  get ROC design info - print output of 3 separate commands together
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->GetRocDesignInfo(ss);
+    cmd_rc = eq->GetRocDesignInfo(h_cmd);
   }
 //-----------------------------------------------------------------------------
 // GET KEY
 //-----------------------------------------------------------------------------
   else if (cmd == "get_key") {
-    ss << std::endl;
-    cmd_rc = eq->GetKey(ss);
+    cmd_rc = eq->GetKey(h_cmd);
   }
   else if (cmd == "hard_reset") {
 //-----------------------------------------------------------------------------
 // HARD RESET
 //-----------------------------------------------------------------------------
-    // ss << std::endl;
-    TLOG(TLVL_DEBUG) << "arrived at hard_reset";
- 
-    try         {
-      odb_i->SetInteger(h_dtc,"Status",1);
-      dtc_i->Dtc()->HardReset();
-      odb_i->SetInteger(h_dtc,"Status",0);
-      ss << " hard reset OK" << std::endl; }
-    catch (...) { ss << "ERROR : coudn't hard reset the DTC ... BAIL OUT" << std::endl; }
+    std::thread t(&TEqTrkDtc::HardReset,eq,h_cmd);
+    t.detach();
   }
   else if (cmd == "init_readout") {
 //-----------------------------------------------------------------------------
 // init_readout
 //-----------------------------------------------------------------------------
-    cmd_rc = eq->InitReadout(ss);
+    std::thread t(&TEqTrkDtc::InitReadout,eq,h_cmd);
+    t.detach();
   }
 //-----------------------------------------------------------------------------
 // LOAD_THRESHOLDS - execute per-DTC commands as threads
@@ -183,13 +159,8 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // PRINT STATUS
 //-----------------------------------------------------------------------------
   else if (cmd == "print_status") {
-    ss << std::endl;
-    try         {
-      odb_i->SetInteger(h_dtc,"Status",1);
-      dtc_i->PrintStatus(ss);
-      odb_i->SetInteger(h_dtc,"Status",0);
-    }
-    catch (...) { ss << "ERROR : coudn't print status of the DTC ... BAIL OUT" << std::endl; }
+    std::thread t(&TEqTrkDtc::PrintStatus,eq,h_cmd);
+    t.detach();
   }  
 //-----------------------------------------------------------------------------
 // PRINT ROC STATUS
@@ -202,75 +173,64 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // PULSER_OFF
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->PulserOff(ss);
+    cmd_rc = eq->PulserOff(h_cmd);
   }
   else if (cmd == "pulser_on") {
 //-----------------------------------------------------------------------------
 // PULSER_ON
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->PulserOn(ss);
+    cmd_rc = eq->PulserOn(h_cmd);
   }
   else if (cmd == "rates") {
 //-----------------------------------------------------------------------------
 // CONTROL_ROC_RATES
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    TLOG(TLVL_DEBUG) << "arrived at rates";
- 
-    cmd_rc = eq->Rates(ss);
+    cmd_rc = eq->Rates(h_cmd);
   }
   else if (cmd == "read") {
 //-----------------------------------------------------------------------------
 // CONTROL_ROC_READ : link comes from ODB
 //-----------------------------------------------------------------------------
-    eq->Read(ss);
+    cmd_rc = eq->Read(h_cmd);
   }
   else if (cmd == "read_ddr") {
-    ss << std::endl;
-    cmd_rc = eq->ReadDDR(ss);
+    cmd_rc = eq->ReadDDR(h_cmd);
   }
   else if (cmd == "read_device_id") {
 //-----------------------------------------------------------------------------
 // read device ID
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->ReadDeviceID(ss);
+    cmd_rc = eq->ReadDeviceID(h_cmd);
   }
   else if (cmd == "read_mnid") {
 //-----------------------------------------------------------------------------
 // read panel MinnesotaID
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->ReadMnID(ss);
+    cmd_rc = eq->ReadMnID(h_cmd);
   }
   else if (cmd == "read_ilp") {
 //-----------------------------------------------------------------------------
 // read ILP
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->ReadIlp(ss);
+    cmd_rc = eq->ReadIlp(h_cmd);
   }
   else if (cmd == "read_register") {
 //-----------------------------------------------------------------------------
 // read ILP
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->ReadRegister(ss);
+    cmd_rc = eq->ReadRegister(h_cmd);
   }
   else if (cmd == "read_roc_register") {
 //-----------------------------------------------------------------------------
 // read ROC register
 //-----------------------------------------------------------------------------
-    cmd_rc = eq->ReadRocRegister(ss);
+    cmd_rc = eq->ReadRocRegister(h_cmd);
   }
   else if (cmd == "read_spi") {
 //-----------------------------------------------------------------------------
 // get formatted SPI output for a given ROC
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->ReadSpi(ss);
+    cmd_rc = eq->ReadSpi(h_cmd);
   }
 //-----------------------------------------------------------------------------
 // READ_SUBEVENTS (interactive readout test)
@@ -280,25 +240,23 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     t.detach();
   }
   else if (cmd == "reboot_mcu") {
-    cmd_rc = eq->RebootMcu(ss);
-  }
-  else if (cmd == "reset_output") {
-    cmd_rc = eq->ResetOutput(logfile);
+    cmd_rc = eq->RebootMcu(h_cmd);
   }
   else if (cmd == "reset_digis") {
-    cmd_rc = eq->ResetDigis(ss);
+    cmd_rc = eq->ResetDigis(h_cmd);
+  }
+  else if (cmd == "reset_output") {
+                                        // eq 'Status' is handled in ResetOutput
+    cmd_rc = eq->ResetOutput(h_cmd);
   }
   else if (cmd == "reset_roc") {
-    cmd_rc = eq->ResetRoc(ss);
+    cmd_rc = eq->ResetRoc(h_cmd);
   }
 //-----------------------------------------------------------------------------
-// RESET ROC
+// SET CALDAC (set height of the calibration pulse)
 //-----------------------------------------------------------------------------
   else if (cmd == "set_caldac") {
-    ss << std::endl;
-    TLOG(TLVL_DEBUG) << "arrived at set_caldaq";
- 
-     cmd_rc = eq->SetCalDac(ss);
+     cmd_rc = eq->SetCalDac(h_cmd);
   }
 //-----------------------------------------------------------------------------
 // SET ROC DELAY(s)
@@ -318,45 +276,34 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // SOFT RESET
 //-----------------------------------------------------------------------------
-    TLOG(TLVL_DEBUG) << "arrived at soft_reset";
- 
-    try         {
-      odb_i->SetInteger(h_dtc,"Status",1);
-      dtc_i->Dtc()->SoftReset();
-      odb_i->SetInteger(h_dtc,"Status",0);
-      ss << " soft reset OK" << std::endl; }
-    catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }
+    cmd_rc = eq->SoftReset(h_cmd);
   }
   else if (cmd == "test_command") {
 //-----------------------------------------------------------------------------
 // test command; for different DTCs may be executed in a thread, links are processes sequentially
 // what starts the thread ??  - this is open so far
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->TestCommand(ss);
+    std::thread t(&TEqTrkDtc::TestCommand,eq,h_cmd);
+    t.detach();
   }
   else if (cmd == "write_register") {
 //-----------------------------------------------------------------------------
 // WRITE_REGISTER
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->WriteRegister(ss);
+    cmd_rc = eq->WriteRegister(h_cmd);
   }
   else if (cmd == "write_roc_register") {
 //-----------------------------------------------------------------------------
 // WRITE_ROC_REGISTER
 //-----------------------------------------------------------------------------
-    cmd_rc = eq->WriteRocRegister(ss);
+    cmd_rc = eq->WriteRocRegister(h_cmd);
   }
   else {
-    ss << " ERROR: Unknown command:" << cmd;
-    TLOG(TLVL_ERROR) << ss.str();
+    cmd_rc = eq->UnknownCommand(h_cmd);
   }
 //-----------------------------------------------------------------------------
 // write output to the equipment log - need to revert the line order
 // this printout shows up BEFORE the command output
-//-----------------------------------------------------------------------------
-  cmd_rc = eq->WriteOutput(ss.str(),logfile);
-  
+//-----------------------------------------------------------------------------  
   TLOG(TLVL_DEBUG) << "-- END:" << " cmd_rc:" << cmd_rc;
 }

@@ -33,6 +33,8 @@
        document.title = 'CFO@'+g_hostname;
        let title       = document.getElementById('table-title');
        title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' CFO control page';
+
+       const logfile = `${g_hostname}_cfo${g_pcie}`;
 //-----------------------------------------------------------------------------
 //  create CFO commands table
 //-----------------------------------------------------------------------------
@@ -60,32 +62,34 @@
        thead.appendChild(tr);
        
        let tbody = document.createElement('tbody');
+
+
        /*  second row - 9 cells*/
        tr = document.createElement('tr');
        td = document.createElement('td');
        td.colSpan = 9;
 
-       let cmd = new Command_B('load_parameters','load_parameters',mu2e_load_conf_table,'cmd_params',cfo_config_path,'trkdtc.log');
+       let cmd = new Command_B('load_parameters','load_parameters',mu2e_load_conf_table,'cmd_params',cfo_config_path,logfile);
        let btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('configure_ja','configure_ja',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
-       btn  = mu2e_make_dropup_button_B(cmd);
+       cmd = new Command_D('configure_ja','configure_ja',"cfo_menu_01", mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,logfile);
+       btn  = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('init_readout','init_readout',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
-       btn  = mu2e_make_dropup_button_B(cmd);
+       cmd = new Command_D('init_readout','init_readout','cfo_menu_01',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,logfile);
+       btn  = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('soft_reset','soft_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('soft_reset','soft_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,logfile);
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('hard_reset','hard_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('hard_reset','hard_reset',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,logfile);
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('print_status','print_status',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('print_status','print_status',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,logfile);
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
@@ -105,19 +109,19 @@
        td = document.createElement('td');
        td.colSpan = 6;
        
-       cmd = new Command_B('reset_output','reset_output',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('reset_output','reset_output',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,logfile);
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('compile_run_plan','compile_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('compile_run_plan','compile_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,logfile);
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('launch_run_plan','launch_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('launch_run_plan','launch_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,logfile);
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('halt','halt',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('halt','halt',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,logfile);
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
@@ -129,7 +133,7 @@
        tr.appendChild(td);
        
        td = document.createElement('td');
-       cmdb = new Command_B('write CFO register','write_register',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
+       cmdb = new Command_B('write CFO register','write_register',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,logfile);
        btn  = mu2e_make_exec_button_B(cmdb);
        td.appendChild(btn);
        tr.appendChild(td);
@@ -152,11 +156,11 @@
        td = document.createElement('td');
        td.colSpan = 6;
 
-       cmd = new Command_B('set_run_plan','set_run_plan',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
-       btn = mu2e_make_dropup_button_B(cmd);
+       cmd = new Command_D('set_run_plan','set_run_plan','cfo_menu_01',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,logfile);
+       btn = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_B('end_run','end_run',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,'trkdtc.log');
+       cmd = new Command_B('end_run','end_run',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,logfile);
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
@@ -168,7 +172,7 @@
        tr.appendChild(td);
        
        td = document.createElement('td');
-       cmdb = new Command_B('read_register','read_register',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,'trkdtc.log');
+       cmdb = new Command_B('read_register','read_register',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,logfile);
        btn  = mu2e_make_exec_button_B(cmdb);
        td.appendChild(btn);
        tr.appendChild(td);
@@ -187,7 +191,6 @@
        cmd_table.appendChild(tbody);
      }
          
-         
      document.addEventListener("DOMContentLoaded", loadPage);
     </script>
   </head>
@@ -196,7 +199,20 @@
        and use javascript to fill internal details
        P.M.: having show_facilities etc here is important
   -->
-  <body class="mcss" onload="mhttpd_init('cfo_control'); show_facilities(); msg_load();">
+  <body class="mcss" onload="mhttpd_init('cfo_control');">
+
+    <!-- Menu for Element 2 - should be hidden - .css -->
+    <!-- actions assigned in the Command_D constructor -->
+    <div id="cfo_menu_01" class="daq_menu">
+      <div data-action="load_cmd_par">load_parameters</div>
+    </div>
+
+    <!--  actions assigned in the Command_D constructor -->
+    <div id="cfo_menu_02" class="daq_menu">
+      <div data-action="load_cmd_par">load_parameters</div>
+      <div data-action="help"        >help</div>
+    </div>
+
     <div id="mheader"></div>
     <div id="msidenav"></div>
     <div id="mmain">
@@ -204,7 +220,7 @@
       <!-- ---------------- row 1: DTC registers - are they needed?  and the output field ----------------  -->
       
       <div class="row">
-        <h2 id="table-title">DTC </h2>
+        <h2 id="table-title">CFO </h2>
         
         <div class="column"; style="width:34%"> <!-- gets pushed to the left -->
           
@@ -221,85 +237,24 @@
         
         <div class="column"; style="width:66%"> <!-- gets pushed to the left -->
           <!--    ------------------------- this is the output window  -->
-          <table >
-            <tr>
-              <td id="navigationFacilitiesButtons"></td>
-            </tr>
-          </table>
           
-          <table class="mtable" id="messageTable" ">
+          <table class="mtable" id="messageTableA">
             <tr>
-              <td class="select">
-                <label for="nameFilter">Filter: </label>
-                
-                <input type="text" id="nameFilter" placeholder="Program Name" title="Please enter a program name">
-                
-                <select id="typeFilter" title="Please select a message type">
-                  <option value="">- all -</option>
-                  <option>INFO</option>
-                  <option>ERROR</option>
-                  <option>USER</option>
-                  <option>LOG</option>
-                  <option>TALK</option>
-                </select>
-                
-                <input type="text" id="timeFilter" placeholder="Time (hh:mm:ss)" title="Please select a time to search">
-                <input type="text" id="textFilter" placeholder="Search Text" title="Please enter some search text">
-                
-                <select id="timeRangeFilter" title="We will search the file from the current time into the past">
-                  <option>24 h</option>
-                  <option>48 h</option>
-                  <option>72 h</option>
-                  <option>7 d</option>
-                  <option>30 d</option>
-                </select>
-                <button class="mbutton" id="filterBtn">Filter</button>
-                
-                <select id="recentsDropdown">
-                  <option value="">Select a recent filter</option>
-                </select>
-                
+              <td>
+                <div class="mfont" id="messageFrameB">
+                  <h1 class="mtableheader"> CFO command log</h1>
+                </div>
               </td>
             </tr>
-            
             <tr>
-              <td class="select">
-                <div class="mmessagebox mfont" id="messageFrame"><h1 class="mtableheader"> Messages</h1></div>
+              <td>
+                <div class="mfont" id="messageFrameA">
+                </div>
               </td>
             </tr>
           </table>
           
-          <div id="loadingOverlay"
-               style="  display: none;
-                   position: fixed;
-                   top: 0;
-                   left: 0;
-                   width: 100%;
-                   <!--
-                   height: 100%;
-                   -->
-                   height: 600px;
-                   background-color: rgba(128, 128, 128, 0.8);
-                   color: white;
-                   font-size: 24px;
-                   align-items: center;
-                   justify-content: center;
-                   z-index: 1000;">
-            Searching messages... Mouse Click to stop.
-          </div>
-          
         </div>
-        
-        <div id="dlgError" class="dlgFrame">
-          <div class="dlgTitlebar">Error message</div>
-          <div class="dlgPanel">
-            <div id="dlgErrorText">Dialog Contents</div>
-            <br />
-            <button class="dlgButton" onClick="dlgHide('dlgError')">Close</button>
-          </div>
-        </div>
-        
-        <script src="mu2e_messages.js"></script>
       </div>
     </div>
   </body>

@@ -60,7 +60,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // start from checking the tracker status
 //-----------------------------------------------------------------------------
-  TEqTracker* eq = TEqTracker::Instance();
+  TEqTracker*   eq    = TEqTracker::Instance();
   OdbInterface* odb_i = OdbInterface::Instance();
 
   HNDLE h_trk_cfg = odb_i->GetTrackerConfigHandle();  // returns handle of '/Mu2e/Commands/Tracker'
@@ -75,10 +75,12 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
   eq->SetStatus(1);
 
-  KEY key;
-  db_get_key(hDB,hKey,&key);
+  KEY k_cmd;
+  db_get_key(hDB,hKey,&k_cmd);
+
+  HNDLE h_cmd = odb_i->GetParent(hKey);
   
-  TLOG(TLVL_DEBUG) << std::format("hDB:{} hKey:{} k.name:{}",hDB,hKey,key.name); 
+  TLOG(TLVL_DEBUG) << std::format("hDB:{} hKey:{} k_cmd.name:{} h_cmd:{}",hDB,hKey,k_cmd.name,h_cmd); 
 //-----------------------------------------------------------------------------
 // get handle to the command sent to the tracker
 //-----------------------------------------------------------------------------
@@ -110,8 +112,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 // reset_output is a special command - it doesn't require looping over stations
 // no need to wait for completion
 //-----------------------------------------------------------------------------
-    rc = fg_EqTracker->ResetOutput(logfile);
-    odb_i->SetStatus(h_trk_cfg,rc);
+    rc = fg_EqTracker->ResetOutput(h_cmd);
     return;
   }
   else if (cmd == "reset_lv"        ) fg_EqTracker->_cmd_type = kCmdRpi;

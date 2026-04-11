@@ -62,47 +62,51 @@ public:
                                         // saving in the end of the run purposes
   
   int         ReadRocRegisters (int Link, const std::vector<int>& Registers, std::vector<uint32_t>& RegData);
+  void        SetLinkStatus(int Link, int Status);
   
   virtual int BeginRun         (int RunNumber) override;
   virtual int EndRun           (int RunNumber) override;
   
-  int         ConfigureJA      (std::ostream& Stream);
+  int         ConfigureJA      (HNDLE H_Cmd);
   int         DigiRead         (HNDLE H_Cmd);
   int         DigiRW           (HNDLE H_Cmd);
   int         DigiWrite        (HNDLE H_Cmd);
-  int         DumpSettings     (std::ostream& Stream);
+  int         DumpSettings     (HNDLE H_Cmd);
   int         FindAlignment    (HNDLE H_Cmd);
-  int         FindThresholds   (std::ostream& Stream);
-  int         GetKey           (std::ostream& Stream);
-  int         GetRocDesignInfo (std::ostream& Stream);
-  int         InitReadout      (std::ostream& Stream);
+  int         FindThresholds   (HNDLE H_Cmd);
+  int         GetKey           (HNDLE H_Cmd);
+  int         GetRocDesignInfo (HNDLE H_Cmd);
+  int         HardReset        (HNDLE H_Cmd);
+  int         InitReadout      (HNDLE H_Cmd);
   int         LoadChannelMap   (HNDLE H_Cmd);                 // load map from disk to ODB
   int         LoadThresholds   (HNDLE H_Cmd);                 // load thresholds from disk to ODB
   int         MeasureThresholds(HNDLE H_Cmd);                 // std::ostream& Stream);
   int         PrintRocStatus   (HNDLE H_Cmd);
-  int         PulserOff        (std::ostream& Stream);
-  int         PulserOn         (std::ostream& Stream);
-  int         Rates            (std::ostream& Stream);
-  int         Read             (std::ostream& Stream);
-  int         ReadDeviceID     (std::ostream& Stream);
-  int         ReadDDR          (std::ostream& Stream);
-  int         ReadIlp          (std::ostream& Stream);
-  int         ReadMnID         (std::ostream& Stream);
-  int         ReadRegister     (std::ostream& Stream);
-  int         ReadRocRegister  (std::ostream& Stream);
-  int         ReadSpi          (std::ostream& Stream);
+  int         PrintStatus      (HNDLE H_Cmd);
+  int         PulserOff        (HNDLE H_Cmd);
+  int         PulserOn         (HNDLE H_Cmd);
+  int         Rates            (HNDLE H_Cmd);
+  int         Read             (HNDLE H_Cmd);
+  int         ReadDDR          (HNDLE H_Cmd);
+  int         ReadDeviceID     (HNDLE H_Cmd);
+  int         ReadIlp          (HNDLE H_Cmd);
+  int         ReadMnID         (HNDLE H_Cmd);
+  int         ReadRegister     (HNDLE H_Cmd);
+  int         ReadRocRegister  (HNDLE H_Cmd);
+  int         ReadSpi          (HNDLE H_Cmd);
   int         ReadSubevents    (HNDLE H_Cmd);
-  int         ResetDigis       (std::ostream& Stream);
-  int         ResetRoc         (std::ostream& Stream);
-  int         RebootMcu        (std::ostream& Stream);
+  int         RebootMcu        (HNDLE H_Cmd);
+  int         ResetDigis       (HNDLE H_Cmd);
+  int         ResetRoc         (HNDLE H_Cmd);
   int         SaveChannelMap   (HNDLE H_Cmd);                 // save active channel map from ODB to disk
   int         SaveThresholds   (HNDLE H_Cmd);                 // save thresholds from disk to ODB
-  int         SetCalDac        (std::ostream& Stream);
+  int         SetCalDac        (HNDLE H_Cmd);
   int         SetRocDelay      (HNDLE H_Cmd);
   int         SetThresholds    (HNDLE H_Cmd);                 // load thresholds from ODB to firmware
-  int         TestCommand      (std::ostream& Stream);
-  int         WriteRocRegister (std::ostream& Stream);
-  int         WriteRegister    (std::ostream& Stream);
+  int         SoftReset        (HNDLE H_Cmd);
+  int         TestCommand      (HNDLE H_Cmd);
+  int         WriteRegister    (HNDLE H_Cmd);
+  int         WriteRocRegister (HNDLE H_Cmd);
 
   static void ProcessCommand   (int hDB, int hKey, void* Info);
   

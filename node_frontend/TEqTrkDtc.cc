@@ -219,8 +219,9 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     }
   }
   
+//2026-04-09 PM  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
   std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-  _logfile             = std::format("{}trkdtc.log",data_dir);
+  _logfile             = std::format("{}/logs/{}_{}.log",data_dir,HostLabel(),_dtc_i->PcieAddr());
 
   TLOG(TLVL_DEBUG) << "-- END";
 }
@@ -708,7 +709,8 @@ int TEqTrkDtc::HandlePeriodic() {
                
         std::vector<uint16_t> rates;
         trkdaq::ControlRoc_Rates_t* par(nullptr); // defaults are OK - read all channels
-        int rc = _dtc_i->ControlRoc_Rates(ilink,&rates,print_level,par,nullptr);
+        std::ostream null_stream(nullptr);
+        int rc = _dtc_i->ControlRoc_Rates(ilink,&rates,print_level,par,null_stream);
 //-----------------------------------------------------------------------------
 // and restore the READ command mask and the clock
 //-----------------------------------------------------------------------------
@@ -750,3 +752,10 @@ int TEqTrkDtc::HandlePeriodic() {
   return rc;
 }
 
+//------------------------------------------------------------------------------
+// set ODB status if a link 'Link'
+//-----------------------------------------------------------------------------
+void TEqTrkDtc::SetLinkStatus(int Link, int Status) {
+  std::string link_status_path = std::format("Link{}/Status",Link);
+  _odb_i->SetInteger(_handle,link_status_path.data(),Status);
+}

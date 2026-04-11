@@ -462,7 +462,7 @@ int mu2e::TrackerBRDR::validateFragment(void* ArtdaqFragmentData) {
         std::string msg = std::format("event:{} DTC:{} link:{} ERROR CODE:{:#04x} NBYTES:{} != (NPACKETS:{}+1)*16",
                                       ev_counter(),_dtc_i->PcieAddr(),i,rdh->error_code(),roc_nb[i],pc);
                                       
-        _dtc_i->PrintBuffer((void*) rdh, (rdh->byteCount+16)/2,0,&std::cout);
+        _dtc_i->PrintBuffer((void*) rdh, (rdh->byteCount+16)/2,0,std::cout);
         TLOG(TLVL_ERROR) << _artdaqLabel.data() << ": " << msg;
       }
     }
@@ -625,7 +625,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 
         if ((_debug_level > 0) and (ev_counter() < _nEventsDbg)) { 
           TLOG(TLVL_DEBUG+1) << std::format("label:{} subevent:{} ew_tag:{} nbytes:{}",_artdaqLabel,i,ew_tag,nb);
-          _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2,0,&std::cout);
+          _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2,0,std::cout);
         }
         rc = 0;
       }
