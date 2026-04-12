@@ -57,16 +57,16 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     
   std::string cmd            = odb_i->GetString (h_cmd,"Name");
   std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
-  int         link           = odb_i->GetInteger(h_cmd,"link");
-  std::string logfile        = odb_i->GetString (h_cmd,"logfile");
+  //  int         link           = odb_i->GetInteger(h_cmd,"link");
+  //  std::string logfile        = odb_i->GetString (h_cmd,"logfile");
 //-----------------------------------------------------------------------------
   TEquipmentManager* eqm = TEquipmentManager::Instance();
 
   std::string           eq_name = std::format("DTC{}",pcie_addr);
   TEqTrkDtc*            eq      = (TEqTrkDtc*) eqm->FindEquipmentItem(eq_name);
-  trkdaq::DtcInterface* dtc_i   = eq->Dtc_i();
+  //  trkdaq::DtcInterface* dtc_i   = eq->Dtc_i();
 
-  TLOG(TLVL_DEBUG) << std::format("cmd:{} parameter_path:{} logfile:{}",cmd,parameter_path,logfile);
+  TLOG(TLVL_DEBUG) << std::format("cmd:{} parameter_path:{}",cmd,parameter_path);
 //-----------------------------------------------------------------------------
 // CONFIGURE_JA
 //------------------------------------------------------------------------------

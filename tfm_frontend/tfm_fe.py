@@ -157,10 +157,10 @@ class TfmFrontend(midas.frontend.FrontendBase):
         
         TRACE.INFO(f'004: tfm instantiated, self.use_runinfo_db={self.use_runinfo_db}')
 
-        cmd=f"cat {os.getenv('MIDAS_EXPTAB')} | awk -v expt={os.getenv('MIDAS_EXPT_NAME')} '{{if ($1==expt) {{print $2}} }}'"
-        process = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+        cmd            = f"cat {os.getenv('MIDAS_EXPTAB')} | awk -v expt={os.getenv('MIDAS_EXPT_NAME')} '{{if ($1==expt) {{print $2}} }}'"
+        process        = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
         stdout, stderr = process.communicate();
-        self.message_fn = stdout.decode('utf-8').split()[0]+'/artdaq.log';
+        self.message_stream = stdout.decode('utf-8').split()[0]+'/logs/artdaq';
 #------------------------------------------------------------------------------
 # runinfo DB related stuff
 #-------v----------------------------------------------------------------------
@@ -350,10 +350,12 @@ class TfmFrontend(midas.frontend.FrontendBase):
         return rc;
 
 #------------------------------------------------------------------------------
-    def process_cmd_reset_output(self,parameter_path,logfile):
+# reset output works different way
+#------------------------------------------------------------------------------
+    def process_cmd_reset_output(self,parameter_path,logstream):
         exp_dir     = self.client.odb_get("/Logger/Data dir");
-        fn = f'{exp_dir}/{logfile}'
-        file = open(fn, 'w');
+        fn = f'{exp_dir}/logs/{logstream}.msg'
+        file = open(fn,'w');
         file.close();
         return 0;
 
@@ -407,19 +409,31 @@ class TfmFrontend(midas.frontend.FrontendBase):
         p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True,text=True)
         stdout, stderr = p.communicate();
 #------------------------------------------------------------------------------
-# write output
+# write output - first , last message
+# write error output, if any, first - to the message file, then - to the logfile
 #------------------------------------------------------------------------------
+        msg_fn = self.message_stream+'.msg';
+        log_fn = self.message_stream+'.log';
+        
         lines = stdout.split('\n');
-        with open(self.message_fn,"a") as logfile:
-            for line in reversed(lines):
-                    logfile.write(line+'\n')
+        with open(msg_fn,"w") as logfile:
+            for line in lines:
+                logfile.write(line+'\n')
+
+            if (stderr != ''):
+                err_lines = stderr.split('\n');
+                for line in err_lines:
+                    logfile.write(line+"\n")
 #------------------------------------------------------------------------------
-# write error output, if any
+# now, the logfile
 #------------------------------------------------------------------------------
-        if (stderr != ''):
-            lines = stderr.split('\n');
-            with open(self.message_fn,"a") as logfile:
-                for line in reversed(lines):
+        with open(log_fn,"a") as logfile:
+            for line in lines:
+                logfile.write(line+'\n')
+        
+            if (stderr != ''):
+                err_lines = stderr.split('\n');
+                for line in err_lines:
                     logfile.write(line+"\n")
 
         TRACE.TRACE(TRACE.TLVL_INFO,f'-- END: run_conf:{run_conf} host:{host} process:{artdaq_process}',TRACE_NAME);
@@ -444,14 +458,28 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
         fcl_file = os.getenv("MU2E_DAQ_DIR")+f'/config/artdaq/{self.config_name}/{process}.fcl'
         
-        TRACE.INFO(f'fcl_file:{fcl_file} logfile:{self.message_fn}',TRACE_NAME);
+        msg_fn = self.message_stream+'.msg';
+        log_fn = self.message_stream+'.log';
+
+        TRACE.INFO(f'fcl_file:{fcl_file} logfile:{log_fn}',TRACE_NAME);
 #------------------------------------------------------------------------------
 # remember that MIDAS displays the logfile in the reverse order
 #------------------------------------------------------------------------------
         with open(fcl_file) as f:
             lines = f.readlines();
-            with open(self.message_fn,"a") as logfile:
-                for line in reversed(lines):
+#------------------------------------------------------------------------------
+# write output - first , last message
+# write error output, if any, first - to the message file, then - to the logfile
+#------------------------------------------------------------------------------
+            with open(msg_fn,"w") as logfile:
+                for line in lines:
+                    logfile.write(line)
+
+#------------------------------------------------------------------------------
+# now, the logfile
+#------------------------------------------------------------------------------
+            with open(log_fn,"a") as logfile:
+                for line in lines:
                     logfile.write(line)
 
         TRACE.INFO(f'-- END',TRACE_NAME);
@@ -466,17 +494,22 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
         TRACE.INFO(f'-- START',TRACE_NAME);
 #------------------------------------------------------------------------------
-# remember that MIDAS displays the logfile in the reverse order
-# so this ptintout will be reversed....
+# print to both .log and .msg files
 #------------------------------------------------------------------------------
-        with open(self.message_fn,"a") as logfile:
+        msg_fn = self.message_stream+'.msg';
+        log_fn = self.message_stream+'.log';
+
+        TRACE.INFO(f'logfile:{log_fn}',TRACE_NAME);
+
+        with open(msg_fn,"w") as logfile:
             with redirect_stdout(logfile):
-                print('----- a');
                 for p in self._fm.procinfos:
                     p.print();
 
-                print('----- a');
-
+        with open(log_fn,"w") as logfile:
+            with redirect_stdout(logfile):
+                for p in self._fm.procinfos:
+                    p.print();
 
         TRACE.INFO(f'-- END',TRACE_NAME);
         return rc;
@@ -490,9 +523,9 @@ class TfmFrontend(midas.frontend.FrontendBase):
         """
         callback : 
         """
-        run      = self.client.odb_get(self.tfm_cmd_odb_path+'/Run' )
-        cmd_name = self.client.odb_get(self.tfm_cmd_odb_path+'/Name')
-        logfile  = self.client.odb_get(self.tfm_cmd_odb_path+'/logfile')
+        run       = self.client.odb_get(self.tfm_cmd_odb_path+'/Run' )
+        cmd_name  = self.client.odb_get(self.tfm_cmd_odb_path+'/Name')
+        logstream = self.client.odb_get(self.tfm_cmd_odb_path+'/logfile')
         
         TRACE.TRACE(TRACE.TLVL_DEBUG,f'path:{path} cmd_name:{cmd_name} run:{run}',TRACE_NAME);
         if (run != 1):
@@ -524,15 +557,13 @@ class TfmFrontend(midas.frontend.FrontendBase):
         elif (cmd_name.upper() == 'PRINT_PROCINFOS'):
             rc = self.process_cmd_print_procinfos();
         elif (cmd_name.upper() == 'RESET_OUTPUT'):
-            rc = self.process_cmd_reset_output(parameter_path,logfile);
+            rc = self.process_cmd_reset_output(parameter_path,logstream);
 #------------------------------------------------------------------------------
 # when done, set state to rc; 0=ready ... setting /Run to zero causes an extra call,
 # is that needed ? - not really, comment that out
 #------------------------------------------------------------------------------
-        # self.client.odb_set(self.tfm_cmd_odb_path+'/Run'     ,0)
-        self.client.odb_set(self.tfm_cmd_odb_path+'/Finished',1)
-
-        self.client.odb_set(self.tfm_odb_path+'/Status'  ,rc)
+        self.client.odb_set(self.tfm_cmd_odb_path+'/Finished',1 )
+        self.client.odb_set(self.tfm_odb_path    +'/Status'  ,rc)
 
         return
 

@@ -19,7 +19,6 @@ class TEqTrkDtc: public TMu2eEqBase {
 public:
   HNDLE                 _h_dtc;
   trkdaq::DtcInterface* _dtc_i;
-  int                   _cmd_run;
   int                   _monitorRocRegisters;
   int                   _monitorRates;
   int                   _monitorSPI;

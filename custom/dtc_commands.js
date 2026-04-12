@@ -3,6 +3,13 @@
 // DTC id = 'dtc0' or 'dtc1'
 //-----------------------------------------------------------------------------
 
+
+//-----------------------------------------------------------------------------
+function dtc_load_help_page(cmd) {
+  const url = 'https://mu2einternalwiki.fnal.gov/wiki/DTC_control_page#ROC_control_commands';
+  window.open(url,'_blank');
+}
+
 //-----------------------------------------------------------------------------
 // load table with the DTC parameters
 //-----------------------------------------------------------------------------
@@ -59,8 +66,9 @@ function choose_roc_id(evt, id) {
 // and this one updates ODB
 // cmd type: Command_B
 // the command parameters record is expected to be in path+${cmd}
+// sets link, after which calls generic function
 //-----------------------------------------------------------------------------
-async function dtc_command_set_odb_C(cmd) {
+async function dtc_cmd_set_odb(cmd) {
 
   const ppath = cmd.func_parameter_path(cmd);
 
@@ -81,10 +89,4 @@ async function dtc_command_set_odb_C(cmd) {
     let rpc1 = mu2e_command_set_odb_B(cmd);
     
   }).catch(function(error) {mjsonrpc_error_alert(error);});
-  
 }
-
-//    emacs
-//    Local Variables:
-//    mode: web
-//    End:

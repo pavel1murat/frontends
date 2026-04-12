@@ -3,6 +3,8 @@
 #include <format>
 #include <fstream>
 #include <regex>
+#include <chrono>
+
 #include "nlohmann/json.hpp"
 
 #include "utils/TEquipmentManager.hh"
@@ -148,7 +150,7 @@ TEqArtdaq::TEqArtdaq(const char* Name, const char* Title) : TMu2eEqBase(Name,Tit
   
   TLOG(TLVL_DEBUG) << std::format("before db_open_record: cmd_path:{} h_cmd:{} h_cmd_run:{}",cmd_path,h_cmd,h_cmd_run);
     
-  if (db_open_record(hdb,h_cmd_run,&_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+  if (db_open_record(hdb,h_cmd_run,&_cmd_run,sizeof(_cmd_run),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
     std::string m = std::format("cannot open Artdaq hotlink in ODB");
     cm_msg(MERROR, __func__,m.data());
     TLOG(TLVL_ERROR) << m;
@@ -438,9 +440,15 @@ int TEqArtdaq::HandlePeriodic() {
 }
 
 //-----------------------------------------------------------------------------
-int TEqArtdaq::PrintProcesses(std::ostream& Stream) {
+int TEqArtdaq::PrintProcesses(HNDLE H_Cmd) {
   int rc = 0;
   TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
 
   // Use static to cache output across multiple calls
   static std::string last_output;
@@ -456,13 +464,15 @@ int TEqArtdaq::PrintProcesses(std::ostream& Stream) {
     last_output = output;
   }
 
-  // Always write cached output to Stream
-  Stream << "=== PrintProcesses ===\n";
-  Stream << last_output << "\n";
+  sstr << "=== PrintProcesses ===\n";
+  sstr << last_output << "\n";
 
-  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc);
+
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
   return rc;
-  }
+}
 
 
 //-----------------------------------------------------------------------------
@@ -505,29 +515,36 @@ int TEqArtdaq::PrintProcesses(std::ostream& Stream) {
 
 
 //-----------------------------------------------------------------------------
-int TEqArtdaq::ProcessStatus(std::ostream& Stream) {
+int TEqArtdaq::ProcessStatus(HNDLE H_Cmd) {
   int rc;
+  TLOG(TLVL_DEBUG) << std::format("-- START:");
+  SetStatus(1);
 
-  HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
-  HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
 
-  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+  // HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
 
-  TLOG(TLVL_DEBUG) << std::format("-- START: print_level:{}",print_level);
+  std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+  //  int print_level     = _odb_i->GetInteger(h_cmd_par,"print_level");
 
-  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc);
+
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
   return rc;
 }
 
 //-----------------------------------------------------------------------------
-int TEqArtdaq::Tlvls(std::ostream& Stream) {
+int TEqArtdaq::Tlvls(HNDLE H_Cmd) {
   int rc(0);
   TLOG(TLVL_DEBUG) << "-- START";
   SetStatus(1);
+  
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
 
-  HNDLE h_cmd     = Odb_i()->GetArtdaqCmdHandle(_host_label);
-  //  HNDLE h_cmd_par = Odb_i()->GetCmdParameterHandle(h_cmd);
-
+  std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
   //  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
 
   std::string cmd = std::format("trace_cntl tids");
@@ -536,9 +553,12 @@ int TEqArtdaq::Tlvls(std::ostream& Stream) {
   
   std::string output  = popen_shell_command(cmd);
 
-  Stream << "\n" << output;
+  sstr << "\n" << output;
   
-  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc);
+
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
   return rc;
 }
 
@@ -554,12 +574,16 @@ int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& 
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
 
+  TLOG(TLVL_DEBUG) << "001 : got herea";
+
   HNDLE       h_cmd_par    = Odb_i()->GetCmdParameterHandle(H_Cmd);
 
   std::string logfile      = Odb_i()->GetString (H_Cmd,"logfile");
-  int         print_level  = Odb_i()->GetInteger(h_cmd_par,"print_level");
+  // int         print_level  = Odb_i()->GetInteger(h_cmd_par,"print_level");
   std::string grep_pattern = Odb_i()->GetString(h_cmd_par,"grep_pattern");
 
+  TLOG(TLVL_DEBUG) << std::format("002 : got here , grep_pattern:",grep_pattern);
+  
   // tshow | tdelta -ct 1 -d 1
 
   // declare -f tshow  : { test -n "${PAGER-}" && trace_cntl show "$@" | $PAGER || trace_cntl show "$@" }
@@ -568,21 +592,21 @@ int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& 
   // std::string par_tshow ("");
   // std::string par_tdelta("-ct 1 -d 1");
 
-  std::string fn = GetFullLogfileName(logfile);
+  //std::string fn = GetFullLogfileName(logfile);
   
   std::string cmd = std::format("trace_cntl show | trace_delta -ct 1 -d 1 ");
   if (grep_pattern != "") {
     cmd += std::format(" | grep {}",grep_pattern);
   }
-  cmd += std::format(" | head -n 1000 >> {}",fn);
+  cmd += std::format(" | head -n 1000");
 
-  TLOG(TLVL_DEBUG) << "cmd=" << cmd;
+  TLOG(TLVL_DEBUG) << "003: cmd=" << cmd;
   
   std::string output = popen_shell_command(cmd);
 
-  sstr << "-- Tshow done\n";
+  sstr << output;
   
-  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
   SetCommandFinished(H_Cmd,rc);
   
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
@@ -605,7 +629,7 @@ int TEqArtdaq::Treset(HNDLE H_Cmd) { // std::ostream& Stream, const std::string&
   HNDLE       h_cmd_par   = Odb_i()->GetCmdParameterHandle(H_Cmd);
 
   std::string logfile     = Odb_i()->GetString (H_Cmd,"logfile");
-  int         print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+  // int         print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
 
   // tshow | tdelta -ct 1 -d 1
 
@@ -624,7 +648,7 @@ int TEqArtdaq::Treset(HNDLE H_Cmd) { // std::ostream& Stream, const std::string&
   sstr << output << "\n";
   sstr << "-- Treset done\n";
   
-  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile);
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
   SetCommandFinished(H_Cmd,rc); 
   
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
@@ -639,7 +663,7 @@ int TEqArtdaq::Treset(HNDLE H_Cmd) { // std::ostream& Stream, const std::string&
 void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
   TLOG(TLVL_DEBUG) << "-- START";
   // in the end, ProcessCommand should send ss.str() as a message to some log
-  std::stringstream ss;
+  // std::stringstream ss;
 
   OdbInterface* odb_i = OdbInterface::Instance();
 //-----------------------------------------------------------------------------
@@ -658,16 +682,17 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
   KEY frontend;
   odb_i->GetKey(h_frontend,&frontend);
   
-  TLOG(TLVL_DEBUG) << "k.name:" << k.name;
-
-  //  std::string cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
+  TLOG(TLVL_DEBUG) << std::format("k.name:{} frontend.name:{}",k.name, frontend.name);
 
                                         // should be 0 or 1
   int run = odb_i->GetInteger(h_cmd,"Run");
+  TLOG(TLVL_DEBUG) << std::format("run:{}",run);
+  
   if (run == 0) {
-    TLOG(TLVL_DEBUG) << "self inflicted, return";
+    TLOG(TLVL_WARNING) << std::format("run:{} , self inflicted, return",run);;
     return;
   }
+
 //-----------------------------------------------------------------------------
 // get DTC config handle and set the DTC busy status
 //-----------------------------------------------------------------------------
@@ -675,54 +700,46 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
   // odb_i->SetInteger(h_dtc,"Status",1);
   
   std::string cmd            = odb_i->GetString (h_cmd,"Name");
-  std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
-  std::string logfile        = odb_i->GetString (h_cmd,"logfile");
+  //  std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
+  //  std::string logfile        = odb_i->GetString (h_cmd,"logfile");
 //-----------------------------------------------------------------------------
 // this is address of the parameter record
 //-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG) << "cmd:" << cmd << " parameter_path:" << parameter_path;
+//  TLOG(TLVL_DEBUG) << "cmd:" << cmd << " parameter_path:" << parameter_path;
 
   //  HNDLE h_par_path           = odb_i->GetHandle(0,parameter_path);
 //-----------------------------------------------------------------------------
 // should be already defined at this point
 //-----------------------------------------------------------------------------
   TEquipmentManager* eqm = TEquipmentManager::Instance();
-  TEqArtdaq*  eq = (TEqArtdaq*) eqm->FindEquipmentItem("ARTDAQ");
 
-  ss << std::format("host_label:{} host_name:{} cmd:{}",eq->HostLabel(),eq->FullHostName(),cmd);
+  TLOG(TLVL_DEBUG) << std::format("eqm:{:p}",(void*) eqm);
+  
+  TEqArtdaq*         eq  = (TEqArtdaq*) eqm->FindEquipmentItem("ARTDAQ");
+
+  TLOG(TLVL_DEBUG) << std::format("eq:0x{:p}",(void*) eq);
+
+  TLOG(TLVL_DEBUG) << std::format("host_label:{} host_name:{} cmd:{}",eq->HostLabel(),eq->FullHostName(),cmd);
 //-----------------------------------------------------------------------------
 // PRINT_PROCESSES
 //------------------------------------------------------------------------------
   int cmd_rc(0);
-  if (cmd == "print_processes") {
-    cmd_rc = eq->PrintProcesses(ss);
-  }
-  else if (cmd == "process_status") {
-    cmd_rc = eq->ProcessStatus(ss);
-  }
-  else if (cmd == "tlvls") {
-    cmd_rc = eq->Tlvls(ss);
-  }
-  else if (cmd == "treset") {
-    cmd_rc = eq->Treset(h_cmd);
-  }
-  else if (cmd == "tshow") {
-    cmd_rc = eq->Tshow(h_cmd);
-  }
-  else {
-    ss << " ERROR: Unknown command:" << cmd;
-    TLOG(TLVL_ERROR) << ss.str();
-  }
+  if      (cmd == "print_processes") cmd_rc = eq->PrintProcesses(h_cmd);
+  else if (cmd == "process_status" ) cmd_rc = eq->ProcessStatus (h_cmd);
+  else if (cmd == "tlvls"          ) cmd_rc = eq->Tlvls         (h_cmd);
+  else if (cmd == "treset"         ) cmd_rc = eq->Treset        (h_cmd);
+  else if (cmd == "tshow"          ) cmd_rc = eq->Tshow         (h_cmd);
+  else                               cmd_rc = eq->UnknownCommand(h_cmd);
 //-----------------------------------------------------------------------------
 // write output to the equipment log - need to revert the line order 
 //-----------------------------------------------------------------------------
-  cmd_rc = eq->WriteOutput(ss.str(),logfile);
+//  cmd_rc = eq->WriteOutput(ss.str(),logfile,1);
   
 //-----------------------------------------------------------------------------
 // done, avoid second call - leave "Run" = 1;, before setting it to 1 again,
 // need to make sure that "Finished" = 1
 //-----------------------------------------------------------------------------
-  odb_i->SetInteger(h_cmd,"Finished",1);
+//  odb_i->SetInteger(h_cmd,"Finished",1);
 //-----------------------------------------------------------------------------
 // and set the DTC status
 //-----------------------------------------------------------------------------
@@ -735,13 +752,28 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
 // for 'all-active-link' comamnds (link=-1) print the header and then - 
 // one line per link
 //-----------------------------------------------------------------------------
-int TEqArtdaq::StartMessage(HNDLE h_Cmd, std::stringstream& Stream) {
-
-  Stream << std::endl; // perhaps
-
-  std::string cmd  = _odb_i->GetString (h_Cmd,"Name");
+int TEqArtdaq::StartMessage(HNDLE H_Cmd, std::stringstream& Stream) {
   
-  Stream << std::format("-- TArtdaq::StartMessage: cmd:{} FIXME",cmd);
+  TLOG(TLVL_DEBUG) << std::format("-- START:");
+  std::string cmd  = _odb_i->GetString (H_Cmd,"Name");
+  
+  auto now = std::chrono::system_clock::now();
+    
+  // // {:%Y-%m-%d %H:%M:%S} uses standard strftime-style flags
+  // std::string s_now = std::format("{:%Y-%m-%d %H:%M:%S}", now);
+
+  std::time_t t = std::chrono::system_clock::to_time_t(now);
+  char buf[32];
+  std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
+
+  auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+  
+  // Manually append the 2-digit milliseconds
+  std::string s_now = std::format("{}.{:02}", buf, ms.count() / 10);
+
+  Stream << std::format("{} - cmd:{}",s_now,cmd);
   Stream << std::endl;
+
+  TLOG(TLVL_DEBUG) << std::format("-- END  s_now:{}",s_now);
   return 0;
 }

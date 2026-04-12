@@ -24,6 +24,7 @@
      function loadPanelControlTable() {
        const table      = document.getElementById('panel_commands');
        
+       const logfile = `tracker`;
        table.innerHTML  = '';
        
        let thead    = document.createElement('thead');
@@ -45,40 +46,57 @@
        tr = document.createElement('tr');
        td = document.createElement('td');
        td.colspan = 2;
-       td.innerHTML = `
-         <div class="dropup">
-           <input type=button class="dropbtn" value='read'>
-           <div class="dropup-content">
-             <div onClick='dtc_load_parameters_control_roc_read()'> Load Parameters </div>
-             <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
-           </div>
-         </div>
-         
-         <div class="dropup">
-           <input type=button class="dropbtn" value='pulser_on'>
-           <div class="dropup-content">
-             <div onClick='dtc_load_parameters_control_roc_pulser_on()'> Load Parameters </div>
-             <div onClick='dtc_command("dtc_control_roc_pulser_on")'   > Run             </div>
-           </div>
-         </div>
-         
-         <div class="dropup">
-           <input type=button class="dropbtn" value='pulser_off'>
-           <div class="dropup-content">
-             <div onClick='dtc_load_parameters_control_roc_pulser_off()'> Load Parameters </div>
-             <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
-           </div>
-         </div>
-         
-         <div class="dropup">
-           <input type=button class="dropbtn" value='rates'>
-           <div class="dropup-content">
-             <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
-             <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
-           </div>
-         </div>
-       `;
 
+//       <div class="dropup">
+//       <input type=button class="dropbtn" value='read'>
+//       <div class="dropup-content">
+//       <div onClick='dtc_load_parameters_control_roc_read()'> Load Parameters </div>
+//       <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
+//       </div>
+//       </div>
+
+       let cmd, btn;
+       
+       cmd = new Command_D('read','read','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       btn = mu2e_make_dropup_button_D(cmd);
+       td.appendChild(btn);
+
+//       <div class="dropup">
+//       <input type=button class="dropbtn" value='pulser_on'>
+//       <div class="dropup-content">
+//       <div onClick='dtc_load_parameters_control_roc_pulser_on()'> Load Parameters </div>
+//       <div onClick='dtc_command("dtc_control_roc_pulser_on")'   > Run             </div>
+//       </div>
+//       </div>
+       
+       cmd = new Command_D('pulser_on','pulser_on','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       btn = mu2e_make_dropup_button_D(cmd);
+       td.appendChild(btn);
+
+//       <div class="dropup">
+//       <input type=button class="dropbtn" value='pulser_off'>
+//       <div class="dropup-content">
+//       <div onClick='dtc_load_parameters_control_roc_pulser_off()'> Load Parameters </div>
+//       <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
+//       </div>
+//       </div>
+       
+       cmd = new Command_D('pulser_off','pulser_off','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       btn = mu2e_make_dropup_button_D(cmd);
+       td.appendChild(btn);
+
+//       <div class="dropup">
+//       <input type=button class="dropbtn" value='rates'>
+//       <div class="dropup-content">
+//       <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
+//       <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
+//       </div>
+//       </div>
+
+       cmd = new Command_D('rates','rates','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       btn = mu2e_make_dropup_button_D(cmd);
+       td.appendChild(btn);
+       
        tr.appendChild(td);
        tbody.appendChild(tr);
        
@@ -92,36 +110,32 @@
        let pnl = g_panel.toString().padStart(2,'0');
 
        
-       let cmdb = new Command_B('load_parameters','load_parameters',mu2e_odb_load_table,'cmd_params' , trk_panel_config_path);
-       let btn  = mu2e_make_exec_button_B(cmdb);
+       cmd = new Command_B('load_parameters','load_parameters',mu2e_odb_load_table,'cmd_params' , trk_panel_config_path);
+       btn  = mu2e_make_exec_button_B(cmd);
        td2.appendChild(btn);
 
        // trk_panel_command identifies the panel in parameters and sets for execution
        
-       cmdb = new Command_B('load_thresholds'   ,'load_thresholds'   , trk_panel_command_set_odb_B, 'cmd_params' ,trk_cmd_path);
-       btn = make_set_odb_button(cmdb);
+       cmd = new Command_B('load_thresholds'   ,'load_thresholds'   , trk_panel_command_set_odb_B, 'cmd_params' ,trk_cmd_path);
+       btn = make_set_odb_button(cmd);
        td2.appendChild(btn);
 
-       cmdb = new Command_B('load_channel_map'  ,'load_channel_map', trk_panel_command_set_odb_B, 'cmd_params' ,trk_cmd_path);
-       btn = make_set_odb_button(cmdb);
+       cmd = new Command_B('load_channel_map'  ,'load_channel_map', trk_panel_command_set_odb_B, 'cmd_params' ,trk_cmd_path);
+       btn = make_set_odb_button(cmd);
        td2.appendChild(btn);
 
-       cmdb = new Command_B('set_thresholds'    ,'set_thresholds'    , trk_panel_command_set_odb_B, 'cmd_params' ,trk_cmd_path);
-       btn = make_set_odb_button(cmdb);
+       cmd = new Command_B('set_thresholds'    ,'set_thresholds'    , trk_panel_command_set_odb_B, 'cmd_params' ,trk_cmd_path);
+       btn = make_set_odb_button(cmd);
        td2.appendChild(btn);
 
-       cmdb = new Command_B('measure_thresholds','measure_thresholds',trk_panel_command_set_odb_B,'cmd_params' ,trk_cmd_path);
-       btn = make_load_table_button(cmdb);
+       cmd = new Command_B('measure_thresholds','measure_thresholds',trk_panel_command_set_odb_B,'cmd_params' ,trk_cmd_path);
+       btn = make_load_table_button(cmd);
        td2.appendChild(btn);
 
-       cmdb = new Command_B('find_alignment','find_alignment',trk_panel_command_set_odb_B,'cmd_params' ,trk_cmd_path);
-       btn = make_load_table_button(cmdb);
+       cmd = new Command_B('find_alignment','find_alignment',trk_panel_command_set_odb_B,'cmd_params' ,trk_cmd_path);
+       btn = make_load_table_button(cmd);
        td2.appendChild(btn);
-       //
-       //      cmda = new Command_A('print_status'      ,'panel_print_status'      ,trk_panel_command_set_odb,'cmd_params' ,`/Mu2e/Commands/Tracker`);
-       //      btn = make_load_table_button(cmda);
-       //      td2.appendChild(btn);
-       //
+
        tr2.appendChild(td2);
        tbody.appendChild(tr2);
        table.appendChild(tbody);
@@ -137,8 +151,10 @@
 //-----------------------------------------------------------------------------
      function loadStationControlTable() {
 
-      // reset  plane and panel IDs
-      
+       // reset  plane and panel IDs
+       
+       const logfile = `tracker`;
+
        g_plane        = 0;
        g_panel        = 0;
        
@@ -170,31 +186,32 @@
 
        // all station-level commands should set g_station in the command parameter record
        // mu2e_command_set_odb takes Command_B as input
-       let cmd_b = new Command_B('init readout','init_readout',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,"trkdtc.log");
-       let btn_b = mu2e_make_dropup_button_B(cmd_b);
+
+       let cmd_b = new Command_D('init readout','init_readout','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       let btn_b = mu2e_make_dropup_button_D(cmd_b);
        td.appendChild(btn_b);
 
-       cmd_b = new Command_B('find_alignment','find_alignment',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('find_alignment','find_alignment',trk_cmd_station_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
 
-       cmd_b = new Command_B('load thresholds','load_thresholds',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('load thresholds','load_thresholds',trk_cmd_station_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
 
-       cmd_b = new Command_B('set_thresholds','set_thresholds',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('set_thresholds','set_thresholds',trk_cmd_station_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
 
-       cmd_b = new Command_B('read','read',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
-       btn_b = mu2e_make_dropup_button_B(cmd_b);
+       cmd_b = new Command_D('read','read','trk_menu_01',trk_cmd_station_B,'trk_menu_01','cmd_params',trk_cmd_path,logfile);
+       btn_b = mu2e_make_dropup_button_D(cmd_b);
        td.appendChild(btn_b);
 
-       cmd_b = new Command_B('print status','print_status',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('print status','print_status',trk_cmd_station_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
 
-       cmd_b = new Command_B('reset LV','reset_lv',trk_cmd_station_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('reset LV','reset_lv',trk_cmd_station_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
 
@@ -231,7 +248,7 @@
 //-----------------------------------------------------------------------------
 
        const station_path  = `/Mu2e/ActiveRunConfiguration/Tracker/Station_${g_station.toString().padStart(2,'0')}`;
-
+       
        for (let pln=0; pln<2; pln++) {
          const div_panel_tabs = document.getElementById("trk_panel_tabs_"+pln.toString());
          const paths = [];
@@ -248,7 +265,7 @@
              const panel_name = rpc.result.data[ip];
              const mnid       = parseInt(panel_name.substring(2));
              // choosing the panel ID should also redraw the panel control table
-            div_panel_tabs.innerHTML += `<button class="trk_panel_tab" id='${panel_name}' onclick="trk_update_panel_id(event,'${panel_name}')">${panel_name}</button>`
+             div_panel_tabs.innerHTML += `<button class="trk_panel_tab" id='${panel_name}' onclick="trk_update_panel_id(event,'${panel_name}')">${panel_name}</button>`
            };
          });
        };
@@ -256,17 +273,17 @@
      
 //-----------------------------------------------------------------------------
      function trk_update_station_id(event,station_id) {
-      trk_choose_station_id(event, station_id);
+       trk_choose_station_id(event, station_id);
        loadStationControlTable();
      }
-    
+     
 //-----------------------------------------------------------------------------
 // main function: loadPage
 //-----------------------------------------------------------------------------
 
      function loadPage() {
        const urlParams  = new URLSearchParams(window.location.search);
-      
+       
        g_hostname = urlParams.get('hostname') || 'none';  // 
        g_station  = urlParams.get("station" ) || "0";     // defined in trk_commands.js
        g_plane    = urlParams.get("plane"   ) || "0";
@@ -278,6 +295,8 @@
        let title        = document.getElementById('table-title');
        title.innerHTML  = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' DTC status page';
      
+       const logfile = `tracker`;
+       
 //-----------------------------------------------------------------------------
 //  tracker commands table
 //-----------------------------------------------------------------------------
@@ -310,35 +329,35 @@
        td.colSpan = 11;
 
        // load tracker config table for active configuration - thus 'trk_config_path'
-       let cmd_b = new Command_B('load parameters','load_parameters',mu2e_odb_load_table,'cmd_params',trk_config_path,"trkdtc.log");
+       let cmd_b = new Command_B('load parameters','load_parameters',mu2e_odb_load_table,'cmd_params',trk_config_path,logfile);
        let btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
        
-       cmd_b = new Command_B('init_readout','init_readout',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('init_readout','init_readout',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
        
-       cmd_b = new Command_B('find_alignment','find_alignment',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('find_alignment','find_alignment',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
        
-       cmd_b = new Command_B('set thresholds','set_thresholds',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('set thresholds','set_thresholds',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
        
-       cmd_b = new Command_B('read','read',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
-       btn_b = mu2e_make_dropup_button_B(cmd_b);
+       cmd_b = new Command_D('read','read','trk_menu_01',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,logfile);
+       btn_b = mu2e_make_dropup_button_D(cmd_b);
        td.appendChild(btn_b);
 
-       cmd_b = new Command_B('load thresholds','load_thresholds',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('load thresholds','load_thresholds',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
        
-       cmd_b = new Command_B('load channel map','load_channel_map',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('load channel map','load_channel_map',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
 
-       cmd_b = new Command_B('reset LV','reset_lv',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('reset LV','reset_lv',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
        
@@ -349,7 +368,7 @@
        td = document.createElement('td');
        td.colSpan = 11;
 
-       cmd_b = new Command_B('reset output','reset_output',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,"trkdtc.log");
+       cmd_b = new Command_B('reset output','reset_output',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
 
@@ -411,6 +430,12 @@
 //-----------------------------------------------------------------------------
      }
       
+//-----------------------------------------------------------------------------
+// global listeners
+//-----------------------------------------------------------------------------
+     
+     document.addEventListener("click", e => {hideAllMenus(); });
+     
      document.addEventListener("DOMContentLoaded", loadPage);
      // choose_roc_id('DOMContentLoaded','roc0')
     </script>
@@ -421,17 +446,28 @@
        and use javascript to fill internal details
        P.M.: having show_facilities etc here is important
   -->
-  <body class="mcss" onload="mhttpd_init('trk_control'); show_facilities(); msg_load();">
+  <body class="mcss" onload="mhttpd_init('trk_control');">
+    
+    <!-- actions assigned in the Command_D constructor -->
+    
+    <div id="trk_menu_01" class="daq_menu">
+      <div data-action="load_cmd_par">load_parameters</div>
+    </div>
+
+    <!-- actions assigned in the Command_D constructor -->
+    <div id="trk_menu_02" class="daq_menu">
+      <div data-action="load_cmd_par">load_parameters</div>
+      <div data-action="help"        >help</div>
+    </div>
+
     <div id="mheader"></div>
     <div id="msidenav"></div>
     <div id="mmain">
       
-      <!-- ---------------- are they needed? and the output field ----------------  -->
-      
       <div class="row">
         <h2 id="table-title">Panel Controls</h2>
         
-        <div class="column"> <!-- gets pushed to the left -->
+        <div class="column" style="width:45%"> <!-- gets pushed to the left -->
           
           <table class="mtable" id="tracker_commands">  <!-- Table content is generated dynamically -->
           </table>
@@ -445,90 +481,28 @@
           <table class="mtable" id="cmd_params">    <!-- Table content is generated dynamically -->
           </table>
         </div>
-        
-        <div class="column"; style="width:55%"> <!-- gets pushed to the left -->
-          <!--    ------------------------- this is the output window  -->
-          <table >
-            <tr>
-              <td id="navigationFacilitiesButtons"></td>
-            </tr>
-          </table>
-          
-          <table class="mtable" id="messageTable" ">
-            <tr>
-              <td class="select">
-                <label for="nameFilter">Filter: </label>
-                
-                <input type="text" id="nameFilter" placeholder="Program Name" title="Please enter a program name">
-                
-                <select id="typeFilter" title="Please select a message type">
-                  <option value="">- all -</option>
-                  <option>INFO</option>
-                  <option>ERROR</option>
-                  <option>USER</option>
-                  <option>LOG</option>
-                  <option>TALK</option>
-                </select>
-              
-                <input type="text" id="timeFilter" placeholder="Time (hh:mm:ss)" title="Please select a time to search">
-                <input type="text" id="textFilter" placeholder="Search Text" title="Please enter some search text">
-                
-                <select id="timeRangeFilter" title="We will search the file from the current time into the past">
-                  <option>24 h</option>
-                  <option>48 h</option>
-                  <option>72 h</option>
-                  <option>7 d</option>
-                  <option>30 d</option>
-                </select>
-                <button class="mbutton" id="filterBtn">Filter</button>
-                
-                <select id="recentsDropdown">
-                  <option value="">Select a recent filter</option>
-                </select>
-                
-              </td>
-            </tr>
 
+        <div class="column"; style="width:55%"> <!-- gets pushed to the left -->
+          <!-- =============================  this is the output window ================= -->
+
+          <table class="mtable" id="messageTableA">
             <tr>
-              <td class="select">
-                <div class="mmessagebox mfont" id="messageFrame"><h1 class="mtableheader"> Messages</h1></div>
+              <td>
+                <div class="mfont" id="messageFrameB">
+                  <h1 class="mtableheader"> Tracker command log</h1>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="mfont" id="messageFrameA">
+                </div>
               </td>
             </tr>
           </table>
           
-          <div id="loadingOverlay"
-               style="  display: none;
-                   position: fixed;
-                   top: 0;
-                   left: 0;
-                   width: 100%;
-                   <!--
-                   height: 100%;
-                   -->
-                   height: 600px;
-                   background-color: rgba(128, 128, 128, 0.8);
-                   color: white;
-                   font-size: 24px;
-                   align-items: center;
-                   justify-content: center;
-                   z-index: 1000;">
-            Searching messages... Mouse Click to stop.
-          </div>
-          
         </div>
-        
-        <div id="dlgError" class="dlgFrame">
-          <div class="dlgTitlebar">Error message</div>
-          <div class="dlgPanel">
-            <div id="dlgErrorText">Dialog Contents</div>
-            <br />
-            <button class="dlgButton" onClick="dlgHide('dlgError')">Close</button>
-          </div>
-        </div>
-        
-        <script src="messages.js"></script>
-        
       </div>
-    </div>
+    </div>  <!-- this is the end of id=mmain element -->
   </body>
 </html>

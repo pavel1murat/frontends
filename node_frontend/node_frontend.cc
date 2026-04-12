@@ -146,10 +146,10 @@ TMFeResult NodeFrontend::HandleFrontendInit(const std::vector<std::string>& args
 //     }
   }
 //-----------------------------------------------------------------------------
-// 2. ARTDAQ
+// 2. ARTDAQ - kep name capitalized
 //-----------------------------------------------------------------------------
   if (odb_i->GetEnabled( h_artdaq_conf)) { 
-    TEqArtdaq* eq = new TEqArtdaq("Artdaq","ARTDAQ");
+    TEqArtdaq* eq = new TEqArtdaq("ARTDAQ","ARTDAQ");
     eqm->AddEquipmentItem(eq);
   }
 //-----------------------------------------------------------------------------

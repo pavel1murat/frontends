@@ -1,10 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////
-// equipment name is the short node name, i.e. 'mu2edaq22'
+// the tracker frontend fans out commands to other frontends
 //////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <fstream>
 #include <format>
 #include <thread>
+#include <chrono>
 
 #include "frontends/utils/utils.hh"
 #include "frontends/utils/TMu2eEqBase.hh"
@@ -20,21 +21,18 @@ TEqTracker*  TEqTracker::fg_EqTracker;
 TEqTracker::TEqTracker(const char* Name, const char* Title): TMu2eEqBase(Name,Title,TMu2eEqBase::kTracker) {
   TLOG(TLVL_DEBUG) << "-- START";
 
-  fg_EqTracker            = this;
+  fg_EqTracker     = this;
 //-----------------------------------------------------------------------------
 // 
 //-----------------------------------------------------------------------------
-  _ss_ac_path      = "/Mu2e/ActiveRunConfiguration/Tracker";  // active conf path
-  _handle          = _odb_i->GetHandle(0,_ss_ac_path);        // belongs to the base class
-
-  _ss_cmd_path     = "/Mu2e/Commands/Tracker";                // command path
+  _handle          = _odb_i->GetTrackerConfigHandle();      // belongs to the base class
 //-----------------------------------------------------------------------------
 // register hotlink to /Mu2e/Commands/Tracker/Run
 //-----------------------------------------------------------------------------
   HNDLE hdb        = _odb_i->GetDbHandle();
-  HNDLE h_run      = _odb_i->GetHandle(0,_ss_cmd_path+"/Run");
+  HNDLE h_run      = _odb_i->GetHandle(0,"/Mu2e/Commands/Tracker/Run");
 
-  if (db_open_record(hdb, h_run,&_run,sizeof(_run), MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
+  if (db_open_record(hdb, h_run,&_cmd_run,sizeof(_cmd_run), MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
     cm_msg(MERROR, __func__,"failed to open hotlink in ODB");
     TLOG(TLVL_ERROR) << "failed to open hotlink in ODB";
   }
@@ -63,7 +61,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   TEqTracker*   eq    = TEqTracker::Instance();
   OdbInterface* odb_i = OdbInterface::Instance();
 
-  HNDLE h_trk_cfg = odb_i->GetTrackerConfigHandle();  // returns handle of '/Mu2e/Commands/Tracker'
+  HNDLE h_trk_cfg = eq->_handle; // odb_i->  // returns handle of '/Mu2e/ActiveRunConfiguration/Tracker'
 
   int status = eq->GetStatus();
   if (status != 0) {
@@ -71,7 +69,8 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
     return;
   }
 //-----------------------------------------------------------------------------
-// 1. set tracker status as BUSY, there is only one tracker
+// 1. set tracker status as BUSY to block execution of the next commands until this
+//    one is completed
 //-----------------------------------------------------------------------------
   eq->SetStatus(1);
 
@@ -79,85 +78,87 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   db_get_key(hDB,hKey,&k_cmd);
 
   HNDLE h_cmd = odb_i->GetParent(hKey);
+
+  std::stringstream sstr;
+  eq->StartMessage(h_cmd,sstr);
+  
   
   TLOG(TLVL_DEBUG) << std::format("hDB:{} hKey:{} k_cmd.name:{} h_cmd:{}",hDB,hKey,k_cmd.name,h_cmd); 
 //-----------------------------------------------------------------------------
 // get handle to the command sent to the tracker
 //-----------------------------------------------------------------------------
-  db_get_parent(hDB,hKey,&fg_EqTracker->_h_cmd);              // should return handle to /Mu2e/Commands/Tracker
+//   db_get_parent(hDB,hKey,&eq->_h_cmd);   // should return handle to odb_path=/Mu2e/Commands/Tracker
   
-  std::string cmd     = odb_i->GetString(fg_EqTracker->_h_cmd,"Name"   );
-  std::string logfile = odb_i->GetString(fg_EqTracker->_h_cmd,"logfile");
+  std::string cmd     = odb_i->GetString(h_cmd,"Name"   );
+  std::string logfile = odb_i->GetString(h_cmd,"logfile");
 
+  eq->WriteOutput(sstr.str(),logfile,1);
+  
   int first_station = odb_i->GetInteger(h_trk_cfg,"FirstStation");
   int last_station  = odb_i->GetInteger(h_trk_cfg,"LastStation" ); 
 
-  fg_EqTracker->_first_station   = first_station;
-  fg_EqTracker->_last_station    = last_station ;
+  // do I really want to redefine this dynamically ? - potentially , a source of confusion
+  eq->_first_station   = first_station;
+  eq->_last_station    = last_station ;
 
-  std::string cmd_parameter_path = odb_i->GetString(fg_EqTracker->_h_cmd,"ParameterPath");
-
-  TLOG(TLVL_DEBUG) << std::format("cmd:{} cmd.parameter_path:{}",cmd,cmd_parameter_path);
-
-  if      (cmd == "digi_rw"         ) fg_EqTracker->_cmd_type = kCmdDtc;
-  else if (cmd == "find_alignment"  ) fg_EqTracker->_cmd_type = kCmdDtc;
-  else if (cmd == "init_readout"    ) fg_EqTracker->_cmd_type = kCmdDtc;
-  else if (cmd == "pulser_on"       ) fg_EqTracker->_cmd_type = kCmdDtc;
-  else if (cmd == "pulser_off"      ) fg_EqTracker->_cmd_type = kCmdDtc;
-  else if (cmd == "read"            ) fg_EqTracker->_cmd_type = kCmdDtc;  // "read" loads channel masks
-  else if (cmd == "load_thresholds" ) fg_EqTracker->_cmd_type = kCmdDtc;
-  else if (cmd == "print_status"    ) fg_EqTracker->_cmd_type = kCmdTracker;
+  int cmd_type;
+  
+  if      (cmd == "digi_rw"         ) cmd_type = kCmdDtc;
+  else if (cmd == "find_alignment"  ) cmd_type = kCmdDtc;
+  else if (cmd == "init_readout"    ) cmd_type = kCmdDtc;
+  else if (cmd == "load_thresholds" ) cmd_type = kCmdDtc;
+  else if (cmd == "pulser_on"       ) cmd_type = kCmdDtc;
+  else if (cmd == "pulser_off"      ) cmd_type = kCmdDtc;
+  else if (cmd == "read"            ) cmd_type = kCmdDtc;  // "read" loads channel masks
+  else if (cmd == "print_status"    ) cmd_type = kCmdTracker;
+  else if (cmd == "reset_lv"        ) cmd_type = kCmdRpi;
   else if (cmd == "reset_output"    ) {
 //-----------------------------------------------------------------------------
+// execute right away
 // reset_output is a special command - it doesn't require looping over stations
 // no need to wait for completion
 //-----------------------------------------------------------------------------
-    rc = fg_EqTracker->ResetOutput(h_cmd);
+    rc = eq->ResetOutput(h_cmd);
     return;
   }
-  else if (cmd == "reset_lv"        ) fg_EqTracker->_cmd_type = kCmdRpi;
-  else if (cmd == "set_thresholds"  ) fg_EqTracker->_cmd_type = kCmdDtc;
-  else if (cmd == "test_command"    ) fg_EqTracker->_cmd_type = kCmdTracker;
-  else {
-    std::string msg = std::format("cmd:{} is not implemented yet",cmd);
-    TLOG(TLVL_ERROR) << msg;
-    cm_msg(MERROR, __func__,msg.data());
-    cm_msg_flush_buffer();
-  }
+  else if (cmd == "set_thresholds"  ) cmd_type = kCmdDtc;
+  else if (cmd == "test_command"    ) cmd_type = kCmdTracker;
+  else                                cmd_type = kCmdUndefined;
 //-----------------------------------------------------------------------------
 // first fan-out level: decide on the backend, the same backend may be
 // responsible for processing several commands
 // command execution can take some time, so need to be executed in a thread
 //-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG) << std::format("cmd_type:{}",fg_EqTracker->_cmd_type);
+  TLOG(TLVL_DEBUG) << std::format("cmd_type:{}",cmd_type);
   
-  if (fg_EqTracker->_cmd_type != kCmdUndefined) {
-    if      (fg_EqTracker->_cmd_type == kCmdDtc) {
-      ExecuteDtcCommand(fg_EqTracker->_h_cmd);
-    }
-    else if (fg_EqTracker->_cmd_type == kCmdRpi) {
-      ExecuteRpiCommand(fg_EqTracker->_h_cmd);
-    }
-    else if (fg_EqTracker->_cmd_type == kCmdTracker) {
-                                        // no DTC, no RPI involved ?
-      ExecuteTrackerCommand(fg_EqTracker->_h_cmd);
-      // std::thread t(TEqTracker::ExecuteTrackerCommand,fg_EqTracker->_h_cmd);
-      // t.detach();
-    }
-//-----------------------------------------------------------------------------
-// make it a thread for wait not to interfere with the communication with MIDAS
-//-----------------------------------------------------------------------------
-    std::thread t(&TEqTracker::WaitForCompletion,fg_EqTracker->_h_cmd);
-    t.detach();
+  if      (cmd_type == kCmdDtc) {
+    eq->ExecuteDtcCommand(h_cmd);
   }
-
-  // int finished = odb_i->GetInteger(fg_EqTracker->_h_cmd,"Finished"  );
-  // int rc       = odb_i->GetInteger(fg_EqTracker->_h_cmd,"ReturnCode");
+  else if (cmd_type == kCmdRpi) {
+    eq->ExecuteRpiCommand(h_cmd);
+  }
+  else if (cmd_type == kCmdTracker) {
+    // no DTC, no RPI involved - what it is?
+    eq->ExecuteTrackerCommand(h_cmd);
+    // std::thread t(TEqTracker::ExecuteTrackerCommand,h_cmd);
+    // t.detach();
+  }
+  else {
+    eq->UnknownCommand(h_cmd);
+  }
+//-----------------------------------------------------------------------------
+// the tracker STATUS will be updated by WaitForCompletion
+// make waiting a thread not to interfere with the communication with MIDAS
+//-----------------------------------------------------------------------------
+  std::thread t(&TEqTracker::WaitForCompletion,eq,h_cmd);
+  t.detach();
   
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
   return;
 }
 
+//-----------------------------------------------------------------------------
+// this is a static function - why? 
 //-----------------------------------------------------------------------------
 int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
@@ -169,22 +170,17 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
   int return_code(0);
   
-  ss_sleep(100);
-  // int finished = 0; // simulate .... 0;
+  //  ss_sleep(100);
 
-  int wait_time(0);
-  int n_not_finished = 100;
+  int wait_time(0), n_not_finished(100);
 
-  TEqTracker* eq = TEqTracker::Instance();
-  
-  OdbInterface* odb_i = OdbInterface::Instance();
-  HNDLE h_trk_cfg   = odb_i->GetTrackerConfigHandle();
-  int first_station = odb_i->GetInteger(h_trk_cfg,"FirstStation");
-  int last_station  = odb_i->GetInteger(h_trk_cfg,"LastStation" ); 
+  HNDLE h_trk_cfg     = _odb_i->GetTrackerConfigHandle();
+  int first_station   = _odb_i->GetInteger(h_trk_cfg,"FirstStation");
+  int last_station    = _odb_i->GetInteger(h_trk_cfg,"LastStation" ); 
 
-  HNDLE h_cmd_par   = odb_i->GetCmdParameterHandle(h_Cmd);
-  std::string cmd   = odb_i->GetString (h_Cmd    ,"Name"      );
-  int timeout_ms    = odb_i->GetInteger(h_cmd_par,"timeout_ms");
+  HNDLE h_cmd_par   = _odb_i->GetCmdParameterHandle(h_Cmd);
+  std::string cmd   = _odb_i->GetString (h_Cmd    ,"Name"      );
+  int timeout_ms    = _odb_i->GetInteger(h_cmd_par,"timeout_ms");
 
   TLOG(TLVL_DEBUG) << std::format("--- START: cmd:{} timeout_ms:{}",cmd,timeout_ms); 
 
@@ -194,19 +190,20 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
 
     n_not_finished = 0;
     for (int is=first_station; is<last_station+1; ++is) {
-      HNDLE h_station = odb_i->GetTrackerStationHandle(is);
-      if (odb_i->GetEnabled(h_station) == 0) continue;
+      HNDLE h_station = _odb_i->GetTrackerStationHandle(is);
+      if (_odb_i->GetEnabled(h_station) == 0) continue;
       for (int pln=0; pln<2; ++pln) {
-        HNDLE h_plane = odb_i->GetTrackerPlaneHandle(is,pln);
-        if (odb_i->GetEnabled(h_plane) == 0) continue;
+        HNDLE h_plane = _odb_i->GetTrackerPlaneHandle(is,pln);
+        if (_odb_i->GetEnabled(h_plane) == 0) continue;
         
-        HNDLE       h_dtc     = odb_i->GetHandle        (h_plane,"DTC");
-        int         pcie_addr = odb_i->GetDtcPcieAddress(h_dtc);
-        std::string node      = odb_i->GetDtcHostLabel  (h_dtc);
-        HNDLE       h_dtc_cmd = odb_i->GetDtcCmdHandle  (node,pcie_addr);
+        HNDLE       h_dtc     = _odb_i->GetHandle        (h_plane,"DTC");
+        int         pcie_addr = _odb_i->GetDtcPcieAddress(h_dtc);
+        std::string node      = _odb_i->GetDtcHostLabel  (h_dtc);
+        HNDLE       h_dtc_cmd = _odb_i->GetDtcCmdHandle  (node,pcie_addr);
         
-        int status = odb_i->GetInteger(h_dtc,"Status"  );
-        int rc     = odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
+        int status = _odb_i->GetInteger(h_dtc    ,"Status"    );
+        int rc     = _odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
+        
         if (status == 0) {
                                         // completed
           if (rc != 0) return_code += rc;
@@ -221,19 +218,35 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
 //-----------------------------------------------------------------------------
 // either all finished, or timeout
 //-----------------------------------------------------------------------------
-  if (n_not_finished != 0) {
-    odb_i->SetInteger(h_Cmd,"ReturnCode",-1);
-    eq->SetStatus(-1);
+  if (return_code == 0) {
+    if (n_not_finished != 0) return_code = 1; // (BUSY) ... timeout
   }
-  else {
-    odb_i->SetInteger(h_Cmd,"ReturnCode", return_code);
-    eq->SetStatus(-return_code);
-  }
-//-----------------------------------------------------------------------------
-// mark execution as completed, don't touch 'Run' - no need
-//-----------------------------------------------------------------------------
-  odb_i->SetInteger(h_Cmd    ,"Finished",1);
+  // do we really need the return code ? - perhaps Status would do ? 
+  // odb_i->SetInteger (h_Cmd,"ReturnCode",return_code);
+
+  SetCommandFinished(h_Cmd,return_code);
 
   TLOG(TLVL_DEBUG) << std::format("-- END: n_not_finished:{} return_code:{}",n_not_finished,return_code);
   return n_not_finished;
 }
+
+//-----------------------------------------------------------------------------
+// for single-link commands aim for a 1 line output,
+// tracker always has station, plane, panel
+//-----------------------------------------------------------------------------
+int TEqTracker::StartMessage(HNDLE H_Cmd, std::stringstream& Stream) {
+
+  std::string cmd_name = _odb_i->GetString  (H_Cmd,"Name");
+  int         station  = _odb_i->GetInteger(H_Cmd,"station");
+  int         plane    = _odb_i->GetInteger(H_Cmd,"plane");
+  int         mnid     = _odb_i->GetInteger(H_Cmd,"mnid");
+  
+  auto now = std::chrono::system_clock::now();
+    
+  // {:%Y-%m-%d %H:%M:%S} uses standard strftime-style flags
+  std::string s_now = std::format("{:%Y-%m-%d %H:%M:%S}", now);
+
+  Stream << std::format("{} -- TRACKER: cmd:{} station:{:02} plane:{:02} mnid:{:03d}\n", s_now,cmd_name,station,plane,mnid);
+  return 0;
+}
+

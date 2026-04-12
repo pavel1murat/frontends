@@ -1,6 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
 //
 /////////////////////////////////////////////////////////////////////////////
+#include <chrono>
+
 #include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
@@ -31,8 +33,8 @@ int TEqTrkDtc::ConfigureJA(HNDLE H_Cmd) { // std::ostream& Stream) {
   
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
 
-  // use settings from ODB read out in hte constructor, but redirect the output
-  int rc = _dtc_i->ConfigureJA(-1,-1,sstr);
+  // use settings from ODB read out in the constructor, but redirect the output
+  int rc = _dtc_i->ConfigureJA(sstr);
 
   int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
 
@@ -1848,12 +1850,12 @@ int TEqTrkDtc::SetRocDelay(HNDLE H_Cmd) {
 
   // delay itself comes from a different place - the DTC parameter record
   
-  int lnk1 = link;
-  int lnk2 = lnk1+1;
-  if (link == -1) {
-    lnk1 = 0;
-    lnk2 = 6;
-  }
+  // int lnk1 = link;
+  // int lnk2 = lnk1+1;
+  // if (link == -1) {
+  //   lnk1 = 0;
+  //   lnk2 = 6;
+  // }
 
 //-----------------------------------------------------------------------------
 // this could be universal,
@@ -2034,8 +2036,22 @@ int TEqTrkDtc::StartMessage(HNDLE h_Cmd, std::stringstream& Stream) {
   std::string cmd  = _odb_i->GetString (h_Cmd,"Name");
   int link         = _odb_i->GetInteger(h_Cmd,"link");
   
-  Stream << std::format("-- label:{} host:{} cmd:{} pcie_addr:{} link:{}",
-                        HostLabel(),FullHostName(),cmd,_dtc_i->PcieAddr(),link);
+  auto now = std::chrono::system_clock::now();
+    
+  // // {:%Y-%m-%d %H:%M:%S} uses standard strftime-style flags
+  // std::string s_now = std::format("{:%Y-%m-%d %H:%M:%S}", now);
+
+  std::time_t t = std::chrono::system_clock::to_time_t(now);
+  char buf[20];
+  std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
+
+  auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+  
+  // Manually append the 2-digit milliseconds
+  std::string s_now = std::format("{}.{:02}", buf, ms.count() / 10);
+
+
+  Stream << std::format("{} - cmd:{} label:{} pcie_addr:{} link:{}",s_now,cmd,HostLabel(),_dtc_i->PcieAddr(),link);
   Stream << std::endl;
   return 0;
 }

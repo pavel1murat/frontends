@@ -129,14 +129,21 @@ cp $SPACK_ENV/frontends/scripts/rootlogon.C $MU2E_DAQ_DIR/.
 - make sure $MU2E_DAQ_DIR/config/elog.json file is present, copy it from another
   work area, if needed
 file:elog.org::/configuration/
-** configure node-js 
-- create subdirectory $MU2E_DAQ_DIR/node-js
+** configure node-js                                                         
+- create subdirectory $MU2E_DAQ_DIR/node (the spack package is called node-js, avoid confusion)
+- copy staff and run
+- cors is needed for communication between the servers on http:3126 and http:3226
+- use midas_port+100 for the node JS server
 #+begin_src
-cd $MU2E_DAQ_DIR/node-js
-cp v001/frontends/scripts/
+mkdir $SPACK_ENV/node
+pushd $SPACK_ENV/node
 npm init -y
 npm install express
 npm install cors
+cp v001/frontends/scripts/inxex.js $SPACK_ENV/node/.
+touch ./.env  # I think it doesn't matter...
+node --env-file=.env  index.js
+popd
 #+end_src
 * ARTDAQ                                                                     
 ** artdaq repo: https://github.com/art-daq/artdaq

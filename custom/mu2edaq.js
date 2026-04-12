@@ -29,13 +29,14 @@ class Command_B {
 
 //-----------------------------------------------------------------------------
 class Command_D { // aaaa
-  constructor(title,name,menu_id,f_handle_left_click,table_id,f_parameter_path,logfile) { // hack
+  constructor(title,name,menu_id,f_handle_left_click,table_id,f_parameter_path,f_help,logfile) { // hack
     this.title               = title;
     this.name                = name;
     this.menu_id             = menu_id;              // defines right click actions
     this.f_handle_left_click = f_handle_left_click;  // the number of parameters : TBD
     this.table_id            = table_id;             // ID of the HTML table element to be used by MIDAS JS for displaying
     this.func_parameter_path = f_parameter_path;
+    this.f_help              = f_help;
     if (logfile == 'trkdtc.log') {
       // this is a transitioning step
       logfile = `${g_hostname}_dtc_${g_pcie}.log`
@@ -56,6 +57,12 @@ function artdaq_process_config_path(cmd) {
 function cfo_config_path(cmd) {
   const path = '/Mu2e/ActiveRunConfiguration/DAQ/CFO';
   return path;
+}
+
+//-----------------------------------------------------------------------------
+function cfo_load_help_page(cmd) {
+  const url = 'https://mu2einternalwiki.fnal.gov/wiki/CFO_control_page#CFO_control_commands';
+  window.open(url,'_blank');
 }
 
 //-----------------------------------------------------------------------------
@@ -97,8 +104,8 @@ function dtc_cmd_parameter_path(cmd) {
 }
 
 //-----------------------------------------------------------------------------
-function tfm_cmd_parameter_path   (hostname) { return `/Mu2e/Commands/DAQ/Tfm`; }
-function tfm_config_parameter_path(hostname) { return `/Mu2e/ActiveRunConfiguration/DAQ/Tfm`; }
+function tfm_cmd_parameter_path(hostname) { return `/Mu2e/Commands/DAQ/Tfm`; }
+function tfm_cfg_parameter_path(hostname) { return `/Mu2e/ActiveRunConfiguration/DAQ/Tfm`; }
 
 //-----------------------------------------------------------------------------
 function test_cmd_parameter_path(cmd) { return `/Mu2e/Commands/Test`; }
@@ -281,7 +288,7 @@ function artdaq_process_control(hostname,process) {
 //-----------------------------------------------------------------------------
 function cfo_control(hostname,pcie) {
 //  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}&facility=tfm`;
-  window.open(`cfo_control.html?hostname=${hostname}`,'_blank');
+  window.open(`cfo_control.html?hostname=${hostname}&pcie=${pcie}`,'_blank');
 }
 
 //-----------------------------------------------------------------------------
@@ -348,6 +355,14 @@ async function mu2e_command_set_odb_B(cmd) {
 
   const ppath = cmd.func_parameter_path(cmd);
   
+  // check if previous command has finished, if not - bail out
+  let rpc = await mjsonrpc_db_get_values([ppath+'/Finished']);
+  let finished = rpc.result.data[0];
+  if (finished == 0) {
+    console.log(`previous command not finished`);
+    return;
+  }
+
   const paths=[ppath+'/Name',
                ppath+'/ParameterPath',
                ppath+'/Finished',
@@ -361,7 +376,6 @@ async function mu2e_command_set_odb_B(cmd) {
   else                 { g_logfile = logfile  ; }
   
   try {
-    
     let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,logfile,1]);
     let result=rpc.result;	      
   }
@@ -369,15 +383,17 @@ async function mu2e_command_set_odb_B(cmd) {
     mjsonrpc_error_alert(error);
   };
   
-  let finished = 0;
+  finished = 0;
 
   while (finished == 0) {
-      // check whether the command has finished
-    const paths=[ppath+'/Run', ppath+'/Finished'];
+    // check whether the command has finished
+    // somewhere here need to implement timeout
+    
+    const paths=[ppath+'/Finished'];
     sleep(100);
     try {
       let rpc = await mjsonrpc_db_get_values(paths);
-      finished = rpc.result.data[1];
+      finished = rpc.result.data[0];
     }
     catch(error) {
       mjsonrpc_error_alert(error);
@@ -503,7 +519,7 @@ function mu2e_make_dropup_button_D(cmd) {
       mn.menu_actions['load_cmd_par'] = mu2e_load_cmd_table;
     }
     else if (item.dataset.action == 'help') {
-      mn.menu_actions['help'] = mu2e_load_help_page;
+      mn.menu_actions['help'] = cmd.f_help;
     }
   });
   
