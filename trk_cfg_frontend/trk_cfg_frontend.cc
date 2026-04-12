@@ -27,8 +27,6 @@ public:
 
   std::string           _name;
   std::string           _host_label;
-  // std::ofstream         _fout;
-  // std::streambuf*       _coutbuf;
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -123,11 +121,3 @@ int main(int argc, char* argv[]) {
   // in the end, it calls TMFE::Disconnect which calls cm_disconnect_experiment 
   return fe.FeMain(argc,argv);
 }
-
-/* emacs
- * Local Variables:
- * tab-width: 8
- * c-basic-offset: 2
- * indent-tabs-mode: nil
- * End:
- */

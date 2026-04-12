@@ -10,6 +10,12 @@
 // let g_process_label = '';
 // let g_run_conf      = 'undefined'
 
+//-----------------------------------------------------------------------------
+function tfm_load_help_page(cmd) {
+  const url = 'https://mu2einternalwiki.fnal.gov/wiki/TFM_control_page';
+  window.open(url,'_blank');
+}
+
 //-----------------------------------------------------------------------------      
 // node id = 'nodeXXX' - provide for 1000 nodes
 //-----------------------------------------------------------------------------
@@ -208,65 +214,65 @@ async function tfm_command_set_odb(cmd) {
   if (g_logfile != null) { logfile = g_logfile; }
   displayFile(logfile, 'messageFrame');
 }
-
-//-----------------------------------------------------------------------------
-// and this one updates ODB
-// the command parameters record is expected to be in path+${cmd}
-//-----------------------------------------------------------------------------
-async function tfm_command_set_odb_B(cmd) {
-
-  const ppath = cmd.func_parameter_path(cmd);
-  
-  const paths=[ppath+'/Name',
-               ppath+'/ParameterPath',
-               ppath+'/Finished',
-               ppath+'/Run',
-               ppath+'/logfile',
-  ];
-  
-  // check if previous command ahs finished, if not - bail out
-  let rpc = await mjsonrpc_db_get_values([ppath+'/Finished']);
-  let finished = rpc.result.data[0];
-  if (finished == 0) {
-    console.log(`previous command not finished`);
-    return;
-  }
-
-  let logfile = cmd.logfile;
-  
-  if (logfile == null) { logfile   = g_logfile; }
-  else                 { g_logfile = logfile  ; }
-  
-  try {
-    
-    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,1,logfile]);
-    let result=rpc.result;	      
-  }
-  catch(error) {
-    mjsonrpc_error_alert(error);
-  };
-
-  finished = 0;
-  while (finished != 1) {
-    // check whether the command has finished
-    // somewhere here need to implement timeout
-    const paths=[ppath+'/Finished'];
-    sleep(500);
-    try {
-      let rpc = await mjsonrpc_db_get_values(paths);
-      finished = rpc.result.data[0];
-    }
-    catch(error) {
-      mjsonrpc_error_alert(error);
-    };
-  };
-  
-  // display the logfile. THis is the only non-generic place
-  // if the command was a struct with the logfile being one of its parameters,
-  // this function became completely generic
-
-  displayFile(logfile, 'messageFrame');
-}
+// identical to mu2e_command_set_odb_B
+// 2026-04-11 PM//-----------------------------------------------------------------------------
+// 2026-04-11 PM// and this one updates ODB
+// 2026-04-11 PM// the command parameters record is expected to be in path+${cmd}
+// 2026-04-11 PM//-----------------------------------------------------------------------------
+// 2026-04-11 PMasync function tfm_command_set_odb_B(cmd) {
+// 2026-04-11 PM
+// 2026-04-11 PM  const ppath = cmd.func_parameter_path(cmd);
+// 2026-04-11 PM  
+// 2026-04-11 PM  // check if previous command has finished, if not - bail out
+// 2026-04-11 PM  let rpc = await mjsonrpc_db_get_values([ppath+'/Finished']);
+// 2026-04-11 PM  let finished = rpc.result.data[0];
+// 2026-04-11 PM  if (finished == 0) {
+// 2026-04-11 PM    console.log(`previous command not finished`);
+// 2026-04-11 PM    return;
+// 2026-04-11 PM  }
+// 2026-04-11 PM
+// 2026-04-11 PM  const paths=[ppath+'/Name',
+// 2026-04-11 PM               ppath+'/ParameterPath',
+// 2026-04-11 PM               ppath+'/Finished',
+// 2026-04-11 PM               ppath+'/logfile',
+// 2026-04-11 PM               ppath+'/Run',
+// 2026-04-11 PM  ];
+// 2026-04-11 PM  
+// 2026-04-11 PM  let logfile = cmd.logfile;
+// 2026-04-11 PM  
+// 2026-04-11 PM  if (logfile == null) { logfile   = g_logfile; }
+// 2026-04-11 PM  else                 { g_logfile = logfile  ; }
+// 2026-04-11 PM  
+// 2026-04-11 PM  try {
+// 2026-04-11 PM    let rpc = await mjsonrpc_db_paste(paths, [cmd.name,ppath+'/'+cmd.name,0,logfile,1]);
+// 2026-04-11 PM    let result=rpc.result;	      
+// 2026-04-11 PM  }
+// 2026-04-11 PM  catch(error) {
+// 2026-04-11 PM    mjsonrpc_error_alert(error);
+// 2026-04-11 PM  };
+// 2026-04-11 PM
+// 2026-04-11 PM  finished = 0;
+// 2026-04-11 PM  while (finished == 0) {
+// 2026-04-11 PM    // check whether the command has finished
+// 2026-04-11 PM    // somewhere here need to implement timeout
+// 2026-04-11 PM    const paths=[ppath+'/Finished'];
+// 2026-04-11 PM    sleep(100);
+// 2026-04-11 PM    try {
+// 2026-04-11 PM      let rpc = await mjsonrpc_db_get_values(paths);
+// 2026-04-11 PM      finished = rpc.result.data[0];
+// 2026-04-11 PM    }
+// 2026-04-11 PM    catch(error) {
+// 2026-04-11 PM      mjsonrpc_error_alert(error);
+// 2026-04-11 PM    };
+// 2026-04-11 PM  };
+// 2026-04-11 PM  
+// 2026-04-11 PM  // display the logfile. This is the only non-generic place
+// 2026-04-11 PM  // if the command was a struct with the logfile being one of its parameters,
+// 2026-04-11 PM  // this function became completely generic
+// 2026-04-11 PM
+// 2026-04-11 PM  //2026-04-09 PM  displayFile(logfile, 'messageFrame');
+// 2026-04-11 PM  display_result_new(cmd, 'messageFrameA');
+// 2026-04-11 PM}
 
 //-----------------------------------------------------------------------------
 // input Command_B type, 
@@ -300,7 +306,7 @@ function tfm_load_table(table_id,odb_path) {
 // and the artdaq process label
 // cmd.parameter_path points to the parameter root directory (Name,ParameterPath,etc) 
 //-----------------------------------------------------------------------------
-async function tfm_load_pars_and_execute(cmd) {
+async function tfm_command_set_odb(cmd) {
   // step 1 : load parameters
   let ppath = cmd.parameter_path+'/'+cmd.name;
 
@@ -313,13 +319,12 @@ async function tfm_load_pars_and_execute(cmd) {
              ppath+'/run_conf',
   ];
   
-//  mjsonrpc_db_paste(paths, [node_name,process_label,active_run_conf]).then(function(rpc) {
   mjsonrpc_db_paste(paths, [g_hostname,process_label,active_run_conf]).then(function(rpc) {
       result=rpc.result;	      
       
       // OK, ODB parameters set, now execute
       
-      tfm_command_set_odb(cmd);
+      mu2e_command_set_odb_B(cmd);
       
     }).catch(function(error) {
     mjsonrpc_error_alert(error);
@@ -413,7 +418,7 @@ function tfm_make_exec_button_par(cmd) {
   let btn    = document.createElement('input');
   btn.type    = 'button'
   btn.value   = cmd.name;
-  btn.onclick = function() { tfm_load_pars_and_execute(cmd) ; }
+  btn.onclick = function() { tfm_command_set_odb(cmd) ; }
   return btn;
 }
 

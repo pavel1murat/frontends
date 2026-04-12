@@ -1,348 +1,345 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="midas.css">
-  <link rel="stylesheet" href="mu2edaq.css">
-  <script src="controls.js"></script>
-  <script src="midas.js"></script>
-  <script src="mhttpd.js"></script>
-  <script src="filesrw.js"></script>
-  <script src="odbbrowser.js"></script>
-  
-  <script src="global_variables.js"></script>
-  <script src="mu2edaq.js"></script>
-  <script src="mu2e_mess_001.js"></script>
-  <script src="tfm_commands.js"></script>
-  
-  <title>TFM control</title>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="midas.css">
+    <link rel="stylesheet" href="mu2edaq.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
+    <script src="odbbrowser.js"></script>
     
-  <script>
+    <script src="global_variables.js"></script>
+    <script src="mu2edaq.js"></script>
+    <script src="mu2e_mess_001.js"></script>
+    <script src="tfm_commands.js"></script>
+    
+    <title>TFM control</title>
+    
+    <script>
 
   //-----------------------------------------------------------------------------
   // global variables
   // the hostname (nodename) should be the same within the scope of this script
   //-----------------------------------------------------------------------------
-  function updateNodeTable(node_index,active_process_label) {
-    const node_name       = tfm_get_node_name(g_node);
-    g_hostname            = node_name;
-    const table           = document.getElementById('node_table');
-    table.innerHTML       = '';
-    table.node_name       = node_name;
-    tbody                 = document.createElement('tbody');
+     function updateNodeTable(node_index,active_process_label) {
+       const node_name = tfm_get_node_name(g_node);
+       g_hostname      = node_name;
+
+       logfile         = 'artdaq'
+       const table     = document.getElementById('node_table');
+       table.innerHTML = '';
+       table.node_name = node_name;
+       tbody           = document.createElement('tbody');
 //-----------------------------------------------------------------------------
 // pick current active node (g_node from tfm_commands.js) and list its processes
 //-----------------------------------------------------------------------------
-    var paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes/"+table.node_name+"/Artdaq"];
-    let process_list=[] ;
-    sleep(1000);
-    mjsonrpc_db_get_values(paths).then(function(rpc) {
-      let artdaq      = rpc.result.data[0];
-      console.log('artdaq=',artdaq);
-      if (artdaq.enabled == 1) {
-        /* loop over ARTDAQ items */
-        for (const key in artdaq) {
-          if (key.indexOf('/') >= 0) { continue; }
-          if ((key.toUpperCase() == 'STATUS') || (key.toUpperCase() == 'ENABLED')) {continue;}
-          // artdaq process
-          const p = artdaq[key];
-          if (p.enabled) {
-            process_list.push(key);
-          }
-        }
-      }
+       var paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes/"+table.node_name+"/Artdaq"];
+       let process_list=[] ;
+       sleep(1000);
+       mjsonrpc_db_get_values(paths).then(function(rpc) {
+         let artdaq      = rpc.result.data[0];
+         console.log('artdaq=',artdaq);
+         if (artdaq.enabled == 1) {
+           /* loop over ARTDAQ items */
+           for (const key in artdaq) {
+             if (key.indexOf('/') >= 0) { continue; }
+             if ((key.toUpperCase() == 'STATUS') || (key.toUpperCase() == 'ENABLED')) {continue;}
+             // artdaq process
+             const p = artdaq[key];
+             if (p.enabled) {
+               process_list.push(key);
+             }
+           }
+         }
+         
+         let r1 = document.createElement('tr');
+         r1.innerHTML = '<td> <div class="mtableheader" colspan=2>'+node_name+' ARTDAQ processes: </div> </td>'
+         td1         = document.createElement('td');
+         td1.colspan = 3;
+
+         let active_btn = 0;
+         div1 = document.createElement('div');
+         div1.className = 'tab';
+         let np = process_list.length;
+         for (let i=0; i<np; i++) {
+           const p = process_list[i];
+           // if active-proces_label is undefined, choose (highlight) the first process as active
+           if (active_process_label == null) {
+             active_process_label = p;
+           }
+           let btn = document.createElement('button');
+           // btn.style.display = "block";
+           btn.className = "process_tabs"
+           if (i == g_process) {
+             btn.className += " active";
+           }
+           btn.innerHTML = p;
+           btn.id        = 'process_btn_'+String(i).padStart(2,'0')
+           //        btn.onclick   = function () { tfm_choose_artdaq_process_id(event,btn.id); }
+           btn.onclick   = function () { tfm_update_artdaq_process_id(event,btn.id); }
+           div1.appendChild(btn);
+         }
+         
+         td1.appendChild(div1);
+         r1.appendChild(td1);
+         tbody.appendChild(r1);
+
+         tr2 = document.createElement('tr');
+         td2 = document.createElement('td');
+         td2.colspan = 2;
+
+         let cmd, btn;
+         
+         cmd = new Command_B('load_parameters','load_parameters',mu2e_odb_load_table,'cmd_params',artdaq_process_config_path,logfile);
+         btn = mu2e_make_exec_button_B(cmd);
+         td2.appendChild(btn);
       
-      let r1 = document.createElement('tr');
-      r1.innerHTML = '<td> <div class="mtableheader" colspan=2>'+node_name+' ARTDAQ processes: </div> </td>'
-      td1         = document.createElement('td');
-      td1.colspan = 3;
+         // load artdaq table on a given node
+         cmd = new Command_B('get_status','get_status',mu2e_odb_load_table,'cmd_params',node_artdaq_parameter_path,logfile);
+         btn = mu2e_make_exec_button_B(cmd);
+         td2.appendChild(btn);
 
-      let active_btn = 0;
-      div1 = document.createElement('div');
-      div1.className = 'tab';
-      let np = process_list.length;
-      for (let i=0; i<np; i++) {
-        const p = process_list[i];
-        // if active-proces_label is undefined, choose (highlight) the first process as active
-        if (active_process_label == null) {
-          active_process_label = p;
-        }
-        let btn = document.createElement('button');
-        // btn.style.display = "block";
-        btn.className = "process_tabs"
-        if (i == g_process) {
-          btn.className += " active";
-        }
-        btn.innerHTML = p;
-        btn.id        = 'process_btn_'+String(i).padStart(2,'0')
-//        btn.onclick   = function () { tfm_choose_artdaq_process_id(event,btn.id); }
-        btn.onclick   = function () { tfm_update_artdaq_process_id(event,btn.id); }
-        div1.appendChild(btn);
-      }
+         cmd = new Command_B('print_fcl','print_fcl',tfm_node_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,logfile);
+         btn = mu2e_make_exec_button_B(cmd);
+         td2.appendChild(btn);
+         
+         cmd = new Command_B('generate_fcl','generate_fcl',tfm_command_set_odb,'cmd_params',tfm_cmd_parameter_path,logfile);
+         btn = mu2e_make_exec_button_B(cmd);
+         td2.appendChild(btn);
 
-      td1.appendChild(div1);
-      r1.appendChild(td1);
-      tbody.appendChild(r1);
+         // note different parameter path
+         cmd = new Command_B('print_processes','print_processes',tfm_command_set_odb,'cmd_params',node_artdaq_parameter_path,logfile);
+         btn = mu2e_make_exec_button_B(cmd);
+         td2.appendChild(btn);
 
-      tr2 = document.createElement('tr');
-      td2 = document.createElement('td');
-      td2.colspan = 2;
-//-----------------------------------------------------------------------------
-// Command is defined in mu2edaq.js
-//-----------------------------------------------------------------------------
-//      let odb_conf_path = '/Mu2e/ActiveRunConfiguration/DAQ/Nodes/'+table.node_name+'/Artdaq/'+g_process_label;
-//      let cmd     = new Command('load_parameters','cmd_params',odb_conf_path);
-//      let btn     = tfm_make_simple_button(cmd);
-//      td2.appendChild(btn);
-
-      let cmdb = new Command_B('load_parameters','load_parameters',mu2e_odb_load_table,'cmd_params', artdaq_process_config_path);
-      let btn  = mu2e_make_exec_button_B(cmdb);
-      td2.appendChild(btn);
-      
-
-      let odb_param_path = '/Mu2e/Commands/DAQ/Nodes/'+table.node_name+'/Artdaq';
-      cmd     = new Command('get_status','cmd_params',odb_param_path);
-      btn     = tfm_make_simple_button(cmd);
-      td2.appendChild(btn);
-
-      // still, command in executed by TFM - parameters need to be stored in '/Mu2e/ActiveRunConfiguration/DAQ/Tfm'
-      cmd     = new Command_B('print_fcl','print_fcl',tfm_node_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,'artdaq.log');
-      btn     = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
-
-      // would like to set some parameters in ODB
-      let odb_tfm_path = '/Mu2e/Commands/DAQ/Tfm';
-      cmd     = new Command('generate_fcl','cmd_params',odb_tfm_path);
-      btn     = tfm_make_exec_button_par(cmd);
-      td2.appendChild(btn);
-
-      // note different parameter path
-      odb_tfm_path = '/Mu2e/Commands/DAQ/Nodes/'+g_hostname+'/Artdaq';
-      cmd     = new Command('print_processes','cmd_params',odb_tfm_path);
-      btn     = tfm_make_exec_button_par(cmd);
-      td2.appendChild(btn);
-
-      tr2.appendChild(td2);
-
-      tbody.appendChild(tr2);
-                                                       // update table
-      table.appendChild(tbody);
-      //-----------------------------------------------------------------------------
-      // update cmd_params
-      //-----------------------------------------------------------------------------
-      g_process_label = active_process_label;
-      if (active_process_label != null) {
-        const table     = document.getElementById('cmd_params');
-        table.innerHTML = '';
-        const path = artdaq_process_config_path(null);
-        odb_browser('cmd_params',path,0);
-      }
-
-    }).catch(function(error) {
-      mjsonrpc_error_alert(error);
-    });
-  }
+         tr2.appendChild(td2);
+         
+         tbody.appendChild(tr2);
+         // update table
+         table.appendChild(tbody);
+         //-----------------------------------------------------------------------------
+         // update cmd_params
+         //-----------------------------------------------------------------------------
+         g_process_label = active_process_label;
+         if (active_process_label != null) {
+           const table     = document.getElementById('cmd_params');
+           table.innerHTML = '';
+           const path = artdaq_process_config_path(null);
+           odb_browser('cmd_params',path,0);
+         }
+         
+       }).catch(function(error) {
+         mjsonrpc_error_alert(error);
+       });
+     }
 
   
 //-----------------------------------------------------------------------------
 // main function defining the page contents
 //-----------------------------------------------------------------------------
-  function loadPage() {
-    // debugger;
-    const urlParams = new URLSearchParams(window.location.search);
-    g_hostname      = urlParams.get('hostname') || null ;  //
-    g_process_label = urlParams.get('process' ) || 'none';  //
-    g_run_conf      = odb_get_active_run_conf_name();
-    //-----------------------------------------------------------------------------
-    //  fill TFM table
-    //-----------------------------------------------------------------------------
-    const tfm_table     = document.getElementById('tfm_table');
-    tfm_table.innerHTML = '';
-    let thead = document.createElement('thead');
-      
-    tr = document.createElement('tr');
-    tr.innerHTML ='<td> <div class="mtableheader" colspan=2> Trigger Farm Manager (TFM) </div> </td>';
+     function loadPage() {
 
-    td = document.createElement('td');
-    // td.colSpan = 1;
-    td.innerHTML = `
-      <div class="mtableheader">
-        <a href="https://mu2einternalwiki.fnal.gov/wiki/TFM_control_page#" target="_blank">help</a>
-      </div>`
-    tr.appendChild(td);
-    thead.appendChild(tr);
-    tfm_table.appendChild(thead);
+       const urlParams = new URLSearchParams(window.location.search);
+     
+       g_hostname      = urlParams.get('hostname') || null ;  //
+       g_process_label = urlParams.get('process' ) || 'none';  //
+       g_run_conf      = odb_get_active_run_conf_name();
+       
+       const logfile = 'artdaq';
+       
+       let btn, cmd;
+       //-----------------------------------------------------------------------------
+       //  fill TFM table
+       //-----------------------------------------------------------------------------
+       const tfm_table     = document.getElementById('tfm_table');
+       tfm_table.innerHTML = '';
+       let thead = document.createElement('thead');
+      
+       tr = document.createElement('tr');
+       tr.innerHTML ='<td> <div class="mtableheader" colspan=2> Trigger Farm Manager (TFM) </div> </td>';
+       
+       td = document.createElement('td');
+       // td.colSpan = 1;
+       td.innerHTML = `
+         <div class="mtableheader">
+           <a href="https://mu2einternalwiki.fnal.gov/wiki/TFM_control_page#" target="_blank">help</a>
+         </div>`
+       tr.appendChild(td);
+       thead.appendChild(tr);
+       tfm_table.appendChild(thead);
     
-    tfm_tbody = document.createElement('tbody');
-    const  paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes",];
-    mjsonrpc_db_get_values(paths).then(function(rpc) {
-      let list_of_nodes  = rpc.result.data[0];
+       tfm_tbody = document.createElement('tbody');
+       const  paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes",];
+       mjsonrpc_db_get_values(paths).then(function(rpc) {
+         let list_of_nodes  = rpc.result.data[0];
 
-      let row     = null;
-      let td      = null;
-      let div     = null;
-      let node_id = 0;
-      let nnodes  = 0;
-      let btn;
-      
-      let new_row = 1;
-      for (const key in list_of_nodes) {
-        if (key.indexOf('/') >= 0) { continue; }
-        const node_name = key;
-        const node      = list_of_nodes[key];
-        if (new_row) {
-          row = document.createElement('tr');
-          td  = document.createElement('td');
-          td.colspan = 20;
-          
-          div = document.createElement('div');
-          div.className = 'tab';
-          td.appendChild(div);
-          row.appendChild(td);
-          new_row = 0;
-        }
-        
-        btn = document.createElement('button');
-        btn.className = 'nodetabs';
-        if (node.enabled == 0) btn.className += ' disabled';
-        btn.id        = 'node'+node_id.toString().padStart(3,'0');
-        btn.onclick   = function() { tfm_update_node_id(event); }
-        btn.innerHTML = node_name;
-        div.appendChild(btn);
-        
-        nnodes += 1;
-        
-        if ((node_name == 'mu2e-dl-01') || (nnodes >= 9)) {
-          // the first table head row has two data fields, align
-          td = document.createElement('td');
-          row.appendChild(td);
-          tfm_tbody.appendChild(row);
-          
-          // start new row
-          nnodes  = 0;
-          new_row = 1;
-        }
-        node_id += 1;
-      }
-      
-      if (nnodes > 0) {
-        td = document.createElement('td');
-        row.appendChild(td);
-        tfm_tbody.appendChild(row);
-      }
+         let row     = null;
+         let td      = null;
+         let div     = null;
+         let node_id = 0;
+         let nnodes  = 0;
+         
+         let new_row = 1;
+         for (const key in list_of_nodes) {
+           if (key.indexOf('/') >= 0) { continue; }
+           const node_name = key;
+           const node      = list_of_nodes[key];
+           if (new_row) {
+             row = document.createElement('tr');
+             td  = document.createElement('td');
+             td.colspan = 20;
+             
+             div = document.createElement('div');
+             div.className = 'tab';
+             td.appendChild(div);
+             row.appendChild(td);
+             new_row = 0;
+           }
+           
+           btn = document.createElement('button');
+           btn.className = 'nodetabs';
+           if (node.enabled == 0) btn.className += ' disabled';
+           btn.id        = 'node'+node_id.toString().padStart(3,'0');
+           btn.onclick   = function() { tfm_update_node_id(event); }
+           btn.innerHTML = node_name;
+           div.appendChild(btn);
+           
+           nnodes += 1;
+           
+           if ((node_name == 'mu2e-dl-01') || (nnodes >= 9)) {
+             // the first table head row has two data fields, align
+             td = document.createElement('td');
+             row.appendChild(td);
+             tfm_tbody.appendChild(row);
+             
+             // start new row
+             nnodes  = 0;
+             new_row = 1;
+           }
+           node_id += 1;
+         }
+         
+         if (nnodes > 0) {
+           td = document.createElement('td');
+           row.appendChild(td);
+           tfm_tbody.appendChild(row);
+         }
       //-----------------------------------------------------------------------------
       // now come commands
       //-----------------------------------------------------------------------------
-      let tr2 = document.createElement('tr');
-      
-      let td2     = document.createElement('td');
-      td2.colSpan = 2;
+         let tr2 = document.createElement('tr');
+         
+         let td2     = document.createElement('td');
+         td2.colSpan = 2;
 
-      let cmd   = new Command('load_parameters','cmd_params','/Mu2e/ActiveRunConfiguration/DAQ/Tfm');
-      btn       = tfm_make_simple_button(cmd);
-      td2.appendChild(btn);
+         cmd = new Command_B('load_parameters','load_parameters', mu2e_load_conf_table ,'cmd_params',tfm_cfg_parameter_path,logfile);
+         btn = mu2e_make_exec_button_B(cmd);
+         td2.appendChild(btn);
 
-      // output of everything trace-related goes to trace.log
-      cmd    = new Command_B('cleanup','cleanup',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"artdaq.log");
-      btn    = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
-      //-----------------------------------------------------------------------------
-      // create a "get_state" drop-button
-      //-----------------------------------------------------------------------------
-      cmd = new Command('get_state','cmd_params'   ,'/Mu2e/Commands/DAQ/Tfm');
-      btn = tfm_make_dropup_button(cmd);
-      td2.appendChild(btn);
-      
-      cmd     = new Command('generate_fcl','cmd_params','/Mu2e/Commands/DAQ/Tfm');
-      btn     = tfm_make_dropup_button(cmd);
-      td2.appendChild(btn);
-      
-      // which logfile the output should go? - artdaq.log
-      cmd    = new Command_B('print_fcl','print_fcl',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,"artdaq.log");
-      btn    = tfm_make_dropup_button_B(cmd);
-      td2.appendChild(btn);
-      
-      // output of everything trace-related goes to trace.log
-      cmd    = new Command_B('tlvls','tlvls',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn    = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
-      
-      cmd  = new Command_B('tshow','tshow',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn3 = mu2e_make_dropup_button_B(cmd);
-      td2.appendChild(btn);
-      
-      cmd  = new Command_B('treset','treset',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn  = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
+         // output of everything trace-related goes to trace.log
+         cmd = new Command_B('cleanup','cleanup',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+         btn = tfm_make_exec_button_B(cmd);
+         td2.appendChild(btn);
+         //-----------------------------------------------------------------------------
+         // create a "get_state" drop-button
+         //-----------------------------------------------------------------------------
+         cmd = new Command_D('get_state','get_state','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile);
+         btn = mu2e_make_dropup_button_D(cmd);
+         td2.appendChild(btn);
+         
+         cmd = new Command_D('generate_fcl','generate_fcl','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile);
+         btn = mu2e_make_dropup_button_D(cmd);
+         td2.appendChild(btn);
+         
+         // which logfile the output should go? - artdaq.log
+         cmd = new Command_D('print_fcl','print_fcl','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile);
+         btn = mu2e_make_dropup_button_D(cmd);
+         td2.appendChild(btn);
+         
+         // output of everything trace-related goes to trace.log
+         cmd = new Command_B('tlvls','tlvls',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+         btn = tfm_make_exec_button_B(cmd);
+         td2.appendChild(btn);
+         
+         cmd = new Command_D('tshow','tshow','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,tfm_load_help_page,logfile);
+         btn = mu2e_make_dropup_button_D(cmd);
+         td2.appendChild(btn);
+         
+         cmd = new Command_B('treset','treset',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+         btn = tfm_make_exec_button_B(cmd);
+         td2.appendChild(btn);
 
-      cmd  = new Command_B('tonM','tonM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn  = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
+         cmd = new Command_B('tonM','tonM',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+         btn = tfm_make_exec_button_B(cmd);
+         td2.appendChild(btn);
 
-      cmd  = new Command_B('toffM','toffM',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn3 = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
-      
-      cmd  = new Command_B('tonS','tonS',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
+         cmd = new Command_B('toffM','toffM',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+         btn = tfm_make_exec_button_B(cmd);
+         td2.appendChild(btn);
+         
+         cmd = new Command_B('tonS','tonS',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+         btn = tfm_make_exec_button_B(cmd);
+         td2.appendChild(btn);
 
-      cmd  = new Command_B('toffS','toffS',tfm_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,"trace.log");
-      btn  = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
-      
-      cmd  = new Command_B('print_procinfos','print_procinfos',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,"artdaq.log");
-      btn  = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
-      
-      // and the last action button not using ODB
-      cmd  = new Command_B('reset_output','reset_output',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,null);
-      btn  = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
-      
-      cmd  = new Command_B('clear_farm_status','clear_farm_status',tfm_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,"artdaq.log");
-      btn  = tfm_make_exec_button_B(cmd);
-      td2.appendChild(btn);
-      tr2.appendChild(td2);
+         cmd = new Command_B('toffS','toffS',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+         btn = tfm_make_exec_button_B(cmd);
+         td2.appendChild(btn);
+         
+         cmd = new Command_B('print_procinfos','print_procinfos',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,logfile);
+         btn = tfm_make_exec_button_B(cmd);
+         td2.appendChild(btn);
+         
+         // and the last action button not using ODB
+         cmd = new Command_B('reset_output','reset_output',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,logfile);
+         btn = tfm_make_exec_button_B(cmd);
+         td2.appendChild(btn);
+         
+         cmd = new Command_B('clear_farm_status','clear_farm_status',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,logfile);
+         btn = tfm_make_exec_button_B(cmd);
+         td2.appendChild(btn);
+         tr2.appendChild(td2);
 
-      // fill empty space under "help" 
-//      td2 = document.createElement('td');
-//      tr2.appendChild(td2);
-      
-      tfm_tbody.appendChild(tr2);
-      tfm_table.appendChild(tfm_tbody);
+         // fill empty space under "help" 
+         //      td2 = document.createElement('td');
+         //      tr2.appendChild(td2);
+         
+         tfm_tbody.appendChild(tr2);
+         tfm_table.appendChild(tfm_tbody);
 
       //-----------------------------------------------------------------------------
       // set active node button
       //-----------------------------------------------------------------------------
-      if (g_hostname != 'undefined') {
-        g_node = tfm_get_node_id(g_hostname);
-      }
+         if (g_hostname != 'undefined') {
+           g_node = tfm_get_node_id(g_hostname);
+         }
       
       //-----------------------------------------------------------------------------
       //  fill node table
       //-----------------------------------------------------------------------------
-      updateNodeTable(g_node,g_process_label);
+         updateNodeTable(g_node,g_process_label);
       //-----------------------------------------------------------------------------
       //  fill TFM parameters table
       //-----------------------------------------------------------------------------
-      const tfm_params_table     = document.getElementById('cmd_params');
-      tfm_params_table.innerHTML = '';
+         const tfm_params_table     = document.getElementById('cmd_params');
+         tfm_params_table.innerHTML = '';
       
-      odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Tfm`,0);
-    }).catch(function(error) {
-      mjsonrpc_error_alert(error);
-    });
-    //-----------------------------------------------------------------------------
-    //  end
-    //-----------------------------------------------------------------------------
-  }
+         odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Tfm`,0);
+         
+       }).catch(function(error) {
+         mjsonrpc_error_alert(error);
+       });
+     } <!-- end of loadPage -->
 
 //-----------------------------------------------------------------------------
-// loadPage is the function doing the job
+// global listeners - add one to close all menus
 //-----------------------------------------------------------------------------
-  document.addEventListener("DOMContentLoaded", loadPage);
-  </script>
+     
+     document.addEventListener("click", e => {hideAllMenus(); }); // to close all menues
+     document.addEventListener("DOMContentLoaded", loadPage);
+   
+    </script>
   </head>
 <!-- ------------------------------------------------------------------------------
      here the HTML structure starts
@@ -350,105 +347,53 @@
      javascript to fill hte details
      her is the high-level structure of the page - menus on the left, output window - on the right
   ------------------------------------------------------------------------------  -->
-  <body class="mcss" onload="mhttpd_init('tfm_control'); show_facilities(); msg_load();">
+  <body class="mcss" onload="mhttpd_init('tfm_control');">
+    
+    <!-- actions assigned in the Command_D constructor -->
+    <div id="tfm_menu_01" class="daq_menu">
+      <div data-action="load_cmd_par">load_parameters</div>
+    </div>
+
+    <!-- actions assigned in the Command_D constructor -->
+    <div id="tfm_menu_02" class="daq_menu">
+      <div data-action="load_cmd_par">load_parameters</div>
+      <div data-action="help"        >help</div>
+    </div>
+
+    
     <div id="mheader"></div>
     <div id="msidenav"></div>
     <div id="mmain">
 <!-- ---------------- row 1: ----------------  -->
       <div class="row">
-        <div class="column"> <!-- column gets pushed to the left -->
+        <div class="column" style="width:38%"> <!-- column gets pushed to the left -->
           <table class="mtable" id="tfm_table" > </table> <!-- Table content is generated dynamically -->
           <table class="mtable" id="node_table"> </table> <!-- Table content is generated dynamically -->
           <table class="mtable" id="cmd_params"> </table> <!-- Table content is generated dynamically -->
         </div>
-<!--    ------------------------- this is the output window  -->
-        <div class="column"; style="width:54%"> <!-- gets pushed to the left -->
-          <table>
-            <tr>
-              <td id="navigationFacilitiesButtons"></td>
-            </tr>
-          </table>
+
+        <!--    ========================== this is the output window ===============================  -->
         
-          <table class="mtable" id="messageTable" ">
+        <div class="column"; style="width:62%"> <!-- gets pushed to the left -->
+          
+          <table class="mtable" id="messageTableA">
             <tr>
-              <td class="select">
-                <label for="nameFilter">Filter: </label>
-
-                <input type="text" id="nameFilter" placeholder="Program Name" title="Please enter a program name">
-              
-                <select id="typeFilter" title="Please select a message type">
-                  <option value="">- all -</option>
-                  <option>INFO</option>
-                  <option>ERROR</option>
-                  <option>USER</option>
-                  <option>LOG</option>
-                  <option>TALK</option>
-                </select>
-              
-                <input type="text" id="timeFilter" placeholder="Time (hh:mm:ss)" title="Please select a time to search">
-                <input type="text" id="textFilter" placeholder="Search Text" title="Please enter some search text">
-
-                <select id="timeRangeFilter" title="We will search the file from the current time into the past">
-                  <option>24 h</option>
-                  <option>48 h</option>
-                  <option>72 h</option>
-                  <option>7 d</option>
-                  <option>30 d</option>
-                </select>
-                <button class="mbutton" id="filterBtn">Filter</button>
-              
-                <select id="recentsDropdown">
-                  <option value="">Select a recent filter</option>
-                </select>
-
+              <td>
+                <div class="mfont" id="messageFrameB">
+                  <h1 class="mtableheader"> TFM command log</h1>
+                </div>
               </td>
             </tr>
-
             <tr>
-              <td class="select">
-                <div class="mmessagebox mfont" id="messageFrame"><h1 class="mtableheader"> Messages</h1></div>
+              <td>
+                <div class="mfont" id="messageFrameA">
+                </div>
               </td>
             </tr>
           </table>
           
-          <div id="loadingOverlay"
-               style="  display: none;
-                      position: fixed;
-                      top: 0;
-                      left: 0;
-                      width: 100%;
-                      <!--
-                      height: 100%;
-                      -->
-                      height: 600px;
-                      background-color: rgba(128, 128, 128, 0.8);
-                      color: white;
-                      font-size: 24px;
-                      align-items: center;
-                      justify-content: center;
-                      z-index: 1000;">
-            Searching messages... Mouse Click to stop.
-          </div>
-          
         </div>
-        
-        <div id="dlgError" class="dlgFrame">
-          <div class="dlgTitlebar">Error message</div>
-          <div class="dlgPanel">
-            <div id="dlgErrorText">Dialog Contents</div>
-            <br />
-            <button class="dlgButton" onClick="dlgHide('dlgError')">Close</button>
-          </div>
-        </div>
-        
-        <script src="mu2e_messages.js"></script>
       </div>
     </div>
   </body>
 </html>
-<!--
-    emacs
-    Local Variables:
-    mode: web
-    End:
-  -->

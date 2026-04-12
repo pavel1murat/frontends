@@ -41,6 +41,8 @@ public:
                                         // derives classes, below are the common ones
   int           _monitoringLevel;       // 0 or 1
   int           _diagLevel;             // always needed
+  int           _cmd_run;               // to bind a hot link - for now, one per equipment item! 
+  
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
+// 2026-04-11 PM: so far, there is no "pure-tracker" commands
 ///////////////////////////////////////////////////////////////////////////////
 #include <format>
 
@@ -46,32 +46,20 @@ int TEqTracker::TestCommand(int Station, int Plane, int Panel) {
 // stored in the TRACKER command
 // perhaps do not need passing the CmdParameterPath
 //-----------------------------------------------------------------------------
-int TEqTracker::ExecuteTrackerCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
+int TEqTracker::ExecuteTrackerCommand(HNDLE H_Cmd) {
   int rc(0);
   TLOG(TLVL_DEBUG) << std::format("-- START");
 
   std::stringstream ss;
 
-  OdbInterface* odb_i = OdbInterface::Instance();
-  HNDLE h_trk_cfg   = odb_i->GetTrackerConfigHandle();
-
-//-----------------------------------------------------------------------------
-// set tracker status to BUSY
-//-----------------------------------------------------------------------------
-  odb_i->SetStatus(h_trk_cfg,1);
-
   HNDLE h_panel(0);
 
-  std::string cmd                  = odb_i->GetString (hTrkCmd,"Name"   );
-  std::string cmd_parameter_path   = odb_i->GetString (hTrkCmd,"ParameterPath");
+  std::string cmd       = _odb_i->GetString (H_Cmd,"Name"   );
+  HNDLE       h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
   
-  HNDLE       h_cmd_parameter_path = odb_i->GetHandle(0,cmd_parameter_path);
-  
-  int station                      = odb_i->GetInteger(h_cmd_parameter_path,"station");
-  int plane                        = odb_i->GetInteger(h_cmd_parameter_path,"plane"  );
-  int mnid                         = odb_i->GetInteger(h_cmd_parameter_path,"mnid"   );
-
-  // HNDLE cmd_parameter_path = odb_i->GetHandle(hTrkCmd,"ParameterPath");
+  int         station   = _odb_i->GetInteger(h_cmd_par,"station");
+  int         plane     = _odb_i->GetInteger(h_cmd_par,"plane"  );
+  int         mnid      = _odb_i->GetInteger(h_cmd_par,"mnid"   );
 
   TLOG(TLVL_DEBUG) << std::format("cmd:{} station:{} plane:{} mnid:{}",cmd,station,plane,mnid);
 
@@ -79,10 +67,10 @@ int TEqTracker::ExecuteTrackerCommand(HNDLE hTrkCmd) { // const std::string& Cmd
 
   if (mnid >= 0) {
                                         // single panel
-    int hash = (mnid/10)*10;
+    int hash      = (mnid/10)*10;
     std::string panel_path = std::format("PanelMap/{:03d}/MN{:03d}/Panel",hash,mnid);
-    h_panel       = odb_i->GetHandle(h_trk_cfg,panel_path); 
-    int slot_id   = odb_i->GetInteger(h_panel ,"slot_id");
+    h_panel       = _odb_i->GetHandle(_handle,panel_path); 
+    int slot_id   = _odb_i->GetInteger(h_panel ,"slot_id");
 
     station     = (slot_id/10)/2;
     plane       = (slot_id/10)%2;
@@ -107,49 +95,47 @@ int TEqTracker::ExecuteTrackerCommand(HNDLE hTrkCmd) { // const std::string& Cmd
     else {
                                         // all stations, all active panels
       
-      first_station = odb_i->GetInteger(h_trk_cfg,"FirstStation");
-      last_station  = odb_i->GetInteger(h_trk_cfg,"LastStation" );
+      first_station = _odb_i->GetInteger(_handle,"FirstStation");
+      last_station  = _odb_i->GetInteger(_handle,"LastStation" );
     }
   }
 
   TLOG(TLVL_DEBUG) << std::format("-- START first_station:{} last_station:{} first_plane:{} last_plane:{}",
                                   first_station, last_station, first_plane, last_plane);
-
-  odb_i->SetInteger(h_trk_cfg,"Status",1);
 //-----------------------------------------------------------------------------
-// loop over all active DTCs and execute 'PULSER_ON'
 // it might make sense, at initialization stage, to build a list of DTCs assosiated
 // with the tracker and execute all DTC commands in a loop over the DTCs, rather than
 // looping over the stations... Later
 //-----------------------------------------------------------------------------
   for (int stn=first_station; stn<last_station+1; ++stn) {
-    HNDLE h_station = odb_i->GetTrackerStationHandle(stn);
-    TLOG(TLVL_DEBUG+1) << std::format("station stn:{} h_station:{} enabled:{}",stn,h_station,odb_i->GetEnabled(h_station));
-    if (odb_i->GetEnabled(h_station) == 0) continue;
+    HNDLE h_station = _odb_i->GetTrackerStationHandle(stn);
+    TLOG(TLVL_DEBUG+1) << std::format("station stn:{} h_station:{} enabled:{}",stn,h_station,_odb_i->GetEnabled(h_station));
+    if (_odb_i->GetEnabled(h_station) == 0) continue;
     for (int pln=first_plane; pln<last_plane; ++pln) {
-      HNDLE h_plane = odb_i->GetTrackerPlaneHandle(stn,pln);
-      TLOG(TLVL_DEBUG+1) << std::format("plane pln:{} h_station:{} enabled:{}",pln,h_plane,odb_i->GetEnabled(h_plane));
-      if (odb_i->GetEnabled(h_plane) == 0) continue;
+      HNDLE h_plane = _odb_i->GetTrackerPlaneHandle(stn,pln);
+      TLOG(TLVL_DEBUG+1) << std::format("plane pln:{} h_station:{} enabled:{}",pln,h_plane,_odb_i->GetEnabled(h_plane));
+      if (_odb_i->GetEnabled(h_plane) == 0) continue;
 //-----------------------------------------------------------------------------
 // loop over panels
 //-----------------------------------------------------------------------------
       for (int pnl=0; pnl<6; ++pnl) {
-        HNDLE h_panel = odb_i->GetTrackerPanelHandle(stn,pln,pnl);
+        HNDLE h_panel = _odb_i->GetTrackerPanelHandle(stn,pln,pnl);
         TLOG(TLVL_DEBUG+1) << std::format("panel pln:{} pnl:{} h_station:{} enabled:{}",
-                                          pln,pnl,h_plane,odb_i->GetEnabled(h_panel));
-        if (odb_i->GetEnabled(h_panel) == 0) continue;
-        std::string panel_name = odb_i->GetString(h_panel,"Name"); // "MNXXX"
+                                          pln,pnl,h_plane,_odb_i->GetEnabled(h_panel));
+        if (_odb_i->GetEnabled(h_panel) == 0) continue;
+        std::string panel_name = _odb_i->GetString(h_panel,"Name"); // "MNXXX"
         int         panel_mnid = std::stoi(panel_name.substr(2));
         TLOG(TLVL_DEBUG+1) << std::format("panel_name:{} panel_mnid:{}",panel_name,panel_mnid);
         if ((mnid > 0) and (panel_mnid != mnid)) continue;
 //-----------------------------------------------------------------------------
-// execute command for a given panel
+// execute command for a given panel, this can only be done sequentially
 //-----------------------------------------------------------------------------
-        if (cmd == "print_status")   PanelPrintStatus(cmd_parameter_path);
-        if (cmd == "test_command")   {
-          //          TestCommand(stn,pln,pnl);
-          std::thread t(TEqTracker::TestCommand,stn,pln,pnl);
-          t.detach();
+        if      (cmd == "print_status") {
+          PanelPrintStatus(H_Cmd);
+        }
+        else if (cmd == "test_command") {
+          TestCommand(stn,pln,pnl);
+          // t.detach();
         }
       }
     }

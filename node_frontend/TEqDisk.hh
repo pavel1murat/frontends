@@ -11,7 +11,6 @@
 
 class TEqDisk: public TMu2eEqBase {
 public:
-  int                   _cmd_run;
   std::time_t           _prev_ctime_sec;
   float                 _prev_fsize_gb;
 //-----------------------------------------------------------------------------

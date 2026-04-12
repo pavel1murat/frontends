@@ -73,8 +73,6 @@ int TEqTracker::ExecuteRpiCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
   TLOG(TLVL_DEBUG) << std::format("-- START first_station:{} last_station:{} first_plane:{} last_plane:{}",
                                   first_station, last_station, first_plane, last_plane);
 
-  odb_i->SetInteger(h_trk_cfg,"Status",1);
-
   std::string cmd_parameter_path = odb_i->GetTrackerCmdParameterPath(cmd);
 //-----------------------------------------------------------------------------
 // loop over all active DTCs and execute 'PULSER_ON'

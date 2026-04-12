@@ -1,5 +1,6 @@
 //
 #include <fstream>
+#include "midas.h"
 #include "utils/utils.hh"
 #include "utils/OdbInterface.hh"
 #include "utils/TMu2eEqBase.hh"
@@ -180,7 +181,11 @@ int TMu2eEqBase::UnknownCommand(HNDLE H_Cmd) {
   TLOG(TLVL_ERROR) << std::format("unknown command:{}",cmd_name);
 
   int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
-  SetCommandFinished(H_Cmd,rc); 
+  SetCommandFinished(H_Cmd,rc);
+
+  std::string msg = std::format("cmd:{} is not implemented yet",cmd_name);
+  cm_msg(MERROR, __func__,msg.data());
+  cm_msg_flush_buffer();
   
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} log_rc:{}",rc,log_rc);
   return 0;

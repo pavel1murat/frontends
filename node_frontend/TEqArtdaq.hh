@@ -12,7 +12,6 @@
 
 class TEqArtdaq: public TMu2eEqBase {
 public:
-  int                            _cmd_run;
   std::vector<ArtdaqComponent_t> _list_of_ac;
 //-----------------------------------------------------------------------------
 // functions
@@ -30,9 +29,9 @@ public:
 
   int                 ReadMetrics   ();
 
-  int                 PrintProcesses(std::ostream& Stream);
-  int                 ProcessStatus (std::ostream& Stream);
-  int                 Tlvls         (std::ostream& Stream);
+  int                 PrintProcesses(HNDLE H_Cmd);
+  int                 ProcessStatus (HNDLE H_Cmd);
+  int                 Tlvls         (HNDLE H_Cmd);
   int                 Treset        (HNDLE H_Cmd);
   int                 Tshow         (HNDLE H_Cmd);
   

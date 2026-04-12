@@ -1,6 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
 //
 /////////////////////////////////////////////////////////////////////////////
+#include <chrono>
+// #include <fmt/chrono.h>
+
 #include "otsdaq-mu2e-tracker/Ui/CfoInterface.hh"
 #include "otsdaq-mu2e-tracker/Ui/DtcInterface.hh"
 
@@ -40,7 +43,7 @@ int TEqHardwareCfo::ConfigureJA(HNDLE H_Cmd) {
 
   rc = _cfo_i->ConfigureJA(sstr);
 
-  sstr << std::format(" ConfigureJA done, rc:{}",rc);
+  sstr << std::format("ConfigureJA done, rc:{}",rc);
 
   int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
   SetCommandFinished(H_Cmd,rc); 
@@ -315,7 +318,7 @@ int TEqHardwareCfo::SoftReset(HNDLE H_Cmd) {
 
   try         {
     _cfo_i->Cfo()->SoftReset();
-    sstr << " soft reset OK" << std::endl;
+    sstr << "soft reset OK" << std::endl;
   }
   catch (...) {
     sstr << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl;
@@ -349,10 +352,10 @@ int TEqHardwareCfo::WriteRegister(HNDLE H_Cmd) {
     uint32_t val = _odb_i->GetUInt32(h_cmd_par,"Value"   );
     _cfo_i->fCfo->GetDevice()->write_register(reg,timeout_ms,val);
 
-    sstr << " -- write_dtc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
+    sstr << "write_dtc_register:0x" << std::hex << reg << " val:0x" << val << std::dec;
   }
   catch (...) {
-    sstr << " ERROR : dtc_write_register ... BAIL OUT" << std::endl;
+    sstr << "ERROR : dtc_write_register ... BAIL OUT" << std::endl;
   }
 
   int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
@@ -369,11 +372,23 @@ int TEqHardwareCfo::WriteRegister(HNDLE H_Cmd) {
 //-----------------------------------------------------------------------------
 int TEqHardwareCfo::StartMessage(HNDLE h_Cmd, std::stringstream& Stream) {
 
-  Stream << std::endl; // perhaps
-
   std::string cmd  = _odb_i->GetString (h_Cmd,"Name");
   
-  Stream << std::format("-- label:{} host:{} cmd:{} pcie_addr:{}\n",
-                        HostLabel(),FullHostName(),cmd,_cfo_i->PcieAddr());
+  auto now = std::chrono::system_clock::now();
+
+  std::time_t t = std::chrono::system_clock::to_time_t(now);
+  char buf[20];
+  std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
+
+  auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+  
+  // Manually append the 2-digit milliseconds
+  std::string s_now = std::format("{}.{:02}", buf, ms.count() / 10);
+
+  // auto now = std::chrono::system_clock::now();
+  // // This works perfectly in {fmt} even where std::format fails ... with that was true
+  // std::string s_now = fmt::format("{:%Y-%m-%d %H:%M:%.2S}", now);
+  
+  Stream << std::format("{} CFO cmd:{} label:{} pcie_addr:{}\n",s_now,cmd,HostLabel(),_cfo_i->PcieAddr());
   return 0;
 }

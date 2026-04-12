@@ -18,18 +18,21 @@
 // instead of passing to all DTCs, pass the parameter address 
 // stored in the TRACKER command
 // perhaps do not need passing the CmdParameterPath
+// H_Cmd - handle to a tracker command
 //-----------------------------------------------------------------------------
-int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
+int TEqTracker::ExecuteDtcCommand(HNDLE H_Cmd) { // const std::string& Cmd) {
   int rc(0);
 
   OdbInterface* odb_i = OdbInterface::Instance();
   HNDLE h_trk_cfg   = odb_i->GetTrackerConfigHandle();
   HNDLE h_panel(0);
-
-  std::string cmd = odb_i->GetString (hTrkCmd,"Name"   );
-  int station     = odb_i->GetInteger(hTrkCmd,"station");
-  int plane       = odb_i->GetInteger(hTrkCmd,"plane"  );
-  int mnid        = odb_i->GetInteger(hTrkCmd,"mnid"   );
+                                        // need output of this command to end up in the tracker logfile
+  
+  std::string cmd     = odb_i->GetString (H_Cmd,"Name"   );
+  std::string logfile = odb_i->GetString (H_Cmd,"logfile");
+  int station         = odb_i->GetInteger(H_Cmd,"station");
+  int plane           = odb_i->GetInteger(H_Cmd,"plane"  );
+  int mnid            = odb_i->GetInteger(H_Cmd,"mnid"   );
   
   TLOG(TLVL_DEBUG) << std::format("-- START cmd:{} station:{} plane:{} mnid:{}",cmd,station,plane,mnid);
 
@@ -75,7 +78,7 @@ int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
 
   std::string cmd_parameter_path = odb_i->GetTrackerCmdParameterPath(cmd);
 //-----------------------------------------------------------------------------
-// loop over all active DTCs and execute 'PULSER_ON'
+// loop over all active DTCs and execute 'PULSER_ON' etc
 // it might make sense, at initialization stage, to build a list of DTCs assosiated
 // with the tracker and execute all DTC commands in a loop over the DTCs, rather than
 // looping over the stations... Later
@@ -99,7 +102,7 @@ int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
 //-----------------------------------------------------------------------------
 // pass address of parameters stored in the tracker command tree
 //-----------------------------------------------------------------------------
-      HNDLE h_dtc_cmd     = odb_i->GetDtcCmdHandle   (node,pcie_addr);
+      HNDLE       h_dtc_cmd = odb_i->GetDtcCmdHandle(node,pcie_addr);
 
       int lnk = -1;
       if (mnid >= 0) {
@@ -113,6 +116,7 @@ int TEqTracker::ExecuteDtcCommand(HNDLE hTrkCmd) { // const std::string& Cmd) {
       int dtc_status = odb_i->GetInteger(h_dtc,"Status");
       if (dtc_status == 0) {
         odb_i->SetString (h_dtc_cmd,"Name"         ,cmd);
+        odb_i->SetString (h_dtc_cmd,"logfile"      ,logfile);
         odb_i->SetString (h_dtc_cmd,"ParameterPath",cmd_parameter_path);
         odb_i->SetInteger(h_dtc_cmd,"link"         ,lnk);
         odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);

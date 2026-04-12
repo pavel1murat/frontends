@@ -137,7 +137,7 @@
                 res = rpc.result.data[1]; // check for CFO 
                 if (res != null) {
                   set_colors(cfo_path,cell);
-                  cell.innerHTML = `<button onclick="cfo_control('${hostname},${idtc}')">CFO${idtc}</button>`;
+                  cell.innerHTML = `<button onclick="cfo_control('${hostname}',${idtc})">CFO${idtc}</button>`;
                   setInterval(() => {set_colors(cfo_path,cell);},2000);
                 }
               }

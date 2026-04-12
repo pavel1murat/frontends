@@ -19,16 +19,13 @@ class TEqTracker : public TMu2eEqBase {
   };
 public:
   HNDLE                          _h_daq_host_conf;
-  int                            _run;
-  std::string                    _ss_ac_path;      // "/Mu2e/ActiveRunConfiguration/Tracker"
-  std::string                    _ss_cmd_path;     // "/Mu2e/Commands/Tracker"
   int                            _first_station;
   int                            _last_station;
 //-----------------------------------------------------------------------------
 // commands
 //-----------------------------------------------------------------------------
-  HNDLE                          _h_cmd;
-  int                            _cmd_type;        // command type: 1:DTC, 2:RPI, etc (see above)
+  // HNDLE                          _h_cmd;
+  // int                            _cmd_type;        // command type: 1:DTC, 2:RPI, etc (see above)
   int                            _cmd_station;
   int                            _cmd_plane;
   int                            _cmd_panel;
@@ -68,18 +65,19 @@ public:
 //-----------------------------------------------------------------------------
 // fanout DTC command to all tracker DTCs and wait for completion
 //-----------------------------------------------------------------------------
-  static  int        ExecuteDtcCommand    (HNDLE hCmd);
-  static  int        ExecuteRpiCommand    (HNDLE hCmd);
-  static  int        ExecuteTrackerCommand(HNDLE hCmd);
-  static  int        ExecuteTestCommand   (HNDLE hCmd);
+  int        ExecuteDtcCommand    (HNDLE hCmd);
+  int        ExecuteRpiCommand    (HNDLE hCmd);
+  int        ExecuteTrackerCommand(HNDLE hCmd);
+  int        ExecuteTestCommand   (HNDLE hCmd);
 
-  static  int        PulserOn         (const std::string& CmdParameterPath);
-  static  int        PulserOff        (const std::string& CmdParameterPath);
-  static  int        PanelPrintStatus (const std::string& CmdParameterPath);
-  static  int        TestCommand      (int Station, int Plane, int Panel);
-  static  TMFeResult ResetStationLV   (const std::string& CmdParameterPath);
+  // static  int        PulserOn         (const std::string& CmdParameterPath);
+  // static  int        PulserOff        (const std::string& CmdParameterPath);
+  int        PanelPrintStatus (HNDLE H_Cmd);
+  int        TestCommand      (int Station, int Plane, int Panel);
+  TMFeResult ResetStationLV   (const std::string& CmdParameterPath);
 
-  static  int        WaitForCompletion (HNDLE h_Cmd);
-
+  int        WaitForCompletion(HNDLE h_Cmd);
+  
+  virtual int StartMessage(HNDLE h_Cmd, std::stringstream& Stream) override;
 };
 #endif
