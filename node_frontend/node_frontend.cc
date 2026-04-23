@@ -121,29 +121,6 @@ TMFeResult NodeFrontend::HandleFrontendInit(const std::vector<std::string>& args
         TLOG(TLVL_DEBUG) << std::format("subsystem:{} name:{} title:{}",eq->Subsystem(),eq->Name(),eq->Title());
       }
     }
-//     else if (strstr(key.name,"CFO") == key.name) {
-// //-----------------------------------------------------------------------------
-// // future - CFO also handled by the node_frontend, not now...CFO: emulated of hardware
-// //-----------------------------------------------------------------------------
-//       int enabled       = odb_i->GetEnabled(h_i);
-//       int pcie_addr     = odb_i->GetInteger(h_i,"PcieAddress");
-
-//       TLOG(TLVL_DEBUG) << std::format("pcie_addr:{} enabled:{}",pcie_addr,enabled);
-   
-//       if (enabled) {
-//                                         // there is only one CFO
-//         TMu2eEqBase* eq;
-//         int emulated_mode = odb_i->GetInteger(h_i,"emulated_mode");
-//         if (emulated_mode == 1) {
-//           eq = (TMu2eEqBase*) new TEmulatedCfo("CFO","CFO",h_active_run_conf,h_i);
-//         }
-//         else {
-//           eq = (TMu2eEqBase*) new THardwareCfo("CFO","CFO",h_active_run_conf,h_i);
-//         }
-//         eqm->AddEquipmentItem(eq);
-//         TLOG(TLVL_DEBUG) << std::format("added CFO: subsystem:{} name:{} title:{}",eq->Subsystem(),eq->Name(),eq->Title());
-//       }
-//     }
   }
 //-----------------------------------------------------------------------------
 // 2. ARTDAQ - kep name capitalized

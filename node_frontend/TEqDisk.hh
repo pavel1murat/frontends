@@ -13,6 +13,8 @@ class TEqDisk: public TMu2eEqBase {
 public:
   std::time_t           _prev_ctime_sec;
   float                 _prev_fsize_gb;
+  std::string           _data_dir;
+  std::string           _log_dir;
 //-----------------------------------------------------------------------------
 // functions
 //------------.-----------------------------------------------------------------

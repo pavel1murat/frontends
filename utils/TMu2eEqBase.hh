@@ -31,6 +31,7 @@ public:
   std::string   _host_label;            // i.e. 'mu2edaq09'
   std::string   _logfile;               // set by the derived class
   HNDLE         _handle;                // equipment's own ODB handle, set by derived classes (for 'Enabled' and 'Status')
+  HNDLE         _cmd_handle;            // equipment's own ODB command record handle, set by derived classes (for 'logfile')
   HNDLE         _h_active_run_conf;
   HNDLE         _h_daq_host_conf;
 

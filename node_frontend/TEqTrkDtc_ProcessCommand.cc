@@ -48,23 +48,22 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // if available, set it to BUSY (1)
 // before issuing a new command, one has to check the DTC status
 //-----------------------------------------------------------------------------
+  TEquipmentManager* eqm     = TEquipmentManager::Instance();
+  std::string        eq_name = std::format("DTC{}",pcie_addr);
+  TEqTrkDtc*         eq      = (TEqTrkDtc*) eqm->FindEquipmentItem(eq_name);
+
   HNDLE h_dtc = odb_i->GetDtcConfigHandle(k_frontend.name,pcie_addr);
-  int status = odb_i->GetInteger(h_dtc,"Status");
+  int status  = odb_i->GetInteger(h_dtc,"Status");
   if (status != 0) {
     TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} BUSY or in trouble",k_frontend.name,pcie_addr);
+    // before returning, need to mark the command as finished to avoid duplicating the interlock
+    odb_i->SetInteger(h_cmd,"Finished",1);
     return;
   }
     
   std::string cmd            = odb_i->GetString (h_cmd,"Name");
   std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
-  //  int         link           = odb_i->GetInteger(h_cmd,"link");
-  //  std::string logfile        = odb_i->GetString (h_cmd,"logfile");
 //-----------------------------------------------------------------------------
-  TEquipmentManager* eqm = TEquipmentManager::Instance();
-
-  std::string           eq_name = std::format("DTC{}",pcie_addr);
-  TEqTrkDtc*            eq      = (TEqTrkDtc*) eqm->FindEquipmentItem(eq_name);
-  //  trkdaq::DtcInterface* dtc_i   = eq->Dtc_i();
 
   TLOG(TLVL_DEBUG) << std::format("cmd:{} parameter_path:{}",cmd,parameter_path);
 //-----------------------------------------------------------------------------

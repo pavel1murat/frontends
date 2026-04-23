@@ -37,13 +37,7 @@ class Command_D { // aaaa
     this.table_id            = table_id;             // ID of the HTML table element to be used by MIDAS JS for displaying
     this.func_parameter_path = f_parameter_path;
     this.f_help              = f_help;
-    if (logfile == 'trkdtc.log') {
-      // this is a transitioning step
-      logfile = `${g_hostname}_dtc_${g_pcie}.log`
-    }
-    else {
-      this.logfile             = logfile;
-    }
+    this.logfile             = logfile;
   }  
 }
 
@@ -207,9 +201,14 @@ async function display_result_new(cmd,elementId) {
 
   const filename = cmd.logfile;
   
-  const response = await fetch(`http://localhost:3226/logs?stream=${encodeURIComponent(filename)}`);
+  //  const response = await fetch(`http://localhost:3226/logs?stream=${encodeURIComponent(filename)}`);
+
+  const strm = encodeURIComponent(filename);
+  const url  = `http://localhost:3141/logs?stream=${strm}`;
+  // const url  = `http://127.0.0.1:3141/logs?stream=${strm}`;
+  const response = await fetch(url);
   const data     = await response.text();  // .text(), not .json()
-    
+  
   const buffer   = document.getElementById(elementId);
 
   const entry    = document.createElement('div');

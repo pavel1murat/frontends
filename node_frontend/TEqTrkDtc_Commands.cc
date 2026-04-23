@@ -323,7 +323,10 @@ int TEqTrkDtc::InitReadout(HNDLE H_Cmd) { // std::ostream& Stream) {
   if (rc < 0) {
     TLOG(TLVL_ERROR) << std::format("node:{} DTC:{} : failed to initialize the DTC readout. BAIL OUT",
                                     HostLabel(),_dtc_i->PcieAddr());
-    SetStatus(rc);
+    
+    int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+    SetCommandFinished(H_Cmd,rc);
+    TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} log_rc:{}",rc,log_rc);
     return rc;
   }
 //-----------------------------------------------------------------------------
@@ -345,7 +348,7 @@ int TEqTrkDtc::InitReadout(HNDLE H_Cmd) { // std::ostream& Stream) {
 //-----------------------------------------------------------------------------
 // link enabled and locked, set the delay - seems to work
 //-----------------------------------------------------------------------------
-      int rc_1 = _dtc_i->SetRocDelay(-1,dtc_ewm_delay_5ns,sstr);
+      int rc_1 = _dtc_i->SetRocDelay(i,dtc_ewm_delay_5ns,sstr);
       rc += rc_1;
       if (rc_1 != 0) {
         SetLinkStatus(i,rc_1);
@@ -358,7 +361,7 @@ int TEqTrkDtc::InitReadout(HNDLE H_Cmd) { // std::ostream& Stream) {
       if (digitization_stop_5ns > digitization_start_5ns) {
         TLOG(TLVL_DEBUG) << std::format("digitization_start_5ns:{} digitization_stop_5ns:{}",digitization_start_5ns,digitization_stop_5ns);
         int print_level(0);
-        int rc_2 = _dtc_i->SetRocDigitizationWindow(-1,digitization_start_5ns,digitization_stop_5ns,print_level,sstr);
+        int rc_2 = _dtc_i->SetRocDigitizationWindow(i,digitization_start_5ns,digitization_stop_5ns,print_level,sstr);
         rc += rc_2;
         if (rc_2 != 0) {
           SetLinkStatus(i,rc_2);
