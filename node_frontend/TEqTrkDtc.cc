@@ -1,4 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
+#include <iostream>
 #include "odbxx.h"
 
 #include "utils/OdbInterface.hh"
@@ -51,6 +52,8 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
   int dtc_enabled      = _odb_i->GetEnabled       (H_Dtc);
   int pcie_addr        = _odb_i->GetDtcPcieAddress(H_Dtc);
   int link_mask        = _odb_i->GetLinkMask      (H_Dtc);
+
+  _cmd_handle          = _odb_i->GetDtcCmdHandle(_host_label,pcie_addr);
 
   KEY key;
   _odb_i->GetKey(H_Dtc,&key);
@@ -253,7 +256,10 @@ int TEqTrkDtc::BeginRun(int RunNumber) {
     // 2025-01-19 PM dtc_i->Dtc()->HardReset();
         // 2025-01-19 PM dtc_i->ResetLinks(0,1);
                                         // InitReadout performs some soft resets, ok for now
-    rc = _dtc_i->InitReadout();
+    // std::ostream s = std::ostream(nullptr);
+    // rc = _dtc_i->InitReadout(-1,-1,s);
+
+    InitReadout(_cmd_handle);
   }
   
   TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
@@ -571,7 +577,13 @@ int TEqTrkDtc::HandlePeriodic() {
     for (int ilink=0; ilink<6; ilink++) {
       if (_dtc_i->LinkEnabled(ilink) == 0) continue;
       if (not _dtc_i->LinkLocked(ilink)) {
-        TLOG(TLVL_ERROR) << std::format("{}:DTC{} link:{} enabled but not locked",HostLabel(),_dtc_i->PcieAddr(),ilink);
+        std::string msg = std::format("{}:DTC{} link:{} enabled but not locked",HostLabel(),_dtc_i->PcieAddr(),ilink);
+        TLOG(TLVL_ERROR) << msg;
+                                        // send message to MIDAS
+        cm_msg(MERROR, __func__,msg.data());
+        cm_msg_flush_buffer();
+        
+        SetStatus(-1);
         continue;
       }
           
@@ -657,12 +669,16 @@ int TEqTrkDtc::HandlePeriodic() {
                                             HostLabel(),_dtc_i->PcieAddr(),ilink,nw);
         }
         else {
-          TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} link:{} : failed to read SPI",
-                                          HostLabel(),_dtc_i->PcieAddr(),ilink);
+          std::string msg = std::format("host:{} DTC:{} link:{} : failed to read SPI",HostLabel(),_dtc_i->PcieAddr(),ilink);
+          TLOG(TLVL_ERROR) << msg;
+                                        // send message to MIDAS
+          cm_msg(MERROR, __func__,msg.data());
+          cm_msg_flush_buffer();
 //-----------------------------------------------------------------------------
-// set ROC status to -1
+// set ROC? DTC? (try DTC first) status to -1 and do not try to read it...
 //-----------------------------------------------------------------------------
-            // TODO
+//          SetLinkStatus(ilink,-1);
+          SetStatus(-1);
         }
       }
 //-----------------------------------------------------------------------------
@@ -679,7 +695,7 @@ int TEqTrkDtc::HandlePeriodic() {
 // 2. run rates command with all channels enabled
 // 3. run read command restoring the clock marker (source of the clock) and the read mask
 //    which someone may rely on
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
         midas::odb o_read_cmd   ("/Mu2e/Commands/Tracker/DTC/control_roc_read");
 
         trkdaq::ControlRoc_Read_Input_t0 pread;                // ch_mask is set to all oxffff
@@ -735,7 +751,7 @@ int TEqTrkDtc::HandlePeriodic() {
 //-----------------------------------------------------------------------------
 // set ROC status to -1
 //-----------------------------------------------------------------------------
-            // TODO
+          // TODO
         }
       }
     }
@@ -745,6 +761,7 @@ int TEqTrkDtc::HandlePeriodic() {
 //-----------------------------------------------------------------------------
 // set DTC status to -1
 //-----------------------------------------------------------------------------
+    SetStatus(-1);
     // TODO
   }
 

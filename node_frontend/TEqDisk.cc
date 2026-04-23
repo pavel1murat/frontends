@@ -22,13 +22,16 @@ using nlohmann::json;
 //-----------------------------------------------------------------------------
 TEqDisk::TEqDisk(const char* Name, const char* Title) : TMu2eEqBase(Name,Title,TMu2eEqBase::kDisk) {
 
-  _handle               = _odb_i->GetDiskConfHandle(_h_active_run_conf,_host_label);
-   std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
-  _logfile              = std::format("{}hosts.log",data_dir);
-  _monitoringLevel      = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Disk");
+  _handle                      = _odb_i->GetDiskConfHandle(_h_active_run_conf,_host_label);
+   std::string logger_data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+  _logfile                     = std::format("{}hosts.log",logger_data_dir);
+  _monitoringLevel             = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Disk");
 
-  _prev_ctime_sec       = std::time(nullptr);
-  _prev_fsize_gb        = 0.;
+  _data_dir                    = expand_env_vars(_odb_i->GetString(_h_daq_host_conf,"Disk/data_dir"));
+  _log_dir                     = expand_env_vars(_odb_i->GetString(_h_daq_host_conf,"Disk/log_dir"));
+  
+  _prev_ctime_sec              = std::time(nullptr);
+  _prev_fsize_gb               = 0.;
 
   int rc = InitVarNames();
 }
@@ -63,8 +66,10 @@ int TEqDisk::InitVarNames() {
   var_names.push_back("ctime"       );
   var_names.push_back("fsize_gb"    );
   var_names.push_back("rate_to_disk");
-  var_names.push_back("space_used"  );
-  var_names.push_back("space_avail" );
+  var_names.push_back("data_space_used" );
+  var_names.push_back("data_space_avail");
+  var_names.push_back("log_space_used" );
+  var_names.push_back("log_space_avail");
   
   for (int i=0; i<15; i++) var_names.push_back(std::format("disk_{:02d}",i+5));
   
@@ -86,7 +91,10 @@ int TEqDisk::HandlePeriodic() {
   int rc(0);
 
   TLOG(TLVL_DEBUG+1) << "-- START";
-  std::string cmd = std::format("python config/scripts/monitor_host.py --job=disk_io --dir={}",getenv("DAQ_OUTPUT_TOP"));
+  std::string cmd = std::format("python config/scripts/monitor_host.py --job=disk_io");
+  
+  if (_data_dir != "") cmd += std::format(" --data_dir={}", _data_dir);
+  if (_log_dir  != "") cmd += std::format(" --log_dir={}" , _log_dir );
 
   TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
   
@@ -129,10 +137,10 @@ int TEqDisk::HandlePeriodic() {
   *ptr++ = ctime_sec;
   *ptr++ = fsize_gb;
   *ptr++ = rate_to_disk;
-  *ptr++ = md["space_used" ];
-  *ptr++ = md["space_avail"];
-  *ptr++ = -1.;
-  *ptr++ = -1.;
+  *ptr++ = md["log_space_used" ];
+  *ptr++ = md["log_space_avail"];
+  *ptr++ = md["data_space_used"];
+  *ptr++ = md["data_space_avail"];
   *ptr++ = -1.;
   *ptr++ = -1.;
   *ptr++ = -1.;

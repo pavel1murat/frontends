@@ -701,6 +701,7 @@ std::string OdbInterface::GetCfoRunPlanDir() {
   return s;
 }
 
+//-----------------------------------------------------------------------------
 std::string OdbInterface::GetConfigDir() {
   TLOG(TLVL_DEBUG+1) << "-- START";
   std::string s = GetString(0,"Mu2e/ConfigDir");
