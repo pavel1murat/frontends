@@ -73,7 +73,7 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
 // start from checking the DTC FW verion and comparing it to the required one -
 // defined in ODB
 //-----------------------------------------------------------------------------
-  uint32_t required_fw_version = _odb_i->GetDtcFwVersion(H_RunConf,subsystem.data());
+  uint32_t required_fw_version = _odb_i->GetRequiredFwVersion(H_Dtc);
   uint32_t fw_version          = _dtc_i->ReadRegister(0x9004);
 
   if ((required_fw_version != 0) and (fw_version != required_fw_version)) {
@@ -119,43 +119,49 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
 //-----------------------------------------------------------------------------
     int mask = 0;
     for (int i=0; i<6; i++) {
+      _dtc_i->SetLinkStatus(i,0);
       int link_enabled = _odb_i->GetLinkEnabled(H_Dtc,i);
-      TLOG(TLVL_DEBUG) << "link:" << i << " link_enabled:" << link_enabled;
-      if (link_enabled) {
-        if (not _dtc_i->LinkLocked(i)) {
-          TLOG(TLVL_ERROR) << std::format("{}:DTC{} link:{} enabled but not locked",HostLabel(),_dtc_i->PcieAddr(),i);
-          continue;
-        }
-        mask |= (1 << 4*i);
+      int link_locked  = _dtc_i->LinkLocked(i);
+      TLOG(TLVL_DEBUG) << std::format("link:{} enabled:{} locked:{} status:{}",i,link_enabled,link_locked,_dtc_i->LinkStatus(i));
+      if (not link_enabled)                               continue;
+      if (not link_locked) {
+        TLOG(TLVL_ERROR) << std::format("{}:DTC{} link:{} enabled but not locked, set link status to -1",
+                                        HostLabel(),_dtc_i->PcieAddr(),i);
+        _dtc_i->SetLinkStatus(i,-1);
+        continue;
+      }
+      
+      mask |= (1 << 4*i);
 
-        std::string roc_id     ("READ_ERROR");
-        std::string design_info("READ_ERROR");
-        std::string git_commit ("READ_ERROR");
-        
-        try {
-          roc_id      = _dtc_i->GetRocID         (i);
-          TLOG(TLVL_DEBUG) << "roc_id:" << roc_id;
-          design_info = _dtc_i->GetRocDesignInfo (i);
-          TLOG(TLVL_DEBUG) << "design_info:" << design_info;
-          git_commit  = _dtc_i->GetRocFwGitCommit(i);
-          TLOG(TLVL_DEBUG) << "git_commit:" << git_commit;
-        }
-        catch(...) {
-          TLOG(TLVL_ERROR) << std::format("{}:DTC{}: cant read link:() ROC info",HostLabel(),_dtc_i->PcieAddr(),i);
-        }
+      std::string roc_id     ("READ_ERROR");
+      std::string design_info("READ_ERROR");
+      std::string git_commit ("READ_ERROR");
+      
+      try {
+        roc_id      = _dtc_i->GetRocID         (i);
+        TLOG(TLVL_DEBUG) << "roc_id:" << roc_id;
+        design_info = _dtc_i->GetRocDesignInfo (i);
+        TLOG(TLVL_DEBUG) << "design_info:" << design_info;
+        git_commit  = _dtc_i->GetRocFwGitCommit(i);
+        TLOG(TLVL_DEBUG) << "git_commit:" << git_commit;
+      }
+      catch(...) {
+        TLOG(TLVL_ERROR) << std::format("{}:DTC{}: cant read link:() ROC info, set link status to -1",HostLabel(),_dtc_i->PcieAddr(),i);
+        _dtc_i->SetLinkStatus(i,-1);
+        continue;
+      }
 //-----------------------------------------------------------------------------
 // 'h_link' points to a subsystem-specific place
 //-----------------------------------------------------------------------------
-        char key[10];
-        sprintf(key,"Link%d",i);
-        HNDLE h_link = _odb_i->GetHandle(H_Dtc,key);
-        _odb_i->SetRocID         (h_link,roc_id     );
-        _odb_i->SetRocDesignInfo (h_link,design_info);
-        _odb_i->SetRocFwGitCommit(h_link,git_commit );
-
-        int roc_ewm_delay_5ns      = _odb_i->GetInteger(h_link,"ewm_delay_5ns");
-        _dtc_i->fRocEwmDelay5ns[i] = roc_ewm_delay_5ns;
-      }
+      char key[10];
+      sprintf(key,"Link%d",i);
+      HNDLE h_link = _odb_i->GetHandle(H_Dtc,key);
+      _odb_i->SetRocID         (h_link,roc_id     );
+      _odb_i->SetRocDesignInfo (h_link,design_info);
+      _odb_i->SetRocFwGitCommit(h_link,git_commit );
+      
+      int roc_ewm_delay_5ns      = _odb_i->GetInteger(h_link,"ewm_delay_5ns");
+      _dtc_i->fRocEwmDelay5ns[i] = roc_ewm_delay_5ns;
     }
 //-----------------------------------------------------------------------------
 // set link mask, also update link mask in ODB - that is not used, but is convenient
@@ -217,9 +223,16 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     TLOG(TLVL_DEBUG) << "before db_open_record: h_cmd_run:" << h_cmd_run << " _cmd_run:" << _cmd_run;
     
     if (db_open_record(hdb,h_cmd_run,&_cmd_run,sizeof(int32_t),MODE_READ,ProcessCommand, NULL) != DB_SUCCESS)  {
-      std::string m = std::format("cannot open DTC{} hotlink in ODB",_dtc_i->PcieAddr());
-      cm_msg(MERROR, __func__,m.data());
+      std::string msg = std::format("cannot open DTC{} hotlink in ODB",_dtc_i->PcieAddr());
+      TLOG(TLVL_ERROR) << msg;
+      cm_msg(MERROR, __func__,msg.data());
+      cm_msg_flush_buffer();
+      SetStatus(-1);
     }
+//-----------------------------------------------------------------------------
+// if everything went well, init readout
+//-----------------------------------------------------------------------------
+    InitReadout(_cmd_handle);
   }
   
 //2026-04-09 PM  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
@@ -244,6 +257,7 @@ int TEqTrkDtc::BeginRun(int RunNumber) {
   TLOG(TLVL_DEBUG) << std::format("event mode:{} roc_readout_mode:{}",event_mode,roc_readout_mode);
   
   if (_dtc_i) {
+                                        // update parameters from ODB
     _dtc_i->fEventMode      = event_mode;
     _dtc_i->fRocReadoutMode = roc_readout_mode;
     _dtc_i->fLinkMask       = _odb_i->GetLinkMask         (_handle);
@@ -575,14 +589,22 @@ int TEqTrkDtc::HandlePeriodic() {
 // don't use 'link' - ROOT doesn't like 'link' for a variable name
 //-----------------------------------------------------------------------------
     for (int ilink=0; ilink<6; ilink++) {
+      
+      TLOG(TLVL_DEBUG+1) << std::format("link:{} enabled:{} locked:{} status:{}",ilink,_dtc_i->LinkEnabled(ilink),_dtc_i->LinkLocked(ilink),_dtc_i->LinkStatus(ilink));
+                                        
       if (_dtc_i->LinkEnabled(ilink) == 0) continue;
+                                        // skip links which status has been set to -1
+      if (_dtc_i->LinkStatus(ilink)  != 0) continue;
       if (not _dtc_i->LinkLocked(ilink)) {
-        std::string msg = std::format("{}:DTC{} link:{} enabled but not locked",HostLabel(),_dtc_i->PcieAddr(),ilink);
+        std::string msg = std::format("{}:DTC{} link:{} enabled but not locked, set link status to -1",
+                                      HostLabel(),_dtc_i->PcieAddr(),ilink);
         TLOG(TLVL_ERROR) << msg;
                                         // send message to MIDAS
         cm_msg(MERROR, __func__,msg.data());
         cm_msg_flush_buffer();
-        
+                                        // links with status < 0 should be displayed in red and skipped w/o extra messaging -
+                                        // a message has been sent once when the link status has been changed
+        _dtc_i->SetLinkStatus(ilink,-1);
         SetStatus(-1);
         continue;
       }
@@ -669,7 +691,8 @@ int TEqTrkDtc::HandlePeriodic() {
                                             HostLabel(),_dtc_i->PcieAddr(),ilink,nw);
         }
         else {
-          std::string msg = std::format("host:{} DTC:{} link:{} : failed to read SPI",HostLabel(),_dtc_i->PcieAddr(),ilink);
+          std::string msg = std::format("host:{} DTC:{} link:{} : failed to read SPI, set link status to -1",
+                                        HostLabel(),_dtc_i->PcieAddr(),ilink);
           TLOG(TLVL_ERROR) << msg;
                                         // send message to MIDAS
           cm_msg(MERROR, __func__,msg.data());
@@ -677,7 +700,7 @@ int TEqTrkDtc::HandlePeriodic() {
 //-----------------------------------------------------------------------------
 // set ROC? DTC? (try DTC first) status to -1 and do not try to read it...
 //-----------------------------------------------------------------------------
-//          SetLinkStatus(ilink,-1);
+          SetLinkStatus(ilink,-1);
           SetStatus(-1);
         }
       }

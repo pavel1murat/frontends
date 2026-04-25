@@ -105,6 +105,7 @@ public:
   int         SetLinkMask         (HNDLE h_Card, int Mask);
 
   int         GetPcieAddress      (HNDLE h_Card); // card: either CFO or DTC
+  uint32_t    GetRequiredFwVersion(HNDLE h_Card); // card: either CFO or DTC
 
   int         GetDetElementConfigHandle(HNDLE H_Dtc, int Link);
 //-----------------------------------------------------------------------------
