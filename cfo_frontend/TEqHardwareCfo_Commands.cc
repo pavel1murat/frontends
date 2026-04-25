@@ -41,7 +41,7 @@ int TEqHardwareCfo::ConfigureJA(HNDLE H_Cmd) {
   // int         clock_source = _odb_i->GetInteger(h_cmd_par,"clock_source");
   // int         reset        = _odb_i->GetInteger(h_cmd_par,"reset"       );
 
-  rc = _cfo_i->ConfigureJA(sstr);
+  rc = _cfo_i->ConfigureJA(-1,-1,sstr);
 
   sstr << std::format("ConfigureJA done, rc:{}",rc);
 

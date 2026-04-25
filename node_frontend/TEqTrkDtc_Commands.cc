@@ -34,7 +34,7 @@ int TEqTrkDtc::ConfigureJA(HNDLE H_Cmd) { // std::ostream& Stream) {
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
 
   // use settings from ODB read out in the constructor, but redirect the output
-  int rc = _dtc_i->ConfigureJA(sstr);
+  int rc = _dtc_i->ConfigureJA(-1,-1,sstr);
 
   int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
 

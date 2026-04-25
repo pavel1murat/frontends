@@ -122,11 +122,17 @@
          //-----------------------------------------------------------------------------
          // update cmd_params
          //-----------------------------------------------------------------------------
-         g_process_label = active_process_label;
-         if (active_process_label != null) {
-           const table     = document.getElementById('cmd_params');
-           table.innerHTML = '';
+         g_process_label = active_process_label; 
+         const cmd_params     = document.getElementById('cmd_params');
+         cmd_params.innerHTML = '';
+         
+         if (active_process_label != 'undefined') {
            const path = artdaq_process_config_path(null);
+           odb_browser('cmd_params',path,0);
+         }
+         else {
+           // load the node page
+           const path = node_parameter_path(null);
            odb_browser('cmd_params',path,0);
          }
          

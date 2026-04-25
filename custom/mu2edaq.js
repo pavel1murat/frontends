@@ -77,6 +77,11 @@ function cfo_load_parameters(cmd) {
 }
 
 //-----------------------------------------------------------------------------
+function node_parameter_path(cmd) {
+  return `/Mu2e/Commands/DAQ/Nodes/${g_hostname}`;
+}
+
+//-----------------------------------------------------------------------------
 function node_artdaq_parameter_path(cmd) {
   return `/Mu2e/Commands/DAQ/Nodes/${g_hostname}/Artdaq`;
 }

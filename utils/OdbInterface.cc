@@ -515,6 +515,13 @@ int OdbInterface::GetDtcSampleEdgeMode(HNDLE hDTC) {
 }
 
 //-----------------------------------------------------------------------------
+// should work for both DTC and CFO
+//-----------------------------------------------------------------------------
+uint32_t OdbInterface::GetRequiredFwVersion(HNDLE H_Dtc) {
+  return GetUInt32(H_Dtc,"FwVersion");
+}
+
+//-----------------------------------------------------------------------------
 int OdbInterface::GetIsCrv(HNDLE hDTC) {
   const char* key {"IsCrv"};
   INT   data(0);       // if not found, set to false
