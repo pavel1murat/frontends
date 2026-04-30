@@ -67,6 +67,7 @@ public:
   virtual int EndRun           (int RunNumber) override;
   
   int         ConfigureJA      (HNDLE H_Cmd);
+  int         ClearStatus      (HNDLE H_Cmd);
   int         DigiRead         (HNDLE H_Cmd);
   int         DigiRW           (HNDLE H_Cmd);
   int         DigiWrite        (HNDLE H_Cmd);

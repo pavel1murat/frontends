@@ -626,8 +626,9 @@ int TEqTrkDtc::HandlePeriodic() {
         }
       }
 //-----------------------------------------------------------------------------
-// SPI
+// SPI - an ODB change should be sufficient
 //-----------------------------------------------------------------------------
+      _monitorSPI          = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/SPI"  );
       if (_monitorSPI > 0) {
         TLOG(TLVL_DEBUG+1) << "saving ROC:" << ilink << " SPI data";
         

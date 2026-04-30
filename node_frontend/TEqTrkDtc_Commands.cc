@@ -16,10 +16,38 @@
 #define  TRACE_NAME "TEqTrkDtc"
 
 //-----------------------------------------------------------------------------
-// takes parameters from ODB
-// a DTC can execute one command at a time
-// this command is fast,
-// equipment knows the node name and has an interface to ODB
+// clear DTC status in ODB (including status oof its links)
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::ClearStatus(HNDLE H_Cmd) { // std::ostream& Stream) {
+  int rc(0);
+  
+  TLOG(TLVL_DEBUG) << "--- START";
+  SetStatus(1); // BUSY
+  
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  // HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
+  
+  std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+
+  for (int i=0; i<6; i++) {
+    _dtc_i->ClearLinkStatus(i);
+                                        // and reflect that in ODB
+    std::string link_odb_path = std::format("Link{}",i);
+    _odb_i->SetInteger(_handle,link_odb_path.data(),0);
+  }
+                                        // and clear own status
+  SetStatus(0);
+
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+
+  SetCommandFinished(H_Cmd,rc);
+  
+  TLOG(TLVL_DEBUG) << std::format("--- END rc:{} log_rc:{}",rc,log_rc);
+  return rc;
+}
+
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::ConfigureJA(HNDLE H_Cmd) { // std::ostream& Stream) {
 
@@ -1845,7 +1873,7 @@ int TEqTrkDtc::SetRocDelay(HNDLE H_Cmd) {
   // int doit        = o["doit"] ;
   // int print_level = o["print_level"] ;
 
-  int         link    = _odb_i->GetInteger(H_Cmd    ,"link"       );
+  //  int         link    = _odb_i->GetInteger(H_Cmd    ,"link"       );
   std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
 
   //  int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
