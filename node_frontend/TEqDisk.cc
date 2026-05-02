@@ -107,22 +107,35 @@ int TEqDisk::HandlePeriodic() {
 
   TLOG(TLVL_DEBUG+1) << "output=" << output;
 
-  json md = json::parse(output);  // 'md' : 'monitoring data'
-
-  TLOG(TLVL_DEBUG+1) << "parsed json:" << md;
-
+  float fsize_gb(-1.), rate_to_disk(-1.), log_space_used(-1.), log_space_avail(-1.), data_space_used(-1.), data_space_avail(-1.);
   std::time_t ctime_sec = std::time(nullptr); // md["ctime_sec"  ];
-  float       fsize_gb  = md["fsize_gb"   ];
-  // MBytes/sec
-  float rate_to_disk = (fsize_gb - _prev_fsize_gb)/(ctime_sec-_prev_ctime_sec+1.e-12)*1024;
+  
+  try {
+    json md = json::parse(output);  // 'md' : 'monitoring data'
 
-  TLOG(TLVL_DEBUG+1) << "ctime_sec:" << ctime_sec
-                     << " _prev_ctime_sec:" << _prev_ctime_sec
-                     << " fsize_gb:" << fsize_gb
-                     << " _prev_fsize_gb:" << _prev_fsize_gb;
+    TLOG(TLVL_DEBUG+1) << "parsed json:" << md;
 
-  _prev_ctime_sec = ctime_sec;
-  _prev_fsize_gb  = fsize_gb;
+    fsize_gb         = md["fsize_gb"        ];
+    log_space_avail  = md["log_space_avail" ];
+    log_space_used   = md["log_space_used"  ];
+    data_space_avail = md["data_space_avail"];
+    data_space_used  = md["data_space_used" ];
+    
+    // MBytes/sec
+    rate_to_disk = (fsize_gb - _prev_fsize_gb)/(ctime_sec-_prev_ctime_sec+1.e-12)*1024;
+
+    TLOG(TLVL_DEBUG+1) << "ctime_sec:" << ctime_sec
+                       << " _prev_ctime_sec:" << _prev_ctime_sec
+                       << " fsize_gb:" << fsize_gb
+                       << " _prev_fsize_gb:" << _prev_fsize_gb;
+    
+    _prev_ctime_sec = ctime_sec;
+    _prev_fsize_gb  = fsize_gb;
+  }
+  catch (...) {
+    TLOG(TLVL_ERROR) << std::format("JSON parser failed to parse output");
+    rc = -1;
+  }
 //-----------------------------------------------------------------------------
 // create bank
 //-----------------------------------------------------------------------------
@@ -137,10 +150,10 @@ int TEqDisk::HandlePeriodic() {
   *ptr++ = ctime_sec;
   *ptr++ = fsize_gb;
   *ptr++ = rate_to_disk;
-  *ptr++ = md["log_space_used" ];
-  *ptr++ = md["log_space_avail"];
-  *ptr++ = md["data_space_used"];
-  *ptr++ = md["data_space_avail"];
+  *ptr++ = log_space_used;
+  *ptr++ = log_space_avail;
+  *ptr++ = data_space_used;
+  *ptr++ = data_space_avail;
   *ptr++ = -1.;
   *ptr++ = -1.;
   *ptr++ = -1.;

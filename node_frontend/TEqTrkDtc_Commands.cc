@@ -857,7 +857,14 @@ int TEqTrkDtc::MeasureThresholds(HNDLE H_Cmd) {
 //-----------------------------------------------------------------------------
     rc = _dtc_i->ControlRoc_ReadThresholds(lnk,thr[lnk],0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,
                                            print_level,sstr);
-    if (rc < 0) break;
+    if (rc < 0) {
+      std::string msg = std::format("DTC:{} link:{} failed to read thresholds, BAIL OUT",_dtc_i->PcieAddr(),lnk);
+      sstr << msg << std::endl;
+      TLOG(TLVL_ERROR) << msg;
+      cm_msg(MERROR,__func__,msg.data());
+      cm_msg_flush_buffer();
+      break;
+    }
 //-----------------------------------------------------------------------------
 // now store the output in the ODB, the packing order: (hv, cal) ... ignore 'tot')
 //-----------------------------------------------------------------------------

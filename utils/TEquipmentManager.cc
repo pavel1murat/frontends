@@ -96,6 +96,8 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
     TLOG(TLVL_DEBUG) << std::format("checking status of eq->Name():{} at eq->HostLabel():{}",eq->Name(),eq->HostLabel());
     int status = eq->GetStatus();
     if (status < 0) {
+      TLOG(TLVL_ERROR) << std::format("eq->Name():{} at eq->HostLabel():{} has status:{}. BAIL OUT",
+                                      eq->Name(),eq->HostLabel(),status);
       ok = false;
       break;
     }
@@ -110,7 +112,9 @@ TMFeResult TEquipmentManager::HandleInit(const std::vector<std::string>& args) {
   else {
     EqSetStatus("init_failed", "red");
     fMfe->Msg(MERROR, "HandleInit", std::format("failed").data());
-    res = TMFeResult(-1,std::format("{} failed ",_host_label));
+    // return OK always - I want the frontend to always start 
+    //    res = TMFeResult(-1,std::format("{} failed ",_host_label));
+    res = TMFeOk();
   }
 
   TLOG(TLVL_DEBUG) << "-- END";
