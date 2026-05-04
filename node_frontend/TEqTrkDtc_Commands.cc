@@ -30,6 +30,9 @@ int TEqTrkDtc::ClearStatus(HNDLE H_Cmd) { // std::ostream& Stream) {
   // HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
   
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   for (int i=0; i<6; i++) {
     _dtc_i->ClearLinkStatus(i);
@@ -60,6 +63,9 @@ int TEqTrkDtc::ConfigureJA(HNDLE H_Cmd) { // std::ostream& Stream) {
   // HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
   
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   // use settings from ODB read out in the constructor, but redirect the output
   int rc = _dtc_i->ConfigureJA(-1,-1,sstr);
@@ -89,6 +95,9 @@ int TEqTrkDtc::DigiRead(HNDLE H_Cmd) {
   
   int         link    = _odb_i->GetInteger(H_Cmd,"link"   );
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   int hvcal       = _odb_i->GetUInt16 (h_cmd_par,"hvcal"      );   //
   int address     = _odb_i->GetUInt16 (h_cmd_par,"address"    );   //
@@ -126,6 +135,9 @@ int TEqTrkDtc::DigiRW(HNDLE H_Cmd) {
     
   int         link    = _odb_i->GetInteger(H_Cmd,"link");
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   par.rw           = _odb_i->GetUInt16 (h_cmd_par,"rw");         //
   par.hvcal        = _odb_i->GetUInt16 (h_cmd_par,"hvcal");      //
@@ -163,6 +175,9 @@ int TEqTrkDtc::DigiWrite(HNDLE H_Cmd) {
     
   int         link    = _odb_i->GetInteger(H_Cmd,"link"   );
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   int hvcal        = _odb_i->GetUInt16 (h_cmd_par,"hvcal"  );     //
   int address      = _odb_i->GetUInt16 (h_cmd_par,"address");     //
@@ -200,6 +215,9 @@ int TEqTrkDtc::DumpSettings(HNDLE H_Cmd) { // std::ostream& Stream) {
     
   int         link      = _odb_i->GetInteger(H_Cmd,"link"       );    //
   std::string logfile   = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   int channel           = _odb_i->GetInteger(h_cmd_par,"channel"    );    //
   int print_level       = _odb_i->GetInteger(h_cmd_par,"print_level");
@@ -239,6 +257,9 @@ int TEqTrkDtc::GetKey(HNDLE H_Cmd) {
 
   int         link    = _odb_i->GetInteger(H_Cmd,"link");
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   try         {
     std::vector<uint16_t> data;
@@ -265,6 +286,9 @@ int TEqTrkDtc::GetRocDesignInfo(HNDLE H_Cmd) {
   
   int         link    = _odb_i->GetInteger(H_Cmd,"link");
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   int rmin(link), rmax(link+1);
   if (link == -1) {
@@ -336,6 +360,9 @@ int TEqTrkDtc::InitReadout(HNDLE H_Cmd) { // std::ostream& Stream) {
   StartMessage(H_Cmd,sstr);
 
   std::string logfile             = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   HNDLE    h_daq                  = _odb_i->GetDaqConfigHandle();
 
@@ -435,6 +462,9 @@ int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
 
   int link            = _odb_i->GetInteger(H_Cmd    ,"link"       );
   std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   int print_level     = _odb_i->GetInteger(h_cmd_par,"print_level");
   int doit            = _odb_i->GetInteger(h_cmd_par,"doit");
 
@@ -588,6 +618,9 @@ int TEqTrkDtc::HardReset(HNDLE H_Cmd) {
   
   // HNDLE       h_cmd_par   = _odb_i->GetCmdParameterHandle(H_Cmd);
   std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   try         {
     _dtc_i->Dtc()->HardReset();
@@ -620,6 +653,9 @@ int TEqTrkDtc::LoadChannelMap(HNDLE H_Cmd) {
   
   int         link    = _odb_i->GetInteger(H_Cmd    ,"link"       );
   std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
   int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
@@ -660,6 +696,9 @@ int TEqTrkDtc::LoadThresholds(HNDLE H_Cmd) {
   
   int         link    = _odb_i->GetInteger(H_Cmd    ,"link"       );
   std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   HNDLE h_cmd_par     = _odb_i->GetCmdParameterHandle(H_Cmd);
   int doit            = _odb_i->GetInteger(h_cmd_par,"doit"       );
@@ -823,6 +862,9 @@ int TEqTrkDtc::MeasureThresholds(HNDLE H_Cmd) {
   std::string cmd_name = _odb_i->GetString (H_Cmd,"Name");
   int         link     = _odb_i->GetInteger(H_Cmd,"link");
   std::string logfile  = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   int   print_level    = _odb_i->GetInteger(h_cmd_par,"print_level");
   
@@ -915,6 +957,9 @@ int TEqTrkDtc::PrintRocStatus(HNDLE H_Cmd) {
   
   // HNDLE       h_cmd_par   = _odb_i->GetCmdParameterHandle(H_Cmd);
   std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   int         link        = _odb_i->GetInteger(H_Cmd,"link"    );
 
   TLOG(TLVL_DEBUG) << std::format("link:{} logfile:{}",link,logfile);
@@ -947,6 +992,9 @@ int TEqTrkDtc::PrintStatus(HNDLE H_Cmd) {
   
   // HNDLE       h_cmd_par   = _odb_i->GetCmdParameterHandle(H_Cmd);
   std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   TLOG(TLVL_DEBUG) << std::format("logfile:{}",logfile);
   rc = _dtc_i->PrintStatus(sstr);
@@ -973,6 +1021,9 @@ int TEqTrkDtc::PulserOff(HNDLE H_Cmd) {
 
   int         link        = _odb_i->GetInteger(H_Cmd,"link"   );    //
   std::string logfile     = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   int         print_level = _odb_i->GetInteger(h_cmd_par,"print_level"       );
 
@@ -999,6 +1050,9 @@ int TEqTrkDtc::PulserOn(HNDLE H_Cmd) {
 
   int         link    = _odb_i->GetInteger(H_Cmd,"link"   );    //
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   int first_channel_mask, duty_cycle, pulser_delay, print_level;
 
@@ -1045,6 +1099,9 @@ int TEqTrkDtc::Rates(HNDLE H_Cmd) {
 
   int         link            = _odb_i->GetInteger(H_Cmd,"link"   );
   std::string logfile         = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   for (int i=0; i<6; i++) {
     rates  [i].reserve(96);
@@ -1232,6 +1289,9 @@ int TEqTrkDtc::Read(HNDLE H_Cmd) {
   int print_level            = _odb_i->GetInteger(h_cmd_par,"print_level");
     
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   int         lnk1    = _odb_i->GetInteger(H_Cmd,"link"    );  // note where it is coming from
   
   int lnk2 = lnk1+1;
@@ -1326,6 +1386,9 @@ int TEqTrkDtc::ReadDDR(HNDLE H_Cmd) {
 
   int         link      = _odb_i->GetInteger(H_Cmd    ,"link"       ); // o["link"       ];
   std::string logfile   = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   int         block_number = _odb_i->GetInteger(h_cmd_par,"block_number");
 //-----------------------------------------------------------------------------
@@ -1354,6 +1417,9 @@ int TEqTrkDtc::ReadDeviceID(HNDLE H_Cmd) {
 
   int         link        = _odb_i->GetInteger(H_Cmd,"link"    ); // o["link"       ];
   std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   int         print_level = _odb_i->GetInteger(h_cmd_par,"print_level"); // o["print_level"];
 
@@ -1410,6 +1476,9 @@ int TEqTrkDtc::ReadRegister(HNDLE H_Cmd) {
   StartMessage(H_Cmd,sstr);
 
   std::string logfile   = _odb_i->GetString(H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   HNDLE       h_cmd_par = _odb_i->GetHandle(H_Cmd,"read_register");
 
@@ -1449,6 +1518,9 @@ int TEqTrkDtc::ReadRocRegister(HNDLE H_Cmd) {
 
   int         link      = _odb_i->GetInteger(H_Cmd,"link"   );
   std::string logfile   = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   HNDLE       h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
 
@@ -1490,6 +1562,9 @@ int TEqTrkDtc::ReadMnID(HNDLE H_Cmd) {
 
   int         link       = _odb_i->GetInteger(H_Cmd    ,"link"       ); // o["link"       ];
   std::string logfile    = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   int         print_level = _odb_i->GetInteger(h_cmd_par,"print_level"); // o["print_level"];
 
@@ -1552,6 +1627,9 @@ int TEqTrkDtc::ReadIlp(HNDLE H_Cmd) {
 
   int         link        = _odb_i->GetInteger(H_Cmd,"link"    );
   std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   int         print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
   
@@ -1600,6 +1678,9 @@ int TEqTrkDtc::ReadSpi(HNDLE H_Cmd) {
 
   int         link        = _odb_i->GetInteger(H_Cmd,"link"    ); // o["link"       ];
   std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   int         print_level = _odb_i->GetInteger(h_cmd_par,"print_level"); // o["print_level"];
  
@@ -1641,6 +1722,9 @@ int TEqTrkDtc::ReadSubevents(HNDLE H_Cmd) {
   HNDLE       h_cmd_par   = _odb_i->GetCmdParameterHandle(H_Cmd);
   
   std::string logfile     = _odb_i->GetString (H_Cmd    ,"logfile"    );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   int         first_ewt   = _odb_i->GetInteger(h_cmd_par,"first_ewt"  );
   int         print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
   int         validate    = _odb_i->GetInteger(h_cmd_par,"validate"   );
@@ -1675,6 +1759,9 @@ int TEqTrkDtc::RebootMcu(HNDLE H_Cmd) {
 
   int         link    = _odb_i->GetInteger(H_Cmd    ,"link"       ); // o["link"       ];
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   rc = _dtc_i->RebootMcu(link);
 
@@ -1699,6 +1786,9 @@ int TEqTrkDtc::ResetDigis(HNDLE H_Cmd) {
 
   int         link    = _odb_i->GetInteger(H_Cmd,"link"       ); // o["link"       ];
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   rc = _dtc_i->ResetDigis(link);
 
@@ -1725,6 +1815,9 @@ int TEqTrkDtc::ResetRoc(HNDLE H_Cmd) {
 
   int         link     = _odb_i->GetInteger(H_Cmd,"link"   ); // o["link"       ];
   std::string logfile  = _odb_i->GetString (H_Cmd,"logfile");
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   //  int print_level  = o["print_level"];
   
@@ -1752,6 +1845,9 @@ int TEqTrkDtc::SaveChannelMap(HNDLE H_Cmd) {
   
   int link            = _odb_i->GetInteger(H_Cmd,"link"       );
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile"    );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
   int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
@@ -1794,6 +1890,9 @@ int TEqTrkDtc::SaveThresholds(HNDLE H_Cmd) {
   
   int link            = _odb_i->GetInteger(H_Cmd    ,"link"       );
   std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   HNDLE h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
   //  int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
@@ -1837,6 +1936,9 @@ int TEqTrkDtc::SetCalDac(HNDLE H_Cmd) {
 
   int link               = _odb_i->GetInteger(H_Cmd,"link"    ); // o["link"       ];
   std::string logfile    = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   int first_channel_mask = _odb_i->GetInteger(h_cmd_par,"first_channel_mask");    //
   int value              = _odb_i->GetInteger(h_cmd_par,"value"             );    //
@@ -1882,6 +1984,9 @@ int TEqTrkDtc::SetRocDelay(HNDLE H_Cmd) {
 
   //  int         link    = _odb_i->GetInteger(H_Cmd    ,"link"       );
   std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   //  int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
   // int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
@@ -1939,6 +2044,9 @@ int TEqTrkDtc::SetThresholds(HNDLE H_Cmd) {
 
   int link        = _odb_i->GetInteger(H_Cmd,"link"       );
   std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"    );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   int doit        = _odb_i->GetInteger(h_cmd_par,"doit"       );
   int print_level = _odb_i->GetInteger(h_cmd_par,"print_level");
@@ -2046,6 +2154,9 @@ int TEqTrkDtc::SoftReset(HNDLE H_Cmd) {
   StartMessage(H_Cmd,sstr);
   
   std::string logfile     = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   try         {
     _dtc_i->Dtc()->SoftReset();
@@ -2102,6 +2213,9 @@ int TEqTrkDtc::TestCommand(HNDLE H_Cmd) {
   SetStatus(1);
 
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
   
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
@@ -2132,6 +2246,9 @@ int TEqTrkDtc::WriteRegister(HNDLE H_Cmd) {
 
   HNDLE       h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
   std::string logfile   = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
 
   try {
     int      timeout_ms(150);
@@ -2167,7 +2284,10 @@ int TEqTrkDtc::WriteRocRegister(HNDLE H_Cmd) { // std::ostream& Stream) {
   
   int         link      = _odb_i->GetInteger(H_Cmd,"link"    );
   std::string logfile   = _odb_i->GetString (H_Cmd,"logfile" );
-  
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
+
   uint16_t    reg       = _odb_i->GetUInt16 (h_cmd_par,"register");
   uint16_t    val       = _odb_i->GetUInt16 (h_cmd_par,"value"   );
 //-----------------------------------------------------------------------------

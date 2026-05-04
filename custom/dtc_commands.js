@@ -40,8 +40,46 @@ function choose_dtc_id(evt, id) {
 function update_dtc_id(evt, id) {
   choose_dtc_id(evt,id);
   loadPage();
-  // createRocCommandsTable();
   dtc_load_parameters();
+}
+
+
+//-----------------------------------------------------------------------------
+async function dtc_update_roc_tab_color(roc) {
+  
+  const  paths=[`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/Link${roc.index}/Status`,];
+  rpc = await mjsonrpc_db_get_values(paths); // .then(function(rpc) {
+  status = rpc.result.data[0];
+
+  if (status < 0) {
+    if (roc.active == 0) {
+      roc.dataset.index = "2";
+    }
+    else {
+      roc.dataset.index = "4";
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+function dtc_update_roc_tabs() {
+  console.log('-- START dtc_update_roc_tabs');
+  let roctabs = document.getElementsByClassName("roctabs");
+  // 'ALL' tab is the last one
+  for (const roc of roctabs) {
+    if (roc.index == 6) {
+      continue;
+    }
+    if (roc.active == 0) {
+      roc.dataset.index = "1";
+    }
+    else {
+      roc.dataset.index = "3";
+    }
+    dtc_update_roc_tab_color(roc);
+  };
+  
+  console.log('-- END dtc_update_roc_tabs');
 }
 
 //-----------------------------------------------------------------------------      
@@ -50,16 +88,35 @@ function update_dtc_id(evt, id) {
 function choose_roc_id(evt, id) {
   let i, roctabs;
   roctabs = document.getElementsByClassName("roctabs");
-  for (i=0; i<roctabs.length; i++) {
-    roctabs[i].className = roctabs[i].className.replace(" active", "");
-  }
-  document.getElementById(id).style.display = "block";
-  evt.currentTarget.className += " active";
-  
-  g_roc = Number(id.charAt(3)); // forth character: 'rocX'
-  // -1: all ROCs
-  if (g_roc == 6) {g_roc = -1};
-  console.log('g_roc=',g_roc);
+  // 'ALL' tab is the last one
+  for (const item of roctabs) {
+    // item.classList.remove("active");
+    // item.classList.remove("error");
+    item.dataset.index = "1";
+    item.active        = 0;
+
+    if (item.index != 6) {
+      dtc_update_roc_tab_color(item); // can only declare an ERROR state
+    }
+
+    if (item == evt.currentTarget) {
+      item.active        = 1;
+      if (item.dataset.index == "1") {
+        item.dataset.index = "3";
+      }
+      else {
+        item.dataset.index = "4";
+      }
+      document.getElementById(id).style.display = "block";
+      // evt.currentTarget.classList.add("active");
+      
+      g_roc = evt.currentTarget.index; // Number(id.charAt(3)); // forth character: 'rocX'
+      if (g_roc == 6) {
+        g_roc = -1
+      };
+      console.log('g_roc=',g_roc);
+    }
+  };
 }
 
 //-----------------------------------------------------------------------------
