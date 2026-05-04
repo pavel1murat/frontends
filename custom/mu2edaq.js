@@ -558,6 +558,15 @@ function mu2e_make_exec_button_B(cmd) {
 }
 
 //-----------------------------------------------------------------------------
+function mu2e_make_exec_button_D(cmd) {
+  let btn    = document.createElement('input');
+  btn.type    = 'button'
+  btn.value   = cmd.title;
+  btn.onclick = function() { cmd.f_handle_left_click(cmd) ; }
+  return btn;
+}
+
+//-----------------------------------------------------------------------------
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
