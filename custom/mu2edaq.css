@@ -60,6 +60,12 @@ body {
     background: #bdb;
 }
 
+/* Automatic color changes based on the data-index value */
+.roctabs[data-index="1"] { background-color: #f2f2f2; }
+.roctabs[data-index="2"] { background-color: #ff3333;     }
+.roctabs[data-index="3"] { background-color: #bdb;    }
+.roctabs[data-index="4"] { background-color: #882222;    }
+
 #artdaq_process_tabs {
     padding   : 10px;
     height    : 440px;
@@ -121,7 +127,7 @@ body {
 
 /* Change background color of buttons on hover */
 .tab button:hover {
-  background-color: #ddd;
+  background-color: #ccc;
 }
 
 /* Create an active/current tablink class */
@@ -132,6 +138,11 @@ body {
 /* Create an active/current tablink class */
 .tab button.disabled {
   background-color: #e9aa;
+}
+
+/* Create an error tablink class */
+.tab button.error {
+  background-color: #ee0000;
 }
 
 /* Style the tab content */

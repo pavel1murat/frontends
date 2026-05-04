@@ -116,7 +116,8 @@ int TEqTracker::ExecuteDtcCommand(HNDLE H_Cmd) { // const std::string& Cmd) {
       int dtc_status = odb_i->GetInteger(h_dtc,"Status");
       if (dtc_status == 0) {
         odb_i->SetString (h_dtc_cmd,"Name"         ,cmd);
-        odb_i->SetString (h_dtc_cmd,"logfile"      ,logfile);
+        // set logfile to "default" for the DTC to write in its own logfile
+        odb_i->SetString (h_dtc_cmd,"logfile"      ,"default");
         odb_i->SetString (h_dtc_cmd,"ParameterPath",cmd_parameter_path);
         odb_i->SetInteger(h_dtc_cmd,"link"         ,lnk);
         odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);

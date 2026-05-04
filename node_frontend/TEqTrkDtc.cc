@@ -92,8 +92,13 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     _dtc_i->fDtcID          = _odb_i->GetDtcID         (H_Dtc);
     _dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte(H_Dtc);
     _dtc_i->fEmulateCfo     = _odb_i->GetDtcEmulatesCfo(H_Dtc);
-        
-    _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(H_Dtc);
+//-----------------------------------------------------------------------------
+// use global sample edge mode from /Mu2e/ActiveRunConfiguration/DAQ/ForceCFOSampleEdgeSelect
+//-----------------------------------------------------------------------------
+    // _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(H_Dtc);
+    HNDLE h_daq             = _odb_i->GetDaqConfigHandle(H_RunConf);
+    _dtc_i->fSampleEdgeMode = _odb_i->GetInteger(h_daq,"ForceCfoSampleEdgeSelect");
+    
     _dtc_i->fEventMode      = _odb_i->GetEventMode        (H_RunConf);
     _dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode   (H_RunConf);
     _dtc_i->fJAMode         = _odb_i->GetJAMode           (H_Dtc);
@@ -114,7 +119,7 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
                      << std::format(" roc_lane_mask:0x{:04x}",_dtc_i->fRocLaneMask) ;
     //                     << std::format(" DTC ewm_delay_5ns:{}",_dtc_i->fDtcEwmDelay5ns) ;
 //-----------------------------------------------------------------------------
-// loop over links, redefine the enabled link mask (also in ODB)
+// loop over the links, redefine the enabled link mask (also in ODB)
 // also store in ODB IDs of the ROCs
 //-----------------------------------------------------------------------------
     int mask = 0;

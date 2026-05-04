@@ -149,6 +149,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // the tracker STATUS will be updated by WaitForCompletion
 // make waiting a thread not to interfere with the communication with MIDAS
+// WaitForCompletion will update the status
 //-----------------------------------------------------------------------------
   std::thread t(&TEqTracker::WaitForCompletion,eq,h_cmd);
   t.detach();
@@ -160,7 +161,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 // this is a static function - why? 
 //-----------------------------------------------------------------------------
-int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
+int TEqTracker::WaitForCompletion(HNDLE H_Cmd) {
 //-----------------------------------------------------------------------------
 // wait for the command completion or timeout - this is a common part for all
 // "per-DTC" commands
@@ -172,17 +173,30 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
   
   //  ss_sleep(100);
 
+  TLOG(TLVL_DEBUG) << std::format("--- START: hCmd:{}",H_Cmd);
+
   int wait_time(0), n_not_finished(100);
 
   HNDLE h_trk_cfg     = _odb_i->GetTrackerConfigHandle();
   int first_station   = _odb_i->GetInteger(h_trk_cfg,"FirstStation");
   int last_station    = _odb_i->GetInteger(h_trk_cfg,"LastStation" ); 
 
-  HNDLE h_cmd_par   = _odb_i->GetCmdParameterHandle(h_Cmd);
-  std::string cmd   = _odb_i->GetString (h_Cmd    ,"Name"      );
-  int timeout_ms    = _odb_i->GetInteger(h_cmd_par,"timeout_ms");
+  HNDLE h_cmd_par     = _odb_i->GetCmdParameterHandle(H_Cmd);
+  std::string cmd     = _odb_i->GetString (H_Cmd    ,"Name"      );
+  std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"   );
+  int timeout_ms      = _odb_i->GetInteger(h_cmd_par,"timeout_ms");
 
-  TLOG(TLVL_DEBUG) << std::format("--- START: cmd:{} timeout_ms:{}",cmd,timeout_ms); 
+  TLOG(TLVL_DEBUG) << std::format("cmd:{} timeout_ms:{}",cmd,timeout_ms);
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  int rcc[18][2];
+  for (int is=first_station; is<last_station+1; ++is) {
+    for (int pln=0; pln<2; ++pln) {
+      rcc[is][pln] = -999;
+    }
+  }
 
   while ((n_not_finished > 0) and (wait_time < timeout_ms)) {
     ss_sleep(100);
@@ -201,12 +215,14 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
         std::string node      = _odb_i->GetDtcHostLabel  (h_dtc);
         HNDLE       h_dtc_cmd = _odb_i->GetDtcCmdHandle  (node,pcie_addr);
         
-        int status = _odb_i->GetInteger(h_dtc    ,"Status"    );
-        int rc     = _odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
+        int finished = _odb_i->GetInteger(h_dtc    ,"Finished"  );
+        int rc       = _odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
         
-        if (status == 0) {
+        if (finished == 0) {
                                         // completed
-          if (rc != 0) return_code += rc;
+          
+          rcc[is][pln] = _odb_i->GetInteger(h_dtc    ,"Status" );
+          if (rc != 0) return_code += rcc[is][pln];
         }
         else {
           n_not_finished += 1;
@@ -221,12 +237,21 @@ int TEqTracker::WaitForCompletion(HNDLE h_Cmd) {
   if (return_code == 0) {
     if (n_not_finished != 0) return_code = 1; // (BUSY) ... timeout
   }
+
+  for (int is=first_station; is<last_station+1; ++is) {
+    sstr << std::format(" station:{:02} DTC0 rc:{:4} DTC1 rc:{:4}\n",is,rcc[is][0],rcc[is][1]);
+  }
+
   // do we really need the return code ? - perhaps Status would do ? 
-  // odb_i->SetInteger (h_Cmd,"ReturnCode",return_code);
+  // odb_i->SetInteger (H_Cmd,"ReturnCode",return_code);
 
-  SetCommandFinished(h_Cmd,return_code);
+  std::string msg = std::format("n_not_finished:{} return_code:{}",n_not_finished,return_code);
+  sstr << msg << std::endl;
+  TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
 
-  TLOG(TLVL_DEBUG) << std::format("-- END: n_not_finished:{} return_code:{}",n_not_finished,return_code);
+  SetCommandFinished(H_Cmd,return_code);
+
+  TLOG(TLVL_DEBUG) << std::format("-- END: {}",msg);
   return n_not_finished;
 }
 
