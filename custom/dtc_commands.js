@@ -63,7 +63,7 @@ async function dtc_update_roc_tab_color(roc) {
 
 //-----------------------------------------------------------------------------
 function dtc_update_roc_tabs() {
-  console.log('-- START dtc_update_roc_tabs');
+//  console.log('-- START dtc_update_roc_tabs');
   let roctabs = document.getElementsByClassName("roctabs");
   // 'ALL' tab is the last one
   for (const roc of roctabs) {
@@ -79,7 +79,7 @@ function dtc_update_roc_tabs() {
     dtc_update_roc_tab_color(roc);
   };
   
-  console.log('-- END dtc_update_roc_tabs');
+  // console.log('-- END dtc_update_roc_tabs');
 }
 
 //-----------------------------------------------------------------------------      

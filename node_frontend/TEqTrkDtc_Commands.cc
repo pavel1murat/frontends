@@ -37,7 +37,7 @@ int TEqTrkDtc::ClearStatus(HNDLE H_Cmd) { // std::ostream& Stream) {
   for (int i=0; i<6; i++) {
     _dtc_i->ClearLinkStatus(i);
                                         // and reflect that in ODB
-    std::string link_odb_path = std::format("Link{}",i);
+    std::string link_odb_path = std::format("Link{}/Status",i);
     _odb_i->SetInteger(_handle,link_odb_path.data(),0);
   }
                                         // and clear own status

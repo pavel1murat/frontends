@@ -70,7 +70,13 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 // CONFIGURE_JA
 //------------------------------------------------------------------------------
   int cmd_rc(0);
-  if      (cmd == "configure_ja") {
+  if      (cmd == "clear_status") {
+    cmd_rc = eq->ClearStatus(h_cmd);
+  }
+//-----------------------------------------------------------------------------
+// CONFIGURE_JA
+//------------------------------------------------------------------------------
+  else if      (cmd == "configure_ja") {
     cmd_rc = eq->ConfigureJA(h_cmd);
   }
 //-----------------------------------------------------------------------------
