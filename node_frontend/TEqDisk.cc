@@ -34,6 +34,9 @@ TEqDisk::TEqDisk(const char* Name, const char* Title) : TMu2eEqBase(Name,Title,T
   _prev_fsize_gb               = 0.;
 
   int rc = InitVarNames();
+  if (rc < 0) {
+    TLOG(TLVL_ERROR) << std::format("failure in call to TEqDiskInitVarNames()");
+  }
 }
 
 //-----------------------------------------------------------------------------

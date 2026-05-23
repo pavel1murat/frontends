@@ -57,7 +57,7 @@
 
        let cmd, btn;
        
-       cmd = new Command_D('read','read','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       cmd = new Command_D('read','read','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile,10000);
        btn = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 
@@ -69,7 +69,7 @@
 //       </div>
 //       </div>
        
-       cmd = new Command_D('pulser_on','pulser_on','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       cmd = new Command_D('pulser_on','pulser_on','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile,10000);
        btn = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 
@@ -81,7 +81,7 @@
 //       </div>
 //       </div>
        
-       cmd = new Command_D('pulser_off','pulser_off','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       cmd = new Command_D('pulser_off','pulser_off','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile,10000);
        btn = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 
@@ -93,7 +93,7 @@
 //       </div>
 //       </div>
 
-       cmd = new Command_D('rates','rates','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       cmd = new Command_D('rates','rates','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile,20000);
        btn = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
        
@@ -187,7 +187,7 @@
        // all station-level commands should set g_station in the command parameter record
        // mu2e_command_set_odb takes Command_B as input
 
-       let cmd_b = new Command_D('init readout','init_readout','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       let cmd_b = new Command_D('init readout','init_readout','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile,10000);
        let btn_b = mu2e_make_dropup_button_D(cmd_b);
        td.appendChild(btn_b);
 
@@ -203,7 +203,7 @@
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
 
-       cmd_b = new Command_D('read','read','trk_menu_01',trk_cmd_station_B,'trk_menu_01','cmd_params',trk_cmd_path,logfile);
+       cmd_b = new Command_D('read','read','trk_menu_02',trk_cmd_station_B,'trk_menu_01','cmd_params',trk_cmd_path,trk_load_help_page,logfile,10000);
        btn_b = mu2e_make_dropup_button_D(cmd_b);
        td.appendChild(btn_b);
 
@@ -347,7 +347,7 @@
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
        
-       cmd_b = new Command_D('read','read','trk_menu_01',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,logfile);
+       cmd_b = new Command_D('read','read','trk_menu_01',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,logfile,10000);
        btn_b = mu2e_make_dropup_button_D(cmd_b);
        td.appendChild(btn_b);
 
@@ -370,10 +370,27 @@
        td = document.createElement('td');
        td.colSpan = 11;
 
-       cmd_b = new Command_B('reset output','reset_output',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       cmd_b = new Command_B('reset_output','reset_output',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
        btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
 
+       cmd_b = new Command_B('pulser on','pulser_on',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       btn_b = mu2e_make_exec_button_B(cmd_b);
+       td.appendChild(btn_b);
+
+       cmd_b = new Command_B('pulser off','pulser_off',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile);
+       btn_b = mu2e_make_exec_button_B(cmd_b);
+       td.appendChild(btn_b);
+
+       cmd = new Command_D('check_fifos','check_fifos', 'trk_menu_02', mu2e_command_set_odb_B,'cmd_params', trk_cmd_path,trk_load_help_page,logfile,10000);
+       btn  = mu2e_make_dropup_button_D(cmd);
+       td.appendChild(btn);
+
+       // order: title, name, ...
+       cmd = new Command_B('print digis','print_digis',trk_cmd_all_stations_B,'cmd_params', trk_cmd_path,logfile);
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
+       
        tr.appendChild(td);
        thead.appendChild(tr);
        

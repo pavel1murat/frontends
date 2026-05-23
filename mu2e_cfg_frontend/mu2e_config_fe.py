@@ -34,6 +34,9 @@ CMD_EXECUTION_REQUEST  = 1
 CMD_STATUS_FINISHED_OK = 0
 CMD_STATUS_IN_PROGRESS = 1
 
+RUN_TYPE_LABEL = ['beam','cosmics','internal_pulser','pulse_injection','noise']
+        
+
 class PeriodicEquipment(midas.frontend.EquipmentBase):
     """
     This periodic equipment is very similar to the one in `examples/basic_frontend.py`
@@ -132,6 +135,7 @@ class PeriodicEquipment(midas.frontend.EquipmentBase):
 class MyMultiFrontend(midas.frontend.FrontendBase):
 
     def __init__(self):
+        TRACE.INFO("-- START",TRACE_NAME)
         # If using the frontend_index, encode the index in your equipment name.
         fe_name = "mu2e_config" #  % midas.frontend.frontend_index
         midas.frontend.FrontendBase.__init__(self, fe_name)
@@ -159,13 +163,13 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 
         self.client.odb_watch(self.cmd_top_path+"/Run", self.process_command)
 
-        TRACE.TRACE(TRACE.TLVL_DEBUG,f'constructor END',TRACE_NAME)
-        print("constructor end");
+        TRACE.INFO(f'-- END',TRACE_NAME)
 
 #------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------
     def start_dqm_processes(self,run_number):
+        TRACE.INFO(f'-- START',TRACE_NAME)
         config_name         = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
         partition_id        = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/PartitionID')
         base_port_number    = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ/Tfm/base_port_number')
@@ -186,17 +190,21 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                     TRACE.TRACE(TRACE.TLVL_DEBUG,f'subsystem:{ss} start DQM client:{cmd}')
                     proc = subprocess.Popen(cmd, shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8")
                     TRACE.TRACE(TRACE.TLVL_DEBUG,f'DQM client for subsystem:{ss} started')
+                    
+        TRACE.INFO(f'-- END',TRACE_NAME)
 
+                    
 #------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------
-    def send_begin_run_elog_message(self,run_number):
+    def create_begin_run_elog_message(self,run_number,fn):
+        TRACE.INFO(f'-- START',TRACE_NAME)
 
-        config_name   = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
-
-        fn = f'/tmp/begin_run_msg_{run_number}.txt'
         f = open(fn, "w")
-        f.write(f'begin run:{run_number} configuration:{config_name}\n\n')
+        config_name   = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
+        run_type      = self.client.odb_get("/Mu2e/ActiveRunConfiguration/RunType")
+        f.write(f'begin run:{run_number:6} run configuration:{config_name} run_type:{run_type} ({RUN_TYPE_LABEL[run_type-1]})\n\n')
+        f.write(f'DAQ configuration:\n')
 #------------------------------------------------------------------------------
 # CFO information - if could be either emulated or HW CFO
 #------------------------------------------------------------------------------
@@ -207,22 +215,52 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
             nev_per_train = cfo['NeventsPerTrain']
             ew_length     = cfo['EventWindowSize']
             sleep_time_ms = cfo['SleepTimeMs']
-            f.write(f' CFO mode: emulated  nev_per_train:{nev_per_train} ew_length:{ew_length} sleep_time_ms:{sleep_time_ms}\n\n')
+            f.write(f'CFO:emulated  nev_per_train:{nev_per_train} ew_length:{ew_length} sleep_time_ms:{sleep_time_ms}\n')
         else:
             run_plan          = cfo['run_plan']
             timing_chain_mask = cfo['timing_chain_mask']
             event_mode        = cfo['event_mode']
-            f.write(f' CFO mode: hardware run_plan:{run_plan} timing_chain_mask:0x{timing_chain_mask:08x} event_mode:{event_mode}\n\n')
+            f.write(f'- CFO:hardware run_plan:{run_plan} timing_chain_mask:0x{timing_chain_mask:08x} event_mode:{event_mode}\n')
 
         daq = self.client.odb_get('/Mu2e/ActiveRunConfiguration/DAQ');
+        force_edge = daq['ForceCfoSampleEdgeSelect']
+        f.write(f'- force_cf_sample_edge_select:{force_edge}\n');
+        roc_readout_mode = daq['RocReadoutMode']
+        f.write(f'- roc_readout_mode:{roc_readout_mode}\n');
         digitization_start_5ns = daq['digitization_start_5ns'];
         digitization_stop_5ns  = daq['digitization_stop_5ns'];
-        f.write(f'DAQ : digitization_start_5ns:{digitization_start_5ns} digitization_stop_5ns:{digitization_stop_5ns}\n\n')
+        f.write(f'- digitization_start_5ns:{digitization_start_5ns} digitization_stop_5ns:{digitization_stop_5ns}\n\n')
+#------------------------------------------------------------------------------
+# ARTDAQ information
+#------------------------------------------------------------------------------
+        f.write(f'ARTDAQ configuration - active nodes:\n')
+        nodes_odb_path = '/Mu2e/ActiveRunConfiguration/DAQ/Nodes';
+        nodes  = self.client.odb_get(nodes_odb_path);
+        for key in nodes.keys():
+            if (nodes[key]['Enabled'] == 0) : continue;
+            # the node is enabled
+            f.write(f'node:{key:<{12}} enabled processes: ')
+            procs = nodes[key]['Artdaq']
+            for p in procs.keys():
+                kk = procs[p]
+                TRACE.INFO(f'p:{p} is_dict:{isinstance(kk,dict)} kk:{kk}',TRACE_NAME)
+                if isinstance(kk,dict):
+                    # subdirectory, definition of a process
+                    if (kk['Enabled'] == 1):
+                        f.write(f' {p}');
+            f.write('\n');         
 
+#------------------------------------------------------------------------------
+# trigger information
+#------------------------------------------------------------------------------
+        f.write(f'\nTRIGGER configuration:\n')
+        trigger_odb_path = '/Mu2e/ActiveRunConfiguration/Trigger';
+        t_table =  self.client.odb_get(trigger_odb_path+'/Table')
+        f.write(f'trigger table name:{t_table}\n')
 #------------------------------------------------------------------------------
 # tracker information
 #------------------------------------------------------------------------------
-        f.write(f'TRACKER configuration:\n\n')
+        f.write(f'\nTRACKER configuration:\n\n')
         tracker_odb_path = '/Mu2e/ActiveRunConfiguration/Tracker';
         s1 =  self.client.odb_get(tracker_odb_path+'/FirstStation')
         s2 =  self.client.odb_get(tracker_odb_path+'/LastStation')
@@ -231,10 +269,12 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
             station_id       = self.client.odb_get(station_odb_path+'/production_id')
             enabled          = self.client.odb_get(station_odb_path+'/Enabled')
             if (enabled):
+                f.write(f'slot:{s:02} station:{station_id:02}\n')
                 rpi = self.client.odb_get(station_odb_path+'/RPI/Name')
                 for plane in range(0,2):
                     plane_odb_path = station_odb_path+f'/Plane_{plane:02}'
                     plane_enabled = self.client.odb_get(plane_odb_path+'/Enabled')
+                    f.write(f'plane:{plane:02} enabled:{plane_enabled} panels: ')
                     if (plane_enabled):
                         for panel in range(0,6):
                             panel_odb_path = plane_odb_path+f'/Panel_{panel:02}'
@@ -246,19 +286,32 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 
                                 hv_data_odb_path = f'/Equipment/{rpi}/Variables/LVHV[{24+hv_channel}]'
                                 panel_hv = self.client.odb_get(hv_data_odb_path)
-                                TRACE.TRACE(TRACE.TLVL_DEBUG,f'hv_data_odb_path:{hv_data_odb_path} panel_hv:{panel_hv:10.2f}',TRACE_NAME)
-                        
-                            f.write(f'station slot:{s:02} id:{station_id:02} plane:{plane} panel:{panel} {panel_name} HV:{panel_hv:10.2f}\n')
-
-                    else:
-                        f.write(f'station slot:{s:02} id:{station_id:02} plane:{plane} panel:{-1} {-1} HV:{-1:10.2f}\n')
+                                TRACE.TRACE(TRACE.TLVL_DEBUG,f'hv_data_odb_path:{hv_data_odb_path} panel_hv:{panel_hv:8.1f}',TRACE_NAME)
+                            
+                            f.write(f' {panel}:{panel_enabled}:{panel_name} HV:{-1:8.1f}')
+                    f.write('\n')
 
         f.close()
+        TRACE.INFO(f'-- END',TRACE_NAME)
+        return
+    
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+    def send_begin_run_elog_message(self,run_number):
+        TRACE.INFO(f'-- START',TRACE_NAME)
+
+        config_name   = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Name")
+        run_type      = self.client.odb_get("/Mu2e/ActiveRunConfiguration/RunType")
+        trigger_table = self.client.odb_get("/Mu2e/ActiveRunConfiguration/Trigger/Table")
+
+        fn = f'/tmp/begin_run_msg_{run_number}.txt'
+        self.create_begin_run_elog_message(run_number,fn);
 #
         cmd = "elog  -x -s -n 1 -h " + self.elog["host"] + " -p "+self.elog['port'] \
         + ' -d elog -l ' + self.elog['logbook'] + ' -u ' + self.elog['user'] + ' ' + self.elog['passwd'] \
         + f' -a author=murat -a type=routine -a category="data taking"' \
-        + f' -a subject="new run: {run_number} config:{config_name}"' \
+        + f' -a subject="new run: {run_number} config:{config_name} run_type:{run_type}({RUN_TYPE_LABEL[run_type-1]}) trigger_table:{trigger_table}"' \
         + f' -m {fn}'
 
         TRACE.TRACE(TRACE.TLVL_DEBUG,f'begin_of_run command:{cmd}',TRACE_NAME)
@@ -275,7 +328,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                  break;
              
         msg_id = self.elog['start_run_message_id']
-        TRACE.TRACE(TRACE.TLVL_DEBUG,f'-- END: run_number:{run_number} message_id:{msg_id}')
+        TRACE.INFO(f'-- END: run_number:{run_number} message_id:{msg_id}')
         
 #------------------------------------------------------------------------------
 # the configuration may change from one run to another,

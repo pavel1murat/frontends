@@ -8,6 +8,12 @@ function trk_panel_control(is, iplane, ipanel, mnid) {
 }
 
 //-----------------------------------------------------------------------------
+function trk_load_help_page(cmd) {
+  const url = 'https://mu2einternalwiki.fnal.gov/wiki/DTC_control_page#ROC_control_commands';
+  window.open(url,'_blank');
+}
+
+//-----------------------------------------------------------------------------
 // station_id is expected to be a string ... mmm
 //-----------------------------------------------------------------------------
 function trk_choose_station_id(evt, station_id) {

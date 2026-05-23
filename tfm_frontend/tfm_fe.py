@@ -342,6 +342,8 @@ class TfmFrontend(midas.frontend.FrontendBase):
         rc = self._fm.clear_farm_status();
         TRACE.INFO(f'-- END  : rc:{rc}',TRACE_NAME);
         
+        self.client.odb_set(self.tfm_odb_path+'/Status',rc )
+        self.client.odb_set(self.tfm_cmd_odb_path+'/Finished',1 )
         return rc;
     
 #------------------------------------------------------------------------------
@@ -395,19 +397,32 @@ class TfmFrontend(midas.frontend.FrontendBase):
     def process_cmd_generate_fcl(self):
         rc = 0;
         
-        TRACE.TRACE(TRACE.TLVL_INFO,f'-- START: TO BE FIXED, RETURN',TRACE_NAME);
-        return rc;
-
-        ppath          = parameter_path; # +'/generate_fcl'
+        TRACE.INFO(f'-- START: self.tfm_cmd_odb_path:{self.tfm_cmd_odb_path}',TRACE_NAME);
+        #        return rc;
+        ppath          = self.client.odb_get(self.tfm_cmd_odb_path+'/ParameterPath')
         par            = self.client.odb_get(ppath);
+
+        TRACE.INFO(f'par:{par}',TRACE_NAME);
+
         run_conf       = par["run_conf"];
         host           = par["host"    ];
         artdaq_process = par["process" ];
         diag_level     = par["print_level"];
 
-        cmd=os.getenv('MU2E_DAQ_DIR')+f'/config/scripts/generate_artdaq_fcl.py --run_conf={run_conf} --host={host} --process={artdaq_process} --diag_level={diag_level}';
+        TRACE.INFO(f'run_conf:{run_conf} host:{host} process:{artdaq_process} diag_level:{diag_level}',TRACE_NAME);
+
+        cmd=os.getenv('MU2E_DAQ_DIR')+f'/config/scripts/gen_artdaq_fcl.py --run_conf={run_conf} --host={host} --process={artdaq_process} --diag_level={diag_level}';
+
+        TRACE.INFO(f'cmd:{cmd}',TRACE_NAME);
+        
         p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True,text=True)
         stdout, stderr = p.communicate();
+        TRACE.INFO(f'after subprocess.Popen p.returncode={p.returncode}',TRACE_NAME);
+        if (p.returncode != 0):
+            TRACE.ERROR(f'ERROR in gen_artdaq_fcl : rc:{rc}',TRACE_NAME);
+            err_lines = stderr.split('\n');
+            for line in err_lines:
+                TRACE.ERROR(f'{line}\n',TRACE_NAME)
 #------------------------------------------------------------------------------
 # write output - first , last message
 # write error output, if any, first - to the message file, then - to the logfile
@@ -436,7 +451,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
                 for line in err_lines:
                     logfile.write(line+"\n")
 
-        TRACE.TRACE(TRACE.TLVL_INFO,f'-- END: run_conf:{run_conf} host:{host} process:{artdaq_process}',TRACE_NAME);
+        TRACE.INFO(f'-- END: run_conf:{run_conf} host:{host} process:{artdaq_process}',TRACE_NAME);
         return rc;
     
 #------------------------------------------------------------------------------

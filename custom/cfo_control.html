@@ -72,11 +72,11 @@
        let btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_D('configure_ja','configure_ja',"cfo_menu_02", mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,cfo_load_help_page,logfile);
+       cmd = new Command_D('configure_ja','configure_ja',"cfo_menu_02", mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,cfo_load_help_page,logfile,5000);
        btn  = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 
-       cmd = new Command_D('init_readout','init_readout','cfo_menu_01',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,cfo_load_help_page,logfile);
+       cmd = new Command_D('init_readout','init_readout','cfo_menu_01',mu2e_command_set_odb_B,'cmd_params', cfo_cmd_parameter_path,cfo_load_help_page,logfile,5000);
        btn  = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 
@@ -155,7 +155,7 @@
        td = document.createElement('td');
        td.colSpan = 6;
 
-       cmd = new Command_D('set_run_plan','set_run_plan','cfo_menu_01',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,cfo_load_help_page,logfile);
+       cmd = new Command_D('set_run_plan','set_run_plan','cfo_menu_01',mu2e_command_set_odb_B,'cmd_params',cfo_cmd_parameter_path,cfo_load_help_page,logfile,5000);
        btn = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 

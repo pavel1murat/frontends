@@ -23,16 +23,14 @@
 int TEqTracker::ExecuteDtcCommand(HNDLE H_Cmd) { // const std::string& Cmd) {
   int rc(0);
 
-  OdbInterface* odb_i = OdbInterface::Instance();
-  HNDLE h_trk_cfg   = odb_i->GetTrackerConfigHandle();
   HNDLE h_panel(0);
                                         // need output of this command to end up in the tracker logfile
   
-  std::string cmd     = odb_i->GetString (H_Cmd,"Name"   );
-  std::string logfile = odb_i->GetString (H_Cmd,"logfile");
-  int station         = odb_i->GetInteger(H_Cmd,"station");
-  int plane           = odb_i->GetInteger(H_Cmd,"plane"  );
-  int mnid            = odb_i->GetInteger(H_Cmd,"mnid"   );
+  std::string cmd     = _odb_i->GetString (H_Cmd,"Name"   );
+  std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+  int station         = _odb_i->GetInteger(H_Cmd,"station");
+  int plane           = _odb_i->GetInteger(H_Cmd,"plane"  );
+  int mnid            = _odb_i->GetInteger(H_Cmd,"mnid"   );
   
   TLOG(TLVL_DEBUG) << std::format("-- START cmd:{} station:{} plane:{} mnid:{}",cmd,station,plane,mnid);
 
@@ -42,8 +40,8 @@ int TEqTracker::ExecuteDtcCommand(HNDLE H_Cmd) { // const std::string& Cmd) {
                                         // single panel
     int hash = (mnid/10)*10;
     std::string panel_path = std::format("PanelMap/{:03d}/MN{:03d}/Panel",hash,mnid);
-    h_panel       = odb_i->GetHandle(h_trk_cfg,panel_path); 
-    int slot_id   = odb_i->GetInteger(h_panel ,"slot_id");
+    h_panel       = _odb_i->GetHandle(_handle,panel_path); 
+    int slot_id   = _odb_i->GetInteger(h_panel ,"slot_id");
 
     station     = (slot_id/10)/2;
     plane       = (slot_id/10)%2;
@@ -68,15 +66,15 @@ int TEqTracker::ExecuteDtcCommand(HNDLE H_Cmd) { // const std::string& Cmd) {
     else {
                                         // all stations, all active panels
       
-      first_station = odb_i->GetInteger(h_trk_cfg,"FirstStation");
-      last_station  = odb_i->GetInteger(h_trk_cfg,"LastStation" );
+      first_station = _odb_i->GetInteger(_handle,"FirstStation");
+      last_station  = _odb_i->GetInteger(_handle,"LastStation" );
     }
   }
 
   TLOG(TLVL_DEBUG) << std::format("first_station:{} last_station:{} first_plane:{} last_plane:{}",
                                   first_station, last_station, first_plane, last_plane);
 
-  std::string cmd_parameter_path = odb_i->GetTrackerCmdParameterPath(cmd);
+  std::string cmd_parameter_path = _odb_i->GetTrackerCmdParameterPath(cmd);
 //-----------------------------------------------------------------------------
 // loop over all active DTCs and execute 'PULSER_ON' etc
 // it might make sense, at initialization stage, to build a list of DTCs assosiated
@@ -84,47 +82,48 @@ int TEqTracker::ExecuteDtcCommand(HNDLE H_Cmd) { // const std::string& Cmd) {
 // looping over the stations... Later
 //-----------------------------------------------------------------------------
   for (int is=first_station; is<last_station+1; ++is) {
-    HNDLE h_station = odb_i->GetTrackerStationHandle(is);
-    TLOG(TLVL_DEBUG+1) << std::format("  station is:{} h_station:{} enabled:{}",is,h_station,odb_i->GetEnabled(h_station));
-    if (odb_i->GetEnabled(h_station) == 0) continue;
+    HNDLE h_station = _odb_i->GetTrackerStationHandle(is);
+    TLOG(TLVL_DEBUG+1) << std::format("  station is:{} h_station:{} enabled:{}",is,h_station,_odb_i->GetEnabled(h_station));
+    if (_odb_i->GetEnabled(h_station) == 0) continue;
     for (int pln=first_plane; pln<last_plane; ++pln) {
-      HNDLE h_plane = odb_i->GetTrackerPlaneHandle(is,pln);
-      TLOG(TLVL_DEBUG+1) << std::format("   plane pln:{} h_station:{} enabled:{}",pln,h_plane,odb_i->GetEnabled(h_plane));
-      if (odb_i->GetEnabled(h_plane) == 0) continue;
+      HNDLE h_plane = _odb_i->GetTrackerPlaneHandle(is,pln);
+      TLOG(TLVL_DEBUG+1) << std::format("   plane pln:{} h_station:{} enabled:{}",pln,h_plane,_odb_i->GetEnabled(h_plane));
+      if (_odb_i->GetEnabled(h_plane) == 0) continue;
 //-----------------------------------------------------------------------------
 // at this point, instead of looping over the panels, need to find the DTC
 // and pass parameters to it with link=-1
 // [dangerous] assumption that we have a DTC per plane, so everything is simple
 //-----------------------------------------------------------------------------
-      HNDLE       h_dtc     = odb_i->GetHandle(h_plane,"DTC");
-      int         pcie_addr = odb_i->GetDtcPcieAddress(h_dtc);
-      std::string node      = odb_i->GetDtcHostLabel  (h_dtc);
+      HNDLE       h_dtc     = _odb_i->GetHandle(h_plane,"DTC");
+      int         pcie_addr = _odb_i->GetDtcPcieAddress(h_dtc);
+      std::string node      = _odb_i->GetDtcHostLabel  (h_dtc);
 //-----------------------------------------------------------------------------
 // pass address of parameters stored in the tracker command tree
 //-----------------------------------------------------------------------------
-      HNDLE       h_dtc_cmd = odb_i->GetDtcCmdHandle(node,pcie_addr);
+      HNDLE       h_dtc_cmd = _odb_i->GetDtcCmdHandle(node,pcie_addr);
 
       int lnk = -1;
       if (mnid >= 0) {
-        lnk = odb_i->GetInteger(h_panel,"Link");
-        TLOG(TLVL_DEBUG+1) << std::format("   link lnk:{} h_panel:{} enabled:{}",pln,h_panel,odb_i->GetEnabled(h_panel));
-        if (odb_i->GetEnabled(h_panel) == 0) continue;
+        lnk = _odb_i->GetInteger(h_panel,"Link");
+        TLOG(TLVL_DEBUG+1) << std::format("   link lnk:{} h_panel:{} enabled:{}",pln,h_panel,_odb_i->GetEnabled(h_panel));
+        if (_odb_i->GetEnabled(h_panel) == 0) continue;
       }
 
       TLOG(TLVL_DEBUG+1) << std::format("node:{} pcie_addr:{} link:{}",node,pcie_addr,lnk);
 
-      int dtc_status = odb_i->GetInteger(h_dtc,"Status");
+      int dtc_status = _odb_i->GetInteger(h_dtc,"Status");
       if (dtc_status == 0) {
-        odb_i->SetString (h_dtc_cmd,"Name"         ,cmd);
+        _odb_i->SetString (h_dtc_cmd,"Name"         ,cmd);
         // set logfile to "default" for the DTC to write in its own logfile
-        odb_i->SetString (h_dtc_cmd,"logfile"      ,"default");
-        odb_i->SetString (h_dtc_cmd,"ParameterPath",cmd_parameter_path);
-        odb_i->SetInteger(h_dtc_cmd,"link"         ,lnk);
-        odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);
+        _odb_i->SetString (h_dtc_cmd,"logfile"      ,"default");
+        _odb_i->SetInteger(h_dtc_cmd,"link"         ,lnk);
+        _odb_i->SetString (h_dtc_cmd,"ParameterPath",cmd_parameter_path);
+        _odb_i->SetInteger(h_dtc_cmd,"Finished"     , 0);
+        _odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);
 //-----------------------------------------------------------------------------
 // and trigger the execution of a 'per-DTC' command
 //-----------------------------------------------------------------------------
-        odb_i->SetInteger(h_dtc_cmd,"Run"          , 1);
+        _odb_i->SetInteger(h_dtc_cmd,"Run"          , 1);
       }
       else {
 //-----------------------------------------------------------------------------

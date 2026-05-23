@@ -5,6 +5,7 @@
 #include "utils/OdbInterface.hh"
 #include "node_frontend/TEqTrkDtc.hh"
 #include "utils/TEquipmentManager.hh"
+#include "otsdaq-mu2e-tracker/Ui/ControlRocTypes.hh"
 
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "TEqTrkDtc"
@@ -255,11 +256,12 @@ int TEqTrkDtc::BeginRun(int RunNumber) {
   int rc(0);
     
   TLOG(TLVL_DEBUG) << "-- START: DTC" << _dtc_i->PcieAddr() << ":" << _dtc_i;
-
+ 
+  int   run_type          = _odb_i->GetRunType       (_h_active_run_conf);
   int   event_mode        = _odb_i->GetEventMode     (_h_active_run_conf);
   int   roc_readout_mode  = _odb_i->GetRocReadoutMode(_h_active_run_conf);
 
-  TLOG(TLVL_DEBUG) << std::format("event mode:{} roc_readout_mode:{}",event_mode,roc_readout_mode);
+  TLOG(TLVL_DEBUG) << std::format("run_type:{} event mode:{} roc_readout_mode:{}",run_type,event_mode,roc_readout_mode);
   
   if (_dtc_i) {
                                         // update parameters from ODB
@@ -267,7 +269,9 @@ int TEqTrkDtc::BeginRun(int RunNumber) {
     _dtc_i->fRocReadoutMode = roc_readout_mode;
     _dtc_i->fLinkMask       = _odb_i->GetLinkMask         (_handle);
     _dtc_i->fJAMode         = _odb_i->GetJAMode           (_handle);
-    _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(_handle);
+//-----------------------------------------------------------------------------
+// sample edge select is common for all DTCs and comes from DAQ/ForceCfoSampleEdgeSelect
+    _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(_h_active_run_conf);
 //-----------------------------------------------------------------------------
 // HardReset erases the DTC link mask, restore it
 // also, release all buffers from the previous read - this is the initialization
@@ -795,6 +799,333 @@ int TEqTrkDtc::HandlePeriodic() {
   }
 
   TLOG(TLVL_DEBUG+1) << "-- END";
+  return rc;
+}
+
+//------------------------------------------------------------------------------
+// initialization of various run types
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::InitBeamRun() {
+  int rc(-1);
+  TLOG(TLVL_ERROR) << std::format("not implemented yet");
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::InitCosmicRun() {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << std::format("--START");
+//-----------------------------------------------------------------------------
+// 1. set the data readout mode .. the pattern should be stroed in ODB, not hardcoded
+//   everything except the channel mask should be the same for all panels
+//-----------------------------------------------------------------------------
+  trkdaq::ControlRoc_Read_Input_t0 par;
+
+  std::string parameter_path("/Mu2e/ActiveRunConfiguration/Tracker/Readout/cosmics/read");
+  HNDLE h_par = _odb_i->GetHandle(0,parameter_path);
+  
+  par.adc_mode        = _odb_i->GetUInt16(h_par,"adc_mode");              // 0:data, 4:checkerboard, etc
+  par.tdc_mode        = _odb_i->GetUInt16(h_par,"tdc_mode");
+  par.num_lookback    = _odb_i->GetUInt16(h_par,"num_lookback");             // for 1-packet RO
+  par.num_samples     = _odb_i->GetUInt16(h_par,"num_samples");              // N ADC samples - may need to change... - ODB
+  
+  _odb_i->GetArray(h_par,"num_triggers",TID_WORD,par.num_triggers,2);
+
+  par.enable_pulser   = _odb_i->GetUInt16(h_par,"enable_pulser");
+  par.marker_clock    = _odb_i->GetUInt16(h_par,"marker_clock");
+  par.mode            = _odb_i->GetUInt16(h_par,"mode");
+  par.clock           = _odb_i->GetUInt16(h_par,"clock");
+//-----------------------------------------------------------------------------
+// loop over the ROCs and set internal pulser mode
+//-----------------------------------------------------------------------------
+  for (int lnk=0; lnk<6; lnk++) {
+    if (_dtc_i->LinkEnabled(lnk) == 0) continue;
+    // skip links which status has been set to -1
+    if (_dtc_i->LinkStatus(lnk)  != 0) continue;
+    if (not _dtc_i->LinkLocked(lnk)) {
+      std::string msg = std::format("{}:DTC{} link:{} enabled but not locked, set link status to -1",
+                                    HostLabel(),_dtc_i->PcieAddr(),lnk);
+      TLOG(TLVL_ERROR) << msg;
+                                        // send message to MIDAS
+      cm_msg(MERROR, __func__,msg.data());
+      cm_msg_flush_buffer();
+                                        // links with status < 0 should be displayed in red and skipped w/o extra messaging -
+                                        // a message has been sent once when the link status has been changed
+      _dtc_i->SetLinkStatus(lnk,-1);
+      SetStatus(-1);
+      continue;
+    }
+//-----------------------------------------------------------------------------
+// link enabled, locked, and is OK in all known respeccts (status=0)
+// 0. turn off the external pulser
+// pulser OFF just doesn't work
+//-----------------------------------------------------------------------------
+    // rc = _dtc_i->ControlRoc_PulserOff(lnk);
+    // if (rc < 0) {
+    //   std::string msg = std::format("{}:DTC{} link:{} failed to turn the pulser OFF, set link status to -1",
+    //                                 HostLabel(),_dtc_i->PcieAddr(),lnk);
+    //   TLOG(TLVL_ERROR) << msg;
+    //                                     // send message to MIDAS
+    //   cm_msg(MERROR, __func__,msg.data());
+    //   cm_msg_flush_buffer();
+    //   SetStatus(-1);
+    //   TLOG(TLVL_ERROR) << msg;
+    //   continue;
+    // }
+//-----------------------------------------------------------------------------
+// the channel mask comes from ODB - from the corresponding ROC
+//-----------------------------------------------------------------------------
+    uint16_t ch_mask[96];
+    std::string  mask_odb_path = std::format("Link{:d}/DetectorElement/ch_mask",lnk);
+    _odb_i->GetArray(_handle,mask_odb_path.data(),TID_WORD,ch_mask,96);    
+
+    for (int i=0; i<96; ++i) {
+      int on_off = ch_mask[i];
+      int iw = i / 16;
+      int ib = i % 16;
+      if (ib == 0) {
+        par.ch_mask[iw] = 0;
+      }
+      par.ch_mask[iw] |= on_off << ib;
+    }
+    // sstr << "ch_mask["<<i<<"]:" << ch_mask[i] << " iw:" << iw << " ib:" << ib << std::endl;; 
+//-----------------------------------------------------------------------------
+// 1. issue the READ command
+//-----------------------------------------------------------------------------
+    int print_level = 0;
+    rc = _dtc_i->ControlRoc_Read(&par,lnk,print_level);
+    if (rc < 0) {
+      std::string msg = std::format("{}:DTC{} link:{} ControlRoc_Read failed, set link status to -1",
+                                    HostLabel(),_dtc_i->PcieAddr(),lnk);
+      TLOG(TLVL_ERROR) << msg;
+                                        // send message to MIDAS
+      cm_msg(MERROR, __func__,msg.data());
+      cm_msg_flush_buffer();
+      SetStatus(-1);
+      TLOG(TLVL_ERROR) << msg;
+      continue;
+    }
+  }
+  
+  TLOG(TLVL_DEBUG) << std::format("--END: rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::InitInternalPulserRun() {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << std::format("--START");
+//-----------------------------------------------------------------------------
+// 1. set the readout mode .. the pattern should be stroed in ODB, not hardcoded
+// the same for all DTCs
+//-----------------------------------------------------------------------------
+  trkdaq::ControlRoc_Read_Input_t0 par;  //
+
+  std::string parameter_path("/Mu2e/ActiveRunConfiguration/Tracker/Readout/internal_pulser/read");
+  HNDLE h_par         = _odb_i->GetHandle(0,parameter_path);
+  
+  par.adc_mode        = _odb_i->GetUInt16(h_par,"adc_mode");              // 0:data, 4:checkerboard, etc
+  par.tdc_mode        = _odb_i->GetUInt16(h_par,"tdc_mode");
+  par.num_lookback    = _odb_i->GetUInt16(h_par,"num_lookback");             // for 1-packet RO
+  par.num_samples     = _odb_i->GetUInt16(h_par,"num_samples");              // N ADC samples - may need to change... - ODB
+  
+  _odb_i->GetArray(h_par,"num_triggers",TID_WORD,par.num_triggers,2);
+
+  par.enable_pulser   = _odb_i->GetUInt16(h_par,"enable_pulser");
+  par.marker_clock    = _odb_i->GetUInt16(h_par,"marker_clock");
+  par.mode            = _odb_i->GetUInt16(h_par,"mode");
+  par.clock           = _odb_i->GetUInt16(h_par,"clock");
+
+  TLOG(TLVL_DEBUG) << std::format("DTC:{} adc_mode:{} enable_pulser:{} num_lookback:{}",
+                                  _dtc_i->PcieAddr(),par.adc_mode,par.enable_pulser,par.num_lookback);
+//-----------------------------------------------------------------------------
+// loop over the ROCs and set internal pulser mode
+//-----------------------------------------------------------------------------
+  for (int lnk=0; lnk<6; lnk++) {
+    if (_dtc_i->LinkEnabled(lnk) == 0) continue;
+    // skip links which status has been set to -1
+    if (_dtc_i->LinkStatus(lnk)  != 0) continue;
+    if (not _dtc_i->LinkLocked(lnk)) {
+      std::string msg = std::format("{}:DTC{} link:{} enabled but not locked, set link status to -1",
+                                    HostLabel(),_dtc_i->PcieAddr(),lnk);
+      TLOG(TLVL_ERROR) << msg;
+                                        // send message to MIDAS
+      cm_msg(MERROR, __func__,msg.data());
+      cm_msg_flush_buffer();
+                                        // links with status < 0 should be displayed in red and skipped w/o extra messaging -
+                                        // a message has been sent once when the link status has been changed
+      _dtc_i->SetLinkStatus(lnk,-1);
+      SetStatus(-1);
+      continue;
+    }
+//-----------------------------------------------------------------------------
+// link enabled, locked, and is OK in all known respects (status=0)
+// 0. turn off the external pulser
+//-----------------------------------------------------------------------------
+    // TLOG(TLVL_DEBUG) << std::format("lnk:{} setting external pulser off",lnk);
+    // rc = _dtc_i->ControlRoc_PulserOff(lnk);
+    // TLOG(TLVL_DEBUG) << std::format("after pulser_off rc:{}",rc);
+    // if (rc < 0) {
+    //   std::string msg = std::format("{}:DTC{} link:{} failed to turn the pulser OFF, set link status to -1",
+    //                                 HostLabel(),_dtc_i->PcieAddr(),lnk);
+    //   TLOG(TLVL_ERROR) << msg;
+    //                                     // send message to MIDAS
+    //   cm_msg(MERROR, __func__,msg.data());
+    //   cm_msg_flush_buffer();
+    //   SetStatus(-1);
+    //   TLOG(TLVL_ERROR) << msg;
+    //   continue;
+    // }
+//-----------------------------------------------------------------------------
+// the channel mask comes from ODB - from the parameters - need the same channels for all panels
+//-----------------------------------------------------------------------------
+    _odb_i->GetArray(h_par,"ch_mask",TID_WORD,par.ch_mask,6);
+    TLOG(TLVL_DEBUG) << std::format("DTC:{} link:{} after reading ch_mask: 0x{:04x} 0x{:04x} 0x{:04x} 0x{:04x} 0x{:04x} 0x{:04x}"
+                                    ,_dtc_i->PcieAddr(),lnk,
+                                    par.ch_mask[0],par.ch_mask[1],par.ch_mask[2],par.ch_mask[3],par.ch_mask[4],par.ch_mask[5]);
+//-----------------------------------------------------------------------------
+// 1. issue the READ command
+//-----------------------------------------------------------------------------
+    int print_level = 3;
+    TLOG(TLVL_DEBUG) << std::format("DTC:{} link:{} before ControRoc_Read: par.enable_pulser:{}",
+                                    _dtc_i->PcieAddr(),lnk,par.enable_pulser);
+
+    std::stringstream sout;
+    rc = _dtc_i->ControlRoc_Read(&par,lnk,print_level,sout);
+    TLOG(TLVL_DEBUG) << sout.str();
+    
+    TLOG(TLVL_DEBUG) << std::format("DTC:{} link:{} after ControRoc_Read",_dtc_i->PcieAddr(),lnk);
+    
+    if (rc < 0) {
+      std::string msg = std::format("{}:DTC{} link:{} ControlRoc_Read failed, set link status to -1",
+                                    HostLabel(),_dtc_i->PcieAddr(),lnk);
+      TLOG(TLVL_ERROR) << msg;
+                                        // send message to MIDAS
+      cm_msg(MERROR, __func__,msg.data());
+      cm_msg_flush_buffer();
+      SetStatus(-1);
+      TLOG(TLVL_ERROR) << msg;
+      continue;
+    }
+  }
+  TLOG(TLVL_DEBUG) << std::format("--END: rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+int TEqTrkDtc::InitPulseInjectionRun() {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << std::format("--START");
+//-----------------------------------------------------------------------------
+// 1. set the data readout mode .. should be stored in ODB, not hardcoded...
+// the same for all DTCs
+//-----------------------------------------------------------------------------
+  std::string read_parameter_path("/Mu2e/ActiveRunConfiguration/Tracker/Readout/pulse_injection/read");
+  HNDLE h_read         = _odb_i->GetHandle(0,read_parameter_path);
+  
+  trkdaq::ControlRoc_Read_Input_t0 par;
+  par.adc_mode        = _odb_i->GetUInt16(h_read,"adc_mode");              // 0:data, 4:checkerboard, etc
+  par.tdc_mode        = _odb_i->GetUInt16(h_read,"tdc_mode");
+  par.num_lookback    = _odb_i->GetUInt16(h_read,"num_lookback");             // for 1-packet RO
+  par.num_samples     = _odb_i->GetUInt16(h_read,"num_samples");              // N ADC samples - may need to change... - ODB
+  
+  _odb_i->GetArray(h_read,"num_triggers",TID_WORD,par.num_triggers,2);
+
+  par.enable_pulser   = _odb_i->GetUInt16(h_read,"enable_pulser");
+  par.marker_clock    = _odb_i->GetUInt16(h_read,"marker_clock");
+  par.mode            = _odb_i->GetUInt16(h_read,"mode");
+  par.clock           = _odb_i->GetUInt16(h_read,"clock");
+
+  TLOG(TLVL_DEBUG) << std::format("adc_mode:{} enable_pulser:{} num_lookback:{}",par.adc_mode,par.enable_pulser,par.num_lookback);
+//-----------------------------------------------------------------------------
+// pulser parameters
+//-----------------------------------------------------------------------------
+  std::string pulser_on_parameter_path("/Mu2e/ActiveRunConfiguration/Tracker/Readout/pulse_injection/pulser_on");
+  HNDLE h_pon_par        = _odb_i->GetHandle(0,pulser_on_parameter_path);
+
+  int first_channel_mask = _odb_i->GetInteger(h_pon_par,"first_channel_mask");    //
+  int duty_cycle         = _odb_i->GetInteger(h_pon_par,"duty_cycle"        );    //
+  int pulser_delay       = _odb_i->GetInteger(h_pon_par,"pulser_delay"      );    //
+
+  TLOG(TLVL_DEBUG) << std::format("first_channel_mask:{} duty_cycle:{} pulser_delay:{}",first_channel_mask,duty_cycle,pulser_delay);
+//-----------------------------------------------------------------------------
+// loop over the ROCs and set pulse injection mode
+//-----------------------------------------------------------------------------
+  for (int lnk=0; lnk<6; lnk++) {
+
+    TLOG(TLVL_DEBUG) << std::format("link:{} enabled:{} status:{} locked:{}",lnk,_dtc_i->LinkEnabled(lnk),_dtc_i->LinkStatus(lnk), _dtc_i->LinkLocked(lnk));
+    
+    if (_dtc_i->LinkEnabled(lnk) == 0) continue;
+    // skip links which status has been set to -1
+    if (_dtc_i->LinkStatus(lnk)  != 0) continue;
+    if (not _dtc_i->LinkLocked(lnk)) {
+      std::string msg = std::format("{}:DTC{} link:{} enabled but not locked, set link status to -1",
+                                    HostLabel(),_dtc_i->PcieAddr(),lnk);
+      TLOG(TLVL_ERROR) << msg;
+                                        // send message to MIDAS
+      cm_msg(MERROR, __func__,msg.data());
+      cm_msg_flush_buffer();
+                                        // links with status < 0 should be displayed in red and skipped w/o extra messaging -
+                                        // a message has been sent once when the link status has been changed
+      _dtc_i->SetLinkStatus(lnk,-1);
+      SetStatus(-1);
+      continue;
+    }
+
+    int print_level = 0;
+//-----------------------------------------------------------------------------
+// in the pulse injection mode, the channel mask comes from the ODB
+//------------------------------------------------------------------
+    uint16_t ch_mask[96];
+    std::string  mask_odb_path = std::format("Link{:d}/DetectorElement/ch_mask",lnk);
+    _odb_i->GetArray(_handle,mask_odb_path.data(),TID_WORD,ch_mask,96);    
+
+    for (int i=0; i<96; ++i) {
+      int on_off = ch_mask[i];
+      int iw = i / 16;
+      int ib = i % 16;
+      if (ib == 0) {
+        par.ch_mask[iw] = 0;
+      }
+      par.ch_mask[iw] |= on_off << ib;
+    }
+    // sstr << "ch_mask["<<i<<"]:" << ch_mask[i] << " iw:" << iw << " ib:" << ib << std::endl;; 
+    rc = _dtc_i->ControlRoc_Read(&par,lnk,print_level);
+
+    TLOG(TLVL_DEBUG) << std::format("after ControlRoc_Read rc:{}",rc);
+    
+    if (rc < 0) {
+      std::string msg = std::format("{}:DTC{} link:{} ControlRoc_Read failed, set link status to -1",
+                                    HostLabel(),_dtc_i->PcieAddr(),lnk);
+      TLOG(TLVL_ERROR) << msg;
+                                        // send message to MIDAS
+      cm_msg(MERROR, __func__,msg.data());
+      cm_msg_flush_buffer();
+      SetStatus(-1);
+      TLOG(TLVL_ERROR) << msg;
+      continue;
+    }
+//-----------------------------------------------------------------------------
+// link enabled, locked, and is OK in all known respeccts (status=0)
+// 0. turn off the external pulser
+//-----------------------------------------------------------------------------
+    std::stringstream sstr;
+    rc = _dtc_i->ControlRoc_PulserOn(lnk,first_channel_mask,duty_cycle,pulser_delay,print_level,sstr);
+    TLOG(TLVL_DEBUG) << std::format("after ControlRoc_PulserOn rc:{}",rc);
+    if (rc < 0) {
+      std::string msg = std::format("{}:DTC{} link:{} failed to turn the pulser OFF, set link status to -1",
+                                    HostLabel(),_dtc_i->PcieAddr(),lnk);
+      TLOG(TLVL_ERROR) << msg;
+                                        // send message to MIDAS
+      cm_msg(MERROR, __func__,msg.data());
+      cm_msg_flush_buffer();
+      SetStatus(-1);
+      TLOG(TLVL_ERROR) << msg;
+      continue;
+    }
+  }
+
+  TLOG(TLVL_DEBUG) << std::format("--END: rc:{}",rc);
   return rc;
 }
 

@@ -66,11 +66,18 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
 //-----------------------------------------------------------------------------
 
   TLOG(TLVL_DEBUG) << std::format("cmd:{} parameter_path:{}",cmd,parameter_path);
-//-----------------------------------------------------------------------------
-// CONFIGURE_JA
-//------------------------------------------------------------------------------
+
   int cmd_rc(0);
-  if      (cmd == "clear_status") {
+//-----------------------------------------------------------------------------
+// check ROC FIFOs
+//------------------------------------------------------------------------------
+  if      (cmd == "check_fifos") {
+    cmd_rc = eq->CheckFifos(h_cmd);
+  }
+//-----------------------------------------------------------------------------
+// clear status of the DTC and its ROCs
+//------------------------------------------------------------------------------
+  else if      (cmd == "clear_status") {
     cmd_rc = eq->ClearStatus(h_cmd);
   }
 //-----------------------------------------------------------------------------
@@ -139,6 +146,13 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     std::thread t(&TEqTrkDtc::HardReset,eq,h_cmd);
     t.detach();
   }
+  else if (cmd == "init_by_fiber") {
+//-----------------------------------------------------------------------------
+// init_readout
+//-----------------------------------------------------------------------------
+    std::thread t(&TEqTrkDtc::InitByFiber,eq,h_cmd);
+    t.detach();
+  }
   else if (cmd == "init_readout") {
 //-----------------------------------------------------------------------------
 // init_readout
@@ -160,6 +174,13 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     std::thread t(&TEqTrkDtc::MeasureThresholds,eq,h_cmd);
     t.detach();
   }
+//-----------------------------------------------------------------------------
+// PRINT DIGIS
+//-----------------------------------------------------------------------------
+  else if (cmd == "print_digis") {
+    std::thread t(&TEqTrkDtc::PrintDigis,eq,h_cmd);
+    t.detach();
+  }  
 //-----------------------------------------------------------------------------
 // PRINT STATUS
 //-----------------------------------------------------------------------------

@@ -127,11 +127,12 @@ int TMu2eEqBase::ResetOutput(HNDLE H_Cmd) {
 }
 
 //-----------------------------------------------------------------------------
-// mark command as completed, set status
+// mark command as completed, set status and command return code = status
 //-----------------------------------------------------------------------------
 void TMu2eEqBase::SetCommandFinished(HNDLE H_Cmd, int Status) {
   _odb_i->SetStatus(_handle,Status);
   _odb_i->SetInteger(H_Cmd,"Finished",1);
+  _odb_i->SetInteger(H_Cmd,"ReturnCode",Status);
 };
 
 //-----------------------------------------------------------------------------
@@ -147,6 +148,11 @@ int TMu2eEqBase::GetStatus() {
 //-----------------------------------------------------------------------------
 int TMu2eEqBase::GetEnabled() {
   return _odb_i->GetEnabled(_handle);
+}
+
+//-----------------------------------------------------------------------------
+int TMu2eEqBase::GetRunType() {
+  return _odb_i->GetRunType(_h_active_run_conf);
 }
 
 //-----------------------------------------------------------------------------

@@ -29,7 +29,7 @@ class Command_B {
 
 //-----------------------------------------------------------------------------
 class Command_D { // aaaa
-  constructor(title,name,menu_id,f_handle_left_click,table_id,f_parameter_path,f_help,logfile) { // hack
+  constructor(title,name,menu_id,f_handle_left_click,table_id,f_parameter_path,f_help,logfile,timeout_ms) { // hack
     this.title               = title;
     this.name                = name;
     this.menu_id             = menu_id;              // defines right click actions
@@ -38,6 +38,7 @@ class Command_D { // aaaa
     this.func_parameter_path = f_parameter_path;
     this.f_help              = f_help;
     this.logfile             = logfile;
+    this.timeout_ms          = timeout_ms;
   }  
 }
 
@@ -74,6 +75,11 @@ function cfo_load_parameters(cmd) {
   const table     = document.getElementById('cmd_params');
   table.innerHTML = '';
   odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/CFO`,0);
+}
+
+//-----------------------------------------------------------------------------
+function node_config_path(cmd) {
+  return `/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}`;
 }
 
 //-----------------------------------------------------------------------------
@@ -503,7 +509,7 @@ function mu2e_make_dropup_button_D(cmd) {
 
   let btn = document.createElement('div');
   btn.className = 'btn';
-  btn.innerHTML = cmd.name;
+  btn.innerHTML = cmd.title;
   btn.cmd       = cmd;
   // left click
   btn.addEventListener("click", () => cmd.f_handle_left_click(cmd));

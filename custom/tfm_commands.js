@@ -82,8 +82,9 @@ function tfm_update_node_id(evt) {
   tfm_choose_node_id(evt);
   // this takes active process label as a second parameter - make it null , so the first process
   // becomes the default
+  // updeteNodeTable is defined in tfm_control.html
   if (g_node != null) {
-    updateNodeTable(g_node, null);
+    updateNodeTable(g_node, 'undefined');
   }
 }
 

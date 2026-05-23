@@ -103,13 +103,15 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
 
   int cmd_type;
   
-  if      (cmd == "digi_rw"         ) cmd_type = kCmdDtc;
+  if      (cmd == "check_fifos"     ) cmd_type = kCmdDtc;
+  else if (cmd == "digi_rw"         ) cmd_type = kCmdDtc;
   else if (cmd == "find_alignment"  ) cmd_type = kCmdDtc;
   else if (cmd == "init_readout"    ) cmd_type = kCmdDtc;
   else if (cmd == "load_thresholds" ) cmd_type = kCmdDtc;
   else if (cmd == "pulser_on"       ) cmd_type = kCmdDtc;
   else if (cmd == "pulser_off"      ) cmd_type = kCmdDtc;
   else if (cmd == "read"            ) cmd_type = kCmdDtc;  // "read" loads channel masks
+  else if (cmd == "print_digis"     ) cmd_type = kCmdDtc;
   else if (cmd == "print_status"    ) cmd_type = kCmdTracker;
   else if (cmd == "reset_lv"        ) cmd_type = kCmdRpi;
   else if (cmd == "reset_output"    ) {
@@ -175,8 +177,6 @@ int TEqTracker::WaitForCompletion(HNDLE H_Cmd) {
 
   TLOG(TLVL_DEBUG) << std::format("--- START: hCmd:{}",H_Cmd);
 
-  int wait_time(0), n_not_finished(100);
-
   HNDLE h_trk_cfg     = _odb_i->GetTrackerConfigHandle();
   int first_station   = _odb_i->GetInteger(h_trk_cfg,"FirstStation");
   int last_station    = _odb_i->GetInteger(h_trk_cfg,"LastStation" ); 
@@ -194,34 +194,43 @@ int TEqTracker::WaitForCompletion(HNDLE H_Cmd) {
   int rcc[18][2];
   for (int is=first_station; is<last_station+1; ++is) {
     for (int pln=0; pln<2; ++pln) {
-      rcc[is][pln] = -999;
+      rcc[is][pln] = -9999;
     }
   }
 
-  while ((n_not_finished > 0) and (wait_time < timeout_ms)) {
+  int wait_time_ms(0), n_not_finished(100);
+
+  while ((n_not_finished > 0) and (wait_time_ms < timeout_ms)) {
     ss_sleep(100);
-    wait_time += 100;
+    wait_time_ms += 100;
 
     n_not_finished = 0;
     for (int is=first_station; is<last_station+1; ++is) {
       HNDLE h_station = _odb_i->GetTrackerStationHandle(is);
-      if (_odb_i->GetEnabled(h_station) == 0) continue;
+      int station_enabled = _odb_i->GetEnabled(h_station);
+      TLOG(TLVL_DEBUG+1) << std::format("is:{} station_enabled:{}",is,station_enabled);
+      if (station_enabled == 0)                             continue;
       for (int pln=0; pln<2; ++pln) {
+        TLOG(TLVL_DEBUG+1) << std::format("pnl:{} rcc[is][pln]:{}",pln,rcc[is][pln]);
+        if (rcc[is][pln] != -9999)                          continue;
         HNDLE h_plane = _odb_i->GetTrackerPlaneHandle(is,pln);
-        if (_odb_i->GetEnabled(h_plane) == 0) continue;
+        int plane_enabled = _odb_i->GetEnabled(h_plane);
+        TLOG(TLVL_DEBUG+1) << std::format("is:{} pln:{} plane_enabled:{}",is,pln,plane_enabled);
+        if (plane_enabled == 0)               continue;
         
         HNDLE       h_dtc     = _odb_i->GetHandle        (h_plane,"DTC");
         int         pcie_addr = _odb_i->GetDtcPcieAddress(h_dtc);
         std::string node      = _odb_i->GetDtcHostLabel  (h_dtc);
         HNDLE       h_dtc_cmd = _odb_i->GetDtcCmdHandle  (node,pcie_addr);
         
-        int finished = _odb_i->GetInteger(h_dtc    ,"Finished"  );
-        int rc       = _odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
+        int finished = _odb_i->GetInteger(h_dtc_cmd    ,"Finished"  );
         
-        if (finished == 0) {
+        TLOG(TLVL_DEBUG+1) << std::format("finished:{}",finished);
+        if (finished == 1) {
                                         // completed
           
-          rcc[is][pln] = _odb_i->GetInteger(h_dtc    ,"Status" );
+          int rc       = _odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
+          rcc[is][pln] = rc; // _odb_i->GetInteger(h_dtc    ,"Status" );
           if (rc != 0) return_code += rcc[is][pln];
         }
         else {
@@ -229,6 +238,7 @@ int TEqTracker::WaitForCompletion(HNDLE H_Cmd) {
         }
       }
     }
+    TLOG(TLVL_DEBUG+1) << std::format("wait_time_ms:{} n_not_finished:{}",wait_time_ms,n_not_finished);
     if (n_not_finished == 0) break;
   }
 //-----------------------------------------------------------------------------
@@ -239,6 +249,8 @@ int TEqTracker::WaitForCompletion(HNDLE H_Cmd) {
   }
 
   for (int is=first_station; is<last_station+1; ++is) {
+    HNDLE h_station = _odb_i->GetTrackerStationHandle(is);
+    if (_odb_i->GetEnabled(h_station) == 0) continue;
     sstr << std::format(" station:{:02} DTC0 rc:{:4} DTC1 rc:{:4}\n",is,rcc[is][0],rcc[is][1]);
   }
 
@@ -248,8 +260,12 @@ int TEqTracker::WaitForCompletion(HNDLE H_Cmd) {
   std::string msg = std::format("n_not_finished:{} return_code:{}",n_not_finished,return_code);
   sstr << msg << std::endl;
   TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
-
-  SetCommandFinished(H_Cmd,return_code);
+//-----------------------------------------------------------------------------
+// some commands may need to set the tracekr status to -1, some - for example, all DTC commands -
+// do no not need that... For now , and until we find the first use case, always set the tracker
+// status to zero
+//-----------------------------------------------------------------------------
+  SetCommandFinished(H_Cmd,0); // return_code);
 
   TLOG(TLVL_DEBUG) << std::format("-- END: {}",msg);
   return n_not_finished;

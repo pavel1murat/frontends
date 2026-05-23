@@ -49,11 +49,15 @@
       td = document.createElement('td');
       td.colSpan = 2;
       
-      cmd = new Command_D('pulser_on','pulser_on','dtc_menu_01',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('init by fiber','init_by_fiber','dtc_menu_02',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('pulser_off','pulser_off','dtc_menu_01',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('pulser_on','pulser_on','dtc_menu_01',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      btn  = mu2e_make_dropup_button_D(cmd);
+      td.appendChild(btn);
+      
+      cmd = new Command_D('pulser_off','pulser_off','dtc_menu_01',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
@@ -61,28 +65,24 @@
       btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('set_thresholds','set_thresholds','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('set_thresholds','set_thresholds','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,20000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('read','read','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('read','read','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('rates','rates','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('rates','rates','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,20000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('load_thresholds','load_thresholds','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('load_thresholds','load_thresholds','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('set_caldac','set_caldac','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('set_caldac','set_caldac','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
       btn  = mu2e_make_dropup_button_D(cmd);
-      td.appendChild(btn);
-      
-      cmd = new Command_B('reset_roc','reset_roc',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
-      btn  = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
       
       tr.appendChild(td);
@@ -101,7 +101,7 @@
       tr = document.createElement('tr');
       td = document.createElement('td');
 
-      cmd = new Command_D('dump_settings','dump_settings','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('dump_settings','dump_settings','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
@@ -113,7 +113,7 @@
       btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('read_ddr','read_ddr','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('read_ddr','read_ddr','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
@@ -127,6 +127,10 @@
       
       cmd = new Command_B('reboot_MCU','reboot_MCU',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
       btn = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+      
+      cmd = new Command_B('reset_roc','reset_roc',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn  = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
       
       cmd = new Command_B('reset_digis','reset_digis',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
@@ -158,15 +162,15 @@
       
       td = document.createElement('td');
 
-      cmd = new Command_D('digi_rw','digi_rw','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('digi_rw','digi_rw','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('digi_read','digi_read','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('digi_read','digi_read','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_D('digi_write','digi_write','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('digi_write','digi_write','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
       btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
@@ -174,16 +178,16 @@
       btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('find_thresholds','find_thresholds','dtc_menu_01',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('find_thresholds','find_thresholds','dtc_menu_01',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
       btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_D('measure_thresholds','measure_thresholds','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('measure_thresholds','measure_thresholds','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,20000);
       btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
        
       // test a command with help
-      cmd = new Command_D('set_roc_delays','set_roc_delays','dtc_menu_02',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('set_roc_delays','set_roc_delays','dtc_menu_02',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
       btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
@@ -331,25 +335,29 @@
       btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_D('init_readout'       ,'init_readout'       , 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('init_readout'       ,'init_readout'       , 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
       btn = mu2e_make_dropup_button_D(cmd);
 
       td.appendChild(btn);
 
-      cmd = new Command_D('configure_ja'       ,'configure_ja'       , 'dtc_menu_02', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('configure_ja'       ,'configure_ja'       , 'dtc_menu_02', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
       btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('cfo_launch_run_plan','cfo_launch_run_plan', 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('cfo_launch_run_plan','cfo_launch_run_plan', 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
       btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_D('read_subevents'     ,'read_subevents'     , 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile);
+      cmd = new Command_D('read_subevents'     ,'read_subevents'     , 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
       cmd = new Command_B('clear_status'     ,'clear_status'         , dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
       btn  = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
+      cmd = new Command_D('check_fifos'     ,'check_fifos'     , 'dtc_menu_02', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
       tr.appendChild(td);
@@ -390,6 +398,11 @@
       
       // order: title, name, ...
       cmd = new Command_B('print ROC status','print_roc_status',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
+      // order: title, name, ...
+      cmd = new Command_B('print digis','print_digis',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
       btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
 

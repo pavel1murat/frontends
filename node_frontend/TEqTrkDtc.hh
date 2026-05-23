@@ -67,6 +67,7 @@ public:
   virtual int EndRun           (int RunNumber) override;
   
   int         ConfigureJA      (HNDLE H_Cmd);
+  int         CheckFifos       (HNDLE H_Cmd);
   int         ClearStatus      (HNDLE H_Cmd);
   int         DigiRead         (HNDLE H_Cmd);
   int         DigiRW           (HNDLE H_Cmd);
@@ -77,10 +78,12 @@ public:
   int         GetKey           (HNDLE H_Cmd);
   int         GetRocDesignInfo (HNDLE H_Cmd);
   int         HardReset        (HNDLE H_Cmd);
+  int         InitByFiber      (HNDLE H_Cmd);
   int         InitReadout      (HNDLE H_Cmd);
   int         LoadChannelMap   (HNDLE H_Cmd);                 // load map from disk to ODB
   int         LoadThresholds   (HNDLE H_Cmd);                 // load thresholds from disk to ODB
   int         MeasureThresholds(HNDLE H_Cmd);                 // std::ostream& Stream);
+  int         PrintDigis       (HNDLE H_Cmd);
   int         PrintRocStatus   (HNDLE H_Cmd);
   int         PrintStatus      (HNDLE H_Cmd);
   int         PulserOff        (HNDLE H_Cmd);
@@ -111,5 +114,11 @@ public:
   static void ProcessCommand   (int hDB, int hKey, void* Info);
   
   virtual int StartMessage     (HNDLE h_Cmd, std::stringstream& Stream) override;
+
+  int         InitBeamRun          ();
+  int         InitCosmicRun        ();
+  int         InitInternalPulserRun();
+  int         InitPulseInjectionRun();
+
 };
 #endif
