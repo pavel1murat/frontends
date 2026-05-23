@@ -37,6 +37,7 @@ public:
   int         GetPartitionID          (HNDLE h_RunConf); //
   int         GetEventMode            (HNDLE h_RunConf); //
   int         GetOnSpill              (HNDLE h_RunConf);
+  int         GetRunType              (HNDLE h_RunConf);
 
   HNDLE       GetDaqConfigHandle      (HNDLE h_RunConf = -1);
   

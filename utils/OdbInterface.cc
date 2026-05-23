@@ -504,14 +504,8 @@ int OdbInterface::GetDtcMacAddrByte(HNDLE hDTC) {
 //-----------------------------------------------------------------------------
 // assum hDTC is a DTC handle
 //-----------------------------------------------------------------------------
-int OdbInterface::GetDtcSampleEdgeMode(HNDLE hDTC) {
-  const char* key {"SampleEdgeMode"};
-  INT   data(-1);       // if not found, want to be meaningless
-  int   sz = sizeof(data);
-  if (db_get_value(_hDB, hDTC, key, &data, &sz, TID_INT, FALSE) != DB_SUCCESS) {
-    TLOG(TLVL_ERROR) << key << " not found, return: " << data;
-  }
-  return data;
+int OdbInterface::GetDtcSampleEdgeMode(HNDLE H_RunConf) {
+  return GetInteger(H_RunConf,"DAQ/ForceCFOSampleEdgeSelect");
 }
 
 //-----------------------------------------------------------------------------
@@ -672,6 +666,11 @@ HNDLE OdbInterface::GetDetElementConfigHandle(HNDLE H_Dtc, int Link) {
 
   HNDLE h_conf = GetHandle(H_Dtc,config_path);
   return h_conf;
+}
+
+//-----------------------------------------------------------------------------
+int OdbInterface::GetRunType(HNDLE hDetConf) {
+  return GetInteger(hDetConf,"RunType");
 }
 
 //-----------------------------------------------------------------------------

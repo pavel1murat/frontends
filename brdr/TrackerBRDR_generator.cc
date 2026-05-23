@@ -114,6 +114,7 @@ namespace mu2e {
     int                                   _maxEventsPerSubrun; // 
     int                                   _readoutMode;        // 0:digis; 1:ROC pattern (all defined externally); 
     bool                                  _sendSubruns;
+    bool                                  _validate_fragments;
 
     trkdaq::DtcInterface*                 _dtc_i;
     DTCLib::DTC*                          _dtc;
@@ -214,13 +215,14 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
   , _lastReportTime    (std::chrono::steady_clock::now())
   , _fragment_ids      (ps.get<std::vector<uint16_t>>   ("fragment_ids"       , std::vector<uint16_t>()))  // 
   , _sFragmentType     (ps.get<std::string>             ("fragmentType"       ,    "DTCEVT"))  // 
-  , _debug_level        (ps.get<int>                     ("debugLevel"         ,           0))
+  , _debug_level        (ps.get<int>                    ("debugLevel"         ,           0))
   , _nEventsDbg        (ps.get<size_t>                  ("nEventsDbg"         ,         100))
   , _readData          (ps.get<int>                     ("readData"           ,           1))  // 
   , _printFreq         (ps.get<int>                     ("printFreq"          ,         100))  // 
   , _maxEventsPerSubrun(ps.get<int>                     ("maxEventsPerSubrun" ,       10000))  // 
   , _readoutMode       (ps.get<int>                     ("readoutMode"        ,           1))  // 
   , _sendSubruns       (ps.get<bool>                    ("sendSubruns"        ,        true))  // only one has to do that
+  , _validate_fragments(ps.get<bool>                    ("validate_fragments" ,        true))  // only one has to do that
   
 {
   _fragmentType = mu2e::toFragmentType(_sFragmentType);
@@ -568,20 +570,6 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 // PM 2026-03-10    cm_msg_flush_buffer();
 // PM 2026-03-10    TLOG(TLVL_ERROR) << "event:" << ev_counter() << " subevents.size():" << sz;
 // PM 2026-03-10    
-// PM 2026-03-10    artdaq::Fragment* frag = new artdaq::Fragment(ev_counter(), _fragment_ids[0], FragmentType::DTCEVT, tstamp);
-// PM 2026-03-10    int event_size = sizeof(DTCLib::DTC_EventHeader);
-// PM 2026-03-10    frag->resizeBytes(event_size);
-// PM 2026-03-10      
-// PM 2026-03-10    DTCLib::DTC_EventHeader* hdr = (DTCLib::DTC_EventHeader*) frag->dataBegin();
-// PM 2026-03-10    hdr->inclusive_event_byte_count = event_size;
-// PM 2026-03-10    hdr->num_dtcs       = 1;
-// PM 2026-03-10    hdr->event_tag_low  = (tstamp      ) & 0xFFFFFFFF;
-// PM 2026-03-10    hdr->event_tag_high = (tstamp >> 32) & 0x0000FFFF;
-// PM 2026-03-10//-----------------------------------------------------------------------------
-// PM 2026-03-10// now copy the empty fragment
-// PM 2026-03-10//-----------------------------------------------------------------------------
-// PM 2026-03-10    Frags.emplace_back(frag);
-// PM 2026-03-10
     return 0;
   }
   else {
@@ -590,6 +578,7 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 // each subevent (a block of data corresponding to a single DTC) becomes an artdaq fragment
 // the artdaq event tag is defined by the EWT from the data 
 //-----------------------------------------------------------------------------
+    TLOG(TLVL_DEBUG+1) << std::format("label:{} N(subevents read):{}",_artdaqLabel,sz);
     for (int i=0; i<sz; i++) {                       // and so far sz = 1
       DTC_SubEvent* ev     = subevents[i].get();
       int           nb     = ev->GetSubEventByteCount();
@@ -613,11 +602,13 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
         void* afd  = (void*) (hdr+1);
         memcpy(afd,ev->GetRawBufferPointer(),nb);
 
-        validateFragment(afd);        // skip validation of the header
+        if (_validate_fragments) validateFragment(afd);        // skip validation of the header
 //-----------------------------------------------------------------------------
 // now copy the fragment
 //-----------------------------------------------------------------------------
         Frags.emplace_back(frag);
+        TLOG(TLVL_DEBUG+1) << std::format("label:{} add new artdaq fragment event_size:{} frag->size:{} frag->sequence ID:{}",
+                                          _artdaqLabel,event_size,frag->size(),frag->sequenceID());
 //-----------------------------------------------------------------------------
 // this is essentially it, now - diagnostics 
 //-----------------------------------------------------------------------------

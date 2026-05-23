@@ -453,9 +453,11 @@ int TEqArtdaq::PrintProcesses(HNDLE H_Cmd) {
   // Use static to cache output across multiple calls
   static std::string last_output;
 
-  std::string cmd = "/bin/ps -efl | /bin/grep mu2etrk | /bin/grep -v grep 2>&1";
+  std::string cmd = "/bin/ps -efl | /bin/grep mu2etrk | grep -v grep";
   TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
   
+  sstr << std::format("{} : executing : {}\n",HostLabel(),cmd);
+
   std::string output  = popen_shell_command(cmd);
   TLOG(TLVL_DEBUG+1) << "output size=" << output.size();
 
@@ -536,6 +538,72 @@ int TEqArtdaq::ProcessStatus(HNDLE H_Cmd) {
 }
 
 //-----------------------------------------------------------------------------
+int TEqArtdaq::ShellCmd(HNDLE H_Cmd) {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);
+  
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  HNDLE       h_cmd_par  = _odb_i->GetCmdParameterHandle(H_Cmd);
+
+  std::string logfile    = _odb_i->GetString (H_Cmd,"logfile");
+  std::string cmd        = _odb_i->GetString(h_cmd_par,"command");
+  std::string parameters = _odb_i->GetString(h_cmd_par,"parameters");
+
+  if (parameters != "") cmd += std::format(" {}",parameters);
+
+  TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
+
+  sstr << std::format("{} executing shell command: {}\n",HostLabel(),cmd);
+  
+  std::string output  = popen_shell_command(cmd);
+
+  sstr << "\n" << output;
+  
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc);
+
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+// start ARTDAQ processes on this node , commanded by the TFM
+//-----------------------------------------------------------------------------
+int TEqArtdaq::StartProcesses(HNDLE H_Cmd) {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);
+  
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  HNDLE       h_cmd_par  = _odb_i->GetCmdParameterHandle(H_Cmd);
+
+  std::string logfile    = _odb_i->GetString (H_Cmd   ,"logfile");
+  std::string parameters = _odb_i->GetString(h_cmd_par,"parameters");
+  std::string config_name = _odb_i->GetRunConfigName(_h_active_run_conf);
+
+  std::string cmd = std::format("source config/artdaq/{}/start_artdaq_processes.sh {}",config_name,HostLabel());
+
+  TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
+
+  sstr << std::format("{}: executing : {}\n",HostLabel(),cmd);
+  
+  std::string output  = popen_shell_command(cmd);
+
+  sstr << "\n" << output;
+  
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc);
+
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 int TEqArtdaq::Tlvls(HNDLE H_Cmd) {
   int rc(0);
   TLOG(TLVL_DEBUG) << "-- START";
@@ -544,12 +612,18 @@ int TEqArtdaq::Tlvls(HNDLE H_Cmd) {
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
 
-  std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
-  //  int print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
+  HNDLE       h_cmd_par    = _odb_i->GetCmdParameterHandle(H_Cmd);
+
+  std::string logfile  = _odb_i->GetString (H_Cmd,"logfile");
+  std::string pattern  = _odb_i->GetString(h_cmd_par,"grep_pattern");
 
   std::string cmd = std::format("trace_cntl tids");
 
+  if (pattern != "") cmd += std::format(" | grep {}",pattern);
+
   TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
+
+  sstr << std::format("{} : executing : {}\n",HostLabel(),cmd);
   
   std::string output  = popen_shell_command(cmd);
 
@@ -582,7 +656,7 @@ int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& 
   // int         print_level  = Odb_i()->GetInteger(h_cmd_par,"print_level");
   std::string grep_pattern = Odb_i()->GetString(h_cmd_par,"grep_pattern");
 
-  TLOG(TLVL_DEBUG) << std::format("002 : got here , grep_pattern:",grep_pattern);
+  TLOG(TLVL_DEBUG) << std::format("002 : got here , grep_pattern:{}",grep_pattern);
   
   // tshow | tdelta -ct 1 -d 1
 
@@ -592,9 +666,8 @@ int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& 
   // std::string par_tshow ("");
   // std::string par_tdelta("-ct 1 -d 1");
 
-  //std::string fn = GetFullLogfileName(logfile);
-  
   std::string cmd = std::format("trace_cntl show | trace_delta -ct 1 -d 1 ");
+
   if (grep_pattern != "") {
     cmd += std::format(" | grep {}",grep_pattern);
   }
@@ -602,6 +675,8 @@ int TEqArtdaq::Tshow(HNDLE H_Cmd) { // std::ostream& Stream, const std::string& 
 
   TLOG(TLVL_DEBUG) << "003: cmd=" << cmd;
   
+  sstr << std::format("{} : executing : {}\n",HostLabel(),cmd);
+
   std::string output = popen_shell_command(cmd);
 
   sstr << output;
@@ -643,6 +718,8 @@ int TEqArtdaq::Treset(HNDLE H_Cmd) { // std::ostream& Stream, const std::string&
 
   TLOG(TLVL_DEBUG) << "cmd=" << cmd;
   
+  sstr << std::format("{} : executing : {}\n",HostLabel(),cmd);
+
   std::string output = popen_shell_command(cmd);
 
   sstr << output << "\n";
@@ -715,7 +792,7 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
 
   TLOG(TLVL_DEBUG) << std::format("eqm:{:p}",(void*) eqm);
   
-  TEqArtdaq*         eq  = (TEqArtdaq*) eqm->FindEquipmentItem("ARTDAQ");
+  TEqArtdaq*         eq  = (TEqArtdaq*) eqm->FindEquipmentItem("Artdaq");
 
   TLOG(TLVL_DEBUG) << std::format("eq:0x{:p}",(void*) eq);
 
@@ -726,6 +803,9 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
   int cmd_rc(0);
   if      (cmd == "print_processes") cmd_rc = eq->PrintProcesses(h_cmd);
   else if (cmd == "process_status" ) cmd_rc = eq->ProcessStatus (h_cmd);
+  else if (cmd == "reset_output"   ) cmd_rc = eq->ResetOutput   (h_cmd);  // from TMu2eEqBase
+  else if (cmd == "shell_cmd"      ) cmd_rc = eq->ShellCmd      (h_cmd);
+  else if (cmd == "start_processes") cmd_rc = eq->StartProcesses(h_cmd);
   else if (cmd == "tlvls"          ) cmd_rc = eq->Tlvls         (h_cmd);
   else if (cmd == "treset"         ) cmd_rc = eq->Treset        (h_cmd);
   else if (cmd == "tshow"          ) cmd_rc = eq->Tshow         (h_cmd);

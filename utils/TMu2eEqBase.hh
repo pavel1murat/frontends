@@ -13,6 +13,14 @@ class OdbInterface;
 class TMu2eEqBase {
 public:
                                         // subsystem? generic equipment type ? - will see.. 0=undefined
+  enum RunType : int {
+    kBeamRun           = 1,
+    kCosmicRun         = 2,
+    kInternalPulserRun = 3,
+    kPulseInjectionRun = 4,
+    kNoiseRun          = 5,
+  };
+
   enum {
     kUndefined   = 0,
     kTracker     = 1,
@@ -24,7 +32,7 @@ public:
     kDisk        = 7,
     kDaq         = 8,
   };
-  
+
   std::string   _name;                  // equipment name, for now: 'DTC0','DTC1','ARTDAQ','DISK' (capitalized)
   std::string   _title;                 // name-related stub in ODB : 'DTC0', 'DTC1', 'Artdaq', 'Disk', etc
   std::string   _full_host_name;
@@ -57,6 +65,7 @@ public:
   std::string&        FullHostName() { return _full_host_name; }
   int                 GetStatus   ();
   int                 GetEnabled  ();
+  int                 GetRunType  ();
 
   std::string         GetFullLogfileName(const std::string& Logfile);
 

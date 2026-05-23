@@ -53,7 +53,7 @@ TEqCrvDtc::TEqCrvDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     _dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte(H_Dtc);
     _dtc_i->fEmulateCfo     = _odb_i->GetDtcEmulatesCfo(H_Dtc);
         
-    _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(H_Dtc);
+    _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(H_RunConf);
     _dtc_i->fEventMode      = _odb_i->GetEventMode        (H_RunConf);
     _dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode   (H_RunConf);
     _dtc_i->fJAMode         = _odb_i->GetJAMode           (H_Dtc);

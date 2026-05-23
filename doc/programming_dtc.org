@@ -21,7 +21,7 @@ bitfile=/home/mu2ehwdev/DTC_Firmware/DTC2026Jan16_17_22.1_6ROC/DTC.bit
 vivado_lab -mode batch -source ~mu2ehwdev/ots_spack/srcs/otsdaq-mu2e/tools/program_both_DTCs.tcl -tclargs $bitfile $bitfile
 #+end_src
 ** using mu2ehwdev script                                                    
-- note extra shell level - w/o that, the script gets stuck
+- note extra shell level - w/o that, the script gets stuck, ... got stuck with one parameter as well
 - in all cases, need to reset the PCIE bus         
 #+begin_src                                                                  
 bash ~mu2ehwdev/program_both_DTCs.sh /home/mu2ehwdev/DTC_Firmware/DTC2024Apr18_11_22.1/DTC.bit /home/mu2ehwdev/CFO_Firmware/CFO2024Mar14_14_22.1/CFO.bit

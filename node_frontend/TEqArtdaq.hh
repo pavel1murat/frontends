@@ -28,9 +28,11 @@ public:
   virtual int         HandlePeriodic() override;
 
   int                 ReadMetrics   ();
-
+                                        
+  int                 StartProcesses(HNDLE H_Cmd); // start ARTDAQ processes on this node at begin run, commanded by the TFM
   int                 PrintProcesses(HNDLE H_Cmd);
   int                 ProcessStatus (HNDLE H_Cmd);
+  int                 ShellCmd      (HNDLE H_Cmd);
   int                 Tlvls         (HNDLE H_Cmd);
   int                 Treset        (HNDLE H_Cmd);
   int                 Tshow         (HNDLE H_Cmd);
