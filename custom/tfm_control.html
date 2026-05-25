@@ -167,7 +167,8 @@
        let thead = document.createElement('thead');
       
        tr = document.createElement('tr');
-       tr.innerHTML ='<td> <div class="mtableheader" colspan=2> Trigger Farm Manager (TFM) </div> </td>';
+       tr.innerHTML ='<td> <div class="mtableheader" colspan=8> Trigger Farm Manager (TFM) </div> </td>';
+       // tr.innerHTML ='<td> <div class="mtableheader"> Trigger Farm Manager (TFM) </div> </td>';
        
        td = document.createElement('td');
        // td.colSpan = 1;
@@ -203,7 +204,7 @@
            if (new_row) {
              row = document.createElement('tr');
              td  = document.createElement('td');
-             td.colspan = 20;
+             // td.colSpan = 10;
              
              div = document.createElement('div');
              div.className = 'tab';
@@ -284,14 +285,12 @@
          tr2.appendChild(td2);
          tfm_tbody.appendChild(tr2);
 
-         
+
          tr2 = document.createElement('tr');
          td2     = document.createElement('td');
          td2.colSpan = 2;
          
-
-         // and the last action button not using ODB
-         cmd = new Command_D('reset_output','reset_output','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,tfm_load_help_page,logfile,5000);
+         cmd = new Command_D('reset_output','reset_output','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
          btn = mu2e_make_exec_button_D(cmd);
          td2.appendChild(btn);
          
