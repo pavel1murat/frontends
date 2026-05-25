@@ -4,7 +4,7 @@
 # frontend name : python_tfm_fe
 # with transition to spack, no longer need to update the PYTHONPATH
 #------------------------------------------------------------------------------
-import  ctypes, os, sys, datetime, random, time, traceback, subprocess
+import  ctypes, os, sys, random, time, traceback, subprocess
 import  xmlrpc.client
 import  inspect
 
@@ -13,11 +13,13 @@ import  midas.frontend
 import  midas.event
 
 from contextlib import redirect_stdout
+from datetime   import datetime
 
 import  TRACE
 TRACE_NAME = "tfm_fe"
 
 import tfm.rc.control.farm_manager as farm_manager
+import tfm.rc.control.artdaq       as artdaq
 
 # sys.path.append(os.environ["FRONTENDS_DIR"])
 from frontends.utils.runinfodb import RuninfoDB
@@ -90,7 +92,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 #---v--------------------------------------------------------------------------
     def get_logfile(self,output_dir):
         TRACE.TRACE(TRACE.TLVL_LOG,"--- START")
-        current_datetime = datetime.datetime.now()
+        current_datetime = datetime.now()
         timestamp        = current_datetime.strftime("%Y-%m-%d_%H-%M-%S")
 
         tfm_logfile      = "undefined"
@@ -404,54 +406,52 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
         TRACE.INFO(f'par:{par}',TRACE_NAME);
 
-        run_conf       = par["run_conf"   ];
-        host           = par["host"       ];
-        artdaq_process = par["process"    ];
-        diag_level     = par["print_level"];
+        rc = artdaq.gen_fcl(self.client,par)
 
-        TRACE.INFO(f'run_conf:{run_conf} host:{host} process:{artdaq_process} diag_level:{diag_level}',TRACE_NAME);
-
-        cmd=os.getenv('MU2E_DAQ_DIR')+f'/config/scripts/gen_artdaq_fcl.py --run_conf={run_conf} --host={host} --process={artdaq_process} --diag_level={diag_level}';
-
-        TRACE.INFO(f'cmd:{cmd}',TRACE_NAME);
-        
-        p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True,text=True)
-        stdout, stderr = p.communicate();
-        TRACE.INFO(f'after subprocess.Popen p.returncode={p.returncode}',TRACE_NAME);
-        if (p.returncode != 0):
-            TRACE.ERROR(f'ERROR in gen_artdaq_fcl : rc:{rc}',TRACE_NAME);
-            err_lines = stderr.split('\n');
-            for line in err_lines:
-                TRACE.ERROR(f'{line}\n',TRACE_NAME)
+# 2025-05-26 PM        run_conf       = par["run_conf"   ];
+# 2025-05-26 PM        host           = par["host"       ];
+# 2025-05-26 PM        artdaq_process = par["process"    ];
+# 2025-05-26 PM        diag_level     = par["print_level"];
+# 2025-05-26 PM
+# 2025-05-26 PM        TRACE.INFO(f'run_conf:{run_conf} host:{host} process:{artdaq_process} diag_level:{diag_level}',TRACE_NAME);
+# 2025-05-26 PM
+# 2025-05-26 PM        cmd  = f'export TRACE_FILE={os.environ.get("TRACE_FILE")}'
+# 2025-05-26 PM        cmd += '; ' + os.environ.get('MU2E_DAQ_DIR')+f'/config/scripts/gen_artdaq_fcl.py --run_conf={run_conf} --host={host} --process={artdaq_process} --diag_level={diag_level}';
+# 2025-05-26 PM
+# 2025-05-26 PM        TRACE.INFO(f'cmd:{cmd}',TRACE_NAME);
+# 2025-05-26 PM        
+# 2025-05-26 PM        p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True,text=True)
+# 2025-05-26 PM        stdout, stderr = p.communicate();
+# 2025-05-26 PM        TRACE.INFO(f'after subprocess.Popen p.returncode={p.returncode}',TRACE_NAME);
+# 2025-05-26 PM        if (p.returncode != 0):
+# 2025-05-26 PM            TRACE.ERROR(f'ERROR in gen_artdaq_fcl : rc:{rc}',TRACE_NAME);
+# 2025-05-26 PM            err_lines = stderr.split('\n');
+# 2025-05-26 PM            for line in err_lines:
+# 2025-05-26 PM                TRACE.ERROR(f'{line}\n',TRACE_NAME)
 #------------------------------------------------------------------------------
 # write output - first , last message
 # write error output, if any, first - to the message file, then - to the logfile
-#------------------------------------------------------------------------------
+#-------v----------------------------------------------------------------------
         msg_fn = self.message_stream+'.msg';
         log_fn = self.message_stream+'.log';
         
-        lines = stdout.split('\n');
-        with open(msg_fn,"w") as logfile:
-            for line in lines:
-                logfile.write(line+'\n')
+        now   = datetime.now()
+        stime = now.strftime("%Y-%m-%d-%H-%M-%S")
 
-            if (stderr != ''):
-                err_lines = stderr.split('\n');
-                for line in err_lines:
-                    logfile.write(line+"\n")
+        msg = f'<msg> {stime} generate_fcl:'
+        if (rc == 0): msg = msg+' OK'
+        else:         msg = msg+' ERROR'
+        
+        with open(msg_fn,"w") as logfile:
+            logfile.write(msg+'\n')
+
 #------------------------------------------------------------------------------
 # now, the logfile
 #------------------------------------------------------------------------------
         with open(log_fn,"a") as logfile:
-            for line in lines:
-                logfile.write(line+'\n')
-        
-            if (stderr != ''):
-                err_lines = stderr.split('\n');
-                for line in err_lines:
-                    logfile.write(line+"\n")
+            logfile.write(msg+'\n')
 
-        TRACE.INFO(f'-- END: run_conf:{run_conf} host:{host} process:{artdaq_process}',TRACE_NAME);
+        TRACE.INFO(f'-- END: run_conf:{par["run_conf"]} host:{par["host"]} process:{par["process"]}',TRACE_NAME);
         return rc;
     
 #------------------------------------------------------------------------------
