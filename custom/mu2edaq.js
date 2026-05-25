@@ -296,9 +296,15 @@ function artdaq_process_control(hostname,process) {
 //-----------------------------------------------------------------------------
 // the second parameter may not be necessary, keep it for the moment
 //-----------------------------------------------------------------------------
-function cfo_control(hostname,pcie) {
+async function cfo_control(hostname,pcie) {
+  const ppath = "/Mu2e/ActiveRunConfiguration/DAQ/CFO";
+  
+  // check if previous command has finished, if not - bail out
+  let rpc = await mjsonrpc_db_get_values([ppath+'/host',ppath+'/pcie_addr']);
+  const host      = rpc.result.data[0];
+  const pcie_addr = rpc.result.data[1];
 //  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}&facility=tfm`;
-  window.open(`cfo_control.html?hostname=${hostname}&pcie=${pcie}`,'_blank');
+  window.open(`cfo_control.html?hostname=${host}&pcie=${pcie_addr}`,'_blank');
 }
 
 //-----------------------------------------------------------------------------

@@ -331,32 +331,32 @@
       let cmd, btn;
       const logfile = `${g_hostname}_dtc${g_pcie}`;  // logfile here means a 'stream', doesn't need an extention
       
-      cmd = new Command_B('load_parameters'    ,'load_parameters'    , mu2e_load_conf_table ,'cmd_params', dtc_config_path       ,logfile);
-      btn = mu2e_make_exec_button_B(cmd);
+      cmd = new Command_D('load_cmd_pars'    ,'load_cmd_pars'    , 'dtc_menu_03', mu2e_load_conf_table ,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page, logfile, 10000);
+      btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_D('init_readout'       ,'init_readout'       , 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      cmd = new Command_D('init_readout'     ,'init_readout'     , 'dtc_menu_02', dtc_cmd_set_odb      ,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page,logfile,10000);
       btn = mu2e_make_dropup_button_D(cmd);
 
       td.appendChild(btn);
 
-      cmd = new Command_D('configure_ja'       ,'configure_ja'       , 'dtc_menu_02', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      cmd = new Command_D('configure_ja'     ,'configure_ja'     , 'dtc_menu_02', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
       btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
-      
-      cmd = new Command_D('cfo_launch_run_plan','cfo_launch_run_plan', 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
-      btn = mu2e_make_dropup_button_D(cmd);
-      td.appendChild(btn);
+// this is a function of the CFO..      
+//      cmd = new Command_D('cfo_launch_run_plan','cfo_launch_run_plan', 'dtc_menu_02', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+//      btn = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
 
-      cmd = new Command_D('read_subevents'     ,'read_subevents'     , 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      cmd = new Command_D('read_subevents'   ,'read_subevents'   , 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page,logfile,10000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_B('clear_status'     ,'clear_status'         , dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
-      btn  = mu2e_make_exec_button_B(cmd);
+      cmd = new Command_D('clear_status'     ,'clear_status'     , 'dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      btn  = mu2e_make_exec_button_D(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_D('check_fifos'     ,'check_fifos'     , 'dtc_menu_02', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      cmd = new Command_D('check_fifos'      ,'check_fifos'      , 'dtc_menu_02', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page,logfile,10000);
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
@@ -392,8 +392,12 @@
       td.appendChild(btn);
       tr.appendChild(td);
 
-      cmd = new Command_B('print_status','print_status',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
-      btn = mu2e_make_exec_button_B(cmd);
+//       cmd = new Command_B('print_status','print_status',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+//       btn = mu2e_make_exec_button_B(cmd);
+//       td.appendChild(btn);
+      
+      cmd = new Command_D('print_status','print_status','dtc_menu_02',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page, logfile, 10000);
+      btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
       // order: title, name, ...
@@ -513,6 +517,11 @@
     <!-- actions assigned in the Command_D constructor -->
     <div id="dtc_menu_02" class="daq_menu">
       <div data-action="load_cmd_par">load_parameters</div>
+      <div data-action="help"        >help</div>
+    </div>
+
+    <!-- actions assigned in the Command_D constructor : help-only-->
+    <div id="dtc_menu_03" class="daq_menu">
       <div data-action="help"        >help</div>
     </div>
 
