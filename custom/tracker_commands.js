@@ -9,7 +9,7 @@ function trk_panel_control(is, iplane, ipanel, mnid) {
 
 //-----------------------------------------------------------------------------
 function trk_load_help_page(cmd) {
-  const url = 'https://mu2einternalwiki.fnal.gov/wiki/DTC_control_page#ROC_control_commands';
+  const url = 'https://mu2einternalwiki.fnal.gov/wiki/Tracker_control_page#';
   window.open(url,'_blank');
 }
 

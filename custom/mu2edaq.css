@@ -120,7 +120,7 @@ body {
   border    : none;
   outline   : none;
   cursor    : pointer;
-  padding   : 5px 5px;
+  padding   : 3px 4px;
   transition: 0.3s;
   font-size : 14px;
 }

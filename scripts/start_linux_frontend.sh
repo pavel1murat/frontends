@@ -35,17 +35,18 @@ midas_host=${midas_host%?}
 echo LINENO:$LINENO verbose=$verbose remote_mode=$remote_node midas_host:$midas_host
 
 if   [ $remote_node == $local_node ] ; then
-    # local node
     logdir=$DAQ_OUTPUT_TOP/logs/$frontend; if [ ! -d $logdir ] ; then mkdir -p $logdir ; fi
-    $frontend >| $DAQ_OUTPUT_TOP/logs/$frontend/$frontend.$local_node.log 2>&1 &
+    log_fn=$frontend.$remote_node.`date +%Y-%m-%d-%H-%M-%S`.log
+    nohup $frontend -h $midas_host:$midas_port >| $DAQ_OUTPUT_TOP/logs/$frontend/$log_fn 2>&1 &
 else
-    # remote node
     cmd="export MU2E_DAQ_DIR=$MU2E_DAQ_DIR"
     cmd=$cmd"; cd $MU2E_DAQ_DIR"
     cmd=$cmd"; source setup_daq.sh $spack_env"
-    cmd=$cmd"; logdir=$DAQ_OUTPUT_TOP/logs/$frontend; if [ ! -d $logdir ] ; then mkdir -p $logdir ; fi"
-    cmd=$cmd"; nohup $frontend -h $midas_host:$midas_port >| $DAQ_OUTPUT_TOP/logs/$frontend/$frontend.$local_node.log 2>&1 &"
+    cmd=$cmd"; logdir=$DAQ_OUTPUT_TOP/logs/$frontend; if [ ! -d \$logdir ] ; then mkdir -p \$logdir ; fi"
+    cmd=$cmd"; nohup $frontend -h $midas_host:$midas_port"
 
-    if [ $verbose != 0 ] ; then echo ssh -KX $USER@$remote_node.fnal.gov $cmd ; fi
-    ssh -KX $USER@$remote_node.fnal.gov  $cmd
+    logfile=$frontend.$remote_node.`date +%Y-%m-%d-%H-%M-%S`.log
+    if [ $verbose != 0 ] ; then echo ssh -KX $USER@$remote_node.fnal.gov \"$cmd \>\| $logfile 2\>\&1\" ; fi
+
+    ssh -KX $USER@$remote_node.fnal.gov  "$cmd >| \$logfile 2>&1 &"
 fi

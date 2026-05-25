@@ -66,10 +66,6 @@
          let np = process_list.length;
          for (let i=0; i<np; i++) {
            const p = process_list[i];
-// 2025-05-09 PM           // if active-proces_label is undefined, choose (highlight) the first process as active
-// 2025-05-09 PM           if (active_process_label == null) {
-// 2025-05-09 PM             active_process_label = p;
-// 2025-05-09 PM           }
            let btn = document.createElement('button');
            // btn.style.display = "block";
            btn.className = "process_tabs"
@@ -102,14 +98,18 @@
          btn = mu2e_make_exec_button_B(cmd);
          td2.appendChild(btn);
 
+//         cmd = new Command_B('generate_fcl','generate_fcl',tfm_command_set_odb,'cmd_params',tfm_cmd_parameter_path,logfile);
+//         btn = mu2e_make_exec_button_B(cmd);
+//         td2.appendChild(btn);
+
+         cmd = new Command_D('generate_fcl','generate_fcl','tfm_menu_02',tfm_node_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
+         btn = mu2e_make_dropup_button_D(cmd);
+         td2.appendChild(btn);
+         
          cmd = new Command_D('print_fcl','print_fcl','tfm_menu_02',tfm_node_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
          btn = mu2e_make_dropup_button_D(cmd);
          td2.appendChild(btn);
          
-         cmd = new Command_B('generate_fcl','generate_fcl',tfm_command_set_odb,'cmd_params',tfm_cmd_parameter_path,logfile);
-         btn = mu2e_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-
          // note different parameter path
          cmd = new Command_B('print_processes','print_processes',tfm_command_set_odb,'cmd_params',node_artdaq_parameter_path,logfile);
          btn = mu2e_make_exec_button_B(cmd);
@@ -182,7 +182,7 @@
        tfm_tbody = document.createElement('tbody');
 
        //------------------------------------------------------------------------------
-       // nodes table
+       // node table
        //-----------------------------------------------------------------------------
 
        const  paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes",];
@@ -281,6 +281,20 @@
          btn = mu2e_make_dropup_button_D(cmd);
          td2.appendChild(btn);
          
+         tr2.appendChild(td2);
+         tfm_tbody.appendChild(tr2);
+
+         
+         tr2 = document.createElement('tr');
+         td2     = document.createElement('td');
+         td2.colSpan = 2;
+         
+
+         // and the last action button not using ODB
+         cmd = new Command_D('reset_output','reset_output','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,tfm_load_help_page,logfile,5000);
+         btn = mu2e_make_exec_button_D(cmd);
+         td2.appendChild(btn);
+         
          cmd = new Command_B('treset','treset',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
          btn = tfm_make_exec_button_B(cmd);
          td2.appendChild(btn);
@@ -301,20 +315,6 @@
          btn = tfm_make_exec_button_B(cmd);
          td2.appendChild(btn);
 
-         tr2.appendChild(td2);
-         tfm_tbody.appendChild(tr2);
-
-         
-         tr2 = document.createElement('tr');
-         td2     = document.createElement('td');
-         td2.colSpan = 2;
-         
-
-         // and the last action button not using ODB
-         cmd = new Command_D('reset_output','reset_output','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,tfm_load_help_page,logfile,5000);
-         btn = mu2e_make_exec_button_D(cmd);
-         td2.appendChild(btn);
-         
          cmd = new Command_B('print_procinfos','print_procinfos',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,logfile);
          btn = tfm_make_exec_button_B(cmd);
          td2.appendChild(btn);

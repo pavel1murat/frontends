@@ -230,6 +230,20 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         digitization_start_5ns = daq['digitization_start_5ns'];
         digitization_stop_5ns  = daq['digitization_stop_5ns'];
         f.write(f'- digitization_start_5ns:{digitization_start_5ns} digitization_stop_5ns:{digitization_stop_5ns}\n\n')
+
+        if (run_type == 4):
+            # pulse injection, save nsamples and lookback
+            read_path          = f'/Mu2e/ActiveRunConfiguration/Tracker/Readout/pulse_injection/read'
+            num_samples        = self.client.odb_get(f'{read_path}/num_samples')
+            num_lookback       = self.client.odb_get(f'{read_path}/num_lookback')
+            
+            pulser_on_path     = f'/Mu2e/ActiveRunConfiguration/Tracker/Readout/pulse_injection/pulser_on'
+            first_channel_mask = self.client.odb_get(f'{pulser_on_path}/first_channel_mask')
+            duty_cycle         = self.client.odb_get(f'{pulser_on_path}/duty_cycle')
+            pulser_delay       = self.client.odb_get(f'{pulser_on_path}/pulser_delay')
+
+            f.write(f'- num_samples:{num_samples:2d} num_lookback:{num_lookback:2d}\n')
+            f.write(f'- first_channel_mask:0x{first_channel_mask:02x} duty_cycle:{duty_cycle} pulser_delay:{pulser_delay}\n')
 #------------------------------------------------------------------------------
 # ARTDAQ information
 #------------------------------------------------------------------------------

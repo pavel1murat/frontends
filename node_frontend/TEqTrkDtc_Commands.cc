@@ -551,20 +551,14 @@ int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
     logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
   }
   int print_level     = _odb_i->GetInteger(h_cmd_par,"print_level");
-  int doit            = _odb_i->GetInteger(h_cmd_par,"doit");
+  // int doit            = _odb_i->GetInteger(h_cmd_par,"doit");
 
-  TLOG(TLVL_DEBUG) << std::format("link:{} print_level:{} doit:{}",link,print_level,doit);
+  TLOG(TLVL_DEBUG) << std::format("link:{} print_level:{}",link,print_level);
 
   sstr << std::endl;
 
   int n_bitslips(0);
-  if (doit != 0) {
-    rc = _dtc_i->FindAlignments(link,n_bitslips,print_level,sstr);
-  }
-  else {
-    TLOG(TLVL_DEBUG) << std::format("just waiting");
-    ss_sleep(1000);
-  }
+  rc = _dtc_i->FindAlignments(link,n_bitslips,print_level,sstr);
 
   sstr << std::format(" rc:{} n_bitslips:{}",rc,n_bitslips);
   int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
@@ -976,10 +970,12 @@ int TEqTrkDtc::MeasureThresholds(HNDLE H_Cmd) {
   }
 
   int   print_level    = _odb_i->GetInteger(h_cmd_par,"print_level");
+
+  uint32_t ch_mask[3];
+
+  _odb_i->GetArray(h_cmd_par,"ch_mask",TID_DWORD,ch_mask,3);
   
-  TLOG(TLVL_DEBUG) << "- checkpoint 0.1 Link:" << link
-                   << " PcieAddr:" << _dtc_i->PcieAddr()
-                   << " PrintLevel:" << print_level;
+  TLOG(TLVL_DEBUG) << std::format("DTC:{} Link:{} print_level:{} ch_mask read fron ODB",_dtc_i->PcieAddr(),link,print_level);
 
   int lnk1 = link;
   int lnk2 = lnk1+1;
@@ -988,7 +984,7 @@ int TEqTrkDtc::MeasureThresholds(HNDLE H_Cmd) {
     lnk2 = 6;
   }
 
-  TLOG(TLVL_DEBUG) << "-------------- lnk2, lnk2:" << lnk1 << " " << lnk2;
+  TLOG(TLVL_DEBUG) << std::string("lnk1:{} lnk2:{}",lnk1,lnk2);
 
   std::vector<float> thr[6];
 
@@ -1002,12 +998,13 @@ int TEqTrkDtc::MeasureThresholds(HNDLE H_Cmd) {
       continue;
     }
     
-    TLOG(TLVL_DEBUG) << " -- link:" << lnk << " enabled";
+    TLOG(TLVL_DEBUG) << std::format("DTC:{} link:{} enabled, reading thresholds",_dtc_i->PcieAddr(),lnk);
 //-----------------------------------------------------------------------------
 // exceptions are handled in the called function
 //-----------------------------------------------------------------------------
-    rc = _dtc_i->ControlRoc_ReadThresholds(lnk,thr[lnk],0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,
+    rc = _dtc_i->ControlRoc_ReadThresholds(lnk,thr[lnk],ch_mask[0],ch_mask[1],ch_mask[2], // 0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,
                                            print_level,sstr);
+    TLOG(TLVL_DEBUG) << std::format("DTC:{} link:{} done reading thresholds, rc:{}",_dtc_i->PcieAddr(),lnk,rc);
     if (rc < 0) {
       std::string msg = std::format("DTC:{} link:{} failed to read thresholds, BAIL OUT",_dtc_i->PcieAddr(),lnk);
       sstr << msg << std::endl;
@@ -1018,40 +1015,57 @@ int TEqTrkDtc::MeasureThresholds(HNDLE H_Cmd) {
     }
 //-----------------------------------------------------------------------------
 // now store the output in the ODB, the packing order: (hv, cal) ... ignore 'tot')
+// odbxx is slow....
 //-----------------------------------------------------------------------------
-    std::string p_panel = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
-                                      _host_label.data(),_dtc_i->PcieAddr(),lnk);
-    midas::odb o_panel(p_panel);
+    std::string panel_odb_path = std::format("/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{:s}/DTC{:d}/Link{:d}/DetectorElement",
+                                             _host_label.data(),_dtc_i->PcieAddr(),lnk);
+    HNDLE h_panel = _odb_i->GetHandle(0,panel_odb_path);
+    //    midas::odb o_panel(p_panel);
+    
+    float thr_cal_mv[96];
+    float thr_hv_mv [96];
     for (int i=0; i<96; ++i) {
-      o_panel["thr_hv_mv" ][i] = thr[lnk][3*i  ];
-      o_panel["thr_cal_mv"][i] = thr[lnk][3*i+1];
+      thr_hv_mv [i] = thr[lnk][3*i  ];
+      thr_cal_mv[i] = thr[lnk][3*i+1];
     }
+    TLOG(TLVL_DEBUG+1) << std::format("DTC:{} link:{} saving thresholds_mv in ODB",_dtc_i->PcieAddr(),lnk);
+    // and now one array transaction
+    _odb_i->SetArray(h_panel,"thr_hv_mv"  ,TID_FLOAT,thr_hv_mv ,96);
+    _odb_i->SetArray(h_panel,"thr_cal_mv" ,TID_FLOAT,thr_cal_mv,96);
+    
+    TLOG(TLVL_DEBUG+1) << std::format("DTC:{} link:{} done saving thresholds",_dtc_i->PcieAddr(),lnk);
+    //   for (int i=0; i<96; ++i) {
+    //     o_panel["thr_hv_mv" ][i] = thr[lnk][3*i  ];
+    //     o_panel["thr_cal_mv"][i] = thr[lnk][3*i+1];
+    //   }
   }
 
+  TLOG(TLVL_DEBUG+1) << std::format("DTC:{} before printing all ",_dtc_i->PcieAddr());
   if (print_level & 0x2) {
     for (int lnk=lnk1; lnk<lnk2; ++lnk) {
       if      (_dtc_i->LinkEnabled(lnk) == 0) continue;
       else if (_dtc_i->LinkLocked (lnk) == 0) continue;
       
-      _dtc_i->PrintThresholds(link,thr[lnk],0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,print_level,sstr);
+      _dtc_i->PrintThresholds(link,thr[lnk],ch_mask[0],ch_mask[1],ch_mask[2], /*0xFFFFFFFF,0xFFFFFFFF,0xFFFFFFFF,*/ print_level,sstr);
     }
   }
   else if (print_level & 0x4) {
 //-----------------------------------------------------------------------------
 // print summary table for all 6 links, sum(cal+hv) only
 //-----------------------------------------------------------------------------
-    _dtc_i->PrintSumThresholds(thr,sstr);
+    _dtc_i->PrintSumThresholds(thr,ch_mask[0],ch_mask[1],ch_mask[2],print_level,sstr);
   }
 
+  TLOG(TLVL_DEBUG+1) << std::format("DTC:{} before writing output ",_dtc_i->PcieAddr());
   int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
 
-  SetStatus(rc); 
-  _odb_i->SetInteger(H_Cmd,"Finished",1);
-
+  SetCommandFinished(H_Cmd,rc); 
+  
   TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
   return rc;
 }
 
+  
 //-----------------------------------------------------------------------------
 // link=-1: print status of all enabled ROCs
 //-----------------------------------------------------------------------------
@@ -2341,8 +2355,8 @@ int TEqTrkDtc::StartMessage(HNDLE h_Cmd, std::stringstream& Stream) {
   // Manually append the 2-digit milliseconds
   std::string s_now = std::format("{}.{:02}", buf, ms.count() / 10);
 
-
-  Stream << std::format("{} - cmd:{} label:{} pcie_addr:{} link:{}",s_now,cmd,HostLabel(),_dtc_i->PcieAddr(),link);
+  // add message tag
+  Stream << std::format("<msg> {} - cmd:{} label:{} pcie_addr:{} link:{}",s_now,cmd,HostLabel(),_dtc_i->PcieAddr(),link);
   Stream << std::endl;
   return 0;
 }

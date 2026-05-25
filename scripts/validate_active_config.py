@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #------------------------------------------------------------------------------
 # validate active configuration
 #------------------------------------------------------------------------------
@@ -59,36 +60,89 @@ def validate_active_config():
     
     logger.info("Initializing : validate_active_config")
 
-    client = midas.client.MidasClient("validate_active_config", "mu2e-dl-01", "tracker", None)
+    client   = midas.client.MidasClient("validate_active_config", "mu2e-dl-01", "tracker", None)
+    n_errors = 0
 #------------------------------------------------------------------------------
 # ODB address:
 #------------------------------------------------------------------------------
-    tracker_config_path = f'/Mu2e/RunConfigurations/tracker_mc2/Tracker' ## Station_00/Plane_0{ipl}/Panel_0{link[panel_name]}'
+    tracker_config_path = f'/Mu2e/ActiveRunConfiguration/Tracker' ## Station_00/Plane_0{ipl}/Panel_0{link[panel_name]}'
     first_station =  client.odb_get(tracker_config_path+'/FirstStation');
     last_station  =  client.odb_get(tracker_config_path+'/LastStation');
 
-    TRACE.INFO(f'first_station:{first_station} last_station:{last_station}')
+    TRACE.INFO(f'1. ---------------------- validating tracker configuration: first_station:{first_station} last_station:{last_station}')
 
     for i in range(first_station,last_station+1):
         station_config_path = tracker_config_path+f'/Station_{i:02d}'
-        print (f'station config path:{station_config_path}')
+        TRACE.DEBUG(0,f'--- validating slot {i:02d} config path:{station_config_path}')
         for plane in range (0,2):
             plane_config_path   = station_config_path+f'/Plane_{plane:02d}'
             plane_name = client.odb_get(plane_config_path+'/Name');
-            print (f'plane config path:{plane_config_path} plane_name:{plane_name}')
+            TRACE.DEBUG(0,f'plane 1 (0:U, 1:D) ,  config path:{plane_config_path} plane_name:{plane_name}')
             
             for panel in range(0,6):
                 panel_config_path = plane_config_path+f'/Panel_{panel:02d}'
                 panel_name = client.odb_get(panel_config_path+'/Name');
                 link       =  client.odb_get(panel_config_path+'/Link');
-                print (f'plane config path:{plane_config_path} panel_name:{panel_name}')
+                TRACE.DEBUG(0,f'plane config path:{plane_config_path} panel_name:{panel_name}')
                 # now find the DTC this panel is connected to
                 dtc_detector_element_path = plane_config_path+f'/DTC/Link{link}/DetectorElement'
-                print(f'dtc_detector_element_path:{dtc_detector_element_path}')
-                name2 = client.odb_get(dtc_detector_element_path+'/Name');
-                print (f'plane config path:{plane_config_path} panel_name:{panel_name} name2:{name2}')
-                if (name2 != panel_name):
-                    TRACE.ERROR(f'panel_config_path:{panel_config_path} panel_name:{panel_name} name2:{name2}')
+                TRACE.DEBUG(0,f'DTC detector element path:{dtc_detector_element_path}')
+                dtc_panel_name = client.odb_get(dtc_detector_element_path+'/Name');
+                TRACE.DEBUG(0,f'panel config path:{panel_config_path} panel_name:{panel_name} name2:{dtc_panel_name}')
+                if (panel_name != dtc_panel_name):
+                    TRACE.ERROR(f'ERROR: panel_config_path:{panel_config_path} panel_name:{panel_name} dtc_panel_name:{dtc_panel_xsname}')
+                    n_errors += 1
+                else:
+                    TRACE.DEBUG(0,f' panel {panel_name} at ODB config path:{panel_config_path} is OK')
+
+    TRACE.INFO(f'2. ---------------------- validating DTC configuration')
+    
+    nodes_config_path = f'/Mu2e/ActiveRunConfiguration/DAQ/Nodes'
+    nodes = client.odb_get(nodes_config_path);
+
+    # hw CFO: DTCs shoudl ha JA mode of 0x10
+    nominal_ja_mode = 0x10;
+    for node_name in nodes.keys():
+        node = nodes[node_name];
+        for key in node.keys():
+            if ((key == "DTC0") or (key == "DTC1")):
+                dtc = node[key]
+                # validate JAMode
+                if (dtc['JAMode'] != nominal_ja_mode):
+                    TRACE.WARNING(f'WARNING: node:{node_name} dtc:{key} has JAMode:0x{dtc["JAMode"]:04x} different from 0x:{nominal_ja_mode:04x}')
+                    n_errors += 1
+                else:
+                    TRACE.DEBUG(0,f'{key}@{node_name}: JAMode = 0x{dtc["JAMode"]:04x} - OK')
+        
+    TRACE.INFO(f'3. ---------------------- validating default DTC command parameters')
+    
+    nodes_config_path = f'/Mu2e/Commands/DAQ/Nodes'
+    nodes = client.odb_get(nodes_config_path);
+
+    # hw CFO: DTCs shoudl ha JA mode of 0x10
+    nominal_ja_mode = 0x10;
+    for node_name in nodes.keys():
+        node = nodes[node_name];
+        for eq_name in node.keys():
+            if (( eq_name == "DTC0") or (eq_name == "DTC1")):
+                commands = node[eq_name]
+                for cmd_name in commands.keys():
+                    if (cmd_name == "init_readout"):
+                        cmd = commands[cmd_name]
+                
+                        # validate init_readout
+                        if (cmd['emulate_cfo'] == 1):
+                            TRACE.WARN(f'WARNING: node:{node_name} dtc:{eq_name} init_readout.emulate_cfo=1')
+                            n_errors += 1
+                        else:
+                            TRACE.DEBUG(0,f'node:{node_name} dtc:{eq_name} init_readout parameters: OK')
+
+    TRACE.INFO(f'total number of detected errors: {n_errors}')
+        
+    
+#------------------------------------------------------------------------------
+# DTC parameters
+#------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 if __name__ == "__main__":

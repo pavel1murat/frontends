@@ -255,7 +255,7 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
 int TEqTrkDtc::BeginRun(int RunNumber) {
   int rc(0);
     
-  TLOG(TLVL_DEBUG) << "-- START: DTC" << _dtc_i->PcieAddr() << ":" << _dtc_i;
+  TLOG(TLVL_DEBUG) << std::format("-- START: host:{} DTC:{}" ,HostLabel(),_dtc_i->PcieAddr());
  
   int   run_type          = _odb_i->GetRunType       (_h_active_run_conf);
   int   event_mode        = _odb_i->GetEventMode     (_h_active_run_conf);

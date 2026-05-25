@@ -404,9 +404,9 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
         TRACE.INFO(f'par:{par}',TRACE_NAME);
 
-        run_conf       = par["run_conf"];
-        host           = par["host"    ];
-        artdaq_process = par["process" ];
+        run_conf       = par["run_conf"   ];
+        host           = par["host"       ];
+        artdaq_process = par["process"    ];
         diag_level     = par["print_level"];
 
         TRACE.INFO(f'run_conf:{run_conf} host:{host} process:{artdaq_process} diag_level:{diag_level}',TRACE_NAME);

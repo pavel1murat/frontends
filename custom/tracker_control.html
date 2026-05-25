@@ -333,6 +333,9 @@
        let btn_b = mu2e_make_exec_button_B(cmd_b);
        td.appendChild(btn_b);
 
+       let cmd_d = new Command_D('load_cmd_pars'    ,'load_cmd_pars', 'trk_menu_03', mu2e_load_conf_table ,'cmd_params', trk_cmd_path, trk_load_help_page, logfile, 10000);
+       let btn_d = mu2e_make_dropup_button_D(cmd_d);
+       td.appendChild(btn_d);
 
        cmd_b = new Command_B('init_readout','init_readout',trk_cmd_all_stations_B,'cmd_params',trk_cmd_path,logfile);
        // cmd_b = new Command_D('init_readout','init_readout','trk_menu_01',trk_cmd_set_all_stations_D,'cmd_params',trk_cmd_path,dtc_load_help_page,logfile);
@@ -476,6 +479,11 @@
     <!-- actions assigned in the Command_D constructor -->
     <div id="trk_menu_02" class="daq_menu">
       <div data-action="load_cmd_par">load_parameters</div>
+      <div data-action="help"        >help</div>
+    </div>
+
+    <!-- actions assigned in the Command_D constructor -->
+    <div id="trk_menu_03" class="daq_menu">
       <div data-action="help"        >help</div>
     </div>
 
