@@ -3,7 +3,7 @@
 # PM: load channel map for active run configuration to ODB
 # all channels except those specified in the file named
 #
-#  $MU2E_DAQ_DIR/config/tracker/station_00/{thresholds_dir}/channel_map.json
+#  $MU2E_DAQ_DIR/config/tracker/station_00/{thresholds_dir}/channel_masks.json
 #
 # the value of {thresholds_dir} is defined by
 #
@@ -15,12 +15,12 @@
 #    {"name": "MN224", "channel":90,"status":0}
 #]
 # call signature:
-#                     load_channel_map.py --slot=10 --thr=15
+#                     load_channel_masks.py --slot=10 --thr=15
 # or
-#                     load_channel_map.py --slot=10 --channel=1
+#                     load_channel_masks.py --slot=10 --enable=44,91
 # or
-#                     load_channel_map.py --save --slot=10 --fn=slot_10.json
-#                     load_channel_map.py --load --slot=10 --thr=15mV --fn=slot_10.json
+#                     load_channel_masks.py --save --slot=10 --fn=slot_10.json
+#                     load_channel_masks.py --load --slot=10 --thr=15mV --fn=slot_10.json
 #------------------------------------------------------------------------------
 import  midas,TRACE
 import  midas.client
@@ -35,7 +35,7 @@ logger = logging.getLogger('midas')
 # example : set thresholds(21,'MN101')
 #           set thresholds(25,'MN262')
 #------------------------------------------------------------------------------
-class LoadChannelMap:
+class LoadChannelMasks:
     
     def __init__(self):
         self.slot       = None;
@@ -110,15 +110,15 @@ class LoadChannelMap:
 
 #------------------------------------------------------------------------------
 # different good channel maps for different thresholds
-# location: $thresholds_dir/channel_map.json
+# location: $thresholds_dir/channel_masks.json
 #---v--------------------------------------------------------------------------
-    def load_channel_map(self,slot):
+    def load_channel_masks(self,slot):
 
-        logger.info("Initializing : load_channel_map")
+        logger.info("Initializing : load_channel_masks")
 
         node            = socket.gethostname().split('.')[0];
         experiment_name = "tracker";
-        client          = midas.client.MidasClient("load_channel_map",node,experiment_name,None)
+        client          = midas.client.MidasClient("load_channel_masks",node,experiment_name,None)
 
         ro_cfg_path     = '/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration';
         thresholds_dir  = client.odb_get(ro_cfg_path+'/thresholds_dir');
@@ -126,7 +126,7 @@ class LoadChannelMap:
         slot_path = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{slot:02d}'
         print(slot_path);
 
-        fn = f'config/tracker/slot_{slot:02d}/thresholds-{self.threshold}-mV/channel_map.json';
+        fn = f'config/tracker/slot_{slot:02d}/thresholds-{self.threshold}-mV/channel_masks.json';
         print (f'-------------- opening file:{fn}')
         
         with open(fn, 'r') as file:
@@ -178,20 +178,20 @@ class LoadChannelMap:
 #------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------
-    def save_channel_map(self,slot):
+    def save_channel_masks(self,slot):
 
-        logger.info("Initializing : save_channel_map")
+        logger.info("Initializing : save_channel_masks")
 
         node            = socket.gethostname().split('.')[0];
         experiment_name = "tracker";
-        client          = midas.client.MidasClient("save_channel_map",node,experiment_name,None)
+        client          = midas.client.MidasClient("save_channel_masks",node,experiment_name,None)
 
         ro_cfg_path     = '/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration';
 
         slot_path       = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{slot:02d}'
         print(slot_path);
 
-        fn = f'disabled_channel_map_slot_{slot:02d}.json'
+        fn = f'disabled_channel_masks_slot_{slot:02d}.json'
         print (f'-------------- opening file:{fn}')
         
         with open(fn, 'w') as file:
@@ -231,13 +231,13 @@ class LoadChannelMap:
 #------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------
-    def reset_channel_map(self,slot):
+    def reset_channel_masks(self,slot):
 
-        logger.info("Initializing : reset_channel_map")
+        logger.info("Initializing : reset_channel_masks")
 
         node            = socket.gethostname().split('.')[0];
         experiment_name = "tracker";
-        client          = midas.client.MidasClient("reset_channel_map",node,experiment_name,None)
+        client          = midas.client.MidasClient("reset_channel_masks",node,experiment_name,None)
 
         ro_cfg_path     = '/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration';
 
@@ -273,7 +273,7 @@ class LoadChannelMap:
 
         node            = socket.gethostname().split('.')[0];
         experiment_name = "tracker";
-        client          = midas.client.MidasClient("load_channel_map",node,experiment_name,None)
+        client          = midas.client.MidasClient("load_channel_masks",node,experiment_name,None)
 
         slot_path = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{slot:02d}'
         print(slot_path);
@@ -294,19 +294,19 @@ class LoadChannelMap:
 
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
-    x = LoadChannelMap();
+    x = LoadChannelMasks();
     x.parse_parameters();
 #------------------------------------------------------------------------------
 # figure out what to do
 #------------------------------------------------------------------------------
     if (x.op == 'load'):
         if (x.slot != None):
-            x.load_channel_map(x.slot)
+            x.load_channel_masks(x.slot)
 
     elif (x.op == 'save'):
         if (x.slot != None):
             # save bad channels into a file to be used later
-            rc = x.save_channel_map(x.slot);
+            rc = x.save_channel_masks(x.slot);
 
     elif (x.op == 'enable'):
         if (x.slot != None):
@@ -316,4 +316,4 @@ if __name__ == "__main__":
     elif (x.op == 'reset'):
         if (x.slot != None):
             # reset all channel flags to zero
-            rc = x.reset_channel_map(x.slot);
+            rc = x.reset_channel_masks(x.slot);
