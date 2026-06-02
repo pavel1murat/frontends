@@ -167,8 +167,8 @@
        let thead = document.createElement('thead');
       
        tr = document.createElement('tr');
-       tr.innerHTML ='<td> <div class="mtableheader" colspan=8> Trigger Farm Manager (TFM) </div> </td>';
-       // tr.innerHTML ='<td> <div class="mtableheader"> Trigger Farm Manager (TFM) </div> </td>';
+       // tr.innerHTML ='<td> <div class="mtableheader" colspan=8> Trigger Farm Manager (TFM) </div> </td>';
+       tr.innerHTML ='<td> <div class="mtableheader"> Trigger Farm Manager (TFM) </div> </td>';
        
        td = document.createElement('td');
        // td.colSpan = 1;
@@ -204,7 +204,7 @@
            if (new_row) {
              row = document.createElement('tr');
              td  = document.createElement('td');
-             // td.colSpan = 10;
+             td.colSpan = 2;
              
              div = document.createElement('div');
              div.className = 'tab';

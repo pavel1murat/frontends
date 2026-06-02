@@ -99,8 +99,9 @@ def validate_active_config():
     
     nodes_config_path = f'/Mu2e/ActiveRunConfiguration/DAQ/Nodes'
     nodes = client.odb_get(nodes_config_path);
-
-    # hw CFO: DTCs shoudl ha JA mode of 0x10
+#------------------------------------------------------------------------------
+# using hw CFO: all DTCs should ha JA mode of 0x10
+#------------------------------------------------------------------------------
     nominal_ja_mode = 0x10;
     for node_name in nodes.keys():
         node = nodes[node_name];
@@ -119,8 +120,9 @@ def validate_active_config():
     nodes_config_path = f'/Mu2e/Commands/DAQ/Nodes'
     nodes = client.odb_get(nodes_config_path);
 
-    # hw CFO: DTCs shoudl ha JA mode of 0x10
-    nominal_ja_mode = 0x10;
+#------------------------------------------------------------------------------
+# using hw CFO: check if there are DTCs configured to emulate CFO
+#------------------------------------------------------------------------------
     for node_name in nodes.keys():
         node = nodes[node_name];
         for eq_name in node.keys():
