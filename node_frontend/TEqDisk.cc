@@ -116,7 +116,7 @@ int TEqDisk::HandlePeriodic() {
   try {
     json md = json::parse(output);  // 'md' : 'monitoring data'
 
-    TLOG(TLVL_DEBUG+1) << "parsed json:" << md;
+    TLOG(TLVL_DEBUG+1) << "json parsed"; // TRACE doesn't handle that: //  << md;
 
     fsize_gb         = md["fsize_gb"        ];
     log_space_avail  = md["log_space_avail" ];

@@ -17,7 +17,8 @@ namespace {
   std::initializer_list<int>  DtcRegisters = {
     0x9004, 0x9100, 0x9114, 0x9140, 0x9144,
     0x9158, 0x9188, 0x91a8, 0x91ac, 0x91bc, 
-    0x91c0, 0x91c4, 0x91f4, 0x91f8, 0x93e0
+    0x91c0, 0x91c4, 0x91f4, 0x91f8, 0x93e0,
+    0x9650, 0x9654, 0x9658, 0x965c, 0x9660, 0x9664, 0x9668
   };
   
   // some ROC registers are listed in decimal format, and some - in hex
@@ -273,15 +274,8 @@ int TEqTrkDtc::BeginRun(int RunNumber) {
 // sample edge select is common for all DTCs and comes from DAQ/ForceCfoSampleEdgeSelect
     _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(_h_active_run_conf);
 //-----------------------------------------------------------------------------
-// HardReset erases the DTC link mask, restore it
-// also, release all buffers from the previous read - this is the initialization
+// at begin run, initialize the readout
 //-----------------------------------------------------------------------------
-    // 2025-01-19 PM dtc_i->Dtc()->HardReset();
-        // 2025-01-19 PM dtc_i->ResetLinks(0,1);
-                                        // InitReadout performs some soft resets, ok for now
-    // std::ostream s = std::ostream(nullptr);
-    // rc = _dtc_i->InitReadout(-1,-1,s);
-
     InitReadout(_cmd_handle);
   }
   
@@ -548,6 +542,8 @@ int TEqTrkDtc::ReadRocRegisters(int Link, const std::vector<int>& Registers, std
   return rc;
 }
 
+//-----------------------------------------------------------------------------
+// is called only if ::MonitoringLevel() > 0
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::HandlePeriodic() {
   int rc(0);
@@ -1127,6 +1123,14 @@ int TEqTrkDtc::InitPulseInjectionRun() {
 
   TLOG(TLVL_DEBUG) << std::format("--END: rc:{}",rc);
   return rc;
+}
+
+//----------------------------------------------------------------------------------------
+// it is helpful to redefine the monitoring level during the run - teh function is called rare enough
+//----------------------------------------------------------------------------------------
+int TEqTrkDtc::MonitoringLevel() {
+  int level = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/DTC");
+  return level;
 }
 
 //------------------------------------------------------------------------------

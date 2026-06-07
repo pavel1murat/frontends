@@ -52,10 +52,40 @@ def test_003():
 
 def test_004():
     logger.info("Initializing %s" % "test_004")
-    client = midas.client.MidasClient("test_004", None, None, None)
+    client = midas.client.MidasClient("test_odb", None, None, None)
    
     daq   = client.odb_get("/Mu2e/ActiveRunConfiguration/DAQ")
     TRACE.INFO(f'start_5ns:{daq["digitization_start_5ns"]} stop_5ns:{daq["digitization_stop_5ns"]}',TRACE_NAME)
+
+
+def test_005():
+    logger.info("Initializing %s" % "test_005")
+    client = midas.client.MidasClient("test_odb", None, None, None)
+   
+    tt   = client.odb_get("/Mu2e/ActiveRunConfiguration/Trigger/tt_tracker_mc2_v002")
+
+    print(tt);
+
+    for k0 in tt.keys():
+        print(f'key: {k0} is_dict:{isinstance(tt[k0],dict)}')
+        if (k0 == 'physics'):
+            s0 = f'art.physics'
+            # loop over 
+            for k1 in tt[k0].keys():
+                if (k1 == 'filters'):
+                    s0 += '.filters'
+                    # loop over modules
+                    filters = tt[k0][k1]
+                    for k2 in filters.keys():
+                        print(f'k2:{k2}')
+                        s0 += f'.{k2}'
+                        module = filters[k2]
+                        # next go module parameters, to begin with, consider the simplest case
+                        for k3 in module.keys():
+                            s0 += f'.{k3} : {module[k3]}'
+                            print(s0)
+    
+    # TRACE.INFO(f'start_5ns:{daq["digitization_start_5ns"]} stop_5ns:{daq["digitization_stop_5ns"]}',TRACE_NAME)
 
 
 #------------------------------------------------------------------------------
@@ -120,4 +150,5 @@ if __name__ == "__main__":
 
 #    test1()
 #    test2_set_thresholds(25,'MN261')
-    test_004();
+#    test_004();
+    test_005()

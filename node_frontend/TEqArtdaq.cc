@@ -228,6 +228,13 @@ int TEqArtdaq::InitVarNames() {
   return 0;
 }
 
+//----------------------------------------------------------------------------------------
+// it is helpful to redefine the monitoring level during the run - teh function is called rare enough
+//----------------------------------------------------------------------------------------
+int TEqArtdaq::MonitoringLevel() {
+  return _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq");
+}
+
 //-----------------------------------------------------------------------------
 int TEqArtdaq::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
   int rc(0);
@@ -249,11 +256,16 @@ int TEqArtdaq::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
     return -1;
   }
 
+  TLOG(TLVL_DEBUG+1) << "checkpoint 001";
+
   TEquipmentManager* eqm = TEquipmentManager::Instance();
 
+  TLOG(TLVL_DEBUG+1) << "checkpoint 002";
   try {
+    TLOG(TLVL_DEBUG+1) << "checkpoint 003";
     json brm = json::parse(output);
-    TLOG(TLVL_DEBUG+1) << "parsed json:" << brm << std::endl;
+
+    TLOG(TLVL_DEBUG+1) << "json parsed";
 
     char buf[1024];
   
@@ -288,7 +300,7 @@ int TEqArtdaq::ReadBrMetrics(const ArtdaqComponent_t* Ac) {
 //-----------------------------------------------------------------------------
     double* psave = ptr;
     int nf = brm["fids"].size();
-    TLOG(TLVL_DEBUG+1) << "nf:" << nf << " brm[\"fids\"]:" << brm["fids"];
+    TLOG(TLVL_DEBUG+1) << "nf:" << nf; // << " brm[\"fids\"]:" << brm["fids"];
     
     for (int i=0; i<nf; i++) {
       *ptr      = brm["fids"][i]["fid"];
@@ -351,7 +363,7 @@ int TEqArtdaq::ReadDrMetrics(const ArtdaqComponent_t* Ac) {
 
   json drm = json::parse(output);
 
-  TLOG(TLVL_DEBUG+1) << "parsed json:" << drm;
+  TLOG(TLVL_DEBUG+1) << "parsed json"; // << drm;
 //-----------------------------------------------------------------------------
 // copy data to the output
 //-----------------------------------------------------------------------------

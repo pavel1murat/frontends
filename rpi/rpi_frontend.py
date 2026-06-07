@@ -2,13 +2,58 @@
 initial version of the Mu2e RPI frontend 
 
 See `examples/multi_frontend.py` for an example that uses more
-features (frontend index, polled equipment, ODB settings etc). 
+features (frontend index, polled equipment, ODB settings etc).
+
+to switch levels: 
+
+#+begin_src bash
+kill -USR1 <pid>
+kill -USR2 <pid>
+#+end_src
+
 """
 import os, sys, socket, subprocess, time
 
 import midas
 import midas.frontend
 import midas.event
+
+from datetime import datetime, timezone
+
+import logging, signal
+
+logger = logging.getLogger('rpi_frontend')
+
+logger.setLevel(logging.INFO)
+
+# File handler
+fh = logging.FileHandler('rpi_midas_frontend.log', mode='a')
+fh.setLevel(logging.INFO)
+
+# Console handler
+# ch = logging.StreamHandler()
+# ch.setLevel(logging.INFO)
+
+# Formatter with timestamps
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s [%(filename)s:%(lineno)d:%(funcName)s]: %(message)s',
+                              datefmt='%Y-%m-%d %H:%M:%S')
+fh.setFormatter(formatter)
+# ch.setFormatter(formatter)
+
+logger.addHandler(fh)
+# logger.addHandler(ch)
+
+def change_to_debug(signum, frame):
+    logger.setLevel(logging.DEBUG)
+    print("LogLevel → DEBUG")
+
+def change_to_info(signum, frame):
+    logger.setLevel(logging.INFO)
+    print("LogLevel → INFO")
+
+signal.signal(signal.SIGUSR1, change_to_debug)
+signal.signal(signal.SIGUSR2, change_to_info )
+
 
 from PowerSupplyServerConnection import PowerSupplyServerConnection
 
@@ -39,7 +84,7 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
         default_common.buffer_name  = "SYSTEM"
         default_common.trigger_mask = 0
         default_common.event_id     = 1
-        default_common.period_ms    = 20000
+        default_common.period_ms    = 30000
         default_common.read_when    = midas.RO_ALWAYS; ## midas.RO_RUNNING
         default_common.log_history  = 1
         
@@ -56,6 +101,7 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
         (every 20s = 20000ms in this case). 
         It should return either a `midas.event.Event` or None if we shouldn't write an event
         """
+        logger.debug("-- START")
         # self.client.msg("readout_func called")
         v48 = []
         i48 = []
@@ -64,44 +110,62 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
         vhv = []
         ihv = []
         pcb = []
-        
+
+        data=[]
         try:
             ps = PowerSupplyServerConnection('localhost', 12000)
 #------------------------------------------------------------------------------
 # LV
-#------------------------------------------------------------------------------
-            for channel in range(6):
-                # assume all LV channels are ON
-                # ps.EnableLowVoltage(channel)
-                # time.sleep(1)
-                x = ps.QueryPowerVoltage(channel)
-                # print(f'channel:{channel} readback:{readback}')
-                v48.append(x);
-                x = ps.QueryPowerCurrent(channel)
-                i48.append(x);
-                x = ps.QuerySwitchingVoltage(channel)
-                v06.append(x);
-                x = ps.QuerySwitchingCurrent(channel)
-                i06.append(x);
+#-----------v------------------------------------------------------------------
+#            v48 = ps.QueryPowerVoltages()
+#            i48 = ps.QueryPowerCurrents()
+#            v06 = ps.QuerySwitchingVoltages()
+#            i06 = ps.QuerySwitchingCurrents()
+#            
+            data.extend(ps.QueryPowerVoltages())          # v48
+            data.extend(ps.QueryPowerCurrents())          # i48
+            data.extend(ps.QuerySwitchingVoltages())      # v06
+            data.extend(ps.QuerySwitchingCurrents())      # i06
+            
+#             for channel in range(6):
+#                 # assume all LV channels are ON
+#                 # ps.EnableLowVoltage(channel)
+#                 # time.sleep(1)
+#                 x = ps.QueryPowerVoltage(channel)
+#                 # print(f'channel:{channel} readback:{readback}')
+#                 v48.append(x);
+#                 x = ps.QueryPowerCurrent(channel)
+#                 i48.append(x);
+#                 x = ps.QuerySwitchingVoltage(channel)
+#                 v06.append(x);
+#                 x = ps.QuerySwitchingCurrent(channel)
+#                 i06.append(x);
 #------------------------------------------------------------------------------
 # HV
-#------------------------------------------------------------------------------
-            for channel in range(12):
-                x = ps.QueryWireVoltage(channel)
-                if (x == b'\x08'): x = 0.0
-                vhv.append(x);
-                x = ps.QueryWireCurrent(channel)
-                if (x == b'\x08'): x = 0.0
-                ihv.append(x);
+#-----------v------------------------------------------------------------------
+#            vhv = ps.QueryWireVoltages()
+ #           ihv = ps.QueryWireCurrents()
+            data.extend(ps.QueryWireVoltages())  # vhv
+            data.extend(ps.QueryWireCurrents())  # Ihv
+            
+#            for channel in range(12):
+#                x = ps.QueryWireVoltage(channel)
+#                if (x == b'\x08'): x = 0.0
+#                vhv.append(x);
+#                x = ps.QueryWireCurrent(channel)
+#                if (x == b'\x08'): x = 0.0
+#                ihv.append(x);
 #------------------------------------------------------------------------------
 # PCB temp and pico current
 #------------------------------------------------------------------------------
             x = ps.QueryPcbTemp();
             if (x == b'\x08'): x = 0.0
-            pcb.append(x)
+            # pcb.append(x)
+            data.extend([x])
             x = ps.QueryPicoCurrent();
             if (x == b'\x08'): x = 0.0
-            pcb.append(x)
+            # pcb.append(x)
+            data.extend([x])      
 #------------------------------------------------------------------------------
 # In this example, we just make a simple event with one bank.
 # Create a bank (called "LV00") which in this case will store 4 floats
@@ -115,27 +179,17 @@ class RpiPeriodicEquipment(midas.frontend.EquipmentBase):
 #------------------------------------------------------------------------------
         except:
             self.client.message('ERROR: failed to connect to LVHV server',1);
-            for channel in range(6):
-                v48.append(-1.);
-                i48.append(-1.);
-                v06.append(-1.);
-                i06.append(-1.);
-                
-            for channel in range(12):
-                vhv.append(-1.);
-                ihv.append(-1.);
-
-            pcb.append(-1.);
-            pcb.append(-1.);
+            data.extend([-1.]*50)
 #------------------------------------------------------------------------------
 # done, send data to ODB
 #------------------------------------------------------------------------------
-        data = v48+i48+v06+i06+vhv+ihv+pcb;
+# data = v48+i48+v06+i06+vhv+ihv+pcb;
 
-        print (f'-- readout_func: write event out. data:{data}..');
+        logger.debug(f'write event out. data:{data}..');
         event = midas.event.Event()
         event.create_bank("LVHV", midas.TID_FLOAT, data)
 
+        logger.debug("-- END")
         return event # None #  event
 
 #------------------------------------------------------------------------------
@@ -169,13 +223,17 @@ class RpiFrontend(midas.frontend.FrontendBase):
         You can access individual equipment classes through the `self.equipment`
         dict if needed.
         """
+        logger.info(f"-- START run_number:{run_number}")
         self.set_all_equipment_status("Running", "greenLight")
         # self.client.msg("Frontend has seen start of run number %d" % run_number)
+        logger.info(f"-- END: run_number:{run_number}")
         return midas.status_codes["SUCCESS"]
         
     def end_of_run(self, run_number):
+        logger.info(f"-- end_of_run : START run_number:{run_number}")
         self.set_all_equipment_status("Finished", "greenLight")
         # self.client.msg("Frontend has seen end of run number %d" % run_number)
+        logger.info(f"-- END : run_number:{run_number}")
         return midas.status_codes["SUCCESS"]
     
     def frontend_exit(self):
@@ -190,7 +248,7 @@ class RpiFrontend(midas.frontend.FrontendBase):
 # Process command: execution gets here when /Mu2e/Commands/Tracker/RPI/$piname/Run is set to 1
 #------------------------------------------------------------------------------
     def cmd_reset_station_lv(self,print_level):
-        cmd = 'pinctrl set 25 op dl; pinctrl set 25 op dh';
+        cmd = 'pinctrl set 25 op dl; sleep 1; pinctrl set 25 op dh';
         p = subprocess.Popen(cmd,executable="/bin/bash",shell=True,stderr=subprocess.PIPE,stdout=subprocess.PIPE,encoding="utf-8")
         (out, err) = p.communicate();
         if (err != ''):

@@ -27,6 +27,8 @@ public:
   virtual int         InitVarNames  () override;
   virtual int         HandlePeriodic() override;
 
+  virtual int         MonitoringLevel() override;
+
   int                 ReadMetrics   ();
                                         
   int                 StartProcesses(HNDLE H_Cmd); // start ARTDAQ processes on this node at begin run, commanded by the TFM
