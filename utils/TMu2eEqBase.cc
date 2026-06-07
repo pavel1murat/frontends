@@ -278,3 +278,10 @@ int TMu2eEqBase::WriteOutput(const std::string& Output, const std::string& LogSt
   TLOG(TLVL_DEBUG) << "-- END"; 
   return 0;
 }
+
+//-----------------------------------------------------------------------------
+// it is helpful to be able to redefine it
+//-----------------------------------------------------------------------------
+int  TMu2eEqBase::MonitoringLevel() {
+  return _monitoringLevel ;
+}

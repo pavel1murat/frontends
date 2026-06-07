@@ -26,4 +26,6 @@ cmd=$cmd'; export PYTHONPATH=$PYTHONPATH:$HOME/LVHVBox/Client; echo PYTHONPATH=$
 cmd=$cmd"; python3 $frontend -h $midas_host &"
 
 if [ $verbose != 0 ] ; then echo $cmd ; fi
-ssh -K mu2e@$remote_node.dhcp.fnal.gov  $cmd 
+# PSUs are on wired network
+# ssh -K mu2e@$remote_node.dhcp.fnal.gov  $cmd 
+ssh -K mu2e@$remote_node.fnal.gov  $cmd 

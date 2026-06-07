@@ -55,6 +55,7 @@ public:
   TMFeResult  Init             () override;
   virtual int InitVarNames     () override;
   virtual int HandlePeriodic   () override;
+  virtual int MonitoringLevel  () override;
 
   int         ReadMetrics      ();
                                         // read ROC registers listed in .cc file - for monitoring ? and

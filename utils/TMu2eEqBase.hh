@@ -71,7 +71,7 @@ public:
 
   OdbInterface*       Odb_i       () { return _odb_i         ; }
 
-  int                 MonitoringLevel() { return _monitoringLevel ; }
+  virtual int         MonitoringLevel(); // { return _monitoringLevel ; }
 
   int                 ResetOutput   (HNDLE H_Cmd);
   virtual int         StartMessage  (HNDLE H_Cmd,std::stringstream& SStr);
