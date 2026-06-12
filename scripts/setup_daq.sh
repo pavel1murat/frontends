@@ -20,7 +20,8 @@ export       DATA_DIR_STUB=`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`_$spack_
 export       DAQ_USER_STUB=${USER}_`echo $MU2E_DAQ_DIR | awk -F / '{print $NF}'`
 # 
 export      DAQ_OUTPUT_TOP=/scratch/mu2e/$USER/$DATA_DIR_STUB
-export        RAW_DATA_DIR=$DAQ_OUTPUT_TOP/data
+export        RAW_DATA_DIR=/data/mu2e/$USER/$DATA_DIR_STUB/data
+export    CFO_RUN_PLAN_DIR=/home/mu2etrk/test_stand/cfo_run_plans
 
 unset SPACK_ROOT
 export SPACK_DISABLE_LOCAL_CONFIG=true
@@ -33,22 +34,25 @@ export  SPACK_VIEW=$SPACK_ENV/.spack-env/view
 export         TMP=$SPACK_ENV/build
 export      TMPDIR=$SPACK_ENV/build
 
-                  namestub=${USER}_`pwd | awk -F / '{print $NF}'` # example: mu2etrk_pasha_028
-# export TFM_FHICL_DIRECTORY=$MU2E_DAQ_DIR/config  # no longer needed
+                  namestub=${USER}_`pwd | awk -F / '{print $NF}'` # example: mu2etrk_v001
 
             export TFM_DIR=$SPACK_ENV/tfm
       export FRONTENDS_DIR=$SPACK_END/frontends
 
       export MIDASSYS=$SPACK_VIEW
 if [ $spack_env == "v001" ] ; then 
-    export MIDAS_EXPT_NAME=tracker
+    export         MIDAS_EXPT_NAME=tracker
+    export ARTDAQ_PARTITION_NUMBER=11
+elif [ $spack_env == "test_artdaq" ] ; then
+    export         MIDAS_EXPT_NAME=namitha
+    export ARTDAQ_PARTITION_NUMBER=13
 elif [ $spack_env == "namitha" ] ; then
-    export MIDAS_EXPT_NAME=namitha
+    export         MIDAS_EXPT_NAME=namitha
+    export ARTDAQ_PARTITION_NUMBER=13
 fi
     export    MIDAS_EXPTAB=$PWD/config/midas/mc2.exptab
 
 # P.M. need to get rid of ARTDAQ_PARTITION_NUMBER here, not there yet
-export    ARTDAQ_PARTITION_NUMBER=11
 export ARTDAQ_PORTS_PER_PARTITION=1000
 export           ARTDAQ_BASE_PORT=10000
 #------------------------------------------------------------------------------
@@ -67,7 +71,7 @@ export              TRACE_MSGMAX=0        # Activating TRACE
 
 tonMg  0-4   # enable trace to memory
 tonSg  0-7   # enable trace to slow path (i.e. UDP)
-toffSg 8-63  # apparently not turned off by default?
+# toffSg 8-63  # apparently not turned off by default?
 #------------------------------------------------------------------------------
 # interfaces to mu2e_pcie_utils
 #------------------------------------------------------------------------------
@@ -85,5 +89,10 @@ export       PYTHONPATH=$SPACK_VIEW/python
 export MU2E_SEARCH_PATH=$SPACK_ENV:/cvmfs/mu2e.opensciencegrid.org/DataFiles
 export  FHICL_FILE_PATH=$MU2E_DAQ_DIR/config/artdaq:$SPACK_ENV:$FHICL_FILE_PATH
 export  LD_LIBRARY_PATH=$SPACK_VIEW/lib
+export  ROOT_INCLUDE_PATH=$ROOT_INCLUDE_PATH:$SPACK_ENV
+#------------------------------------------------------------------------------
+# SAM
+#------------------------------------------------------------------------------
+export             SAM_EXPERIMENT=mu2e
 
 return 0
