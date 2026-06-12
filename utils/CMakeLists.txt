@@ -3,7 +3,7 @@
 
 include_directories($ENV{MRB_SOURCE})
 include_directories(${MIDAS_INSTALL_DIR} ${MIDAS_INSTALL_DIR}/include)
-include_directories($ENV{XMLRPC_C_INCLUDE_DIR})
+include_directories($ENV{XMLRPC_INCLUDE_DIRS})
 include_directories(${PostgreSQL_INCLUDE_DIRS})
 include_directories($ENV{TRACE_INC})
 include_directories($ENV{MESSAGEFACILITY_INC})
@@ -12,7 +12,7 @@ include_directories($ENV{CETLIB_EXCEPT_INC})
 link_directories($ENV{TRACE_LIB})
 link_directories($ENV{MESSAGEFACILITY_LIB})
 link_directories(${MIDAS_INSTALL_DIR}/lib)
-link_directories($ENV{XMLRPC_C_FQ_DIR}/lib)
+link_directories($ENV{XMLRPC_DIR}/lib)
 
 cet_set_compiler_flags(
         DIAGS VIGILANT
@@ -42,8 +42,9 @@ cet_make_library(LIBRARY_NAME frontends::utils
                  midas
                  tracelib
                  MF_MessageLogger
-                 xmlrpc++ xmlrpc_client xmlrpc 
-                 xmlrpc_util xmlrpc_util++ 
+                 # ${XMLRPC_LIBRARIES}
+                 # xmlrpc++ xmlrpc_client xmlrpc 
+                 # xmlrpc_util xmlrpc_util++ 
                  #                 ${PostgreSQL_LIBRARIES}
                  pq
                  pthread rt util
