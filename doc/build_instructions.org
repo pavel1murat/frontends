@@ -19,11 +19,9 @@
 [[file:../scripts/install_daq.sh]]
   
 #+begin_src
-mkdir pasha_404
-cd pasha_404
+mkdir daquser_003
+cd daquser_003
 unset SPACK_ROOT
-# git clone https://github.com/spack/spack.git
-# cd spack; git checkout v0.23.1; cd ..
 git clone https://github.com/mu2e/spack.git
 pushd spack; git checkout eflumerf/FixPerlPackageStash ; popd
 export SPACK_DISABLE_LOCAL_CONFIG=true
@@ -60,56 +58,15 @@ popd
 # to handle (a spack/Eric of a spack 0.23 error?) declare gcc @11.5.0 as a package
 # in ~/.spack/bootstrap/config/packages.yaml
 # otherwise, it doesn't concretize
-# ------------------------------------------------------------------------------
-#+begin_src
-  gcc:
-    externals:
-    - spec: gcc@11.5.0 languages='c,c++,fortran'
-      prefix: /usr
-      extra_attributes:
-        compilers:
-          c: /usr/bin/gcc
-          cxx: /usr/bin/g++
-          fortran: /usr/bin/gfortran
-#+end_src
-# add CPU target to the $spack_env/spack.yaml, also use system-wide krb5, openssl, and opengl
-#+begin_src
-spack:
-  packages:
-    all:
-      require:
-      - target=x86_64_v3
-    krb5:
-      externals:
-      - spec: krb5@1.21.1
-        prefix: /usr
-      buildable: false
-    openssl:
-      externals:
-      - spec: openssl@3.2.2
-        prefix: /usr
-      buildable: false
-    opengl:
-      externals:
-      - spec: opengl@4.5.0
-        prefix: /usr
-      buildable: false
-#+end_src
-# ------------------------------------------------------------------------------
-# keep using gcc 13.1.0 , problems otherwise
+#
+# add CPU target (today - x86_64_v3) to the $spack_env/spack.yaml, also use system-wide krb5, openssl, and opengl
+# keep using gcc 13.1.0 , problems otherwise.
 # concretize --deprecated is a key
-# ------------------------------------------------------------------------------
-#+begin_src
-spack --deprecated add gcc@13.1.0 arch=linux-almalinux9-x86_64_v3 +binutils 
-spack concretize -f --deprecated
-spack --deprecated install gcc@13.1.0
-spack compiler find                # add gcc@13.1.0 to the list of compilers
-#+end_src
-# ------------------------------------------------------------------------------
+#
 # a this point copy spack/etc/spack/upstreams.yaml from where it is....
 # or may write a script making the upstreams file starting from /mu2e/spack_areas
 # ------------------------------------------------------------------------------
-cp ~mu2ecrv/ots_v8_00_00/spack/etc/spack/upstreams.yaml $SPACK_ROOT/etc/spack/.
+cp ~mu2eshift/ots_ops/spack/etc/spack/upstreams.yaml $SPACK_ROOT/etc/spack/.
 # ------------------------------------------------------------------------------
 # after that ;
 # a) rust needs /usr/lib64/pkgconfig to be included, and for some reason it is not included
@@ -120,92 +77,53 @@ cp ~mu2ecrv/ots_v8_00_00/spack/etc/spack/upstreams.yaml $SPACK_ROOT/etc/spack/.
 # ------------------------------------------------------------------------------
 export      SPACK_VIEW=$PWD/$env_name/.spack-env/view
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib64/pkgconfig
-
-# spack add     node-js
-spack concretize -f                    # success
-spack install
 #------------------------------------------------------------------------------
+# a) copy spack.yaml to where it belongs, check versioins of the packages used
 # b) patch recipes: gdk-pixbuf, fhicl-cpp, and geant4
 # gdk-pixbuf recipe needs to be patched before the emacs installation
 # however in the very beginning the repos/builtin doesn't exist
 # can this be avoided by configuring the packages ?
 # ------------------------------------------------------------------------------
-#+begin_src
-  patch < frontends/scripts/gdk-pixbuf-recipe.patch
-# when prompted give the file name:  spack/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
-  patch < frontends/scripts/fhicl-cpp-recipe.patch
-# when prompted give the file name:  spack-repos/fnal_art/packages/fhicl-cpp/package.py
-  patch < frontends/scripts/geant4-recipe.patch
-# when prompted give the file name:  spack/var/spack/repos/builtin/packages/geant4/package.py
-#+end_src
+spack add     frontends@main
+spack develop frontends@main
+cp $env_name/frontends/scripts/spack.yaml $env_name/.
 # ------------------------------------------------------------------------------
-# or this should also work - better instead
+# b) patch recipes: gdk-pixbuf, fhicl-cpp, and geant4
+# gdk-pixbuf recipe needs to be patched before the emacs installation
+# however in the very beginning repos/builtin doesn't exist
+# can this be avoided by configuring the packages ?
 # ------------------------------------------------------------------------------
 #+begin_src
 patch -i $env_name/frontends/scripts/gdk-pixbuf-recipe.patch -o spack/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
 patch -i $env_name/frontends/scripts/fhicl-cpp-recipe.patch  -o spack-repos/fnal_art/packages/fhicl-cpp/package.py
 patch -i $env_name/frontends/scripts/geant4-recipe.patch     -o spack/var/spack/repos/builtin/packages/geant4/package.py
-
 #+end_src
 # ------------------------------------------------------------------------------
-spack add emacs%gcc@13.1.0 gui=x11     # if toolkit=gtk, problems with egl in MC2 
-spack concretize -f                    # success
-spack install
+# a this point copy spack/etc/spack/upstreams.yaml from where it is....
+# or may write a script making the upstreams file starting from /mu2e/spack_areas
 # ------------------------------------------------------------------------------
-# artdaq may be needed by artdaq-core-mu2e-develop, choose one with minimal dependencies
-# development packages
-# otsdaq-mu2e-tracker/2025 has the build of FEInterfaces, the only part which depends on otsdaq, disabled
-#------------------------------------------------------------------------------
-# problem with the concretization of *-suite packages (art-suite, artdaq-suite , otsdaq-suite
-# for the time being, manually comment out all dependencies on those for the following recipes
-# mu2e-spack/*/package.py
-# artdaq-spack/*/package.py
-# however otsdaq-mu2e-tracker 
-#------------------------------------------------------------------------------
-spack add root@6.32.06+http+mlp+postgres+root7+sqlite+spectrum+tmva+tmva-sofie cxxstd=20
-spack add hep-concurrency    cxxstd=20
-spack add cetlib             cxxstd=20
-spack add fhicl-cpp@4.19.02  cxxstd=20   # after fixing the recipe
-spack add messagefacility    cxxstd=20
-spack add canvas             cxxstd=20
-spack add canvas-root-io     cxxstd=20
-spack add art-root-io        cxxstd=20
-spack add boost iostreams=true
-spack add art                cxxstd=20
-spack add artdaq-daqinterface            # need mopup_shmem
+cp ~mu2eshift/ots_ops/spack/etc/spack/upstreams.yaml $SPACK_ROOT/etc/spack/.
 
-spack add     mu2e-pcie-utils@develop
-spack develop mu2e-pcie-utils@develop
-
-# spack concretize -f
-# spack install
-
-# need geant4 11.3.2
-
-spack add     geant4@11.3.2   cxxstd=20
-spack add     Offline@develop cxxstd=20
-spack develop Offline@develop
-
-spack add     otsdaq-mu2e-tracker@develop
-spack develop otsdaq-mu2e-tracker@develop
-pushd $env_name/otsdaq-mu2e-tracker ; git fetch --all; git checkout 2025       ; popd ;
-
-spack add elog@2024-09-25
-                                       # there is a midas link problem with +postgres investigate
-spack add     midas@2025-05-03 +sqlite # +postgresql - link problems with postgres
-spack develop midas@2025-05-03 +sqlite
-
-spack add     tfm@main
-spack develop tfm@main
-#                                  frontends depends on otsdaq-mu2e-tracker
+# spack add     node-js
+spack concretize -f                    # success
+# ------------------------------------------------------------------------------
+# b) patch recipes: gdk-pixbuf, fhicl-cpp, and geant4
+# gdk-pixbuf recipe needs to be patched before the emacs installation
+# however in the very beginning the repos/builtin doesn't exist
+# can this be avoided by configuring the packages ?
+# ------------------------------------------------------------------------------
 spack add     frontends@main
 spack develop frontends@main
-
-spack add py-psycopg2                # python interface to postgresql
-#  pushd $env_name/otsdaq-mu2e-stm     ; git fetch --all; git checkout stm_develop; popd ;
-
-# not needed w/o *-suites
-
+cp $env_name/frontends/scripts/spack.yaml $env_name/.
+# if builtin/ doesn't exist, concretize once
+#+begin_src
+patch -i $env_name/frontends/scripts/gdk-pixbuf-recipe.patch -o spack/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
+patch -i $env_name/frontends/scripts/fhicl-cpp-recipe.patch  -o spack-repos/fnal_art/packages/fhicl-cpp/package.py
+patch -i $env_name/frontends/scripts/geant4-recipe.patch     -o spack/var/spack/repos/builtin/packages/geant4/package.py
+#+end_src
+# ------------------------------------------------------------------------------
+# concretize and install
+# ------------------------------------------------------------------------------
 spack concretize -f
 spack install
 
