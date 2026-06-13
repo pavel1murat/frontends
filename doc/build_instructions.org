@@ -52,16 +52,15 @@ for d in `ls` ; do echo $d; spack repo add $d ; done
 popd
 #+end_src
 # ------------------------------------------------------------------------------
-# comment out everything *-suite related in mu2e and artdaq recipes
-# packages involved:
+# 0.1 comment out everything *-suite related in mu2e and artdaq recipes - TOD : need to autonmate
+# 0.2 comment out dependence on otsdaq-mu2e in otsdaq-mu2e-tracker
 #
-# to handle (a spack/Eric of a spack 0.23 error?) declare gcc @11.5.0 as a package
-# in ~/.spack/bootstrap/config/packages.yaml
-# otherwise, it doesn't concretize
+# 0.3 to handle (a spack/Eric of a spack 0.23 error?) declare gcc @11.5.0 as a package
+#     in ~/.spack/bootstrap/config/packages.yaml, otherwise, it doesn't concretize
 #
-# add CPU target (today - x86_64_v3) to the $spack_env/spack.yaml, also use system-wide krb5, openssl, and opengl
-# keep using gcc 13.1.0 , problems otherwise.
-# concretize --deprecated is a key
+# 0.4 add CPU target (today - x86_64_v3) to the $spack_env/spack.yaml, also use system-wide krb5, openssl, and opengl
+# 0.5 keep using gcc 13.1.0 , problems otherwise.
+#     'concretize --deprecated' is a key
 #
 # a this point copy spack/etc/spack/upstreams.yaml from where it is....
 # or may write a script making the upstreams file starting from /mu2e/spack_areas
@@ -79,10 +78,8 @@ export      SPACK_VIEW=$PWD/$env_name/.spack-env/view
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib64/pkgconfig
 #------------------------------------------------------------------------------
 # a) copy spack.yaml to where it belongs, check versioins of the packages used
-# b) patch recipes: gdk-pixbuf, fhicl-cpp, and geant4
-# gdk-pixbuf recipe needs to be patched before the emacs installation
-# however in the very beginning the repos/builtin doesn't exist
-# can this be avoided by configuring the packages ?
+#    after copying spack.yaml, edit it to make sure the directory names are correct
+#    that boils down to changind daquser_002 -> daquser_003 (can be automated)
 # ------------------------------------------------------------------------------
 spack add     frontends@main
 spack develop frontends@main
@@ -104,23 +101,7 @@ patch -i $env_name/frontends/scripts/geant4-recipe.patch     -o spack/var/spack/
 # ------------------------------------------------------------------------------
 cp ~mu2eshift/ots_ops/spack/etc/spack/upstreams.yaml $SPACK_ROOT/etc/spack/.
 
-# spack add     node-js
-spack concretize -f                    # success
-# ------------------------------------------------------------------------------
-# b) patch recipes: gdk-pixbuf, fhicl-cpp, and geant4
-# gdk-pixbuf recipe needs to be patched before the emacs installation
-# however in the very beginning the repos/builtin doesn't exist
-# can this be avoided by configuring the packages ?
-# ------------------------------------------------------------------------------
-spack add     frontends@main
-spack develop frontends@main
-cp $env_name/frontends/scripts/spack.yaml $env_name/.
-# if builtin/ doesn't exist, concretize once
-#+begin_src
-patch -i $env_name/frontends/scripts/gdk-pixbuf-recipe.patch -o spack/var/spack/repos/builtin/packages/gdk-pixbuf/package.py
-patch -i $env_name/frontends/scripts/fhicl-cpp-recipe.patch  -o spack-repos/fnal_art/packages/fhicl-cpp/package.py
-patch -i $env_name/frontends/scripts/geant4-recipe.patch     -o spack/var/spack/repos/builtin/packages/geant4/package.py
-#+end_src
+# spack add     node-js ## already in copied spack.yaml
 # ------------------------------------------------------------------------------
 # concretize and install
 # ------------------------------------------------------------------------------
