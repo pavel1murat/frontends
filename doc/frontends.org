@@ -75,10 +75,11 @@ drwxr-x--- 2 mu2etrk mu2e  173 Dec 30 15:17 train_station
 - sequencer: configure '/Sequencer/State/Path'
   by default, sequencer scripts show up in $MIDAQ_EXPT_DIR/userfiles/sequencer
   copy frontends/sequencer/get_next_run_number.msl to $MIDAQ_EXPT_DIR/userfiles/sequencer
-  if path is defined, check experimentally where to copy
+  if the path is defined, check experimentally where to copy
 - mlogger " configure '/Logger/Data dir'
 - elog: configure '/Elog/URL', '/Elog/External Elog'
-- start mhttpd
+- start mhttpd : systemctl --user start mhttpd.service
+  or 
 #+begin_src
 mhttpd -D
 echo $$
@@ -174,13 +175,14 @@ of init fragment count's should be exactly the same as the number of event build
 artdaqDriver --help
 #+end_src
 - fcl example: file:../../otsdaq-mu2e-tracker/fcl/driver_tracker_br.fcl 
-** testing pull mode (CRV)
+** testing pull mode (CRV)                                                   
 - start request receiver in one shell
 - start request sender in another shell
 - add daq.event_builder.num_requests : 10 - that will send 10 requests
+- didn't manage it to work
 #+begin_src
-requestReceiver -c /scratch/mu2e/mu2etrk/daquser_002_namitha/run_records/108236/br21.fcl
-requestSender -c /scratch/mu2e/mu2etrk/daquser_002_namitha/run_records/108236/eb11.fcl
+requestReceiver -c /scratch/mu2e/mu2etrk/daquser_002_namitha/run_records/108263/br21.fcl
+requestSender   -c /scratch/mu2e/mu2etrk/daquser_002_namitha/run_records/108263/eb11.fcl
 #+end_src
 * CFO                                                                        
 ** mu2e-pcie-utils interface                                                 
@@ -338,5 +340,8 @@ vivado_lab
 - DTC(pcie index=1) JTAG: localhost/xilinx_tcf/Xilinx/00001b8d75ad01
 - hw_ila_16 (cfo_counters): 
 * ------------------------------------------------------------------------------
-* additional documentation on MIDAS: file:midas.org
+* additional documentation on MIDAS:
+* ------------------------------------------------------------------------------
+* file:midas.org
+* file:configure_midas.org
 * ------------------------------------------------------------------------------

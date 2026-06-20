@@ -544,7 +544,7 @@ int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
   int print_level     = _odb_i->GetInteger(h_cmd_par,"print_level");
   // int doit            = _odb_i->GetInteger(h_cmd_par,"doit");
 
-  TLOG(TLVL_DEBUG) << std::format("link:{} print_level:{}",link,print_level);
+  TLOG(TLVL_DEBUG) << std::format("DTC:{} link:{} print_level:{}",_dtc_i->PcieAddr(),link,print_level);
 
   sstr << std::endl;
 
@@ -556,7 +556,7 @@ int TEqTrkDtc::FindAlignment(HNDLE H_Cmd) { // std::ostream& Stream) {
 
   SetCommandFinished(H_Cmd,rc); 
 
-  TLOG(TLVL_DEBUG) << std::format("-- END: rc:{} cmd_rc:{} n_bitslips:{}",rc,cmd_rc,n_bitslips);
+  TLOG(TLVL_DEBUG) << std::format("-- END: DTC:{} link:{} rc:{} cmd_rc:{} n_bitslips:{}",_dtc_i->PcieAddr(),link,rc,cmd_rc,n_bitslips);
   return rc;
 }
 

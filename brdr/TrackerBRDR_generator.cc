@@ -252,12 +252,14 @@ mu2e::TrackerBRDR::TrackerBRDR(fhicl::ParameterSet const& ps)
     if (status == CM_SUCCESS) break;
     TLOG(TLVL_WARNING) << "label: " << _artdaqLabel << " _midas_host:" << _midas_host
                        << " connection attempt:" << ntries << " has failed";
+    ss_sleep(1000);
     ntries += 1;
   }
   if (status != CM_SUCCESS) {
     cm_msg(MERROR, _artdaqLabel.data(),
            "Cannot connect to experiment \'%s\' on host \'%s\' 10 tiems, status %d",
            exp_name,_midas_host.data(),status);
+    cm_msg_flush_buffer();
     TLOG(TLVL_ERROR) << "label: " << _artdaqLabel
                      << " ERROR: failed to connect to MIDAS on host:" << _midas_host << " . BAIL OUT";
     /* let user read message before window might close */
