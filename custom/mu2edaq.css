@@ -259,4 +259,29 @@ scrollong buffer
     display         : flex;
     flex-direction  : column; /* Allows us to manage message order easily */
 }
+
+/* tighter rows in daq_status.html */
+#tfm_status_table td,
+#tfm_status_table th,
+#daq_nodes_table td,
+#daq_nodes_table th {
+  padding: 7px 6px;      /* reduce vertical padding */
+  line-height: 1.1;
+}
+
+/* optional fixed compact height */
+#daq_nodes_table td,
+#tfm_status_table td {
+  height: 28px;
+}
+
+/* buttons usually make rows tall */
+#daq_nodes_table button,
+#tfm_status_table button {
+  padding: 7px 6px;
+  font-size: 12px;
+  line-height: 1.1;
+}
+/* table#daq_nodes_table td { padding: 4px 6px; } */
+
 </style>

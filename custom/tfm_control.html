@@ -253,6 +253,10 @@
          btn = mu2e_make_dropup_button_D(cmd);
          td2.appendChild(btn);
 
+         cmd = new Command_D('load_cmd_pars'    ,'load_cmd_pars'    , 'tfm_menu_02', mu2e_load_conf_table ,'cmd_params', tfm_cmd_parameter_path, tfm_load_help_page, logfile, 2000);
+         btn = mu2e_make_dropup_button_D(cmd);
+         td2.appendChild(btn);
+
          // output of everything trace-related goes to trace.log
          cmd = new Command_B('cleanup','cleanup',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
          btn = tfm_make_exec_button_B(cmd);
