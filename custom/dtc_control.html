@@ -81,10 +81,6 @@
       btn  = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_D('set_caldac','set_caldac','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
-      btn  = mu2e_make_dropup_button_D(cmd);
-      td.appendChild(btn);
-      
       tr.appendChild(td);
 
       td = document.createElement('td');
@@ -125,18 +121,10 @@
       btn  = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_B('reboot_MCU','reboot_MCU',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      cmd = new Command_B('get_design_info','get_design_info',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
       btn = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
       
-      cmd = new Command_B('reset_roc','reset_roc',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
-      btn  = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
-      
-      cmd = new Command_B('reset_digis','reset_digis',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
-      btn  = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
-
       tr.appendChild(td);
       
       td = document.createElement('td');
@@ -174,10 +162,6 @@
       btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
 
-      cmd = new Command_B('get_design_info','get_design_info',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
-      
       cmd = new Command_D('find_thresholds','find_thresholds','dtc_menu_01',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
       btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
@@ -186,11 +170,6 @@
       btn = mu2e_make_dropup_button_D(cmd);
       td.appendChild(btn);
        
-      // test a command with help
-      cmd = new Command_D('set_roc_delays','set_roc_delays','dtc_menu_02',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
-      btn = mu2e_make_dropup_button_D(cmd);
-      td.appendChild(btn);
-
       tr.appendChild(td);
 
       td = document.createElement('td');
@@ -215,6 +194,39 @@
       tr.appendChild(td);
 
       tbody.appendChild(tr);
+
+      // -------------------------------------------------- last ROW
+      tr = document.createElement('tr');
+      
+      td = document.createElement('td');
+      td.colSpan = 9;
+      
+      cmd = new Command_B('reset_roc','reset_roc',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn  = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+      
+      cmd = new Command_B('reset_digis','reset_digis',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn  = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
+      // test a command with help
+      cmd = new Command_D('set_roc_delays','set_roc_delays','dtc_menu_02',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      btn = mu2e_make_dropup_button_D(cmd);
+      td.appendChild(btn);
+
+      cmd = new Command_D('set_caldac','set_caldac','dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      btn  = mu2e_make_dropup_button_D(cmd);
+      td.appendChild(btn);
+      
+      cmd = new Command_B('reboot_MCU','reboot_MCU',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+      
+      tr.appendChild(td);
+
+      tbody.appendChild(tr);
+
+
       table.appendChild(tbody);
       
       //-----------------------------------------------------------------------------
@@ -390,25 +402,6 @@
       cmd = new Command_B('hard_reset'  ,'hard_reset'         ,dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
       btn  = mu2e_make_exec_button_B(cmd);
       td.appendChild(btn);
-      tr.appendChild(td);
-
-//       cmd = new Command_B('print_status','print_status',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
-//       btn = mu2e_make_exec_button_B(cmd);
-//       td.appendChild(btn);
-      
-      cmd = new Command_D('print_status','print_status','dtc_menu_02',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page, logfile, 10000);
-      btn = mu2e_make_dropup_button_D(cmd);
-      td.appendChild(btn);
-      
-      // order: title, name, ...
-      cmd = new Command_B('print ROC status','print_roc_status',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
-
-      // order: title, name, ...
-      cmd = new Command_B('print digis','print_digis',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
-      btn = mu2e_make_exec_button_B(cmd);
-      td.appendChild(btn);
 
       tr.appendChild(td);
 
@@ -440,6 +433,21 @@
 
       td = document.createElement('td');
       td.colSpan = 6;
+
+      cmd = new Command_D('print_status','print_status','dtc_menu_02',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page, logfile, 10000);
+      btn = mu2e_make_dropup_button_D(cmd);
+      td.appendChild(btn);
+      
+      // order: title, name, ...
+      cmd = new Command_B('print ROC status','print_roc_status',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
+      // order: title, name, ...
+      cmd = new Command_B('print digis','print_digis',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
       tr.appendChild(td);
       
       td = document.createElement('td');
@@ -542,8 +550,10 @@
           <table class="mtable" id="roc_commands">  <!-- Table content is generated dynamically -->
           </table>
           
-          <table class="mtable" id="cmd_params">    <!-- Table content is generated dynamically -->
-          </table>
+          <div id="cmd_params_frame" class="scroll-frame">
+            <table class="mtable" id="cmd_params">  <!-- Table content is generated dynamically -->
+            </table>
+          </div>
           
         </div>
         
