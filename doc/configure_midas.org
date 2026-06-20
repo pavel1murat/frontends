@@ -1,4 +1,4 @@
-#+startup:fold
+#+startup:fold -*- buffer-read-only:t -*-
 #
 * ------------------------------------------------------------------------------
 * configure MIDAS                                                            
@@ -43,6 +43,99 @@ Start Command "tfm_mon_fe"
    where $EXPERIMENT points to directory storing the .ODB.SHM, for example,
    daq22:/home/mu2etrk/test_stand/experiments/test_025
 
+* increasing the ODB size, number of hot-links (open records), and clients   
+|------------------+---------------+---------------|
+| parameter        |     old value |     new value |
+|------------------+---------------+---------------|
+| MAX_CLIENTS      |            64 |           256 |
+| MAX_OPEN_RECORDS |           256 |          1024 |
+| odb_size_limit   | 100*1000*1000 | 200*1000*1000 |
+|------------------+---------------+---------------|
+- don't need a special compiler for spack any longer
+@@ -7,6 +7,11 @@
+ message(STATUS "MIDAS: cmake version: " ${CMAKE_VERSION})
+ cmake_minimum_required(VERSION 3.14)
+ 
++# set(CMAKE_C_COMPILER   "$ENV{SPACK_ENV}/.spack-env/view/bin/gcc")
++# set(CMAKE_CXX_COMPILER "$ENV{SPACK_ENV}/.spack-env/view/bin/c++")
++
++message(STATUS "MIDAS: CMAKE_C_COMPILER : ${CMAKE_C_COMPILER}")
++
+ project(midas
+         DESCRIPTION "MIDAS Data Acquisition System")
+
+** modified   include/midas.h                                                
+diff --git a/include/midas.h b/include/midas.h
+index bd83053d..3639a292 100644
+--- a/include/midas.h
++++ b/include/midas.h
+@@ -271,9 +271,11 @@ class MJsonNode; // forward declaration from mjson.h
+ 
+ #define NAME_LENGTH            32            /**< length of names, mult.of 8! */
+ #define HOST_NAME_LENGTH       256           /**< length of TCP/IP names      */
+-#define MAX_CLIENTS            64            /**< client processes per buf/db */
++// #define MAX_CLIENTS            64            /**< client processes per buf/db */
++#define MAX_CLIENTS            256            /**< client processes per buf/db */
+ #define MAX_EVENT_REQUESTS     10            /**< event requests per client   */
+-#define MAX_OPEN_RECORDS       256           /**< number of open DB records   */
++// #define MAX_OPEN_RECORDS       256           /**< number of open DB records   */
++#define MAX_OPEN_RECORDS      1024           /**< number of open DB records   */
+ #define MAX_ODB_PATH           256           /**< length of path in ODB       */
+ #define BANKLIST_MAX           4096          /**< max # of banks in event     */
+ #define STRING_BANKLIST_MAX    BANKLIST_MAX * 4   /**< for bk_list()          */
+** modified   src/odb.cxx (also increased the ODB size from 100 to 200)      
+diff --git a/src/odb.cxx b/src/odb.cxx
+index f809f8fa..76521779 100644
+--- a/src/odb.cxx
++++ b/src/odb.cxx
+@@ -1481,7 +1481,8 @@ static void db_validate_sizes()
+ #ifdef OS_LINUX
+    assert(sizeof(EVENT_REQUEST) == 16); // ODB v3
+    assert(sizeof(BUFFER_CLIENT) == 256);
+-   assert(sizeof(BUFFER_HEADER) == 16444);
++   //   assert(sizeof(BUFFER_HEADER) == 16444);
++   assert(sizeof(BUFFER_HEADER) == 60+MAX_CLIENTS*sizeof(BUFFER_CLIENT));
+    assert(sizeof(HIST_RECORD) == 20);
+    assert(sizeof(DEF_RECORD) == 40);
+    assert(sizeof(INDEX_RECORD) == 12);
+@@ -1489,8 +1490,10 @@ static void db_validate_sizes()
+    assert(sizeof(KEY) == 68);
+    assert(sizeof(KEYLIST) == 12);
+    assert(sizeof(OPEN_RECORD) == 8);
+-   assert(sizeof(DATABASE_CLIENT) == 2112);
+-   assert(sizeof(DATABASE_HEADER) == 135232);
++   //   assert(sizeof(DATABASE_CLIENT) == 2112);
++   assert(sizeof(DATABASE_CLIENT) == 64+sizeof(OPEN_RECORD)*MAX_OPEN_RECORDS);
++   //   assert(sizeof(DATABASE_HEADER) == 135232);
++   assert(sizeof(DATABASE_HEADER) == 64+MAX_CLIENTS*sizeof(DATABASE_CLIENT));
+    assert(sizeof(EVENT_HEADER) == 16);
+    //assert(sizeof(EQUIPMENT_INFO) == 696); has been moved to dynamic checking inside mhttpd.c
+    assert(sizeof(EQUIPMENT_STATS) == 24);
+@@ -1806,7 +1809,8 @@ INT db_open_database(const char *xdatabase_name, INT database_size, HNDLE * hDB,
+    /* restrict name length */
+    mstrlcpy(database_name, xdatabase_name, NAME_LENGTH);
+ 
+-   int odb_size_limit = 100*1000*1000;
++   //   int odb_size_limit = 100*1000*1000;
++   int odb_size_limit = 200*1000*1000;
+    if (database_size < 0 || database_size > odb_size_limit) {
+       cm_msg(MERROR, "db_open_database", "invalid database size: %d bytes. ODB size limit is %d bytes", database_size, odb_size_limit);
+       return DB_INVALID_PARAM;
+* programs.html: make sure each program shows up only in one cell            
+- need to do 'spack install' after making the change
+diff --git a/resources/programs.html b/resources/programs.html
+index 49d1547c..304ab0f6 100644
+--- a/resources/programs.html
++++ b/resources/programs.html
+@@ -221,7 +221,7 @@ function set_className_if_changed(e, v) {
+                }
+             }
+ 
+-            if (same_name || matching_name) {
++            if (same_name) { //  || matching_name) {
+                if (!found)
+                   found = new Array();
+                found.push(key);
 * ------------------------------------------------------------------------------
 * back to file:frontends.org
 * ------------------------------------------------------------------------------

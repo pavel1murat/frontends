@@ -47,51 +47,19 @@
        td = document.createElement('td');
        td.colspan = 2;
 
-//       <div class="dropup">
-//       <input type=button class="dropbtn" value='read'>
-//       <div class="dropup-content">
-//       <div onClick='dtc_load_parameters_control_roc_read()'> Load Parameters </div>
-//       <div onClick='dtc_command("dtc_control_roc_read")'   > Run             </div>
-//       </div>
-//       </div>
-
        let cmd, btn;
        
        cmd = new Command_D('read','read','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile,10000);
        btn = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 
-//       <div class="dropup">
-//       <input type=button class="dropbtn" value='pulser_on'>
-//       <div class="dropup-content">
-//       <div onClick='dtc_load_parameters_control_roc_pulser_on()'> Load Parameters </div>
-//       <div onClick='dtc_command("dtc_control_roc_pulser_on")'   > Run             </div>
-//       </div>
-//       </div>
-       
        cmd = new Command_D('pulser_on','pulser_on','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile,10000);
        btn = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
 
-//       <div class="dropup">
-//       <input type=button class="dropbtn" value='pulser_off'>
-//       <div class="dropup-content">
-//       <div onClick='dtc_load_parameters_control_roc_pulser_off()'> Load Parameters </div>
-//       <div onClick='dtc_command("dtc_control_roc_pulser_off")'   > Run             </div>
-//       </div>
-//       </div>
-       
        cmd = new Command_D('pulser_off','pulser_off','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile,10000);
        btn = mu2e_make_dropup_button_D(cmd);
        td.appendChild(btn);
-
-//       <div class="dropup">
-//       <input type=button class="dropbtn" value='rates'>
-//       <div class="dropup-content">
-//       <div onClick='dtc_load_parameters_control_roc_rates()'> Load Parameters </div>
-//       <div onClick='dtc_command("dtc_control_roc_rates")'   > Run             </div>
-//       </div>
-//       </div>
 
        cmd = new Command_D('rates','rates','trk_menu_01',mu2e_command_set_odb_B,'cmd_params',trk_cmd_path,logfile,20000);
        btn = mu2e_make_dropup_button_D(cmd);
@@ -275,6 +243,7 @@
      function trk_update_station_id(event,station_id) {
        trk_choose_station_id(event, station_id);
        loadStationControlTable();
+       trk_station_load_parameters(g_station);
      }
      
 //-----------------------------------------------------------------------------
