@@ -830,6 +830,21 @@ int TEqTrkDtc::LoadThresholds(HNDLE H_Cmd) {
   
   for (int lnk=lnk1; lnk<lnk2; lnk++) {
     int link_rc(0);
+    
+    std::string header = std::format("-- DTC:{} link:{}:",_dtc_i->PcieAddr(),lnk);
+
+    if (not _dtc_i->LinkEnabled(lnk)) {
+      std::string msg = std::format(" is not enabled");
+      TLOG(TLVL_WARNING) << header << msg;
+      sstr << header << msg << std::endl;
+      continue;
+    }
+    else if (not _dtc_i->LinkLocked(lnk)) {
+      std::string msg = std::format(" enabled but not locked");
+      TLOG(TLVL_ERROR) << header << msg;
+      sstr << header << msg << std::endl;
+      continue;
+    }
 
     sstr << std::format("-- load thresholds: DTC{}:link{}",_dtc_i->PcieAddr(),lnk);
     std::string  panel_path = std::format("{:s}/Link{}/DetectorElement",dtc_path.data(),lnk);
