@@ -215,10 +215,15 @@ void TEquipmentManager::HandlePeriodic() {
 //-----------------------------------------------------------------------------
 // _eq_list contains only enabled equipment items
 // run monitoring loop in generic form
+// this is called once in 20-30 sec
 //-----------------------------------------------------------------------------
   for (auto eq : _eq_list) {
     if (eq->MonitoringLevel() > 0) {
-      eq->HandlePeriodic();
+      if (not eq->PeriodicBusy()) {
+        eq->SetPeriodicBusy(true);
+        eq->HandlePeriodic();
+        eq->SetPeriodicBusy(false);
+      }
     }
   }
 

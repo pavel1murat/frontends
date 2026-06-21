@@ -135,6 +135,7 @@ TEqArtdaq::TEqArtdaq(const char* Name, const char* Title) : TMu2eEqBase(Name,Tit
   }
   
   _monitoringLevel = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Artdaq");
+  fFromGetStats = 0;
 
   TLOG(TLVL_DEBUG) << std::format("_name:{} _monitoringLevel:{}",_name,_monitoringLevel);
 
@@ -426,16 +427,21 @@ int TEqArtdaq::ReadDsMetrics(const ArtdaqComponent_t* Ac) {
   
 
 //-----------------------------------------------------------------------------
+// can it be made thread-safe? - can be called from two places...
+//-----------------------------------------------------------------------------
 int TEqArtdaq::HandlePeriodic() {
 
   TLOG(TLVL_DEBUG+1) << "-- START";
 
   if (not TMFE::Instance()->fStateRunning) {
+    if (fFromGetStats == 0) {
 //------------------------------------------------------------------------------
 // if not running, there is nothing to monitor
+// GetStats calls in between Stop and Shutdown
 //-----------------------------------------------------------------------------
-    TLOG(TLVL_DEBUG+1) << "-- END: not running";
-    return 0;
+      TLOG(TLVL_DEBUG+1) << "-- END: not running";
+      return 0;
+    }
   }
     
   int nbr = _list_of_ac.size();
@@ -449,6 +455,41 @@ int TEqArtdaq::HandlePeriodic() {
 
   TLOG(TLVL_DEBUG+1) << "-- END";
   return 0;
+}
+
+//-----------------------------------------------------------------------------
+int TEqArtdaq::GetStats(HNDLE H_Cmd) {
+  int rc = 0;
+  TLOG(TLVL_DEBUG) << "-- START";
+  SetStatus(1);
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
+
+  // Use static to cache output across multiple calls
+  static std::string last_output;
+
+  // run only if a call from TEqupmentManager has ended
+  // need to time this command
+  
+  if (not PeriodicBusy()) {
+    SetPeriodicBusy(true);
+    fFromGetStats = 1;
+    HandlePeriodic();
+    fFromGetStats = 0;
+    SetPeriodicBusy(false);
+  }
+  
+  sstr << "=== GetStats ===\n";
+  sstr << last_output << "\n";
+
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc);
+
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
+  return rc;
 }
 
 //-----------------------------------------------------------------------------
@@ -487,45 +528,6 @@ int TEqArtdaq::PrintProcesses(HNDLE H_Cmd) {
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{} log_rc:{}",rc,log_rc);
   return rc;
 }
-
-
-//-----------------------------------------------------------------------------
-/*int TEqArtdaq::PrintProcesses(std::ostream& Stream) {
-    int rc = 0;
-    TLOG(TLVL_DEBUG) << "-- START";
-
-    //const std::string dir =
-    //  "/scratch/mu2e/mu2etrk/daquser_002_namitha/logs/dl01-mu2e-dl-01-23301";
-
-    // Sorted by time, limited to 10 latest files
-    const std::string cmd = "/bin/ls -lh --time-style=long-iso /scratch/mu2e/mu2etrk/daquser_002_namitha/logs/dl01-mu2e-dl-01-23301";
-      // "/bin/ls -lhtr --time-style=long-iso " + dir + " | /usr/bin/tail -10 2>&1";
-
-    TLOG(TLVL_DEBUG+1) << "cmd=" << cmd;
-
-    FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) {
-        Stream << "ERROR: Failed to run command: " << cmd << "\n";
-        TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
-        return rc;
-    }
-
-    char buffer[512];
-    bool has_output = false;
-    while (fgets(buffer, sizeof(buffer), pipe)) {
-        Stream << buffer;
-        has_output = true;
-    }
-
-    if (!has_output) {
-        Stream << "No files found\n";
-    }
-
-    pclose(pipe);
-
-    TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
-    return rc;
-    }*/
 
 
 //-----------------------------------------------------------------------------
@@ -713,7 +715,7 @@ int TEqArtdaq::Treset(HNDLE H_Cmd) { // std::ostream& Stream, const std::string&
   std::stringstream sstr;
   StartMessage(H_Cmd,sstr);
 
-  HNDLE       h_cmd_par   = Odb_i()->GetCmdParameterHandle(H_Cmd);
+  //  HNDLE       h_cmd_par   = Odb_i()->GetCmdParameterHandle(H_Cmd);
 
   std::string logfile     = Odb_i()->GetString (H_Cmd,"logfile");
   // int         print_level = Odb_i()->GetInteger(h_cmd_par,"print_level");
@@ -813,7 +815,8 @@ void TEqArtdaq::ProcessCommand(int hDB, int hKey, void* Info) {
 // PRINT_PROCESSES
 //------------------------------------------------------------------------------
   int cmd_rc(0);
-  if      (cmd == "print_processes") cmd_rc = eq->PrintProcesses(h_cmd);
+  if      (cmd == "get_stats"      ) cmd_rc = eq->GetStats      (h_cmd);
+  else if (cmd == "print_processes") cmd_rc = eq->PrintProcesses(h_cmd);
   else if (cmd == "process_status" ) cmd_rc = eq->ProcessStatus (h_cmd);
   else if (cmd == "reset_output"   ) cmd_rc = eq->ResetOutput   (h_cmd);  // from TMu2eEqBase
   else if (cmd == "shell_cmd"      ) cmd_rc = eq->ShellCmd      (h_cmd);
