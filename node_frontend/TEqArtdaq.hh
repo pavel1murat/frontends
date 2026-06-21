@@ -13,6 +13,7 @@
 class TEqArtdaq: public TMu2eEqBase {
 public:
   std::vector<ArtdaqComponent_t> _list_of_ac;
+  int   fFromGetStats;
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -31,6 +32,7 @@ public:
 
   int                 ReadMetrics   ();
                                         
+  int                 GetStats      (HNDLE H_Cmd); // main purpose: call HandlePeriodic() in the end of the run
   int                 StartProcesses(HNDLE H_Cmd); // start ARTDAQ processes on this node at begin run, commanded by the TFM
   int                 PrintProcesses(HNDLE H_Cmd);
   int                 ProcessStatus (HNDLE H_Cmd);

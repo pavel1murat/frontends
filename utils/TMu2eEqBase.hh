@@ -19,6 +19,7 @@ public:
     kInternalPulserRun = 3,
     kPulseInjectionRun = 4,
     kNoiseRun          = 5,
+    kMcRun             = 100,           // MC-only, no hardware readout
   };
 
   enum {
@@ -50,8 +51,8 @@ public:
                                         // derives classes, below are the common ones
   int           _monitoringLevel;       // 0 or 1
   int           _diagLevel;             // always needed
-  int           _cmd_run;               // to bind a hot link - for now, one per equipment item! 
-  
+  int           _cmd_run;               // to bind a hot link - for now, one per equipment item!
+  bool          _periodic_busy;         // 
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
@@ -73,6 +74,8 @@ public:
 
   virtual int         MonitoringLevel(); // { return _monitoringLevel ; }
 
+  bool                PeriodicBusy() { return _periodic_busy; }
+
   int                 ResetOutput   (HNDLE H_Cmd);
   virtual int         StartMessage  (HNDLE H_Cmd,std::stringstream& SStr);
   virtual int         UnknownCommand(HNDLE H_Cmd);
@@ -82,6 +85,7 @@ public:
 
   void                SetName(const char* Name) { _name = Name; }
 
+  void                SetPeriodicBusy   (bool Busy) { _periodic_busy = Busy; }
   void                SetStatus         (int Status);
   void                SetCommandFinished(HNDLE H_Cmd, int Status);
 

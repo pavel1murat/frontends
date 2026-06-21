@@ -493,6 +493,11 @@ int TEqTrkDtc::InitReadout(HNDLE H_Cmd) { // std::ostream& Stream) {
     // otherwise, all settings should be the same as for normal data taking
     InitCosmicRun();
   }
+  else if (run_type == RunType::kMcRun) {
+    // run type = noise is only needed for book-keeping purposes,
+    // otherwise, all settings should be the same as for normal data taking
+    TLOG(TLVL_INFO) << std::format("MC-only run");
+  }
   else {
     std::string msg = std::format("host:{} DTC:{} : unknown run type:{}",HostLabel(),_dtc_i->PcieAddr(),run_type);
     sstr << "ERROR:" << msg << "\n";
