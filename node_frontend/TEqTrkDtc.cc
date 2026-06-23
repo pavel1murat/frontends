@@ -6,6 +6,7 @@
 #include "node_frontend/TEqTrkDtc.hh"
 #include "utils/TEquipmentManager.hh"
 #include "otsdaq-mu2e-tracker/Ui/ControlRocTypes.hh"
+#include "otsdaq-mu2e-tracker/Ui/TrackerRegisters.hh"
 
 #include "TRACE/tracemf.h"
 #define  TRACE_NAME "TEqTrkDtc"
@@ -23,14 +24,63 @@ namespace {
   
   // some ROC registers are listed in decimal format, and some - in hex
   std::initializer_list<int> RocRegisters = {
-       0,   18,    8,   15,   16,    7,      6,    4,
-      23,   24,   25,   26,   11,   12,     65,   65,   17,   28,
-      29,   30,   31,   32,   33,   34,      9,   10,   35,   36,
-      13,
-      37,   38,   38,   40,   41,   42,     43,   44,   45,   46,
-      48,   49,   51,   52,   54,   55,     57,   58,
-      72,   73,   74,   75,
-    0x90, 0x91, 0x92, 0x93, 0x94, 0x95
+    trkdaq::registers::rocdcs::DBG,
+    trkdaq::registers::rocdcs::ROC_STATUS,
+    trkdaq::registers::rocdcs::ROC_ENABLE,
+    trkdaq::registers::rocdcs::DCS_DDR_ADDRESS_L,
+    trkdaq::registers::rocdcs::DCS_DDR_ADDRESS_H,
+    trkdaq::registers::rocdcs::LOSS_LOCK,
+    trkdaq::registers::rocdcs::TWI_CONTROL,
+    trkdaq::registers::rocdcs::LOOPBACK_COARSE_DELAY,
+    trkdaq::registers::rocdcs::DREQ_FIFO_WRCNT,
+    trkdaq::registers::rocdcs::DREQ_FIFO_WR_STATUS,
+    trkdaq::registers::rocdcs::DREQ_FIFO_RDCNT,
+    trkdaq::registers::rocdcs::DREQ_FIFO_RD_STATUS,
+    trkdaq::registers::rocdcs::EWM_CNT_L,
+    trkdaq::registers::rocdcs::EWM_CNT_H,
+    trkdaq::registers::rocdcs::DCS_EVMCNT_L, // was 65
+    trkdaq::registers::rocdcs::DCS_EVMCNT_H,
+    trkdaq::registers::rocdcs::DCS_HB_CNT_L, // was 17
+    trkdaq::registers::rocdcs::DCS_HB_CNT_H,
+    trkdaq::registers::rocdcs::DCS_NULLHB_CNT_L,
+    trkdaq::registers::rocdcs::DCS_NULLHB_CNT_H,
+    trkdaq::registers::rocdcs::DCS_HBCNT_ONHOLD_L,
+    trkdaq::registers::rocdcs::DCS_HBCNT_ONHOLD_H,
+    trkdaq::registers::rocdcs::DCS_PREFCNT_L,
+    trkdaq::registers::rocdcs::DCS_PREFCNT_H,
+    trkdaq::registers::rocdcs::DATAREQ_CNT_L,
+    trkdaq::registers::rocdcs::DATAREQ_CNT_H,
+    trkdaq::registers::rocdcs::DCS_DREQCNT_L,
+    trkdaq::registers::rocdcs::DCS_DREQCNT_H,
+    trkdaq::registers::rocdcs::IS_SKIPPED_DREQ_CNT,
+    trkdaq::registers::rocdcs::DCS_DREQREAD_L,
+    trkdaq::registers::rocdcs::DCS_DREQREAD_H,
+    trkdaq::registers::rocdcs::DCS_DREQSENT_L, // was 38
+    trkdaq::registers::rocdcs::DCS_DREQSENT_H,
+    trkdaq::registers::rocdcs::DCS_DREQNULL_L,
+    trkdaq::registers::rocdcs::DCS_DREQNULL_H,
+    trkdaq::registers::rocdcs::DCS_SPILLCNT_L,
+    trkdaq::registers::rocdcs::DCS_SPILLCNT_H,
+    trkdaq::registers::rocdcs::DCS_HBTAG_0,
+    trkdaq::registers::rocdcs::DCS_HBTAG_1,
+    trkdaq::registers::rocdcs::DCS_PREFTAG_0,
+    trkdaq::registers::rocdcs::DCS_PREFTAG_1,
+    trkdaq::registers::rocdcs::DCS_FETCHTAG_0,
+    trkdaq::registers::rocdcs::DCS_FETCHTAG_1,
+    trkdaq::registers::rocdcs::DCS_DREQTAG_0,
+    trkdaq::registers::rocdcs::DCS_DREQTAG_1,
+    trkdaq::registers::rocdcs::DCS_OFFSETTAG_0,
+    trkdaq::registers::rocdcs::DCS_OFFSETTAG_1,
+    trkdaq::registers::rocdcs::HB_TAG_ERR_CNT,
+    trkdaq::registers::rocdcs::HB_DREQ_ERR_CNT,
+    trkdaq::registers::rocdcs::HB_LOST_CNT,
+    trkdaq::registers::rocdcs::EWM_LOST_CNT,
+    trkdaq::registers::rocdcs::DTC_PKT_COUNT,
+    trkdaq::registers::rocdcs::DCS_PKT_COUNT,
+    trkdaq::registers::rocdcs::DREQ_PKT_COUNT,
+    trkdaq::registers::rocdcs::DREQ_HDR_PKT_COUNT,
+    trkdaq::registers::rocdcs::DREQ_DATA_PKT_COUNT,
+    trkdaq::registers::rocdcs::DREQ_EMPTY_PKT_COUNT
   };
   
 };
