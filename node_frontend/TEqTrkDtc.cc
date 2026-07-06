@@ -12,14 +12,35 @@
 #define  TRACE_NAME "TEqTrkDtc"
 namespace {
 //                                            Temp, VCCINT, VCCAUX, VCBRAM
-  std::initializer_list<int> DtcRegHist = { 0x9010, 0x9014, 0x9018, 0x901c};
-  
+  std::initializer_list<int>  DtcRegHist = { 0x9010, 0x9014, 0x9018, 0x901c };
 
   std::initializer_list<int>  DtcRegisters = {
-    0x9004, 0x9100, 0x9114, 0x9140, 0x9144,
-    0x9158, 0x9188, 0x91a8, 0x91ac, 0x91bc, 
-    0x91c0, 0x91c4, 0x91f4, 0x91f8, 0x93e0,
-    0x9650, 0x9654, 0x9658, 0x965c, 0x9660, 0x9664, 0x9668
+    0x9004, // 0
+    0x9100,
+    0x9114,
+    0x9140,
+    0x9144,
+    
+    0x9158,                             // 5
+    0x9188,
+    0x91a8,
+    0x91ac,
+    0x91bc,
+    
+    0x91c0,                             // 10
+    0x91c4,
+    0x91f4,
+    0x91f8,
+    0x93e0,
+    
+    0x9650,                             // 15 TX HB packet count link 0
+    0x9654,                             // TX HB packet count link 1
+    0x9658,
+    0x965c,
+    0x9660,
+    
+    0x9664,
+    0x9668                              // 20 TX HB packet count CFO (16 bits)
   };
   
   // some ROC registers are listed in decimal format, and some - in hex
@@ -132,7 +153,7 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     std::string msg = std::format("DTC{}@{} has fw version:0x{:08x} different from required version:0x{:08x}",
                                   _dtc_i->PcieAddr(),HostLabel(),fw_version,required_fw_version);
     TLOG(TLVL_ERROR) << msg;
-                                        // and send an error message
+                                       // and send an error message
     cm_msg(MERROR, __func__,msg.data());
     cm_msg_flush_buffer();
     SetStatus(-1);
@@ -179,7 +200,8 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
       _dtc_i->SetLinkStatus(i,0);
       int link_enabled = _odb_i->GetLinkEnabled(H_Dtc,i);
       int link_locked  = _dtc_i->LinkLocked(i);
-      TLOG(TLVL_DEBUG) << std::format("link:{} enabled:{} locked:{} status:{}",i,link_enabled,link_locked,_dtc_i->LinkStatus(i));
+      TLOG(TLVL_DEBUG) << std::format("DTC{} link:{} enabled:{} locked:{} status:{}",
+                                      _dtc_i->PcieAddr(),i,link_enabled,link_locked,_dtc_i->LinkStatus(i));
       if (not link_enabled)                               continue;
       if (not link_locked) {
         TLOG(TLVL_ERROR) << std::format("{}:DTC{} link:{} enabled but not locked, set link status to -1",
@@ -203,7 +225,7 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
         TLOG(TLVL_DEBUG) << "git_commit:" << git_commit;
       }
       catch(...) {
-        TLOG(TLVL_ERROR) << std::format("{}:DTC{}: cant read link:() ROC info, set link status to -1",HostLabel(),_dtc_i->PcieAddr(),i);
+        TLOG(TLVL_ERROR) << std::format("{}:DTC{}: cant read link:{} ROC info, set link status to -1",HostLabel(),_dtc_i->PcieAddr(),i);
         _dtc_i->SetLinkStatus(i,-1);
         continue;
       }
@@ -443,12 +465,19 @@ int TEqTrkDtc::InitVarNames() {
   TLOG(TLVL_DEBUG) << "-- START HostLabel:" << HostLabel();
   
   // SC TODO: I think we should define these together with the registers? 
-  std::initializer_list<const char*> dtc_names = {"Temp", "VCCINT", "VCCAUX", "VCBRAM"};
+  std::initializer_list<const char*> dtc_names = {
+    "Temp", "VCCINT", "VCCAUX", "VCBRAM"
+  };
+  
+  std::initializer_list<const char*> dtr_names = {
+    "R9650", "R9654", "R9658" , "R965c", "R9660",  // TX HB registers
+    "R9664", "R9668"
+  };
 
   const std::string eq_path       = "/Equipment/"+HostLabel();
   const std::string settings_path = eq_path+"/Settings";
 
-  midas::odb        odb_settings(settings_path);
+  midas::odb        odb_settings(settings_path);   // points to /Settings
 
   int pcie_addr = _dtc_i->PcieAddr();
   
@@ -462,22 +491,21 @@ int TEqTrkDtc::InitVarNames() {
   sprintf(dirname,"Names dtc%i",pcie_addr);
   odb_settings[dirname] = dtc_var_names;
 //-----------------------------------------------------------------------------
-// non-history DTC registers
+// DTC counters and such
 //-----------------------------------------------------------------------------
   dtc_var_names.clear();
   for (const int& reg : DtcRegisters) {
-    char var_name[32];
-    sprintf(var_name,"0x%04x",reg);
+    std::string var_name = std::format("dtc{}#r_0x{:04x}",pcie_addr,reg);
+    dtc_var_names.push_back(var_name);
+  }
+
+  for (int i=15; i<21; i++) {
+    std::string var_name = std::format("dtc{}#link{}-cfo",pcie_addr,i-15);
     dtc_var_names.push_back(var_name);
   }
       
-  sprintf(dirname,"DTC%i",pcie_addr);
-
-  midas::odb   odb_dtc(eq_path+"/"+dirname);
-  odb_dtc["RegName"] = dtc_var_names;
-
-  std::vector<uint32_t> dtc_reg_data(dtc_var_names.size());
-  odb_dtc["RegData"] = dtc_reg_data;
+  sprintf(dirname,"Names dtr%i",pcie_addr);
+  odb_settings[dirname] = dtc_var_names;
 //-----------------------------------------------------------------------------
 // loop over the ROCs and create names for each of them
 // add to the ROC (per-panel) data the key and the ILP (pressure/temp) readout
@@ -535,7 +563,7 @@ int TEqTrkDtc::InitVarNames() {
 //-----------------------------------------------------------------------------
 void TEqTrkDtc::ReadNonHistRegisters() {
   
-  std::string node_eq_path = "/Equipment/"+HostLabel();
+  std::string node_var_path = std::format("/Equipment/{}/Variables",HostLabel());
 
   std::vector<uint32_t>  dtc_reg;
   dtc_reg.reserve(DtcRegisters.size());
@@ -551,19 +579,24 @@ void TEqTrkDtc::ReadNonHistRegisters() {
     }
     dtc_reg.emplace_back(dat);
   }
+  // should be 22 words
 
-  char buf[64];
+  for (int i=15; i<21; i++) {
+    uint32_t x = dtc_reg[21]-dtc_reg[i];        // should be non-negative
+    dtc_reg.emplace_back(x);
+  }
+  // 22+6 = 28 words
   
-  sprintf(buf,"%s/DTC%i",node_eq_path.data(),_dtc_i->PcieAddr());
+  std::string record_name = std::format("dtr{}",_dtc_i->PcieAddr());
       
-  TLOG(TLVL_DEBUG+1) << "N(DTC registers):" << DtcRegisters.size() << " buf:" << buf;
+  //  TLOG(TLVL_DEBUG+1) << "N(DTC registers):" << DtcRegisters.size() << " buf:" << buf;
         
-  midas::odb xx = {{"RegData",{1u}}};
-  xx.connect(buf);
-  xx["RegData"].resize(DtcRegisters.size());
-  xx["RegData"] = dtc_reg;
+  midas::odb xx = {{record_name.data(),{1u}}};
+  xx.connect(node_var_path);
+  xx[record_name].resize(dtc_reg.size());
+  xx[record_name] = dtc_reg;
 
-  TLOG(TLVL_DEBUG+1) << "--END , saved to:" << buf;
+  TLOG(TLVL_DEBUG+1) << "-- END";
 }
 
 //-----------------------------------------------------------------------------
@@ -603,9 +636,6 @@ int TEqTrkDtc::HandlePeriodic() {
 //-----------------------------------------------------------------------------
   int pcie_addr = _dtc_i->PcieAddr();
   
-  char dtc_name[16];
-  sprintf(dtc_name,"dtc%i",pcie_addr);
-
   midas::odb o_runinfo("/Runinfo");
   int running_state          = o_runinfo["State"];
   int transition_in_progress = o_runinfo["Transition in progress"];
@@ -628,10 +658,14 @@ int TEqTrkDtc::HandlePeriodic() {
       dtc_tv.emplace_back(fval);
     }
     
-    std::string node_eq_path = "/Equipment/"+HostLabel();
+    char dtc_name[16];
+    sprintf(dtc_name,"dtc%i",pcie_addr);
     midas::odb odb_dtc_tv = {{dtc_name,{1.0f, 1.0f, 1.0f, 1.0f}}};
-    odb_dtc_tv.connect(node_eq_path+"/Variables");
-        
+
+    std::string node_eq_path  = std::format("/Equipment/{}",HostLabel());
+    std::string node_var_path = std::format("/Equipment/{}/Variables",HostLabel());
+
+    odb_dtc_tv.connect(node_var_path);    
     odb_dtc_tv[dtc_name] = dtc_tv;
 //-----------------------------------------------------------------------------
 // non-history registers : 'dtr' = "DTcRegisters"
@@ -645,7 +679,8 @@ int TEqTrkDtc::HandlePeriodic() {
 //-----------------------------------------------------------------------------
     for (int ilink=0; ilink<6; ilink++) {
       
-      TLOG(TLVL_DEBUG+1) << std::format("link:{} enabled:{} locked:{} status:{}",ilink,_dtc_i->LinkEnabled(ilink),_dtc_i->LinkLocked(ilink),_dtc_i->LinkStatus(ilink));
+      TLOG(TLVL_DEBUG+1) << std::format("link:{} enabled:{} locked:{} status:{}",
+                                        ilink,_dtc_i->LinkEnabled(ilink),_dtc_i->LinkLocked(ilink),_dtc_i->LinkStatus(ilink));
                                         
       if (_dtc_i->LinkEnabled(ilink) == 0) continue;
                                         // skip links which status has been set to -1
@@ -737,7 +772,7 @@ int TEqTrkDtc::HandlePeriodic() {
           sprintf(buf,"rc%i%i",_dtc_i->PcieAddr(),ilink);
             
           midas::odb xx = {{buf,{1.0f}}};
-          xx.connect(node_eq_path+"/Variables");
+          xx.connect(node_var_path);
 
           int nw = trkdaq::TrkSpiDataNWords+trkdaq::TrkKeyDataNWords+trkdaq::TrkIlpDataNWords;
           xx[buf].resize(nw);
@@ -819,11 +854,11 @@ int TEqTrkDtc::HandlePeriodic() {
           char buf[16];
           sprintf(buf,"rr%i%i",_dtc_i->PcieAddr(),ilink);
           
-          midas::odb vars(node_eq_path+"/Variables");
+          midas::odb vars(node_var_path);
           vars[buf] = rates;
           
           TLOG(TLVL_DEBUG+1) << "ROC:" << ilink << " saved rates to \""
-                             << node_eq_path+"/Variables[" << buf << "\"], nw:" << rates.size();
+                             << node_var_path+"[" << buf << "\"], nw:" << rates.size();
         }
         else {
           TLOG(TLVL_ERROR) << "failed to read rates DTC:" << _dtc_i->PcieAddr() << " ROC:" << ilink;

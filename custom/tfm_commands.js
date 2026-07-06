@@ -55,6 +55,7 @@ function tfm_get_node_id(node_name) {
 
 //-----------------------------------------------------------------------------      
 // node id = 'nodeXXX' - provide for 1000 nodes
+// adds 'active' to the list of class names of selected node
 //-----------------------------------------------------------------------------
 function tfm_choose_node_id(evt) {
   let i, tabs;
@@ -78,14 +79,25 @@ function tfm_choose_node_id(evt) {
 // 'createTable' is a function loading the DTC control page
 // 'id' is the node ID (number)
 //-----------------------------------------------------------------------------
+// function tfm_update_node_id(evt) {
+//   tfm_choose_node_id(evt);
+//   // this takes active process label as a second parameter - make it null , so the first process
+//   // becomes the default
+//   // updeteNodeTable is defined in tfm_control.html
+//   if (g_node != null) {
+//     updateNodeTable(g_node, 'undefined');
+//   }
+// }
+
 function tfm_update_node_id(evt) {
   tfm_choose_node_id(evt);
-  // this takes active process label as a second parameter - make it null , so the first process
-  // becomes the default
-  // updeteNodeTable is defined in tfm_control.html
+  // updateNodeTable (defined in tfm_control.html) takes active process label as a second parameter
+  // - make it null , so the first process becomes the default
   if (g_node != null) {
     updateNodeTable(g_node, 'undefined');
   }
+  // Repaint status colors after class changes
+  setTimeout(() => refreshNodeButtonColors(), 50);
 }
 
 //-----------------------------------------------------------------------------      
