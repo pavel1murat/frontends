@@ -18,358 +18,454 @@
     <title>TFM control</title>
     
     <script>
+    
+    async function toggleNodeEnabled(node_name, btn) {
+      const base = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${node_name}`;
+      try {
+        const r = await mjsonrpc_db_get_values([`${base}/Enabled`]);
+        const enabled = Number(r.result.data[0]);
+        const next = (enabled === 1) ? 0 : 1;
 
-  //-----------------------------------------------------------------------------
-  // global variables
-  // the hostname (nodename) should be the same within the scope of this script
+        await mjsonrpc_db_paste([`${base}/Enabled`], [next]);
+
+        // keep class in sync
+        btn.classList.toggle('disabled', next === 0);
+
+        // repaint status color
+        set_colors(base, btn);
+      } catch (error) {
+        mjsonrpc_error_alert(error);
+      }
+    }
+
+//-----------------------------------------------------------------------------
+// update colors of the node buttons
+//-----------------------------------------------------------------------------
+    
+    async function set_nodetab_colors(path, cell) {
+      // Fetch values for Enabled and Status
+      const path_enabled = path+`/Enabled`;
+      const path_status  = path+`/Status`;
+      try {
+        let rpc = await mjsonrpc_db_get_values([path_enabled, path_status]); // .then(function (rpc) {
+        const enabled = rpc.result.data[0];
+        const status  = rpc.result.data[1];
+        
+        // Apply color styles
+        if (enabled === 0) {
+          cell.style.backgroundColor = "gray";
+          cell.style.color = "white";
+        }
+        else if (enabled === 1) {
+          if (status === 0) {
+            cell.style.backgroundColor = "#2a882a" ; // "green";
+            cell.style.color = "white";
+          }
+          else if (status < 0) {
+            cell.style.backgroundColor = "red";
+            cell.style.color = "white";
+          }
+          else if (status > 0) {
+            cell.style.backgroundColor = "yellow";
+            cell.style.color = "black";
+          }
+        }
+        else {
+          cell.style.backgroundColor = "gray";
+          cell.style.color = "white";
+        }
+      }
+      catch(error) {
+        console.error("Error fetching values:", error);
+      };
+    }
+    
+    function refreshNodeButtonColors() {
+      const buttons = document.querySelectorAll('button.nodetabs');
+      buttons.forEach(btn => {
+        const node_name = btn.textContent.trim();
+        const path = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${node_name}`;
+        set_nodetab_colors(path, btn);
+      });
+    }
+    
+//-----------------------------------------------------------------------------
+// global variables
+// the hostname (nodename) should be the same within the scope of this script
+//-----------------------------------------------------------------------------
+
+    function updateNodeTable(node_index,active_process_label) {
+      const node_name = tfm_get_node_name(g_node);
+      g_hostname      = node_name;
+
+      logfile         = 'artdaq'
+      const table     = document.getElementById('node_table');
+      table.innerHTML = '';
+      table.node_name = node_name;
+      tbody           = document.createElement('tbody');
+      //-----------------------------------------------------------------------------
+      // pick current active node (g_node from tfm_commands.js) and list its processes
+      //-----------------------------------------------------------------------------
+      var paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes/"+table.node_name+"/Artdaq"];
+      let process_list=[] ;
+      sleep(1000);
+      mjsonrpc_db_get_values(paths).then(function(rpc) {
+        let artdaq      = rpc.result.data[0];
+        console.log('artdaq=',artdaq);
+        if (artdaq.enabled == 1) {
+          // loop over ARTDAQ items
+          for (const key in artdaq) {
+            if (key.indexOf('/') >= 0) { continue; }
+            if ((key.toUpperCase() == 'STATUS') || (key.toUpperCase() == 'ENABLED')) {continue;}
+            // artdaq process
+            const p = artdaq[key];
+            if (p.enabled) {
+              process_list.push(key);
+            }
+          }
+        }
+        
+        let r1 = document.createElement('tr');
+        r1.innerHTML = '<td> <div class="mtableheader" colspan=2>'+node_name+' ARTDAQ processes: </div> </td>'
+        td1         = document.createElement('td');
+        td1.colspan = 3;
+
+        let active_btn = 0;
+        div1 = document.createElement('div');
+        div1.className = 'tab';
+        let np = process_list.length;
+        for (let i=0; i<np; i++) {
+          const p = process_list[i];
+          let btn = document.createElement('button');
+          // btn.style.display = "block";
+          btn.className = "process_tabs"
+          if (i == g_process) {
+            btn.className += " active";
+          }
+          btn.innerHTML = p;
+          btn.id        = 'process_btn_'+String(i).padStart(2,'0')
+          //        btn.onclick   = function () { tfm_choose_artdaq_process_id(event,btn.id); }
+          btn.onclick   = function () { tfm_update_artdaq_process_id(event,btn.id); }
+          div1.appendChild(btn);
+        }
+        
+        td1.appendChild(div1);
+        r1.appendChild(td1);
+        tbody.appendChild(r1);
+
+        tr2 = document.createElement('tr');
+        td2 = document.createElement('td');
+        td2.colspan = 2;
+
+        let cmd, btn;
+        
+        cmd = new Command_D('node_load_parameters','load_parameters','tfm_menu_02',mu2e_odb_load_table,'cmd_params',artdaq_process_config_path,tfm_load_help_page,logfile,2000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+        
+        // load artdaq table on a given node
+        cmd = new Command_B('get_status','get_status',mu2e_odb_load_table,'cmd_params',node_artdaq_parameter_path,logfile);
+        btn = mu2e_make_exec_button_B(cmd);
+        td2.appendChild(btn);
+
+        //         cmd = new Command_B('generate_fcl','generate_fcl',tfm_command_set_odb,'cmd_params',tfm_cmd_parameter_path,logfile);
+        //         btn = mu2e_make_exec_button_B(cmd);
+        //         td2.appendChild(btn);
+
+        cmd = new Command_D('generate_fcl','generate_fcl','tfm_menu_02',tfm_node_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+        
+        cmd = new Command_D('print_fcl','print_fcl','tfm_menu_02',tfm_node_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+        
+        // note different parameter path
+        cmd = new Command_B('print_processes','print_processes',tfm_command_set_odb,'cmd_params',node_artdaq_parameter_path,logfile);
+        btn = mu2e_make_exec_button_B(cmd);
+        td2.appendChild(btn);
+
+        tr2.appendChild(td2);
+        
+        tbody.appendChild(tr2);
+        // update table
+        table.appendChild(tbody);
+        
+        //-----------------------------------------------------------------------------
+        // update cmd_params
+        //-----------------------------------------------------------------------------
+
+        g_process_label = active_process_label; 
+        const cmd_params     = document.getElementById('cmd_params');
+        cmd_params.innerHTML = '';
+        
+        if (active_process_label != 'undefined') {
+          const path = artdaq_process_config_path(null);
+          odb_browser('cmd_params',path,0);
+        }
+        else {
+          // load the node page
+          const path = node_config_path(null);
+          odb_browser('cmd_params',path,0);
+        }
+        
+      }).catch(function(error) {
+        mjsonrpc_error_alert(error);
+      });
+    }
+
+    
+    //-----------------------------------------------------------------------------
+    // main function defining the page contents
+    //-----------------------------------------------------------------------------
+    function loadPage() {
+
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      g_hostname      = urlParams.get('hostname') || null ;  //
+      g_process_label = urlParams.get('process' ) || 'undefined';  //
+      g_run_conf      = odb_get_active_run_conf_name();
+      
+      const logfile = 'artdaq';
+      
+      let btn, cmd;
+      //-----------------------------------------------------------------------------
+      //  fill TFM table
+      //-----------------------------------------------------------------------------
+      const tfm_table     = document.getElementById('tfm_table');
+      tfm_table.innerHTML = '';
+      let thead = document.createElement('thead');
+      
+      tr = document.createElement('tr');
+      // tr.innerHTML ='<td> <div class="mtableheader" colspan=8> Trigger Farm Manager (TFM) </div> </td>';
+      tr.innerHTML ='<td> <div class="mtableheader"> Trigger Farm Manager (TFM) </div> </td>';
+      
+      td = document.createElement('td');
+      // td.colSpan = 1;
+      td.innerHTML = `
+        <div class="mtableheader">
+          <a href="https://mu2einternalwiki.fnal.gov/wiki/TFM_control_page#" target="_blank">help</a>
+        </div>`
+      tr.appendChild(td);
+      thead.appendChild(tr);
+      tfm_table.appendChild(thead);
+      
+      tfm_tbody = document.createElement('tbody');
+
+//------------------------------------------------------------------------------
+// TFM control page: node table - the ordering relies on the node ordering in ODB
+// DL01 and the CFO node (calo-13) on the first line
+//-----------------------------------------------------------------------------
+
+      const  paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes",];
+      mjsonrpc_db_get_values(paths).then(function(rpc) {
+        let list_of_nodes  = rpc.result.data[0];
+
+        let row     = null;
+        let td      = null;
+        let div     = null;
+        let node_id = 0;
+        let nnodes  = 0;
+        
+        let new_row = 1;
+        for (const key in list_of_nodes) {
+          if (key.indexOf('/') >= 0) { continue; }
+          const node_name = key;
+          const node      = list_of_nodes[key];
+          if (new_row) {
+            row = document.createElement('tr');
+            td  = document.createElement('td');
+            td.colSpan = 2;
+            
+            div = document.createElement('div');
+            div.className = 'tab';
+            td.appendChild(div);
+            row.appendChild(td);
+            new_row = 0;
+          }
+          
+          btn = document.createElement('button');
+          btn.className = 'nodetabs';
+          if (node.enabled == 0) btn.className += ' disabled';
+          btn.id        = 'node'+node_id.toString().padStart(3,'0');
+          btn.onclick   = function() { tfm_update_node_id(event); }      // called when the node button is clicked
+
+          btn.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (confirm(`Toggle Enabled for ${node_name}?`)) {
+              toggleNodeEnabled(node_name, btn);
+            }
+          });
+          
+          btn.innerHTML = node_name;
+          div.appendChild(btn);
+          //------------------------------------------------------
+          // data loggers (dl-01) in their own row,  otehrwise 9 nodes in a row
+          // which makes it 2 rows for the tracker
+          nnodes += 1;
+          if ((node_name == 'mu2e-dl-01') || (nnodes >= 6)) {
+            // the first table head row has two data fields, align
+            td = document.createElement('td');
+            row.appendChild(td);
+            tfm_tbody.appendChild(row);
+            
+            // start new row
+            nnodes  = 0;
+            new_row = 1;
+          }
+          node_id += 1;
+        }
+        
+        if (nnodes > 0) {
+          td = document.createElement('td');
+          row.appendChild(td);
+          tfm_tbody.appendChild(row);
+        }
+        //-----------------------------------------------------------------------------
+        // now come commands
+        //-----------------------------------------------------------------------------
+        let tr2 = document.createElement('tr');
+        
+        let td2     = document.createElement('td');
+        td2.colSpan = 2;
+
+        cmd = new Command_D('tfm_load_parameters','load_parameters','tfm_menu_02', mu2e_load_conf_table ,'cmd_params',tfm_cfg_parameter_path,tfm_load_help_page,logfile,2000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+
+        cmd = new Command_D('load_cmd_pars'    ,'load_cmd_pars'    , 'tfm_menu_02', mu2e_load_conf_table ,'cmd_params', tfm_cmd_parameter_path, tfm_load_help_page, logfile, 2000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+
+        cmd = new Command_D('init_artdaq'    ,'init_artdaq'    , 'tfm_menu_02', mu2e_command_set_odb_B ,'cmd_params', tfm_cmd_parameter_path, tfm_load_help_page, logfile, 5000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+
+        // output of everything trace-related goes to trace.log
+        cmd = new Command_B('cleanup','cleanup',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+        btn = tfm_make_exec_button_B(cmd);
+        td2.appendChild(btn);
+        //-----------------------------------------------------------------------------
+        // create a "get_state" drop-button
+        //-----------------------------------------------------------------------------
+        cmd = new Command_D('get_state','get_state','tfm_menu_02',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+        
+        cmd = new Command_D('generate_fcl','generate_fcl','tfm_menu_02',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+        
+        // which logfile the output should go? - artdaq.log
+//        cmd = new Command_D('print_fcl','print_fcl','tfm_menu_02',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
+//        btn = mu2e_make_dropup_button_D(cmd);
+//        td2.appendChild(btn);
+        
+        // output of everything trace-related should go to trace.log, but this one goes to 'artdaq.log'
+        cmd = new Command_D('tlvls','tlvls','tfm_menu_02', mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,tfm_load_help_page,logfile,5000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+        
+        cmd = new Command_D('tshow','tshow','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,tfm_load_help_page,logfile,10000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+        
+        tr2.appendChild(td2);
+        tfm_tbody.appendChild(tr2);
+
+
+        tr2 = document.createElement('tr');
+        td2     = document.createElement('td');
+        td2.colSpan = 2;
+        
+        cmd = new Command_D('reset_output','reset_output','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
+        btn = mu2e_make_exec_button_D(cmd);
+        td2.appendChild(btn);
+        
+        cmd = new Command_B('treset','treset',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+        btn = tfm_make_exec_button_B(cmd);
+        td2.appendChild(btn);
+
+        cmd = new Command_B('tonM','tonM',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+        btn = tfm_make_exec_button_B(cmd);
+        td2.appendChild(btn);
+
+        cmd = new Command_B('toffM','toffM',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+        btn = tfm_make_exec_button_B(cmd);
+        td2.appendChild(btn);
+        
+        cmd = new Command_B('tonS','tonS',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+        btn = tfm_make_exec_button_B(cmd);
+        td2.appendChild(btn);
+
+        cmd = new Command_B('toffS','toffS',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
+        btn = tfm_make_exec_button_B(cmd);
+        td2.appendChild(btn);
+
+        cmd = new Command_B('print_config','print_config',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,logfile);
+        btn = tfm_make_exec_button_B(cmd);
+        td2.appendChild(btn);
+        
+        cmd = new Command_B('clear_farm_status','clear_farm_status',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,logfile);
+        btn = tfm_make_exec_button_B(cmd);
+        td2.appendChild(btn);
+        tr2.appendChild(td2);
+
+        // output of everything trace-related should go to trace.log, but this one goes to 'artdaq.log'
+        cmd = new Command_D('shell_cmd','shell_cmd','tfm_menu_02', mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,tfm_load_help_page,logfile,20000);
+        btn = mu2e_make_dropup_button_D(cmd);
+        td2.appendChild(btn);
+        
+        // fill empty space under "help" 
+        //      td2 = document.createElement('td');
+        //      tr2.appendChild(td2);
+        
+        tfm_tbody.appendChild(tr2);
+        tfm_table.appendChild(tfm_tbody);
+
+        //-----------------------------------------------------------------------------
+        // set active node button
+        //-----------------------------------------------------------------------------
+        if (g_hostname != 'undefined') {
+          g_node = tfm_get_node_id(g_hostname);
+        }
+        
+//-----------------------------------------------------------------------------
+//  fill node table
+//-----------------------------------------------------------------------------
+        
+        updateNodeTable(g_node,g_process_label);
+
+        refreshNodeButtonColors();
+        if (!window._nodeColorTimer) {
+          window._nodeColorTimer = setInterval(refreshNodeButtonColors, 2000);
+        }
+
+//-----------------------------------------------------------------------------
+//  fill TFM parameters table
+//-----------------------------------------------------------------------------
+
+        const tfm_params_table     = document.getElementById('cmd_params');
+        tfm_params_table.innerHTML = '';
+        
+        odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Tfm`,0);
+        
+      }).catch(function(error) {
+        mjsonrpc_error_alert(error);
+      });
+
+
+      
+    } <!-- end of loadPage -->
+
+    //-----------------------------------------------------------------------------
+    // global listeners - add one to close all menus
     //-----------------------------------------------------------------------------
     
-     function updateNodeTable(node_index,active_process_label) {
-       const node_name = tfm_get_node_name(g_node);
-       g_hostname      = node_name;
-
-       logfile         = 'artdaq'
-       const table     = document.getElementById('node_table');
-       table.innerHTML = '';
-       table.node_name = node_name;
-       tbody           = document.createElement('tbody');
-//-----------------------------------------------------------------------------
-// pick current active node (g_node from tfm_commands.js) and list its processes
-//-----------------------------------------------------------------------------
-       var paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes/"+table.node_name+"/Artdaq"];
-       let process_list=[] ;
-       sleep(1000);
-       mjsonrpc_db_get_values(paths).then(function(rpc) {
-         let artdaq      = rpc.result.data[0];
-         console.log('artdaq=',artdaq);
-         if (artdaq.enabled == 1) {
-           /* loop over ARTDAQ items */
-           for (const key in artdaq) {
-             if (key.indexOf('/') >= 0) { continue; }
-             if ((key.toUpperCase() == 'STATUS') || (key.toUpperCase() == 'ENABLED')) {continue;}
-             // artdaq process
-             const p = artdaq[key];
-             if (p.enabled) {
-               process_list.push(key);
-             }
-           }
-         }
-         
-         let r1 = document.createElement('tr');
-         r1.innerHTML = '<td> <div class="mtableheader" colspan=2>'+node_name+' ARTDAQ processes: </div> </td>'
-         td1         = document.createElement('td');
-         td1.colspan = 3;
-
-         let active_btn = 0;
-         div1 = document.createElement('div');
-         div1.className = 'tab';
-         let np = process_list.length;
-         for (let i=0; i<np; i++) {
-           const p = process_list[i];
-           let btn = document.createElement('button');
-           // btn.style.display = "block";
-           btn.className = "process_tabs"
-           if (i == g_process) {
-             btn.className += " active";
-           }
-           btn.innerHTML = p;
-           btn.id        = 'process_btn_'+String(i).padStart(2,'0')
-           //        btn.onclick   = function () { tfm_choose_artdaq_process_id(event,btn.id); }
-           btn.onclick   = function () { tfm_update_artdaq_process_id(event,btn.id); }
-           div1.appendChild(btn);
-         }
-         
-         td1.appendChild(div1);
-         r1.appendChild(td1);
-         tbody.appendChild(r1);
-
-         tr2 = document.createElement('tr');
-         td2 = document.createElement('td');
-         td2.colspan = 2;
-
-         let cmd, btn;
-         
-         cmd = new Command_D('node_load_parameters','load_parameters','tfm_menu_02',mu2e_odb_load_table,'cmd_params',artdaq_process_config_path,tfm_load_help_page,logfile,2000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-      
-         // load artdaq table on a given node
-         cmd = new Command_B('get_status','get_status',mu2e_odb_load_table,'cmd_params',node_artdaq_parameter_path,logfile);
-         btn = mu2e_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-
-//         cmd = new Command_B('generate_fcl','generate_fcl',tfm_command_set_odb,'cmd_params',tfm_cmd_parameter_path,logfile);
-//         btn = mu2e_make_exec_button_B(cmd);
-//         td2.appendChild(btn);
-
-         cmd = new Command_D('generate_fcl','generate_fcl','tfm_menu_02',tfm_node_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-         
-         cmd = new Command_D('print_fcl','print_fcl','tfm_menu_02',tfm_node_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-         
-         // note different parameter path
-         cmd = new Command_B('print_processes','print_processes',tfm_command_set_odb,'cmd_params',node_artdaq_parameter_path,logfile);
-         btn = mu2e_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-
-         tr2.appendChild(td2);
-         
-         tbody.appendChild(tr2);
-         // update table
-         table.appendChild(tbody);
-         
-//-----------------------------------------------------------------------------
-// update cmd_params
-//-----------------------------------------------------------------------------
-
-         g_process_label = active_process_label; 
-         const cmd_params     = document.getElementById('cmd_params');
-         cmd_params.innerHTML = '';
-         
-         if (active_process_label != 'undefined') {
-           const path = artdaq_process_config_path(null);
-           odb_browser('cmd_params',path,0);
-         }
-         else {
-           // load the node page
-           const path = node_config_path(null);
-           odb_browser('cmd_params',path,0);
-         }
-         
-       }).catch(function(error) {
-         mjsonrpc_error_alert(error);
-       });
-     }
-
-  
-//-----------------------------------------------------------------------------
-// main function defining the page contents
-//-----------------------------------------------------------------------------
-     function loadPage() {
-
-       const urlParams = new URLSearchParams(window.location.search);
-     
-       g_hostname      = urlParams.get('hostname') || null ;  //
-       g_process_label = urlParams.get('process' ) || 'undefined';  //
-       g_run_conf      = odb_get_active_run_conf_name();
-       
-       const logfile = 'artdaq';
-       
-       let btn, cmd;
-       //-----------------------------------------------------------------------------
-       //  fill TFM table
-       //-----------------------------------------------------------------------------
-       const tfm_table     = document.getElementById('tfm_table');
-       tfm_table.innerHTML = '';
-       let thead = document.createElement('thead');
-      
-       tr = document.createElement('tr');
-       // tr.innerHTML ='<td> <div class="mtableheader" colspan=8> Trigger Farm Manager (TFM) </div> </td>';
-       tr.innerHTML ='<td> <div class="mtableheader"> Trigger Farm Manager (TFM) </div> </td>';
-       
-       td = document.createElement('td');
-       // td.colSpan = 1;
-       td.innerHTML = `
-         <div class="mtableheader">
-           <a href="https://mu2einternalwiki.fnal.gov/wiki/TFM_control_page#" target="_blank">help</a>
-         </div>`
-       tr.appendChild(td);
-       thead.appendChild(tr);
-       tfm_table.appendChild(thead);
+    document.addEventListener("click", e => {hideAllMenus(); }); // to close all menues
+    document.addEventListener("DOMContentLoaded", loadPage);
     
-       tfm_tbody = document.createElement('tbody');
-
-       //------------------------------------------------------------------------------
-       // node table
-       //-----------------------------------------------------------------------------
-
-       const  paths=["/Mu2e/ActiveRunConfiguration/DAQ/Nodes",];
-       mjsonrpc_db_get_values(paths).then(function(rpc) {
-         let list_of_nodes  = rpc.result.data[0];
-
-         let row     = null;
-         let td      = null;
-         let div     = null;
-         let node_id = 0;
-         let nnodes  = 0;
-         
-         let new_row = 1;
-         for (const key in list_of_nodes) {
-           if (key.indexOf('/') >= 0) { continue; }
-           const node_name = key;
-           const node      = list_of_nodes[key];
-           if (new_row) {
-             row = document.createElement('tr');
-             td  = document.createElement('td');
-             td.colSpan = 2;
-             
-             div = document.createElement('div');
-             div.className = 'tab';
-             td.appendChild(div);
-             row.appendChild(td);
-             new_row = 0;
-           }
-           
-           btn = document.createElement('button');
-           btn.className = 'nodetabs';
-           if (node.enabled == 0) btn.className += ' disabled';
-           btn.id        = 'node'+node_id.toString().padStart(3,'0');
-           btn.onclick   = function() { tfm_update_node_id(event); }      // called when the node button is clicked
-           btn.innerHTML = node_name;
-           div.appendChild(btn);
-           
-           nnodes += 1;
-           
-           if ((node_name == 'mu2e-dl-01') || (nnodes >= 9)) {
-             // the first table head row has two data fields, align
-             td = document.createElement('td');
-             row.appendChild(td);
-             tfm_tbody.appendChild(row);
-             
-             // start new row
-             nnodes  = 0;
-             new_row = 1;
-           }
-           node_id += 1;
-         }
-         
-         if (nnodes > 0) {
-           td = document.createElement('td');
-           row.appendChild(td);
-           tfm_tbody.appendChild(row);
-         }
-      //-----------------------------------------------------------------------------
-      // now come commands
-      //-----------------------------------------------------------------------------
-         let tr2 = document.createElement('tr');
-         
-         let td2     = document.createElement('td');
-         td2.colSpan = 2;
-
-         cmd = new Command_D('tfm_load_parameters','load_parameters','tfm_menu_02', mu2e_load_conf_table ,'cmd_params',tfm_cfg_parameter_path,tfm_load_help_page,logfile,2000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-
-         cmd = new Command_D('load_cmd_pars'    ,'load_cmd_pars'    , 'tfm_menu_02', mu2e_load_conf_table ,'cmd_params', tfm_cmd_parameter_path, tfm_load_help_page, logfile, 2000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-
-         // output of everything trace-related goes to trace.log
-         cmd = new Command_B('cleanup','cleanup',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
-         btn = tfm_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-         //-----------------------------------------------------------------------------
-         // create a "get_state" drop-button
-         //-----------------------------------------------------------------------------
-         cmd = new Command_D('get_state','get_state','tfm_menu_02',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-         
-         cmd = new Command_D('generate_fcl','generate_fcl','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-         
-         // which logfile the output should go? - artdaq.log
-         cmd = new Command_D('print_fcl','print_fcl','tfm_menu_02',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-         
-         // output of everything trace-related should go to trace.log, but this one goes to 'artdaq.log'
-         cmd = new Command_D('tlvls','tlvls','tfm_menu_02', mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,tfm_load_help_page,logfile,5000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-         
-         cmd = new Command_D('tshow','tshow','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,tfm_load_help_page,logfile,10000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-         
-         tr2.appendChild(td2);
-         tfm_tbody.appendChild(tr2);
-
-
-         tr2 = document.createElement('tr');
-         td2     = document.createElement('td');
-         td2.colSpan = 2;
-         
-         cmd = new Command_D('reset_output','reset_output','tfm_menu_01',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,tfm_load_help_page,logfile,5000);
-         btn = mu2e_make_exec_button_D(cmd);
-         td2.appendChild(btn);
-         
-         cmd = new Command_B('treset','treset',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
-         btn = tfm_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-
-         cmd = new Command_B('tonM','tonM',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
-         btn = tfm_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-
-         cmd = new Command_B('toffM','toffM',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
-         btn = tfm_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-         
-         cmd = new Command_B('tonS','tonS',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
-         btn = tfm_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-
-         cmd = new Command_B('toffS','toffS',mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,logfile);
-         btn = tfm_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-
-         cmd = new Command_B('print_procinfos','print_procinfos',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,logfile);
-         btn = tfm_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-         
-         cmd = new Command_B('clear_farm_status','clear_farm_status',mu2e_command_set_odb_B,'cmd_params',tfm_cmd_parameter_path,logfile);
-         btn = tfm_make_exec_button_B(cmd);
-         td2.appendChild(btn);
-         tr2.appendChild(td2);
-
-         // output of everything trace-related should go to trace.log, but this one goes to 'artdaq.log'
-         cmd = new Command_D('shell_cmd','shell_cmd','tfm_menu_02', mu2e_command_set_odb_B,'cmd_params',node_artdaq_parameter_path,tfm_load_help_page,logfile,20000);
-         btn = mu2e_make_dropup_button_D(cmd);
-         td2.appendChild(btn);
-         
-         // fill empty space under "help" 
-         //      td2 = document.createElement('td');
-         //      tr2.appendChild(td2);
-         
-         tfm_tbody.appendChild(tr2);
-         tfm_table.appendChild(tfm_tbody);
-
-      //-----------------------------------------------------------------------------
-      // set active node button
-      //-----------------------------------------------------------------------------
-         if (g_hostname != 'undefined') {
-           g_node = tfm_get_node_id(g_hostname);
-         }
-      
-      //-----------------------------------------------------------------------------
-      //  fill node table
-      //-----------------------------------------------------------------------------
-         updateNodeTable(g_node,g_process_label);
-      //-----------------------------------------------------------------------------
-      //  fill TFM parameters table
-      //-----------------------------------------------------------------------------
-         const tfm_params_table     = document.getElementById('cmd_params');
-         tfm_params_table.innerHTML = '';
-      
-         odb_browser('cmd_params',`/Mu2e/ActiveRunConfiguration/DAQ/Tfm`,0);
-         
-       }).catch(function(error) {
-         mjsonrpc_error_alert(error);
-       });
-     } <!-- end of loadPage -->
-
-//-----------------------------------------------------------------------------
-// global listeners - add one to close all menus
-//-----------------------------------------------------------------------------
-     
-     document.addEventListener("click", e => {hideAllMenus(); }); // to close all menues
-     document.addEventListener("DOMContentLoaded", loadPage);
-   
     </script>
   </head>
 <!-- ------------------------------------------------------------------------------

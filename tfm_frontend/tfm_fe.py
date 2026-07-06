@@ -100,7 +100,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
         os.makedirs(tfm_logdir, exist_ok=True)
         if os.path.exists(tfm_logdir):
-            tfm_logfile = os.path.join(tfm_logdir, f"python_tfm_fe_{timestamp}.log")
+            tfm_logfile = os.path.join(tfm_logdir, f'tfm_fe_{timestamp}.log')
         else:
             print("Failed to create the log file directory %s." % tfm_logdir)
 
@@ -217,7 +217,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
 # dict if needed.
 #------------------------------------------------------------------------------
     def begin_of_run(self, run_number):
-        TRACE.INFO(f'-- START:');
+        TRACE.INFO(f'-- START: run_number:{run_number}');
         start_time = time.time();
         if (self.use_runinfo_db):
             try:
@@ -252,14 +252,14 @@ class TfmFrontend(midas.frontend.FrontendBase):
         self.set_all_equipment_status("Running", "greenLight")
 
         end_time = time.time();
-        TRACE.INFO(f'--END: time spent: {end_time-start_time}');
+        TRACE.INFO(f'--END: run_number:{run_number} time spent: {end_time-start_time}');
         return midas.status_codes["SUCCESS"]
 
 #------------------------------------------------------------------------------
 #
 #---v--------------------------------------------------------------------------
     def end_of_run(self, run_number):
-        TRACE.TRACE(TRACE.TLVL_DBG,f'-- START: self.use_runinfo_db:{self.use_runinfo_db}')
+        TRACE.DEBUG(0,f'-- START: run_number:{run_number} self.use_runinfo_db:{self.use_runinfo_db}',TRACE_NAME)
         if (self.use_runinfo_db):
 #------------------------------------------------------------------------------
 # register beginning of the STOP transition
@@ -286,7 +286,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         self.set_all_equipment_status("Finished", "greenLight")
         self.client.msg("Frontend has seen end of run number %d" % run_number)
 
-        TRACE.TRACE(TRACE.TLVL_DBG,"-- END")
+        TRACE.DEBUG(0,f'-- END: run_number:{run_number}',TRACE_NAME)
         return midas.status_codes["SUCCESS"]
 
 #------------------------------------------------------------------------------
@@ -407,27 +407,6 @@ class TfmFrontend(midas.frontend.FrontendBase):
         TRACE.INFO(f'par:{par}',TRACE_NAME);
 
         rc = artdaq.gen_fcl(self.client,par)
-
-# 2025-05-26 PM        run_conf       = par["run_conf"   ];
-# 2025-05-26 PM        host           = par["host"       ];
-# 2025-05-26 PM        artdaq_process = par["process"    ];
-# 2025-05-26 PM        diag_level     = par["print_level"];
-# 2025-05-26 PM
-# 2025-05-26 PM        TRACE.INFO(f'run_conf:{run_conf} host:{host} process:{artdaq_process} diag_level:{diag_level}',TRACE_NAME);
-# 2025-05-26 PM
-# 2025-05-26 PM        cmd  = f'export TRACE_FILE={os.environ.get("TRACE_FILE")}'
-# 2025-05-26 PM        cmd += '; ' + os.environ.get('MU2E_DAQ_DIR')+f'/config/scripts/gen_artdaq_fcl.py --run_conf={run_conf} --host={host} --process={artdaq_process} --diag_level={diag_level}';
-# 2025-05-26 PM
-# 2025-05-26 PM        TRACE.INFO(f'cmd:{cmd}',TRACE_NAME);
-# 2025-05-26 PM        
-# 2025-05-26 PM        p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True,text=True)
-# 2025-05-26 PM        stdout, stderr = p.communicate();
-# 2025-05-26 PM        TRACE.INFO(f'after subprocess.Popen p.returncode={p.returncode}',TRACE_NAME);
-# 2025-05-26 PM        if (p.returncode != 0):
-# 2025-05-26 PM            TRACE.ERROR(f'ERROR in gen_artdaq_fcl : rc:{rc}',TRACE_NAME);
-# 2025-05-26 PM            err_lines = stderr.split('\n');
-# 2025-05-26 PM            for line in err_lines:
-# 2025-05-26 PM                TRACE.ERROR(f'{line}\n',TRACE_NAME)
 #------------------------------------------------------------------------------
 # write output - first , last message
 # write error output, if any, first - to the message file, then - to the logfile
@@ -451,7 +430,48 @@ class TfmFrontend(midas.frontend.FrontendBase):
         with open(log_fn,"a") as logfile:
             logfile.write(msg+'\n')
 
-        TRACE.INFO(f'-- END: run_conf:{par["run_conf"]} host:{par["host"]} process:{par["process"]}',TRACE_NAME);
+        TRACE.INFO(f'-- END: host:{par["host"]} process:{par["process"]}',TRACE_NAME);
+        return rc;
+    
+#------------------------------------------------------------------------------
+# reinitialize artdaq w/o restarting the farm manager in case the FCL's or anything
+# else in the artdaq configuration, but not the configuration itself, has changed
+#------------------------------------------------------------------------------
+    def process_cmd_init_artdaq(self):
+        rc = 0;
+        
+        TRACE.INFO(f'-- START: self.tfm_cmd_odb_path:{self.tfm_cmd_odb_path}',TRACE_NAME);
+        #        return rc;
+        ppath          = self.client.odb_get(self.tfm_cmd_odb_path+'/ParameterPath')
+        par            = self.client.odb_get(ppath);
+
+        TRACE.INFO(f'par:{par}',TRACE_NAME);
+
+        rc = self._fm.init_artdaq();
+#------------------------------------------------------------------------------
+# write output - first , last message
+# write error output, if any, first - to the message file, then - to the logfile
+#-------v----------------------------------------------------------------------
+        msg_fn = self.message_stream+'.msg';
+        log_fn = self.message_stream+'.log';
+        
+        now   = datetime.now()
+        stime = now.strftime("%Y-%m-%d-%H-%M-%S")
+
+        msg = f'<msg> {stime} init_artdaq:'
+        if (rc == 0): msg = msg+' OK'
+        else:         msg = msg+' ERROR'
+        
+        with open(msg_fn,"w") as logfile:
+            logfile.write(msg+'\n')
+
+#------------------------------------------------------------------------------
+# now, the logfile
+#------------------------------------------------------------------------------
+        with open(log_fn,"a") as logfile:
+            logfile.write(msg+'\n')
+
+        TRACE.INFO(f'-- END:',TRACE_NAME);
         return rc;
     
 #------------------------------------------------------------------------------
@@ -502,10 +522,10 @@ class TfmFrontend(midas.frontend.FrontendBase):
         return rc;
     
 #------------------------------------------------------------------------------
-    def process_cmd_print_procinfos(self):
+    def process_cmd_print_config(self):
         rc = 0;
         
-        par      = self.client.odb_get(self.tfm_cmd_odb_path);
+        par = self.client.odb_get(self.tfm_cmd_odb_path);
 
         TRACE.INFO(f'-- START',TRACE_NAME);
 #------------------------------------------------------------------------------
@@ -515,16 +535,31 @@ class TfmFrontend(midas.frontend.FrontendBase):
         log_fn = self.message_stream+'.log';
 
         TRACE.INFO(f'logfile:{log_fn}',TRACE_NAME);
+        
+        now   = datetime.now()
+        stime = now.strftime("%Y-%m-%d-%H-%M-%S")
+
+        msg = f'<msg> {stime} print_config:'
 
         with open(msg_fn,"w") as logfile:
+            print(msg)
             with redirect_stdout(logfile):
-                for p in self._fm.procinfos:
-                    p.print();
+                for node in self._fm.artdaq.list_of_nodes:
+                    s = f'node:{node.name:12} processes: '
+                    for p in node.list_of_processes:
+                        s += f'{p.label:6}'
+                        
+                    print(s);
 
         with open(log_fn,"w") as logfile:
+            print(msg)
             with redirect_stdout(logfile):
-                for p in self._fm.procinfos:
-                    p.print();
+                for node in self._fm.artdaq.list_of_nodes:
+                    s = f'node:{node.name:12} processes: '
+                    for p in node.list_of_processes:
+                        s += f'{p.label:6}'
+                        
+                    print(s);
 
         TRACE.INFO(f'-- END',TRACE_NAME);
         return rc;
@@ -550,7 +585,11 @@ class TfmFrontend(midas.frontend.FrontendBase):
             TRACE.TRACE(TRACE.TLVL_WARNING,f'{self.tfm_cmd_odb_path}/Run:{run}, BAIL OUT',TRACE_NAME);
             return
 #-------v----------------------------------------------------------------------
-        parameter_path = self.client.odb_get(self.tfm_cmd_odb_path+'/ParameterPath')
+        try:
+            parameter_path = self.client.odb_get(self.tfm_cmd_odb_path+'/ParameterPath')
+        except:
+            TRACE.ERROR(f'failed to access ODB={self.tfm_cmd_odb_path}/ParameterPath',TRACE_NAME);
+            return
 #------------------------------------------------------------------------------
 # mark TFM as busy
 #------------------------------------------------------------------------------
@@ -567,10 +606,12 @@ class TfmFrontend(midas.frontend.FrontendBase):
             rc = self.process_cmd_generate_fcl();
         elif (cmd_name.upper() == 'GET_STATE'):
             rc = self.process_cmd_get_state(parameter_path);
+        elif (cmd_name.upper() == 'INIT_ARTDAQ'):
+            rc = self.process_cmd_init_artdaq();
         elif (cmd_name.upper() == 'PRINT_FCL'):
             rc = self.process_cmd_print_fcl();
-        elif (cmd_name.upper() == 'PRINT_PROCINFOS'):
-            rc = self.process_cmd_print_procinfos();
+        elif (cmd_name.upper() == 'PRINT_CONFIG'):
+            rc = self.process_cmd_print_config();
         elif (cmd_name.upper() == 'RESET_OUTPUT'):
             rc = self.process_cmd_reset_output(parameter_path,logstream);
 #------------------------------------------------------------------------------

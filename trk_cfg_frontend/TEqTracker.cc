@@ -251,7 +251,7 @@ int TEqTracker::WaitForCompletion(HNDLE H_Cmd) {
   for (int is=first_station; is<last_station+1; ++is) {
     HNDLE h_station = _odb_i->GetTrackerStationHandle(is);
     if (_odb_i->GetEnabled(h_station) == 0) continue;
-    sstr << std::format(" station:{:02} DTC0 rc:{:4} DTC1 rc:{:4}\n",is,rcc[is][0],rcc[is][1]);
+    sstr << std::format(" slot:{:02} DTC0 rc:{:4} DTC1 rc:{:4}\n",is,rcc[is][0],rcc[is][1]);
   }
 
   // do we really need the return code ? - perhaps Status would do ? 

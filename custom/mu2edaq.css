@@ -1,6 +1,6 @@
 <style>
 td, th {
-    outline: 1px solid red !important;
+    outline: 1px solid red ;  /* ! important */
     background-color: rgba(255, 0, 0, 0.1);
 }
 /* ------------------------------------------------------------------------------
@@ -62,9 +62,9 @@ body {
 
 /* Automatic color changes based on the data-index value */
 .roctabs[data-index="1"] { background-color: #f2f2f2; }
-.roctabs[data-index="2"] { background-color: #ff3333;     }
+.roctabs[data-index="2"] { background-color: #ff3333; }
 .roctabs[data-index="3"] { background-color: #bdb;    }
-.roctabs[data-index="4"] { background-color: #882222;    }
+.roctabs[data-index="4"] { background-color: #882222; }
 
 #artdaq_process_tabs {
     padding   : 10px;
@@ -130,19 +130,41 @@ body {
   background-color: #ccc;
 }
 
-/* Create an active/current tablink class */
+/* ------------------------------------------------------------------------------
+  tab button colors : ACTIVE, DISABLED, ERROR.
+  an ENABLED, but not ACTIVE button shows up in grey
+------------------------------------------------------------------------------ */
 .tab button.active {
-  background-color: #bdb;
+  /* background-color: #bdb; */
 }
 
-/* Create an active/current tablink class */
 .tab button.disabled {
-  background-color: #e9aa;
+/*  background-color: #e9aa; */
 }
 
-/* Create an error tablink class */
 .tab button.error {
   background-color: #ee0000;
+}
+
+.tab button.nodetabs.disabled {
+  opacity: 0.65;                 /* optional */
+                                /* no background-color here */
+}
+
+.tab button.nodetabs.active {
+  outline: 3px solid #0057d8;   /* selected marker */
+  outline-offset: -2px;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 3px #0057d8;
+  background-color: #bdb; /*  #8d8; */
+}
+
+.tab button.process_tabs.active {
+  /* outline: 3px solid #0057d8;   selected marker */
+  outline-offset: -2px;
+  font-weight: 700;
+  /* box-shadow: inset 0 0 0 3px #2a6c2a; this draws an outline box - don't need it */
+  background-color: #bdb;
 }
 
 /* Style the tab content */
@@ -218,38 +240,49 @@ body {
 }
 
 .btn:active {
-  background-color: #8d8;
+    background-color: #bdb; /*  #8d8; */
 }
 
 .daq_menu {
     display   : none;
     position  : absolute;
     background-color:   #bdb;   /*  #2980B9;  */
-    color     : black
+    color     : black;
     /* background: white; */
     border    : 1px solid #ccc;
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    z-index   : 3
+    z-index   : 3;
 }
 
 .daq_menu div {
     padding   : 2px 6px;
     cursor    : pointer;
-    background:   #bdb   /*  #2980B9;  */
-    color     : black
+    background:   #bdb ;  /*  #2980B9;  */
+    color     : black;
 }
 
 .daq_menu div:hover {
     background: #229933;
     color     : white;
 }
-/*
-scrollong buffer
-*/
+/* ----------------------------------------------------------------------------
+scrolling buffer
+------------------------------------------------------------------------------ */
+/* right column should not exceed viewport */
+
+#mmain, .row {
+  height: calc(90vh - 80px);   /* adjust 80px for your header/nav */
+}
+
+#messageTableA tr:last-child td {
+  height: 90%;
+  padding: 0;
+}
 
 #messageFrameA {
-    height          : 99vh;          /* Limit the height */
+    height          : 93vh ;      /* Limit the height */
     overflow-y      : auto;       /* Add vertical scrollbar when needed */
+    box-sizing: border-box;
     background-color: #ebffeb; /* Terminal black */
     color           : black;         /* Classic matrix green */
     font-family     : monospace;
@@ -258,6 +291,9 @@ scrollong buffer
     white-space     : pre-wrap;  /* Preserves newlines and wraps long lines */
     display         : flex;
     flex-direction  : column; /* Allows us to manage message order easily */
+    
+    max-height      : 100%;
+    table-layout    : fixed;
 }
 
 /* tighter rows in daq_status.html */
@@ -286,7 +322,7 @@ scrollong buffer
 
 /* scrolling thresholds */
 #cmd_params_frame.scroll-frame {
-  max-height: 760px;   /* choose what you want */
+    max-height: 80% ; /*760px; */  /* choose what you want */
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid #ccc;   /* optional */

@@ -149,7 +149,7 @@ async function set_colors(path, cell) {
     }
     else if (enabled === 1) {
       if (status === 0) {
-        cell.style.backgroundColor = "green";
+        cell.style.backgroundColor = "#2a882a" ; // "green";
         cell.style.color = "white";
       }
       else if (status < 0) {
