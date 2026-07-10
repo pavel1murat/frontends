@@ -24,11 +24,14 @@ function choose_dtc_id(evt, id) {
   let i, dtctabs;
   dtctabs = document.getElementsByClassName("dtctabs");
   // reset all tabs
-  for (i=0; i<dtctabs.length; i++) {
-    dtctabs[i].className = dtctabs[i].className.replace(" active", "");
+  
+  for (const t of dtctabs) {
+    t.classList.remove("active");
   }
   document.getElementById(id).style.display = "block";
-  evt.currentTarget.className += " active";
+
+  evt.currentTarget.classList.add("active");
+
   
   if (id == 'dtc0') { g_pcie = 0; } else {g_pcie = 1;} ;
   console.log('g_pcie=',g_pcie);
@@ -48,8 +51,8 @@ function update_dtc_id(evt, id) {
 async function dtc_update_roc_tab_color(roc) {
   
   const  paths=[`/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/Link${roc.index}/Status`,];
-  rpc = await mjsonrpc_db_get_values(paths); // .then(function(rpc) {
-  status = rpc.result.data[0];
+  const rpc = await mjsonrpc_db_get_values(paths); // .then(function(rpc) {
+  const status = rpc.result.data[0];
 
   if (status < 0) {
     if (roc.active == 0) {

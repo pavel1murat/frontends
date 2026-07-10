@@ -22,6 +22,8 @@
 
 //-----------------------------------------------------------------------------
 
+    let g_roc_timer = null;
+    
     function createRocCommandsTable() {
       const table     = document.getElementById('roc_commands');
        
@@ -39,7 +41,7 @@
       
       tr = document.createElement('tr');
       
-      let td, cmd, btn;
+      let td, cmd, btn, div;
       
       // ${logfile} has no extension :
        //   the comand output is written to ${logfile}.msg, it also gets appended to ${logfile}.log
@@ -142,7 +144,6 @@
       td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_roc_register/value" data-odb-editable="1"  data-format="%x"></div>`
       tr.appendChild(td);
       
-      tr.appendChild(td);
       tbody.appendChild(tr);
       
       // -------------------------------------------------- SECOND ROW
@@ -236,7 +237,7 @@
       let ir = g_roc;
       if (ir == -1) {ir = 6};
       const roc_id = 'roc'+ir.toString();
-      const active_roc_tab = document.querySelector('.roctabs#'+roc_id);
+      let active_roc_tab = document.querySelector('.roctabs#'+roc_id);
       if (active_roc_tab == null) {
         active_roc_tab = document.querySelector('.roctabs#roc6');
       }
@@ -301,7 +302,7 @@
         { id: 'roc3', label: 'ROC3' , index: 3, active: 0},
         { id: 'roc4', label: 'ROC4' , index: 4, active: 0},
         { id: 'roc5', label: 'ROC5' , index: 5, active: 0},
-        { id: 'roc6', label: 'ALL'  , index: 6, active: 0}
+        { id: 'roc6', label: 'ALL'  , index: 6, active: 1}
       ];
       
       rocButtons.forEach(item => {
@@ -311,6 +312,10 @@
         btn.index       = item.index;
         btn.active      = item.active;
         btn.textContent = item.label;
+
+        if (btn.active == 1) {
+          btn.dataset.index = 3;
+        }
         
         dtc_update_roc_tab_color(btn);
         
@@ -320,6 +325,7 @@
 
         div.appendChild(btn);
       });
+
       
       td.appendChild(div);
       tr.appendChild(td);
@@ -340,7 +346,7 @@
       td = document.createElement('td');
       td.colSpan = 9;
 
-      let cmd, btn;
+      let cmd, cmdb, btn;
       const logfile = `${g_hostname}_dtc${g_pcie}`;  // logfile here means a 'stream', doesn't need an extention
       
       cmd = new Command_D('load_cmd_pars'    ,'load_cmd_pars'    , 'dtc_menu_03', mu2e_load_conf_table ,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page, logfile, 10000);
@@ -384,7 +390,7 @@
       
       tbody.appendChild(tr);
 
-      <!----------------- DTC print status, print ROC status , write reg   -->
+      // ---------------- DTC print status, print ROC status , write reg
 
       tr = document.createElement('tr');
 
@@ -480,7 +486,7 @@
       const el = document.getElementById('dtc'+g_pcie.toString());
       if (el) {
         el.focus();
-        el.className += " active";
+        el.classList.add("active");
         console.log('g_pcie=',g_pcie);
       }
 
@@ -493,8 +499,13 @@
       dtc_load_parameters();
 
       console.log('before setTimeout');
-      const timer = setInterval(dtc_update_roc_tabs,2000);
-      console.log('after setTimeout: timer ID:', timer);
+      
+      // const timer = setInterval(dtc_update_roc_tabs,2000);
+      if (g_roc_timer !== null) {
+        clearInterval(g_roc_timer);
+      }
+      g_roc_timer = setInterval(dtc_update_roc_tabs, 2000);
+      console.log('after setTimeout: timer ID:', g_roc_timer);
      
     }
     

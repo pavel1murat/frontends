@@ -260,7 +260,7 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
             procs = nodes[key]['Artdaq']
             for p in procs.keys():
                 kk = procs[p]
-                TRACE.INFO(f'p:{p} is_dict:{isinstance(kk,dict)} kk:{kk}',TRACE_NAME)
+                TRACE.DEBUG(0,f'p:{p} is_dict:{isinstance(kk,dict)} kk:{kk}',TRACE_NAME)
                 if isinstance(kk,dict):
                     # subdirectory, definition of a process
                     if (kk['Enabled'] == 1):
@@ -272,8 +272,40 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
         f.write(f'\nTRIGGER configuration:\n')
         trigger_odb_path = '/Mu2e/ActiveRunConfiguration/Trigger';
-        t_table =  self.client.odb_get(trigger_odb_path+'/Table')
-        f.write(f'trigger table name:{t_table}\n')
+        trigger_table =  self.client.odb_get(trigger_odb_path+'/Table')
+        f.write(f'trigger table name:{trigger_table}\n')
+        
+        # also print updates to the trigger table
+        f.write(f'\nODB updates to the TRIGGER table:\n')
+        
+        tt = self.client.odb_get(f'/Mu2e/ActiveRunConfiguration/Trigger/{trigger_table}');
+
+        TRACE.DEBUG(0,f'trigger_table:{trigger_table}',TRACE_NAME)
+        
+        # print(tt);
+        for k0 in tt.keys():
+            if (k0 == 'physics'):
+                l0 = 'art.physics'
+                # loop over
+                for k1 in tt[k0].keys():
+                    if (k1 == 'filters'):
+                        l1 = l0 + '.filters'
+                    elif (k1 == 'producers'):
+                        l1 = l0 + '.producers'
+                        
+                    # loop over modules
+                    modules = tt[k0][k1] # this is a subdict
+                    for k2 in modules.keys():
+                        print(f'k2:{k2}')
+                        l2 = l1+f'.{k2}'
+                        module = modules[k2]
+                        # next go module parameters, to begin with, consider the simplest case
+                        for k3 in module.keys():
+                            l3 = l2+f'.{k3} : {module[k3]}\n'
+                            TRACE.DEBUG(0,f'l3:{l3}',TRACE_NAME)
+
+                            f.write(l3)
+        
 #------------------------------------------------------------------------------
 # tracker information
 #------------------------------------------------------------------------------
@@ -282,12 +314,13 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
         s1 =  self.client.odb_get(tracker_odb_path+'/FirstStation')
         s2 =  self.client.odb_get(tracker_odb_path+'/LastStation')
         for s in range(s1,s2+1):
+            TRACE.DEBUG(0,f'station:{s}')
             station_odb_path = tracker_odb_path+f'/Station_{s:02}'
             station_id       = self.client.odb_get(station_odb_path+'/production_id')
             enabled          = self.client.odb_get(station_odb_path+'/Enabled')
             if (enabled):
                 f.write(f'slot:{s:02} station:{station_id:02}\n')
-                rpi = self.client.odb_get(station_odb_path+'/RPI/Name')
+                psu = self.client.odb_get(station_odb_path+'/psu')
                 for plane in range(0,2):
                     plane_odb_path = station_odb_path+f'/Plane_{plane:02}'
                     plane_enabled = self.client.odb_get(plane_odb_path+'/Enabled')
@@ -301,11 +334,12 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                             if (panel_enabled):
                                 hv_channel = self.client.odb_get(panel_odb_path+'/hv_channel');
 
-                                hv_data_odb_path = f'/Equipment/{rpi}/Variables/LVHV[{24+hv_channel}]'
+                                hv_data_odb_path = f'/Equipment/{psu}/Variables/LVHV[{24+hv_channel}]'
                                 panel_hv = self.client.odb_get(hv_data_odb_path)
-                                TRACE.TRACE(TRACE.TLVL_DEBUG,f'hv_data_odb_path:{hv_data_odb_path} panel_hv:{panel_hv:8.1f}',TRACE_NAME)
+                                TRACE.DEBUG(0,f'hv_data_odb_path:{hv_data_odb_path} panel_hv:{panel_hv:8.1f}',TRACE_NAME)
                             
-                            f.write(f' {panel}:{panel_enabled}:{panel_name} HV:{-1:8.1f}')
+                            TRACE.DEBUG(0,f' {panel}:{panel_enabled}:{panel_name} HV:{panel_hv:8.1f}',TRACE_NAME)
+                            f.write(f' {panel}:{panel_enabled}:{panel_name} HV:{panel_hv:8.1f}')
                     f.write('\n')
 
         f.close()
