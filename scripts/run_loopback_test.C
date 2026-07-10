@@ -10,11 +10,26 @@
 // so far, it is not obvious what the emasured numbers represent
 // this script to be run on a CFO node (currently - mu2e-calo-13)
 ///////////////////////////////////////////////////////////////////////////////
-
+#include <format>
+#include <iostream>
 //-----------------------------------------------------------------------------
 // need a mask here, because some links may be disabled/lot locked
 //-----------------------------------------------------------------------------
-int run_loopback_test(int TimeChain, const char* Node, int PcieAddr, int LinkMask, int NEvents = 100, int PrintLevel = 0) {
+class loopback_test {
+public:
+  int fMeasurement;
+
+  loopback_test(int Measurement) {
+    fMeasurement = Measurement;
+  }
+  
+  int run(int TimeChain, const char* Node, int PcieAddr, int Pos, int LinkMask,
+          int NEvents = 100, int PrintLevel = 0);
+};
+
+
+int loopback_test::run(int TimeChain, const char* Node, int PcieAddr, int Pos, int LinkMask,
+                       int NEvents, int PrintLevel) {
 
   auto cfo_i = cfo_init("mu2e-calo-13",1);
   CFO* cfo   = cfo_i->fCfo;
@@ -42,7 +57,7 @@ int run_loopback_test(int TimeChain, const char* Node, int PcieAddr, int LinkMas
     int enabled = (LinkMask >> 4*lnk) & 0x1;
     if (not enabled) continue;
 
-    h_delay[lnk] = new TH1F(Form("h_%i",lnk),Form("%s:DTC:%i link %i",Node,PcieAddr,lnk),10000,0,10000);
+    h_delay[lnk] = new TH1F(Form("h_%s_%i_%i",Node,PcieAddr,lnk),Form("%s:DTC:%i link %i",Node,PcieAddr,lnk),10000,0,10000);
     TH1F* hist = h_delay[lnk];
   
     for(int i=0; i<NEvents; ++i) {
@@ -59,7 +74,7 @@ int run_loopback_test(int TimeChain, const char* Node, int PcieAddr, int LinkMas
         val = cfo->ReadCableDelayMeasurement(time_chain_link, lnk, done);
         if (done) break;
         usleep(wait_time);
-        std::cout << std::format(" -------- link:{} event:{:4d} retries:{} val:{:4d} done:{}\n",lnk,i,retries,val,done);
+        //        std::cout << std::format(" -------- link:{} event:{:4d} retries:{} val:{:4d} done:{}\n",lnk,i,retries,val,done);
         retries++;
       }
       // histogram
@@ -85,6 +100,9 @@ int run_loopback_test(int TimeChain, const char* Node, int PcieAddr, int LinkMas
 
     hist->GetXaxis()->SetRangeUser(max_bin-50,max_bin+50);
     hist->Draw();
+    std::cout << std::format("{:10} {:3d} {:5d} {:11.2f} {:7} {:7} {:6} {:5} {:3}\n",
+                             Node,PcieAddr,lnk,hist->GetMean(),hist->GetEntries(),hist->Integral(),
+                             TimeChain,Pos,fMeasurement);
   }
 
   c->Draw();

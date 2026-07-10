@@ -17,7 +17,7 @@ def test1():
     daq_nodes_hkey = client._odb_get_hkey("/Mu2e/ActiveRunConfiguration/DAQ/Nodes")
     nodes          = client._odb_enum_key(daq_nodes_hkey);
     
-    TRACE.TRACE(TRACE.TLVL_INFO,f'nodes:{nodes}')
+    TRACE.INFO(f'nodes:{nodes}')
         
     for node in nodes: 
         print('--',node, '...', node[1], "...",node[1].name,"...",node[1].type)
@@ -73,7 +73,7 @@ def validate_active_config():
 
     for i in range(first_station,last_station+1):
         station_config_path = tracker_config_path+f'/Station_{i:02d}'
-        TRACE.DEBUG(0,f'--- validating slot {i:02d} config path:{station_config_path}')
+        TRACE.DEBUG(1,f'--- validating slot {i:02d} config path:{station_config_path}')
         for plane in range (0,2):
             plane_config_path   = station_config_path+f'/Plane_{plane:02d}'
             plane_name = client.odb_get(plane_config_path+'/Name');
@@ -83,17 +83,17 @@ def validate_active_config():
                 panel_config_path = plane_config_path+f'/Panel_{panel:02d}'
                 panel_name = client.odb_get(panel_config_path+'/Name');
                 link       =  client.odb_get(panel_config_path+'/Link');
-                TRACE.DEBUG(0,f'plane config path:{plane_config_path} panel_name:{panel_name}')
+                TRACE.DEBUG(1,f'plane config path:{plane_config_path} panel_name:{panel_name}')
                 # now find the DTC this panel is connected to
                 dtc_detector_element_path = plane_config_path+f'/DTC/Link{link}/DetectorElement'
-                TRACE.DEBUG(0,f'DTC detector element path:{dtc_detector_element_path}')
+                TRACE.DEBUG(1,f'DTC detector element path:{dtc_detector_element_path}')
                 dtc_panel_name = client.odb_get(dtc_detector_element_path+'/Name');
-                TRACE.DEBUG(0,f'panel config path:{panel_config_path} panel_name:{panel_name} name2:{dtc_panel_name}')
+                TRACE.DEBUG(1,f'panel config path:{panel_config_path} panel_name:{panel_name} name2:{dtc_panel_name}')
                 if (panel_name != dtc_panel_name):
-                    TRACE.ERROR(f'ERROR: panel_config_path:{panel_config_path} panel_name:{panel_name} dtc_panel_name:{dtc_panel_xsname}')
+                    TRACE.ERROR(f'panel_config_path:{panel_config_path} panel_name:{panel_name} dtc_panel_name:{dtc_panel_xsname}')
                     n_errors += 1
                 else:
-                    TRACE.DEBUG(0,f' panel {panel_name} at ODB config path:{panel_config_path} is OK')
+                    TRACE.DEBUG(1,f' panel {panel_name} at ODB config path:{panel_config_path} is OK')
 
     TRACE.INFO(f'2. ---------------------- validating DTC configuration')
     
@@ -110,10 +110,10 @@ def validate_active_config():
                 dtc = node[key]
                 # validate JAMode
                 if (dtc['JAMode'] != nominal_ja_mode):
-                    TRACE.WARNING(f'WARNING: node:{node_name} dtc:{key} has JAMode:0x{dtc["JAMode"]:04x} different from 0x:{nominal_ja_mode:04x}')
+                    TRACE.ERROR(f'node:{node_name} dtc:{key} has JAMode:0x{dtc["JAMode"]:04x} different from 0x:{nominal_ja_mode:04x}')
                     n_errors += 1
                 else:
-                    TRACE.DEBUG(0,f'{key}@{node_name}: JAMode = 0x{dtc["JAMode"]:04x} - OK')
+                    TRACE.DEBUG(1,f'{key}@{node_name}: JAMode = 0x{dtc["JAMode"]:04x} - OK')
         
     TRACE.INFO(f'3. ---------------------- validating default DTC command parameters')
     
@@ -134,10 +134,10 @@ def validate_active_config():
                 
                         # validate init_readout
                         if (cmd['emulate_cfo'] == 1):
-                            TRACE.WARN(f'WARNING: node:{node_name} dtc:{eq_name} init_readout.emulate_cfo=1')
+                            TRACE.ERROR(f'WARNING: node:{node_name} dtc:{eq_name} init_readout.emulate_cfo=1')
                             n_errors += 1
                         else:
-                            TRACE.DEBUG(0,f'node:{node_name} dtc:{eq_name} init_readout parameters: OK')
+                            TRACE.DEBUG(1,f'node:{node_name} dtc:{eq_name} init_readout parameters: OK')
 
     TRACE.INFO(f'total number of detected errors: {n_errors}')
         

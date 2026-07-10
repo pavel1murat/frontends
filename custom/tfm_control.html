@@ -18,7 +18,63 @@
     <title>TFM control</title>
     
     <script>
-    
+
+    let g_ctx_node_name = null;
+    let g_ctx_btn = null;
+
+    function hideNodeContextMenu() {
+      const m = document.getElementById('node_ctx_menu');
+      if (m) m.style.display = 'none';
+    }
+
+    function showNodeContextMenu(e, node_name, btn) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      g_ctx_node_name = node_name;
+      g_ctx_btn = btn;
+      
+      const m = document.getElementById('node_ctx_menu');
+      m.style.left = (e.pageX + 8) + 'px';
+      m.style.top  = (e.pageY + 8) + 'px';
+      m.style.display = 'block';
+    }
+
+    async function toggleNodeEnabled(node_name, btn) {
+      const base = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${node_name}`;
+      try {
+        const r = await mjsonrpc_db_get_values([`${base}/Enabled`]);
+        const enabled = Number(r.result.data[0]);
+        const next = (enabled === 1) ? 0 : 1;
+        
+        await mjsonrpc_db_paste([`${base}/Enabled`], [next]);
+        
+        btn.classList.toggle('disabled', next === 0);
+        set_colors(base, btn); // keep your status colors
+      } catch (error) {
+        mjsonrpc_error_alert(error);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggle = document.getElementById('node_ctx_toggle');
+      const cancel = document.getElementById('node_ctx_cancel');
+      
+      toggle.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (g_ctx_node_name && g_ctx_btn) {
+          await toggleNodeEnabled(g_ctx_node_name, g_ctx_btn);
+        }
+        hideNodeContextMenu();
+      });
+      
+      cancel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideNodeContextMenu();
+      });
+    });
+
+   
     async function toggleNodeEnabled(node_name, btn) {
       const base = `/Mu2e/ActiveRunConfiguration/DAQ/Nodes/${node_name}`;
       try {
@@ -290,14 +346,8 @@
           btn.id        = 'node'+node_id.toString().padStart(3,'0');
           btn.onclick   = function() { tfm_update_node_id(event); }      // called when the node button is clicked
 
-          btn.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (confirm(`Toggle Enabled for ${node_name}?`)) {
-              toggleNodeEnabled(node_name, btn);
-            }
-          });
-          
+          btn.addEventListener('contextmenu', (e) => showNodeContextMenu(e, node_name, btn));
+
           btn.innerHTML = node_name;
           div.appendChild(btn);
           //------------------------------------------------------
@@ -525,5 +575,11 @@
         </div>
       </div>
     </div>
+    
+    <div id="node_ctx_menu" class="daq_menu" style="display:none; position:fixed; z-index:9999;">
+      <div id="node_ctx_toggle">Toggle Enabled</div>
+      <div id="node_ctx_cancel">Cancel</div>
+    </div>
+    
   </body>
 </html>

@@ -1105,7 +1105,7 @@ int TEqTrkDtc::InitPulseInjectionRun() {
   HNDLE h_read         = _odb_i->GetHandle(0,read_parameter_path);
   
   trkdaq::ControlRoc_Read_Input_t0 par;
-  par.adc_mode        = _odb_i->GetUInt16(h_read,"adc_mode");              // 0:data, 4:checkerboard, etc
+  par.adc_mode        = _odb_i->GetUInt16(h_read,"adc_mode");                 // 0:data, 4:checkerboard, etc
   par.tdc_mode        = _odb_i->GetUInt16(h_read,"tdc_mode");
   par.num_lookback    = _odb_i->GetUInt16(h_read,"num_lookback");             // for 1-packet RO
   par.num_samples     = _odb_i->GetUInt16(h_read,"num_samples");              // N ADC samples - may need to change... - ODB
