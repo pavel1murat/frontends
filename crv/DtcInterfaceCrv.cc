@@ -150,8 +150,8 @@ int DtcInterfaceCrv::ResetLink(int Link) {
   
   TLOG(TLVL_DEBUG+1) << std::format("-- START: link:{} dont know what to do, just return",Link);
   return rc;
-  
 
+  
     // int lnk1(Link), lnk2(Link+1);
     // if (Link == -1) {
     //   lnk1 = 0;
