@@ -3,9 +3,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include "artdaq/DAQdata/Globals.hh"
 #define TRACE_NAME "TrackerBRDR"
-#include "TString.h"
-#include "canvas/Utilities/Exception.h"
 
+// #include "TString.h"
+#include "canvas/Utilities/Exception.h"
 #include "artdaq-core/Data/MetadataFragment.hh"
 #include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
 #include "artdaq/Generators/GeneratorMacros.hh"
@@ -583,6 +583,8 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
     TLOG(TLVL_DEBUG+1) << std::format("label:{} N(subevents read):{}",_artdaqLabel,sz);
     for (int i=0; i<sz; i++) {                       // and so far sz = 1
       DTC_SubEvent* ev     = subevents[i].get();
+      const DTC_SubEventHeader* seh = ev->GetHeader();
+      
       int           nb     = ev->GetSubEventByteCount();
       nbytes              += nb;
       uint64_t      ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
@@ -614,8 +616,6 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
 //-----------------------------------------------------------------------------
 // this is essentially it, now - diagnostics 
 //-----------------------------------------------------------------------------
-        // uint64_t ew_tag = ev->GetEventWindowTag().GetEventWindowTag(true);
-
         if ((_debug_level > 0) and (ev_counter() < _nEventsDbg)) { 
           TLOG(TLVL_DEBUG+1) << std::format("label:{} subevent:{} ew_tag:{} nbytes:{}",_artdaqLabel,i,ew_tag,nb);
           _dtc_i->PrintBuffer(ev->GetRawBufferPointer(),ev->GetSubEventByteCount()/2,0,std::cout);
@@ -629,6 +629,22 @@ int mu2e::TrackerBRDR::readData(artdaq::FragmentPtrs& Frags) {
         TLOG(TLVL_ERROR) << std::format("label:{} zero length event ev_counter():{}",_artdaqLabel,ev_counter());
         message("alarm", _artdaqLabel+"::ReadData::ERROR event="+std::to_string(ev_counter())+" nbytes=0") ;
       }
+//-----------------------------------------------------------------------------
+// ERROR: read subevent of zero bytes in length
+//-----------------------------------------------------------------------------
+      metricMan->sendMetric("link0_status", seh->link0_status, "status", 3, artdaq::MetricMode::Maximum);
+      metricMan->sendMetric("link1_status", seh->link1_status, "status", 3, artdaq::MetricMode::Maximum);
+      metricMan->sendMetric("link2_status", seh->link2_status, "status", 3, artdaq::MetricMode::Maximum);
+      metricMan->sendMetric("link3_status", seh->link3_status, "status", 3, artdaq::MetricMode::Maximum);
+      metricMan->sendMetric("link4_status", seh->link4_status, "status", 3, artdaq::MetricMode::Maximum);
+      metricMan->sendMetric("link5_status", seh->link5_status, "status", 3, artdaq::MetricMode::Maximum);
+      
+      metricMan->sendMetric("link0_ro_time", seh->link0_drp_rx_latency, "status", 3, artdaq::MetricMode::Minimum | artdaq::MetricMode::Maximum | artdaq::MetricMode::Average);
+      metricMan->sendMetric("link1_ro_time", seh->link1_drp_rx_latency, "status", 3, artdaq::MetricMode::Minimum | artdaq::MetricMode::Maximum | artdaq::MetricMode::Average);
+      metricMan->sendMetric("link2_ro_time", seh->link2_drp_rx_latency, "status", 3, artdaq::MetricMode::Minimum | artdaq::MetricMode::Maximum | artdaq::MetricMode::Average);
+      metricMan->sendMetric("link3_ro_time", seh->link3_drp_rx_latency, "status", 3, artdaq::MetricMode::Minimum | artdaq::MetricMode::Maximum | artdaq::MetricMode::Average);
+      metricMan->sendMetric("link4_ro_time", seh->link4_drp_rx_latency, "status", 3, artdaq::MetricMode::Minimum | artdaq::MetricMode::Maximum | artdaq::MetricMode::Average);
+      metricMan->sendMetric("link5_ro_time", seh->link5_drp_rx_latency, "status", 3, artdaq::MetricMode::Minimum | artdaq::MetricMode::Maximum | artdaq::MetricMode::Average);
     }
   }
 

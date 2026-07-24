@@ -141,10 +141,17 @@
             const [dtcObj, cfoObj] = await dbGet2(dtcPath, cfoPath);
 
             if (dtcObj != null) {
-              cell.innerHTML =
-                `<button onclick="dtc_control('${hostname}',${idtc})">DTC${idtc}</button>`;
+              // check the DTC type and dispatch to a proper DTC control page
+              const dtc_subsystem = await dbGet(dtcPath+'/Subsystem');
+              if (dtc_subsystem == 'tracker') {
+                cell.innerHTML = `<button onclick="dtc_control('${hostname}',${idtc})">DTC${idtc}</button>`;
+              }
+              else if (dtc_subsystem == 'CRV') {
+                cell.innerHTML = `<button onclick="dtc_control_crv('${hostname}',${idtc})">DTC${idtc}</button>`;
+              }
               addPolling(dtcPath, cell);
-            } else if (cfoObj != null) {
+            }
+            else if (cfoObj != null) {
               cell.innerHTML =
                 `<button onclick="cfo_control()">CFO${idtc}</button>`;
               addPolling(cfoPath, cell);

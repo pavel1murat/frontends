@@ -283,13 +283,16 @@ async function odb_get_active_run_conf_name() {
 // REDIRECT BROWSER TO CONTROL PAGES OPENING NEW TABS
 //-----------------------------------------------------------------------------
 function dtc_control(hostname,pcie) {
-//  window.location.href = `dtc_control.html?hostname=${hostname}&pcie=${pcie}`;
   window.open(`dtc_control.html?hostname=${hostname}&pcie=${pcie}`,'_blank');
+}
+
+function dtc_control_crv(hostname,pcie) {
+  window.open(`dtc_control_crv.html?hostname=${hostname}&pcie=${pcie}`,'_blank');
 }
 
 //-----------------------------------------------------------------------------
 function artdaq_process_control(hostname,process) {
-//  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}`;
+  //  window.location.href = `artdaq_process_control.html?hostname=${hostname}&process=${process}`;
   window.open(`artdaq_process_control.html?hostname=${hostname}&process=${process}`,'_blank');
 }
 

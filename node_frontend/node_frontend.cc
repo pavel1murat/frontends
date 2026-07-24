@@ -113,6 +113,7 @@ TMFeResult NodeFrontend::HandleFrontendInit(const std::vector<std::string>& args
         TMu2eEqBase* eq;
         if      (subsystem == "CRV"    ) {
           eq = (TMu2eEqBase*) new TEqCrvDtc(name.data(),name.data(),h_run_conf,h_i);
+          TLOG(TLVL_WARNING) << "should be ok now";
         }
         else if (subsystem == "TRACKER") {
           eq = (TMu2eEqBase*) new TEqTrkDtc(name.data(),name.data(),h_run_conf,h_i);

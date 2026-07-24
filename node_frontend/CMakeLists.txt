@@ -5,11 +5,12 @@ find_package(messagefacility REQUIRED)
 #------------------------------------------------------------------------------
 # link directories 
 #------------------------------------------------------------------------------
-# include_directories($ENV{MRB_SOURCE})
-include_directories($ENV{TRACE_INC})
-include_directories(${MIDAS_INSTALL_DIR})
-include_directories(${MIDAS_INSTALL_DIR}/include)
-include_directories(${PostgreSQL_INCLUDE_DIRS})
+include_directories($ENV{TRACE_INC}
+                    $ENV{SPACK_VIEW}/include
+                    ${MIDAS_INSTALL_DIR}
+                    ${MIDAS_INSTALL_DIR}/include
+                    ${PostgreSQL_INCLUDE_DIRS}
+                    )
 #------------------------------------------------------------------------------
 # library directories 
 #------------------------------------------------------------------------------
@@ -31,8 +32,6 @@ cet_set_compiler_flags(
 
 cet_make_exec(NAME      node_frontend
               SOURCE    node_frontend.cc
-#                        TEquipmentManager.cc
-#                        TEquipmentManager_Rpc.cc
                         TEqArtdaq.cc
                         TEqDisk.cc
 #
@@ -48,6 +47,7 @@ cet_make_exec(NAME      node_frontend
 
 
               LIBRARIES frontends_utils
+                        frontends_crv
                         otsdaq-mu2e-tracker::Ui
                         mu2e-pcie-utils::DTCInterface
                         midas

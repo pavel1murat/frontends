@@ -66,6 +66,7 @@ add_subdirectory(node_frontend)
 add_subdirectory(tfm_frontend)
 add_subdirectory(test)
 add_subdirectory(mepcis)
+add_subdirectory(crv)
 # Data
 
 cet_cmake_config()
