@@ -139,9 +139,15 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
   
   TLOG(TLVL_DEBUG) << "link_mask:0x" << std::hex << link_mask << " pcie_addr:" << pcie_addr;
   
-  _dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
   std::string subsystem = _odb_i->GetString(H_Dtc,"Subsystem");
-  _dtc_i->fSubsystem = mu2edaq::kTracker;
+  if (subsystem == "tracker") {
+    _dtc_i = trkdaq::DtcInterface::Instance(pcie_addr,link_mask,skip_dtc_init);
+    _dtc_i->fSubsystem = mu2edaq::kTracker;
+  }
+  else {
+    return;
+  }
+  
 //-----------------------------------------------------------------------------
 // start from checking the DTC FW verion and comparing it to the required one -
 // defined in ODB
@@ -348,7 +354,9 @@ int TEqTrkDtc::BeginRun(int RunNumber) {
 //-----------------------------------------------------------------------------
 // at begin run, initialize the readout
 //-----------------------------------------------------------------------------
-    InitReadout(_cmd_handle);
+    if (_dtc_i->fSubsystem == mu2edaq::kTracker) {
+      InitReadout(_cmd_handle);
+    }
   }
   
   TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
@@ -469,10 +477,10 @@ int TEqTrkDtc::InitVarNames() {
     "Temp", "VCCINT", "VCCAUX", "VCBRAM"
   };
   
-  std::initializer_list<const char*> dtr_names = {
-    "R9650", "R9654", "R9658" , "R965c", "R9660",  // TX HB registers
-    "R9664", "R9668"
-  };
+  // std::initializer_list<const char*> dtr_names = {
+  //   "R9650", "R9654", "R9658" , "R965c", "R9660",  // TX HB registers
+  //   "R9664", "R9668"
+  //  };
 
   const std::string eq_path       = "/Equipment/"+HostLabel();
   const std::string settings_path = eq_path+"/Settings";
@@ -698,7 +706,10 @@ int TEqTrkDtc::HandlePeriodic() {
         SetStatus(-1);
         continue;
       }
-          
+      
+      TLOG(TLVL_INFO) << std::format("{}:DTC{} link:{} : proceed with the monitoring: roc_regs:{} spi:{} rates:{}",
+                                     HostLabel(),_dtc_i->PcieAddr(),ilink,_monitorRocRegisters,_monitorSPI,_monitorRates);
+      
       if (_monitorRocRegisters > 0) {
         
         std::vector<uint32_t>  roc_reg;
@@ -810,10 +821,11 @@ int TEqTrkDtc::HandlePeriodic() {
 // 3. run read command restoring the clock marker (source of the clock) and the read mask
 //    which someone may rely on
 //----------------------------------------------------------------------------
-        midas::odb o_read_cmd   ("/Mu2e/Commands/Tracker/DTC/control_roc_read");
+        midas::odb o_read_cmd;
+        o_read_cmd.connect("/Mu2e/Commands/Tracker/read");
 
         trkdaq::ControlRoc_Read_Input_t0 pread;                // ch_mask is set to all oxffff
-                                        // save the read command ch_mask
+                                                               // save the read command ch_mask
         uint16_t saved_ch_mask[6];
         for (int i=0; i<6; ++i) saved_ch_mask[i] = o_read_cmd["ch_mask"][i];
             
@@ -834,13 +846,17 @@ int TEqTrkDtc::HandlePeriodic() {
         pread.clock           = o_read_cmd["clock"        ];   //
           
         int print_level       = 0;
-            
+
+        TLOG(TLVL_DEBUG+1) << std::format("before ControlRoc_Read");
+                                          
         _dtc_i->ControlRoc_Read(&pread,ilink,print_level);
                
         std::vector<uint16_t> rates;
         trkdaq::ControlRoc_Rates_t* par(nullptr); // defaults are OK - read all channels
         std::ostream null_stream(nullptr);
+        TLOG(TLVL_DEBUG+1) << std::format("node:{} DTC:{} link:{} before reading rates",HostLabel(),_dtc_i->PcieAddr(),ilink);
         int rc = _dtc_i->ControlRoc_Rates(ilink,&rates,print_level,par,null_stream);
+        TLOG(TLVL_DEBUG+1) << std::format("node:{} DTC:{} link:{} after reading rates",HostLabel(),_dtc_i->PcieAddr(),ilink);
 //-----------------------------------------------------------------------------
 // and restore the READ command mask and the clock
 //-----------------------------------------------------------------------------

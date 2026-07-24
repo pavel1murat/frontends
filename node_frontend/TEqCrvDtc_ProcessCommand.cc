@@ -13,187 +13,151 @@
 //-----------------------------------------------------------------------------
 // an equipment item can process commands sent to it only sequentially
 // however different items can run in parallel
-// also, can run command processing as a detached thread 
+// also, can run command processing as a detached thread
+// this function is static - MIDAS callback
 //-----------------------------------------------------------------------------
 void TEqCrvDtc::ProcessCommand(int hDB, int hKey, void* Info) {
-  TLOG(TLVL_DEBUG) << "-- START TEqCrvDtc::" << __func__;
-
-  // in the end, ProcessCommand should send ss.str() as a message to some log
-  std::stringstream ss;
+  TLOG(TLVL_DEBUG) << "-- START";
 
   OdbInterface* odb_i = OdbInterface::Instance();
 //-----------------------------------------------------------------------------
 // based on the key, figure out own name and the node name
 // - this is the price paid for decoupling
 //-----------------------------------------------------------------------------
-  KEY k;
-  odb_i->GetKey(hKey,&k);
+  KEY k_cmd;                            // hKey corresponds to "Run"
+  odb_i->GetKey(hKey,&k_cmd);
 
   HNDLE h_cmd = odb_i->GetParent(hKey);
-  KEY dtc;
-  odb_i->GetKey(h_cmd,&dtc);
+  KEY k_dtc;
+  odb_i->GetKey(h_cmd,&k_dtc);
 
   int pcie_addr(0);
-  if (dtc.name[3] == '1') pcie_addr = 1;
+  if (k_dtc.name[3] == '1') pcie_addr = 1;
 //-----------------------------------------------------------------------------
 // the command tree is assumed to have a form of .../mu2edaq09/DTC1/'
 // so the frontend name is the same as the host label
 //-----------------------------------------------------------------------------
   HNDLE h_frontend = odb_i->GetParent(h_cmd);
-  KEY frontend;
-  odb_i->GetKey(h_frontend,&frontend);
+  KEY k_frontend;
+  odb_i->GetKey(h_frontend,&k_frontend);
   
-  TLOG(TLVL_DEBUG) << "k.name:" << k.name
-                   << " dtc.name:" << dtc.name
-                   << " pcie_addr:" << pcie_addr
-                   << " frontend.name:" << frontend.name;
+  TLOG(TLVL_DEBUG) << std::format("k_cmd.name:{} k_dtc.name:{} pcie_addr:{} k_frontend.name:{}",
+                                  k_cmd.name,k_dtc.name,pcie_addr,k_frontend.name);
+//-----------------------------------------------------------------------------
+// get DTC config handle and check the DTC busy status
+// if available, set it to BUSY (1)
+// before issuing a new command, one has to check the DTC status
+//-----------------------------------------------------------------------------
+  TEquipmentManager* eqm     = TEquipmentManager::Instance();
+  std::string        eq_name = std::format("DTC{}",pcie_addr);
+  TEqCrvDtc*         eq      = (TEqCrvDtc*) eqm->FindEquipmentItem(eq_name);
 
-  //  std::string cmd_buf_path = std::format("/Mu2e/Commands/Frontends/{}/{}",frontend.name,dtc.name);
-
-                                        // should 0 or 1
-  int run = odb_i->GetInteger(h_cmd,"Run");
-  if (run == 0) {
-    TLOG(TLVL_DEBUG) << "self inflicted, return";
+  HNDLE h_dtc = odb_i->GetDtcConfigHandle(k_frontend.name,pcie_addr);
+  int status  = odb_i->GetInteger(h_dtc,"Status");
+  if (status != 0) {
+    TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} BUSY or in trouble",k_frontend.name,pcie_addr);
+    // before returning, need to mark the command as finished to avoid duplicating the interlock
+    odb_i->SetInteger(h_cmd,"Finished",1);
     return;
   }
-//-----------------------------------------------------------------------------
-// get DTC config handle and set the DTC busy status
-// before issuing a new command, one has to check the status
-//-----------------------------------------------------------------------------
-  HNDLE h_dtc = odb_i->GetDtcConfigHandle(frontend.name,pcie_addr);
-  odb_i->SetInteger(h_dtc,"Status",1);
-  
+    
   std::string cmd            = odb_i->GetString (h_cmd,"Name");
   std::string parameter_path = odb_i->GetString (h_cmd,"ParameterPath");
-  int link                   = odb_i->GetInteger(h_cmd,"link");
-  std::string logfile        = odb_i->GetString (h_cmd,"logfile");
 //-----------------------------------------------------------------------------
-// this is address of the parameter record
-//-----------------------------------------------------------------------------
-  TLOG(TLVL_DEBUG) << "cmd:" << cmd << " parameter_path:" << parameter_path;
 
-  //  HNDLE h_par_path           = odb_i->GetHandle(0,parameter_path);
-//-----------------------------------------------------------------------------
-// should be already defined at this point
-//-----------------------------------------------------------------------------
-  std::string eq_name = std::format("DTC{}",pcie_addr);
-  TEqCrvDtc*             eq = (TEqCrvDtc*) TEquipmentManager::Instance()->FindEquipmentItem(eq_name);
-  mu2edaq::DtcInterface* dtc_i  = eq->Dtc_i();
+  TLOG(TLVL_DEBUG) << std::format("cmd:{} parameter_path:{}",cmd,parameter_path);
 
-  ss << "--host_label:" << eq->HostLabel() << " host_name:" << eq->FullHostName()
-     << " cmd:" << cmd << " pcie_addr:" << dtc_i->PcieAddr()
-     << " link:" << link; // << " parameter_path:" << parameter_path;
+  int cmd_rc(0);
+//-----------------------------------------------------------------------------
+// clear status of the DTC and its ROCs
+//------------------------------------------------------------------------------
+  if      (cmd == "clear_status") {
+    cmd_rc = eq->ClearStatus(h_cmd);
+  }
 //-----------------------------------------------------------------------------
 // CONFIGURE_JA
 //------------------------------------------------------------------------------
-  int cmd_rc(0);
-  if      (cmd == "configure_ja") {
-    try {
-      cmd_rc = dtc_i->ConfigureJA();             // use defaults from the dtc_i settings
-    }
-    catch(...) {
-      TLOG(TLVL_ERROR) << "coudn't execute DtcInterface::ConfigureJA ... BAIL OUT";
-    }
+  else if      (cmd == "configure_ja") {
+    cmd_rc = eq->ConfigureJA(h_cmd);
   }
-//-----------------------------------------------------------------------------
-// GET DESIGN INFO
-//-----------------------------------------------------------------------------
-  else if (cmd == "get_design_info") {
-    //    ss << std::endl;
-    try         { dtc_i->PrintStatus(ss); }
-    catch (...) { ss << "ERROR : coudn't print status of the DTC ... BAIL OUT" << std::endl; }
-  }  
   else if (cmd == "hard_reset") {
 //-----------------------------------------------------------------------------
 // HARD RESET
 //-----------------------------------------------------------------------------
-    // ss << std::endl;
-    TLOG(TLVL_DEBUG) << "arrived at hard_reset";
- 
-    try         { dtc_i->Dtc()->HardReset(); ss << " hard reset OK" << std::endl; }
-    catch (...) { ss << "ERROR : coudn't hard reset the DTC ... BAIL OUT" << std::endl; }
+    std::thread t(&TEqCrvDtc::HardReset,eq,h_cmd);
+    t.detach();
   }
   else if (cmd == "init_readout") {
 //-----------------------------------------------------------------------------
 // init_readout
 //-----------------------------------------------------------------------------
-    // ss << std::endl;
-    cmd_rc = eq->InitReadout(ss);
+    std::thread t(&TEqCrvDtc::InitReadout,eq,h_cmd);
+    t.detach();
   }
 //-----------------------------------------------------------------------------
 // PRINT STATUS
 //-----------------------------------------------------------------------------
   else if (cmd == "print_status") {
-    ss << std::endl;
-    try         { dtc_i->PrintStatus(ss); }
-    catch (...) { ss << "ERROR : coudn't print status of the DTC ... BAIL OUT" << std::endl; }
+    std::thread t(&TEqCrvDtc::PrintStatus,eq,h_cmd);
+    t.detach();
   }  
 //-----------------------------------------------------------------------------
 // PRINT ROC STATUS
 //-----------------------------------------------------------------------------
   else if (cmd == "print_roc_status") {
-    ss << std::endl;
-    try {
-      cmd_rc = eq->PrintRocStatus(ss);
-    }
-    catch (...) { ss << "ERROR : coudn't print ROC status ... BAIL OUT" << std::endl; }
+    std::thread t(&TEqCrvDtc::PrintRocStatus,eq,h_cmd);
+    t.detach();
   }  
   else if (cmd == "read_register") {
 //-----------------------------------------------------------------------------
-// read register
+// read ILP
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->ReadRegister(ss);
+    cmd_rc = eq->ReadRegister(h_cmd);
   }
   else if (cmd == "read_roc_register") {
 //-----------------------------------------------------------------------------
 // read ROC register
 //-----------------------------------------------------------------------------
-    cmd_rc = eq->ReadRocRegister(ss);
+    cmd_rc = eq->ReadRocRegister(h_cmd);
+  }
+//-----------------------------------------------------------------------------
+// READ_SUBEVENTS (interactive readout test)
+//-----------------------------------------------------------------------------
+  else if (cmd == "read_subevents") {
+    std::thread t(&TEqCrvDtc::ReadSubevents,eq,h_cmd);
+    t.detach();
   }
   else if (cmd == "reset_output") {
+                                        // eq 'Status' is handled in ResetOutput
     cmd_rc = eq->ResetOutput(h_cmd);
+  }
+  else if (cmd == "reset_roc") {
+    cmd_rc = eq->ResetRoc(h_cmd);
   }
   else if (cmd == "soft_reset") {
 //-----------------------------------------------------------------------------
 // SOFT RESET
 //-----------------------------------------------------------------------------
-    TLOG(TLVL_DEBUG) << "arrived at soft_reset";
- 
-    try         { dtc_i->Dtc()->SoftReset(); ss << " soft reset OK" << std::endl; }
-    catch (...) { ss << "ERROR : coudn't soft reset the DTC ... BAIL OUT" << std::endl; }
+    cmd_rc = eq->SoftReset(h_cmd);
   }
   else if (cmd == "write_register") {
 //-----------------------------------------------------------------------------
-// read ILP
+// WRITE_REGISTER
 //-----------------------------------------------------------------------------
-    ss << std::endl;
-    cmd_rc = eq->WriteRegister(ss);
+    cmd_rc = eq->WriteRegister(h_cmd);
   }
   else if (cmd == "write_roc_register") {
 //-----------------------------------------------------------------------------
 // WRITE_ROC_REGISTER
 //-----------------------------------------------------------------------------
-    cmd_rc = eq->WriteRocRegister(ss);
+    cmd_rc = eq->WriteRocRegister(h_cmd);
   }
   else {
-    ss << " ERROR: Unknown command:" << cmd;
-    TLOG(TLVL_ERROR) << ss.str();
+    cmd_rc = eq->UnknownCommand(h_cmd);
   }
 //-----------------------------------------------------------------------------
-// write output to the equipment log - need to revert the line order 
-//-----------------------------------------------------------------------------
-  cmd_rc = eq->WriteOutput(ss.str(),logfile);
-  
-//-----------------------------------------------------------------------------
-// done, avoid second call - leave "Run" = 1;, before setting it to 1 again,
-// need to make sure that "Finished" = 1
-//-----------------------------------------------------------------------------
-  odb_i->SetInteger(h_cmd,"Finished",1);
-//-----------------------------------------------------------------------------
-// and set the DTC status
-//-----------------------------------------------------------------------------
-  odb_i->SetInteger(h_dtc,"Status",cmd_rc);
-  
-  TLOG(TLVL_DEBUG) << "-- END TEqCrvDtc::" << __func__ << " cmd_rc:" << cmd_rc;
+// write output to the equipment log - need to revert the line order
+// this printout shows up BEFORE the command output
+//-----------------------------------------------------------------------------  
+  TLOG(TLVL_DEBUG) << "-- END:" << " cmd_rc:" << cmd_rc;
 }

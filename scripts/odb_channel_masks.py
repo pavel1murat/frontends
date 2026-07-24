@@ -15,6 +15,9 @@
 #    {"name": "MN224", "channel":90,"status":0}
 #]
 # call signature:
+#
+#  python v001/frontends/scripts/odb_channel_masks.py --node=mu2e-trk-15 --dtc=1  --link=0 --dis -c 4,5,7,8,10,11,43,48,54,56,58,59,62,68,69
+# or
 #                     odb_channel_masks.py --load --slot=0-18 --thr=15
 # or
 #                     odb_channel_masks.py --slot=10 --enable=44,91

@@ -189,8 +189,8 @@ class TfmFrontend(midas.frontend.FrontendBase):
 #------------------------------------------------------------------------------
 # start screen process tailing the logfile
 #-------v----------------------------------------------------------------------
-        cmd = f'/usr/bin/screen -dmS tfm_{self.artdaq_partition_number} /usr/bin/bash -c "tail -f {self.tfm_logfile}"';
-        p   = subprocess.Popen(cmd,shell=True)
+        # cmd = f'/usr/bin/screen -dmS tfm_{self.artdaq_partition_number} /usr/bin/bash -c "tail -f {self.tfm_logfile}"';
+        # p   = subprocess.Popen(cmd,shell=True)
 
         self._fm.do_boot()
         TRACE.TRACE(TRACE.TLVL_LOG,":005: --- END: boot done")
@@ -491,7 +491,8 @@ class TfmFrontend(midas.frontend.FrontendBase):
 
         TRACE.INFO(f'-- START: host:{host} process:{process}',TRACE_NAME);
 
-        fcl_file = os.getenv("MU2E_DAQ_DIR")+f'/config/artdaq/{self.config_name}/{process}.fcl'
+        # fcl_file = os.getenv("MU2E_DAQ_DIR")+f'/config/artdaq/{self.config_name}/{process}.fcl'
+        fcl_file = f'/tmp/partition_{self.artdaq_partition_number}/{self.config_name}/{process}.fcl'
         
         msg_fn = self.message_stream+'.msg';
         log_fn = self.message_stream+'.log';
@@ -564,6 +565,44 @@ class TfmFrontend(midas.frontend.FrontendBase):
         TRACE.INFO(f'-- END',TRACE_NAME);
         return rc;
     
+#------------------------------------------------------------------------------
+# print python representation of a given process
+#------------------------------------------------------------------------------
+    def process_cmd_print_procinfo(self):
+        rc = 0;
+        
+        par = self.client.odb_get(self.tfm_cmd_odb_path);
+        label = par['process']
+
+        TRACE.INFO(f'-- START: process label:{label}',TRACE_NAME);
+#------------------------------------------------------------------------------
+# print to both .log and .msg files
+#------------------------------------------------------------------------------
+        msg_fn = self.message_stream+'.msg';
+        log_fn = self.message_stream+'.log';
+
+        TRACE.INFO(f'logfile:{log_fn}',TRACE_NAME);
+        
+        now   = datetime.now()
+        stime = now.strftime("%Y-%m-%d-%H-%M-%S")
+
+        msg = f'<msg> {stime} print_procinfo:'
+
+        p = self._fm.find_process(label);
+        
+        with open(msg_fn,"w") as logfile:
+            print(msg)
+            with redirect_stdout(logfile):
+                p.print_parameters();
+
+        with open(log_fn,"w") as logfile:
+            print(msg)
+            with redirect_stdout(logfile):
+                p.print_parameters();
+
+        TRACE.INFO(f'-- END',TRACE_NAME);
+        return rc;
+    
 #-------v-----------------------------------------------------------------------
 # process_command is called when odb['/Mu2e/Commands/DAQ/Tfm/Run'] = 1
 # in the end, it should set is back to zero
@@ -612,6 +651,8 @@ class TfmFrontend(midas.frontend.FrontendBase):
             rc = self.process_cmd_print_fcl();
         elif (cmd_name.upper() == 'PRINT_CONFIG'):
             rc = self.process_cmd_print_config();
+        elif (cmd_name.upper() == 'PRINT_PROCINFO'):
+            rc = self.process_cmd_print_procinfo();
         elif (cmd_name.upper() == 'RESET_OUTPUT'):
             rc = self.process_cmd_reset_output(parameter_path,logstream);
 #------------------------------------------------------------------------------

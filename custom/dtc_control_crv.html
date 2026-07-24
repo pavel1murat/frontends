@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <link   rel="stylesheet" href="midas.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
+    <script src="odbbrowser.js"></script>
+    
+    <link   rel="stylesheet" href="mu2edaq.css">
+    
+    <script src="global_variables.js"></script>
+    <script src="mu2edaq.js">         </script>
+    <script src="dtc_commands.js">    </script>
+    
+    <title>DTC</title>
+    
+    <script>
+
+//-----------------------------------------------------------------------------
+
+    let g_roc_timer = null;
+    
+    function createRocCommandsTable() {
+      const table     = document.getElementById('roc_commands');
+       
+      table.innerHTML = '';
+      const tbody = document.createElement('tbody');
+      // tbody.innerHTML = '';
+      
+      let tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td> <div class="mtableheader"> control_ROC commands </div> </td>
+        <td colspan=1></td>
+        <td colspan=2> <div class="mtableheader"> <a href="https://mu2einternalwiki.fnal.gov/wiki/DTC_control_page#ROC_control_commands" target="_blank">help</a></div> </td>
+      `;
+      tbody.appendChild(tr);
+      
+      tr = document.createElement('tr');
+      
+      let td, cmd, btn, div;
+      
+      // ${logfile} has no extension :
+       //   the comand output is written to ${logfile}.msg, it also gets appended to ${logfile}.log
+      
+      const logfile = `${g_hostname}_dtc${g_pcie}`;
+      
+      td = document.createElement('td');
+      td.colSpan = 2;
+      
+//      cmd = new Command_D('init by fiber','init_by_fiber','crv_dtc_menu_02',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_D('pulser_on','pulser_on','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_D('pulser_off','pulser_off','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_B('find_alignment','find_alignment',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+//      btn = mu2e_make_exec_button_B(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_D('set_thresholds','set_thresholds','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,20000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_D('read','read','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_D('rates','rates','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,20000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_D('load_thresholds','load_thresholds','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+      
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      td.innerHTML = `<div> Register </div>`
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      td.innerHTML = `<div> Value </div>`
+      tr.appendChild(td);
+
+      tbody.appendChild(tr);
+      
+      // ------------------------------------------------------------- "reset_roc" row
+      tr = document.createElement('tr');
+      td = document.createElement('td');
+
+//      cmd = new Command_D('dump_settings','dump_settings','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//
+//      cmd = new Command_B('read_spi','read_spi',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+//      btn = mu2e_make_exec_button_B(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_B('read_ilp','read_ilp',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+//      btn = mu2e_make_exec_button_B(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_D('read_ddr','read_ddr','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_B('read_mnid','read_mnid',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+//      btn  = mu2e_make_exec_button_B(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_B('get_key','get_key',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+//      btn  = mu2e_make_exec_button_B(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_B('get_design_info','get_design_info',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+//      btn = mu2e_make_exec_button_B(cmd);
+//      td.appendChild(btn);
+//      
+//      tr.appendChild(td);
+      
+      td = document.createElement('td');
+      cmd = new Command_B('write_roc_register','write_roc_register',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn  = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+      
+      tr.appendChild(td);
+      
+      td = document.createElement('td');
+      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_roc_register/register" data-odb-editable="1" data-format="%x"></div>`
+      tr.appendChild(td);
+      
+      td = document.createElement('td');
+      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_roc_register/value" data-odb-editable="1"  data-format="%x"></div>`
+      tr.appendChild(td);
+      
+      tbody.appendChild(tr);
+      
+      // -------------------------------------------------- SECOND ROW
+      tr = document.createElement('tr');
+      
+      td = document.createElement('td');
+
+//      cmd = new Command_D('digi_rw','digi_rw','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_D('digi_read','digi_read','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//
+//      cmd = new Command_D('digi_write','digi_write','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
+//      btn = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//
+//      cmd = new Command_D('find_thresholds','find_thresholds','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params',dtc_cmd_parameter_path,dtc_load_help_page,logfile,5000);
+//      btn = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//
+//      cmd = new Command_D('measure_thresholds','measure_thresholds','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,20000);
+//      btn = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//       
+//      tr.appendChild(td);
+//
+//      td = document.createElement('td');
+      
+      cmd = new Command_B('read_roc_register','read_roc_register',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+      tr.appendChild(td);
+
+      td  = document.createElement('td');
+      div = document.createElement('div');
+      div.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_roc_register/register" data-odb-editable="1" data-format="%x">0x0000</div>`
+      td.appendChild(div);
+
+      tr.appendChild(td);
+
+      td  = document.createElement('td');
+      div = document.createElement('div');
+      div.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_roc_register/value" data-format="%x"></div>`
+      td.appendChild(div);
+      
+      tr.appendChild(td);
+
+      tbody.appendChild(tr);
+
+      // -------------------------------------------------- last ROW
+      tr = document.createElement('tr');
+      
+      td = document.createElement('td');
+      td.colSpan = 9;
+      
+      cmd = new Command_B('reset_roc','reset_roc',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn  = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+      
+//      cmd = new Command_B('reset_digis','reset_digis',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+//      btn  = mu2e_make_exec_button_B(cmd);
+//      td.appendChild(btn);
+//
+//      // test a command with help
+//      cmd = new Command_D('set_roc_delays','set_roc_delays','crv_dtc_menu_02',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+//      btn = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//
+//      cmd = new Command_D('set_caldac','set_caldac','crv_dtc_menu_01',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+//      btn  = mu2e_make_dropup_button_D(cmd);
+//      td.appendChild(btn);
+//      
+//      cmd = new Command_B('reboot_mcu','reboot_mcu',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+//      btn = mu2e_make_exec_button_B(cmd);
+//      td.appendChild(btn);
+      
+      tr.appendChild(td);
+
+      tbody.appendChild(tr);
+
+
+      table.appendChild(tbody);
+      
+      //-----------------------------------------------------------------------------
+      //  define active ROC tab
+      //----------------------------------------------------------------------------
+      
+      let ir = g_roc;
+      if (ir == -1) {ir = 6};
+      const roc_id = 'roc'+ir.toString();
+      let active_roc_tab = document.querySelector('.roctabs#'+roc_id);
+      if (active_roc_tab == null) {
+        active_roc_tab = document.querySelector('.roctabs#roc6');
+      }
+      active_roc_tab.focus();
+      active_roc_tab.active = 1;
+      // active_roc_tab.className += " active";
+      console.log('g_roc=',g_roc);
+    }
+    
+//-----------------------------------------------------------------------------
+// main function: createTable
+// an element ID should be unique within the page
+//-----------------------------------------------------------------------------
+
+    function loadPage() {
+      const urlParams = new URLSearchParams(window.location.search);
+      g_hostname      = urlParams.get('hostname') || 'none';  // 
+      if (g_pcie == -1) { g_pcie = parseInt(urlParams.get('pcie')) || 0; } ;
+      
+      document.title = 'CRV_DTC@'+g_hostname;
+      let title       = document.getElementById('table-title');
+      title.innerHTML = ''; //&nbsp;&nbsp;&nbsp;'+g_hostname+' CRV DTC status page';
+      //-----------------------------------------------------------------------------
+      //  create DTC commands table
+      // 'dtctabs' is just a class for selecting tabs, no special properties
+      //-----------------------------------------------------------------------------
+      const dtc_cmd_table = document.getElementById('dtc_cmd_table');
+      dtc_cmd_table.innerHTML = '';
+      
+      let thead = document.createElement('thead');
+      
+      // ------------------------------------------------------ first row
+      let tr = document.createElement('tr');
+      let td = document.createElement('td');
+      td.colSpan = 2;
+      td.innerHTML = `<div class="mtableheader">${g_hostname} DTC Commands</div>`;
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      td.colSpan=2;
+      td.innerHTML =`
+        <div class="tab">
+          <button class='dtctabs' id='dtc0' onclick="update_dtc_id(event,'dtc0')">PCIE:0</button>
+          <button class='dtctabs' id='dtc1' onclick="update_dtc_id(event,'dtc1')">PCIE:1</button>
+        </div>`;
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      td.colSpan = 5;
+
+      let div;
+      div = document.createElement('div');
+      div.className = 'tab';
+      
+      const rocButtons = [
+        { id: 'roc0', label: 'ROC0' , index: 0, active: 0},
+        { id: 'roc1', label: 'ROC1' , index: 1, active: 0},
+        { id: 'roc2', label: 'ROC2' , index: 2, active: 0},
+        { id: 'roc3', label: 'ROC3' , index: 3, active: 0},
+        { id: 'roc4', label: 'ROC4' , index: 4, active: 0},
+        { id: 'roc5', label: 'ROC5' , index: 5, active: 0},
+        { id: 'roc6', label: 'ALL'  , index: 6, active: 1}
+      ];
+      
+      rocButtons.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className   = 'roctabs';
+        btn.id          = item.id;
+        btn.index       = item.index;
+        btn.active      = item.active;
+        btn.textContent = item.label;
+
+        if (btn.active == 1) {
+          btn.dataset.index = 3;
+        }
+        
+        dtc_update_roc_tab_color(btn);
+        
+        btn.addEventListener('click', (event) => {
+          choose_roc_id(event, item.id);
+        });
+
+        div.appendChild(btn);
+      });
+
+      
+      td.appendChild(div);
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      td.innerHTML = `
+        <div class="mtableheader">
+          <a href="https://mu2einternalwiki.fnal.gov/wiki/DTC_control_page#DTC_control_commands" target="_blank">help</a>
+        </div>`
+      tr.appendChild(td);
+
+      thead.appendChild(tr);
+
+      let tbody = document.createElement('tbody');
+      // ------------------------------------------------------------- second row
+      tr = document.createElement('tr');
+
+      td = document.createElement('td');
+      td.colSpan = 9;
+
+      let cmd, cmdb, btn;
+      const logfile = `${g_hostname}_dtc${g_pcie}`;  // logfile here means a 'stream', doesn't need an extention
+      
+      cmd = new Command_D('load_cmd_pars'    ,'load_cmd_pars'    , 'crv_dtc_menu_03', mu2e_load_conf_table ,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page, logfile, 10000);
+      btn = mu2e_make_dropup_button_D(cmd);
+      td.appendChild(btn);
+
+      cmd = new Command_D('init_readout'     ,'init_readout'     , 'crv_dtc_menu_02', dtc_cmd_set_odb      ,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page,logfile,10000);
+      btn = mu2e_make_dropup_button_D(cmd);
+
+      td.appendChild(btn);
+
+      cmd = new Command_D('configure_ja'     ,'configure_ja'     , 'crv_dtc_menu_02', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      btn = mu2e_make_dropup_button_D(cmd);
+      td.appendChild(btn);
+
+      cmd = new Command_D('read_subevents'   ,'read_subevents'   , 'crv_dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page,logfile,10000);
+      btn  = mu2e_make_dropup_button_D(cmd);
+      td.appendChild(btn);
+
+      cmd = new Command_D('clear_status'     ,'clear_status'     , 'crv_dtc_menu_01', dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,dtc_load_help_page,logfile,10000);
+      btn  = mu2e_make_exec_button_D(cmd);
+      td.appendChild(btn);
+
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      td.innerHTML = 'Register';
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      td.innerHTML = 'Value';
+      tr.appendChild(td);
+      
+      tbody.appendChild(tr);
+
+      // ---------------- DTC print status, print ROC status , write reg
+
+      tr = document.createElement('tr');
+
+      td = document.createElement('td');
+      td.colSpan = 7;
+
+      cmd = new Command_B('reset output','reset_output',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
+      cmd = new Command_B('soft_reset'  ,'soft_reset'         ,dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn  = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
+      cmd = new Command_B('hard_reset'  ,'hard_reset'         ,dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn  = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
+      tr.appendChild(td);
+
+      // PARAMETERS: title,name,cmd,table_name,path_func,log: output of everything trace-related goes to trace.log
+      td = document.createElement('td');
+      // td.colSpan = 1;
+      tr.appendChild(td);
+      
+      td = document.createElement('td');
+      cmdb = new Command_B('write DTC register','write_register',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+      tr.appendChild(td);
+
+      // read and write need to know a) PCIE b) link in question
+      
+      td = document.createElement('td');
+      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_register/register" data-odb-editable="1" data-format="%x"></div>`;
+      tr.appendChild(td);
+      
+      td = document.createElement('td');
+      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/write_register/value"    data-odb-editable="1" data-format="%x"></div>`;
+      tr.appendChild(td);
+
+      tbody.appendChild(tr);
+
+      // -------------------------------------- read register row
+      tr = document.createElement('tr');
+
+      td = document.createElement('td');
+      td.colSpan = 6;
+
+      cmd = new Command_D('print_status','print_status','crv_dtc_menu_02',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path, dtc_load_help_page, logfile, 10000);
+      btn = mu2e_make_dropup_button_D(cmd);
+      td.appendChild(btn);
+      
+      // order: title, name, ...
+      cmd = new Command_B('print ROC status','print_roc_status',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn = mu2e_make_exec_button_B(cmd);
+      td.appendChild(btn);
+
+      tr.appendChild(td);
+      
+      td = document.createElement('td');
+      td.colSpan = 2;
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      cmdb = new Command_B('read_DTC_register','read_register',dtc_cmd_set_odb,'cmd_params', dtc_cmd_parameter_path,logfile);
+      btn  = mu2e_make_exec_button_B(cmdb);
+      td.appendChild(btn);
+      tr.appendChild(td);
+
+      td  = document.createElement('td');
+      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_register/register" data-odb-editable="1" data-format="%x"></div>`;
+      tr.appendChild(td);
+
+      td = document.createElement('td');
+      td.innerHTML = `<div class="modbvalue" data-odb-path="/Mu2e/Commands/DAQ/Nodes/${g_hostname}/DTC${g_pcie}/read_register/value"    data-odb-editable="1" data-format="%x"></div>`;
+      tr.appendChild(td);
+
+      tbody.appendChild(tr);
+      
+      dtc_cmd_table.appendChild(thead);
+      dtc_cmd_table.appendChild(tbody);
+
+      //-----------------------------------------------------------------------------
+      //  end, define active DTC tab
+      //----------------------------------------------------------------------------
+
+      const el = document.getElementById('dtc'+g_pcie.toString());
+      if (el) {
+        el.focus();
+        el.classList.add("active");
+        console.log('g_pcie=',g_pcie);
+      }
+
+      //-----------------------------------------------------------------------------
+      //  create ROC commands table
+      //-----------------------------------------------------------------------------
+
+      createRocCommandsTable();
+
+      dtc_load_parameters();
+
+      console.log('before setTimeout');
+      
+      // const timer = setInterval(dtc_update_roc_tabs,2000);
+      if (g_roc_timer !== null) {
+        clearInterval(g_roc_timer);
+      }
+      g_roc_timer = setInterval(dtc_update_roc_tabs, 2000);
+      console.log('after setTimeout: timer ID:', g_roc_timer);
+     
+    }
+    
+    //-----------------------------------------------------------------------------
+    // global listeners - add one to close all menus
+    //-----------------------------------------------------------------------------
+    
+    document.addEventListener("click", e => {hideAllMenus(); }); // to close all menues
+
+    document.addEventListener("DOMContentLoaded", loadPage);
+    
+    </script>
+  </head>
+
+  <!--
+       it seems to be convenient to have the high-level topology defined in HTML
+       and use javascript to fill internal details
+       P.M.: having show_facilities etc here is important
+  -->
+  
+  <body class="mcss" onload="mhttpd_init('dtc_control');">
+    
+    <!-- actions assigned in the Command_D constructor -->
+    <div id="crv_dtc_menu_01" class="daq_menu">
+      <div data-action="load_cmd_par">load_parameters</div>
+    </div>
+
+    <!-- actions assigned in the Command_D constructor -->
+    <div id="crv_dtc_menu_02" class="daq_menu">
+      <div data-action="load_cmd_par">load_parameters</div>
+      <div data-action="help"        >help</div>
+    </div>
+
+    <!-- actions assigned in the Command_D constructor : help-only-->
+    <div id="crv_dtc_menu_03" class="daq_menu">
+      <div data-action="help"        >help</div>
+    </div>
+
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+    <div id="mmain">
+      
+<!-- ---------------- row 1: DTC registers - are they needed?  and the output field ----------------  -->
+      
+      <div class="row">
+        <h2 id="table-title">DTC </h2>
+        
+        <div class="column" style="width:43%"> <!-- gets pushed to the left -->
+          
+          <table class="mtable" id="dtc_cmd_table">  <!-- Table content is generated dynamically -->
+          </table>
+          
+          <table class="mtable" id="roc_commands">  <!-- Table content is generated dynamically -->
+          </table>
+          
+          <div id="cmd_params_frame" class="scroll-frame">
+            <table class="mtable" id="cmd_params">  <!-- Table content is generated dynamically -->
+            </table>
+          </div>
+          
+        </div>
+        
+        <div class="column"; style="width:57%"> <!-- gets pushed to the left -->
+          
+          <!-- ================================= this is the output window =========  -->
+         
+          <table class="mtable" id="messageTableA">
+            <tr>
+              <td>
+                <div class="mfont" id="messageFrameB">
+                  <h1 class="mtableheader"> DTC command log</h1>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="mfont" id="messageFrameA">
+                </div>
+              </td>
+            </tr>
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

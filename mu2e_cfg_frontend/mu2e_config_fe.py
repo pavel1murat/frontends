@@ -292,6 +292,10 @@ class MyMultiFrontend(midas.frontend.FrontendBase):
                         l1 = l0 + '.filters'
                     elif (k1 == 'producers'):
                         l1 = l0 + '.producers'
+                    elif ('path' in k1):
+                        l1 = l0+f'.{k1} : [ {tt[k0][k1]} ]\n'
+                        f.write(l1)
+                        continue
                         
                     # loop over modules
                     modules = tt[k0][k1] # this is a subdict

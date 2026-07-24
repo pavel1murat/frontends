@@ -19,7 +19,7 @@ Root.ObjectStat: 1
 #
 # Gui.IconPath:  $(PWD)/Stntuple/icons
 # Record session commands, set to "-" to turn off command recording
-Rint.History            $(PWD)/.root_hist.$(HOSTNAME)
+Rint.History            $(PWD)/root_hist/.root_hist.$(HOSTNAME)
 # ------------------------------------------------------------------------------
 # this is for the web-based DQM
 # it looks that the job overrides the chosen port
