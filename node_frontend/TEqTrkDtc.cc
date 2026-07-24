@@ -495,8 +495,7 @@ int TEqTrkDtc::InitVarNames() {
     dtc_var_names.push_back(var_name);
   }
 
-  char dirname[32];
-  sprintf(dirname,"Names dtc%i",pcie_addr);
+  std::string dirname = std::format("Names dtc{:d}",pcie_addr);
   odb_settings[dirname] = dtc_var_names;
 //-----------------------------------------------------------------------------
 // DTC counters and such
@@ -512,8 +511,19 @@ int TEqTrkDtc::InitVarNames() {
     dtc_var_names.push_back(var_name);
   }
       
-  sprintf(dirname,"Names dtr%i",pcie_addr);
+  dirname = std::format("Names dtr{:d}",pcie_addr);
   odb_settings[dirname] = dtc_var_names;
+//-----------------------------------------------------------------------------
+// noise rates
+//-----------------------------------------------------------------------------
+  std::vector<std::string> rate_var_names;
+  for (int i=0; i<6; i++) {
+    std::string var_name = std::format("dtc{}#link{}",pcie_addr,i);
+    rate_var_names.push_back(var_name);
+  }
+
+  dirname = std::format("Names dtc{}_rates",pcie_addr);
+  odb_settings[dirname] = rate_var_names;
 //-----------------------------------------------------------------------------
 // loop over the ROCs and create names for each of them
 // add to the ROC (per-panel) data the key and the ILP (pressure/temp) readout
@@ -539,7 +549,7 @@ int TEqTrkDtc::InitVarNames() {
       roc_var_names.push_back(var_name);
     }
       
-    sprintf(dirname,"Names rc%i%i",pcie_addr,ilink);
+    dirname = std::format("Names rc{}{}",pcie_addr,ilink);
     if (not midas::odb::exists(settings_path+"/"+dirname)) {
       odb_settings[dirname] = roc_var_names;
     }
@@ -685,6 +695,8 @@ int TEqTrkDtc::HandlePeriodic() {
 // do it for the tracker
 // don't use 'link' - ROOT doesn't like 'link' for a variable name
 //-----------------------------------------------------------------------------
+    std::vector<float> total_rate(6,-1.);
+    
     for (int ilink=0; ilink<6; ilink++) {
       
       TLOG(TLVL_DEBUG+1) << std::format("link:{} enabled:{} locked:{} status:{}",
@@ -810,9 +822,11 @@ int TEqTrkDtc::HandlePeriodic() {
 // ROC rates
 // for now, assume that the clock has been set to internal ,
 // need to find the right place to set marker_clock to 0 (and may be recover in the end),
-// will do it right later 
+// will do it right later
+// don't cache , get directrly from ODB
 //-----------------------------------------------------------------------------
-      if ((_monitorRates > 0) and (transition_in_progress == 0) and (running_state != STATE_RUNNING)) {
+      int monitor_rates  = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Rates");
+      if ((monitor_rates > 0) and (transition_in_progress == 0) and (running_state != STATE_RUNNING)) {
         TLOG(TLVL_DEBUG+1) << "MONITOR RATES link:" << ilink;
 //-----------------------------------------------------------------------------
 // for monitoring, want to read ALL channels.
@@ -850,10 +864,11 @@ int TEqTrkDtc::HandlePeriodic() {
         TLOG(TLVL_DEBUG+1) << std::format("before ControlRoc_Read");
                                           
         _dtc_i->ControlRoc_Read(&pread,ilink,print_level);
-               
+
         std::vector<uint16_t> rates;
         trkdaq::ControlRoc_Rates_t* par(nullptr); // defaults are OK - read all channels
         std::ostream null_stream(nullptr);
+        
         TLOG(TLVL_DEBUG+1) << std::format("node:{} DTC:{} link:{} before reading rates",HostLabel(),_dtc_i->PcieAddr(),ilink);
         int rc = _dtc_i->ControlRoc_Rates(ilink,&rates,print_level,par,null_stream);
         TLOG(TLVL_DEBUG+1) << std::format("node:{} DTC:{} link:{} after reading rates",HostLabel(),_dtc_i->PcieAddr(),ilink);
@@ -864,17 +879,34 @@ int TEqTrkDtc::HandlePeriodic() {
         for (int i=0; i<6; ++i) pread.ch_mask[i] = saved_ch_mask[i];
         _dtc_i->ControlRoc_Read(&pread,ilink,print_level);
 //-----------------------------------------------------------------------------
-// print diagnostics
+// in ODB, store the total coincidence rate , on number per ROC
 //-----------------------------------------------------------------------------
         if (rc == 0) {
-          char buf[16];
-          sprintf(buf,"rr%i%i",_dtc_i->PcieAddr(),ilink);
-          
-          midas::odb vars(node_var_path);
-          vars[buf] = rates;
-          
-          TLOG(TLVL_DEBUG+1) << "ROC:" << ilink << " saved rates to \""
-                             << node_var_path+"[" << buf << "\"], nw:" << rates.size();
+ //-----------------------------------------------------------------------------
+// finally, the last two words - total counts
+//-----------------------------------------------------------------------------
+          float total[2];          // [0]:CAL  [1]:HV , as in lanes, an inversion takes place
+          float clock_tick(5.e-9); // 5 ns <-> 200 MHz clock
+      
+          int loc = 576;   // = 96*6
+    
+          total[1]  = float(rates[loc  ])+(int(rates[loc+1]) << 16); // hv - check the order with Vadim
+          total[0]  = float(rates[loc+2])+(int(rates[loc+3]) << 16); // cal
+
+          float trate = 0;
+          float denom = (total[0]+total[1])/2.*clock_tick;
+          for (int ich=0; ich<96; ich++) {
+            loc               = 6*ich;
+            // int   counts_hv   = int((*Rates)[loc  ])+(int((*Rates)[loc+1]) << 16);
+            // int   counts_cal  = int((*Rates)[loc+2])+(int((*Rates)[loc+3]) << 16);
+            int   counts_coin  = int(rates[loc+4])+(int(rates[loc+5]) << 16);
+            // int   ifpga        = trkdaq::DtcInterface::DigiFpga(ich);
+            // float rate_hv     = counts_hv /total[ifpga]/clock_tick/1000.;
+            // float rate_cal    = counts_cal/total[ifpga]/clock_tick/1000.;
+            trate               += counts_coin;
+          }
+          total_rate[ilink] = trate/denom/1.e3;  // kHz
+          TLOG(TLVL_ERROR) << "failed to read rates DTC:" << _dtc_i->PcieAddr() << " ROC:" << ilink;
         }
         else {
           TLOG(TLVL_ERROR) << "failed to read rates DTC:" << _dtc_i->PcieAddr() << " ROC:" << ilink;
@@ -885,6 +917,15 @@ int TEqTrkDtc::HandlePeriodic() {
         }
       }
     }
+
+    char buf[16];
+    sprintf(buf,"dtc%d_rates",_dtc_i->PcieAddr());
+          
+    midas::odb vars(node_var_path);
+    vars[buf] = total_rate;
+    TLOG(TLVL_DEBUG+1) << std::format(" saved rates: {} {} {} {} {} {} to {}" ,
+                                      total_rate[0],total_rate[1],total_rate[2],total_rate[3],total_rate[4],total_rate[5],
+                                      node_var_path);
   }
   catch (...) {
     TLOG(TLVL_ERROR) << "failed to read DTC:" << _dtc_i->PcieAddr() << " registers";

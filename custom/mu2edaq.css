@@ -334,6 +334,17 @@ scrolling buffer
 }
 /* table#daq_nodes_table td { padding: 4px 6px; } */
 
+
+.nodes-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.nodes-row .mtable {
+  width: 50%;
+}
+
 /* scrolling thresholds */
 #cmd_params_frame.scroll-frame {
     max-height: 80% ; /*760px; */  /* choose what you want */
