@@ -8,7 +8,7 @@
 //
 // after that - run loopback test to measure delays.
 // so far, it is not obvious what the emasured numbers represent
-// this script to be run on a CFO node (currently - mu2e-calo-13)
+// this script has to be run on a CFO node (currently - mu2e-calo-13)
 ///////////////////////////////////////////////////////////////////////////////
 #include <format>
 #include <iostream>
@@ -74,14 +74,16 @@ int loopback_test::run(int TimeChain, const char* Node, int PcieAddr, int Pos, i
         val = cfo->ReadCableDelayMeasurement(time_chain_link, lnk, done);
         if (done) break;
         usleep(wait_time);
-        //        std::cout << std::format(" -------- link:{} event:{:4d} retries:{} val:{:4d} done:{}\n",lnk,i,retries,val,done);
         retries++;
       }
-      // histogram
-
-      float delay = val*delay_unit;
-
-      hist->Fill(delay);
+      if (not done) {
+        std::cout << std::format(" -------- link:{} event:{} FAILED retries:{} val:{:4d} done:{}\n",lnk,i,retries,val,done);
+      }
+      else {
+                                        // histogram
+        float delay = val*delay_unit;
+        hist->Fill(delay);
+      }
     }
     
     c->cd(lnk+1);

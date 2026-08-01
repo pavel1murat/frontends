@@ -131,7 +131,7 @@ cp $SPACK_ENV/frontends/scripts/rootlogon.C $MU2E_DAQ_DIR/.
   work area, if needed
 file:elog.org::/configuration/
 ** configure node-js                                                         
-- create subdirectory $MU2E_DAQ_DIR/node (the spack package is called node-js, avoid confusion)
+- create subdirectory $MU2E_DAQ_DIR/node (spack package is called node-js, avoid confusion)
 - copy the stuff below and run
 - cors is needed for communication between the servers on http:3126 and http:3226
 - use midas_port+100 for the node JS server
