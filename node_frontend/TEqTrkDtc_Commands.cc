@@ -2327,10 +2327,10 @@ int TEqTrkDtc::SoftReset(HNDLE H_Cmd) {
 
   try         {
     _dtc_i->Dtc()->SoftReset();
-    // _dtc_i->Dtc()->ClearRXCDRUnlockCount(DTCLib::DTC_Link_CFO);
-    // _dtc_i->Dtc()->ClearJitterAttenuatorUnlockCount();
-    // // _dtc_i->Dtc()->ClearJitterAttenuatorRecoveredClockLOSCount(); // a new one
-    // _dtc_i->Dtc()->ClearJitterAttenuatorExternalClockLOSCount();
+    _dtc_i->Dtc()->ClearRXCDRUnlockCount(DTCLib::DTC_Link_CFO);
+    _dtc_i->Dtc()->ClearJitterAttenuatorUnlockCount();
+    _dtc_i->Dtc()->ClearJitterAttenuatorRecoeveredClockLOSCount(); // a new one
+    _dtc_i->Dtc()->ClearJitterAttenuatorExternalClockLOSCount();
 
     sstr << " soft reset OK" << std::endl;
   }
