@@ -24,6 +24,8 @@
 # or
 #                     odb_channel_masks.py --save --slot=10 --fn=slot_10.json
 #                     odb_channel_masks.py --load --slot=10 --thr=15mV --fn=slot_10.json
+# or
+#                     odb_channel_masks.py --write --run=123680
 #------------------------------------------------------------------------------
 import  midas,TRACE
 import  midas.client
@@ -35,7 +37,7 @@ from    pathlib                  import Path
 from    datetime                 import datetime
 from    zoneinfo                 import ZoneInfo
 
-import TRACE ; TRACE_NAME='artdaq'
+import TRACE ; TRACE_NAME='odb_channel_masks'
 
 logger = logging.getLogger('midas')
 #------------------------------------------------------------------------------
@@ -47,6 +49,7 @@ logger = logging.getLogger('midas')
 class OdbChannelMasks:
     
     def __init__(self):
+        TRACE.INFO(f'-- START:')
         self.slot_lo    = None;
         self.slot_hi    = None;
         self.dtc_lo     = 0;
@@ -60,7 +63,9 @@ class OdbChannelMasks:
         
         node            = socket.gethostname().split('.')[0];
         experiment_name = "tracker";
-        self.client          = midas.client.MidasClient("odb_channel_map",node,experiment_name,None)
+        TRACE.INFO(f'node:{node} experiment_name:{experiment_name}',TRACE_NAME)
+        self.client     = midas.client.MidasClient("odb_channel_map",'localhost',experiment_name,None)
+        TRACE.INFO(f'-- END:')
         
 # ---------------------------------------------------------------------
     def Print(self,Name,level,Message):
@@ -71,6 +76,7 @@ class OdbChannelMasks:
 
 #------------------------------------------------------------------------------
     def parse_parameters(self):
+        TRACE.INFO(f'-- START:')
         name = 'parse_parameters'
         
 #        logger.info('Starting')
@@ -84,11 +90,13 @@ class OdbChannelMasks:
         parser.add_argument('--ena'             , action='store_const', dest='op', const='enable',     help="operation: enable,disable,load,save,set_mask")
         parser.add_argument('--dis'             , action='store_const', dest='op', const='disable',     help="operation: enable,disable,load,save,set_mask")
         parser.add_argument('--set'             , action='store_const', dest='op', const='set_mask',     help="operation: enable,disable,load,save,set_mask")
+        parser.add_argument('--write'           , action='store_const', dest='op', const='write',      help="operation: enable,disable,load,save,set_mask,write")
         parser.add_argument('--dtc'             , default=None,           help="DTCs, operation: enable,disable,load,save,set,update")
         parser.add_argument('--link'            , default=None,           help="links, operation: enable,disable,load,save,set,update")
         parser.add_argument('--mnid'            , default=None,           help="panel MnID")
         parser.add_argument('--node'            , default=None,           help="nodename")
         parser.add_argument('-c', '--channels'  , default=None,           help="list of channels")
+        parser.add_argument('--run'             , default=None,           help="run_number")
         parser.add_argument('--dry-run'         , action='store_true',    help="dry run if set")
         parser.add_argument('-s', '--slots'     , default=None,           help="slots, i.e. 1-10")
         parser.add_argument('--thr'             , default=None,           help="threshold in mV")
@@ -121,23 +129,11 @@ class OdbChannelMasks:
             self.link_lo = int(link[ 0])
             self.link_hi = int(link[-1])
         
+        self.client.disconnect()
+        TRACE.INFO(f'-- END: args:{args}')
 #        logger.info(f'------------------------------------- Done')
         return args
     
-
-# 2026-07-03 PM#------------------------------------------------------------------------------
-# 2026-07-03 PM    def extract_values(self,data, panel_name):
-# 2026-07-03 PM        # print(f'--- panel_name:{panel_name}')
-# 2026-07-03 PM        results = []
-# 2026-07-03 PM        for v in data:
-# 2026-07-03 PM            # print (f'v:{v}')
-# 2026-07-03 PM            if (v['name'] == panel_name):
-# 2026-07-03 PM                results.append(v)
-# 2026-07-03 PM                # print('-- appended:',v);
-# 2026-07-03 PM        return results;
-# 2026-07-03 PM
-# 2026-07-03 PM
-
 #------------------------------------------------------------------------------
 
     def print_channel_mask(self, chmask):
@@ -207,6 +203,7 @@ class OdbChannelMasks:
             else:
                 TRACE.INFO(f'args.dry_run:{args.dry_run}, NOT updating ODB',TRACE_NAME)
                 
+        self.client.disconnect()
         TRACE.INFO(f'-- END:')
         return
 #------------------------------------------------------------------------------
@@ -269,6 +266,94 @@ class OdbChannelMasks:
                     
             file.write("]\n");
 
+        self.client.disconnect()
+        return 0;
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+    def write_channel_masks(self,args):
+        TRACE.INFO(f'-- START:');
+
+        # logger.info("Initializing : write_channel_masks")
+
+        ro_cfg_path = '/Mu2e/ActiveRunConfiguration/Tracker/ReadoutConfiguration';
+
+        fn    = os.environ.get("DAQ_OUTPUT_TOP")+f'/run_records/{args.run:06}/channel_mask_{args.run:06}.txt';
+        TRACE.INFO(f'fn:{fn}',TRACE_NAME);
+
+        # write dead channel masks for the whole tracker into one file
+        slot_lo =  0
+        slot_hi = 17
+        dtc_lo  =  0
+        dtc_hi  =  1
+        link_lo =  0
+        link_hi =  6
+        
+        masked_off_channels = []
+        client          = midas.client.MidasClient("odb_channel_masks_write",'localhost','tracker',None)
+           
+        for slot in range(slot_lo,slot_hi+1):
+            slot_odb_path   = f'/Mu2e/ActiveRunConfiguration/Tracker/Station_{slot:02d}'
+            TRACE.INFO(f'slot_odb_path:{slot_odb_path}');
+    
+            for dtc in range(x.dtc_lo,x.dtc_hi+1):
+                
+                for link in range(x.link_lo,x.link_hi+1):
+
+                    # a list of masked off channels in .json format is written into a file named by the panel MNID
+                    # the file may contain an empty list
+    
+                    node            = client.odb_get(slot_odb_path+'/daq_server');
+                    node_odb_path   = f'/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{node}'
+                    node_enabled    = client.odb_get(node_odb_path+'/Enabled')
+
+                    dtc_odb_path    = node_odb_path+f'/DTC{dtc}'
+                    dtc_enabled     = client.odb_get(dtc_odb_path+'/Enabled')
+                    
+                    link_odb_path   = dtc_odb_path+f'/Link{link}'
+                    link_enabled    = client.odb_get(link_odb_path+'/Enabled')
+                    
+                    panel_odb_path  = f'/Mu2e/ActiveRunConfiguration/DAQ/Nodes/{node}/DTC{dtc}/Link{link}/DetectorElement'
+                    
+                    TRACE.INFO(f'panel_odb_path:{panel_odb_path}',TRACE_NAME);
+                    panel_name      = client.odb_get(panel_odb_path+'/Name')
+#------------------------------------------------------------------------------
+# /Plane_0{ipl}/Panel_0{link[panel_name]}'
+# loop over the planes
+# print('--- looping over the panels');
+#------------------------------------------------------------------------------
+                    if (not node_enabled or not dtc_enabled or not link_enabled):
+                        chmask = [0]*96
+                    else:
+                        chmask = self.client.odb_get(panel_odb_path+f'/ch_mask')
+                        
+                    for ch in range(0,96):
+                        if (chmask[ch] == 0):
+                            d            = {}
+                            d['name'   ] = panel_name;
+                            d['channel'] = ch;
+                            d['status' ] = 0
+                            masked_off_channels.append(d)
+                            TRACE.INFO(f'd:{d}',TRACE_NAME);
+
+        client.disconnect()
+#------------------------------------------------------------------------------                
+# now write the list of channels
+#------------------------------------------------------------------------------                
+        with open(fn, 'w') as file:
+#            file.write("[\n");
+
+            for d in masked_off_channels:
+                file.write(f'{d["name"]} {d["channel"]:2} {d["status"]}\n')
+#                            json.dump(d, file, separators=(",", ":"))
+#                            if (d != r[-1]) or (dtc != dtc_hi) or (slot != slot_hi) or (link != link_hi):
+#                                file.write(',\n');
+#                            else:
+#                                file.write('\n')
+                                
+#            file.write("]\n");
+        rc = 0
+        TRACE.INFO(f'-- END: rc={rc}',TRACE_NAME)
         return 0;
 #------------------------------------------------------------------------------
 # done
@@ -337,10 +422,13 @@ class OdbChannelMasks:
             TRACE.INFO('writing updated channel channel mask to ODB')
             self.client.odb_set(panel_odb_path+f'/ch_mask',chmask)
 
+        self.client.disconnect()
         return 0
 
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
+    TRACE.INFO(f'-- starting',TRACE_NAME)
+    
     x = OdbChannelMasks();
     
     args = x.parse_parameters();
@@ -362,6 +450,9 @@ if __name__ == "__main__":
                 for link in range(x.link_lo,x.link_hi+1):
                     x.save_channel_mask(slot,dtc,link,args)
 
+    elif (args.op == 'write'):
+        x.write_channel_masks(args)
+
     elif (args.op == 'enable') or (args.op == 'disable') or (args.op == 'set_mask'):
         # update existing mask by enabling/disabling specified channels
         # 'enable' and 'disable' don't change the rest channels
@@ -371,5 +462,4 @@ if __name__ == "__main__":
                 for link in range(x.link_lo,x.link_hi+1):
                     x.update_channel_mask(slot,dtc,link,args)
         
-    x.client.disconnect()
     sys.exit(0)

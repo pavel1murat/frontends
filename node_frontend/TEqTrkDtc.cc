@@ -40,7 +40,17 @@ namespace {
     0x9660,
     
     0x9664,
-    0x9668                              // 20 TX HB packet count CFO (16 bits)
+    0x9668                             // 21 TX HB packet count CFO (16 bits)
+  };
+
+  std::initializer_list<int>  DtcErrorRegisters = {
+    0x9380,                             // status / error link 0
+    0x9384,                             //                link 1
+    0x9388,
+    0x938c,
+    0x9390,
+    0x9394,
+    0x9398                              // status /errors CFO
   };
   
   // some ROC registers are listed in decimal format, and some - in hex
@@ -477,11 +487,6 @@ int TEqTrkDtc::InitVarNames() {
     "Temp", "VCCINT", "VCCAUX", "VCBRAM"
   };
   
-  // std::initializer_list<const char*> dtr_names = {
-  //   "R9650", "R9654", "R9658" , "R965c", "R9660",  // TX HB registers
-  //   "R9664", "R9668"
-  //  };
-
   const std::string eq_path       = "/Equipment/"+HostLabel();
   const std::string settings_path = eq_path+"/Settings";
 
@@ -512,6 +517,17 @@ int TEqTrkDtc::InitVarNames() {
   }
       
   dirname = std::format("Names dtr{:d}",pcie_addr);
+  odb_settings[dirname] = dtc_var_names;
+//-----------------------------------------------------------------------------
+// DTC : CFO/link status / errors
+//-----------------------------------------------------------------------------
+  dtc_var_names.clear();
+  for (const int& reg : DtcErrorRegisters) {
+    std::string var_name = std::format("dtc{}_err#r_0x{:04x}",pcie_addr,reg);
+    dtc_var_names.push_back(var_name);
+  }
+
+  dirname = std::format("Names dtc{:d}_errors",pcie_addr);
   odb_settings[dirname] = dtc_var_names;
 //-----------------------------------------------------------------------------
 // noise rates
@@ -613,10 +629,38 @@ void TEqTrkDtc::ReadNonHistRegisters() {
   xx.connect(node_var_path);
   xx[record_name].resize(dtc_reg.size());
   xx[record_name] = dtc_reg;
+//------------------------------------------------------------------------------
+// read error registers
+//-----------------------------------------------------------------------------  
+  std::vector<uint32_t>  dtc_err_reg;
+  dtc_err_reg.reserve(DtcErrorRegisters.size());
+        
+  for (const int reg : DtcErrorRegisters) {
+    uint32_t dat(0);
+    try {
+      _dtc_i->fDtc->GetDevice()->read_register(reg,100,&dat);
+    }
+    catch(...) {
+      TLOG(TLVL_ERROR) << "failed to read register:" << reg;
+      dat = 0xFFFFFFFF;
+    }
+    
+    // leave two bits, the low one seems to indicate an error
+    uint32_t w = (dat >> 8) &0x3;
+    dtc_err_reg.emplace_back(w);
+  }
+  
+  std::string err_record_name = std::format("dtc{}_errors",_dtc_i->PcieAddr());
+      
+  TLOG(TLVL_DEBUG+1) << std::format("DtcErrorRegisters.size:{} dtc_err_reg.size:{}",DtcErrorRegisters.size(),dtc_err_reg.size());
+        
+  midas::odb x2 = {{err_record_name.data(),{1u}}};
+  x2.connect(node_var_path);
+  x2[err_record_name].resize(dtc_err_reg.size());
+  x2[err_record_name] = dtc_err_reg;
 
   TLOG(TLVL_DEBUG+1) << "-- END";
 }
-
 //-----------------------------------------------------------------------------
 // Link ne -1...
 //------------------------------------------------------------------------------
