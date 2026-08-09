@@ -78,6 +78,9 @@ public:
 
   int        WaitForCompletion(HNDLE h_Cmd);
   
+  virtual int BeginRun         (int RunNumber) override;
+  virtual int EndRun           (int RunNumber) override;
+  
   virtual int StartMessage(HNDLE h_Cmd, std::stringstream& Stream) override;
 };
 #endif

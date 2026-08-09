@@ -6,7 +6,8 @@
 
 //-----------------------------------------------------------------------------
 function dtc_load_help_page(cmd) {
-  const url = 'https://mu2einternalwiki.fnal.gov/wiki/DTC_control_page#ROC_control_commands';
+//  const url = 'https://mu2einternalwiki.fnal.gov/wiki/DTC_control_page#ROC_control_commands';
+  const url = 'https://mu2einternalwiki.fnal.gov/wiki/DTC_control_page#'+cmd.name;
   window.open(url,'_blank');
 }
 

@@ -277,13 +277,13 @@ int TEqTracker::WaitForCompletion(HNDLE H_Cmd) {
 //-----------------------------------------------------------------------------
 int TEqTracker::StartMessage(HNDLE H_Cmd, std::stringstream& Stream) {
 
-  std::string cmd_name = _odb_i->GetString  (H_Cmd,"Name");
+  std::string cmd_name = _odb_i->GetString (H_Cmd,"Name"   );
   int         station  = _odb_i->GetInteger(H_Cmd,"station");
-  int         plane    = _odb_i->GetInteger(H_Cmd,"plane");
-  int         mnid     = _odb_i->GetInteger(H_Cmd,"mnid");
-  
+  int         plane    = _odb_i->GetInteger(H_Cmd,"plane"  );
+  int         mnid     = _odb_i->GetInteger(H_Cmd,"mnid"   );
+
   auto now = std::chrono::system_clock::now();
-    
+
   // {:%Y-%m-%d %H:%M:%S} uses standard strftime-style flags
   std::string s_now = std::format("{:%Y-%m-%d %H:%M:%S}", now);
 
@@ -291,3 +291,29 @@ int TEqTracker::StartMessage(HNDLE H_Cmd, std::stringstream& Stream) {
   return 0;
 }
 
+//-----------------------------------------------------------------------------
+// at begin run, save list of masked off channels
+//-----------------------------------------------------------------------------
+int TEqTracker::BeginRun(int RunNumber) {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << std::format("-- START");
+  
+  // save masked off channels
+  std::string cmd = std::format("python config/scripts/odb_channel_mask.py --write --run={}",RunNumber);
+  TLOG(TLVL_DEBUG) << "cmd=" << cmd;
+  
+  std::string output  = popen_shell_command(cmd);
+
+  TLOG(TLVL_DEBUG) << "output=" << output;
+
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+int TEqTracker::EndRun(int RunNumber) {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << std::format("-- START");
+  TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
+  return rc;
+}
