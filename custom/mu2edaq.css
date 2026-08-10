@@ -375,7 +375,7 @@ html, body {
 .column[style*="width:43%"] {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px); /* Limits column to the actual visible height minus header/nav */
+  height: calc(100vh - 50px); /* Limits column to the actual visible height minus header/nav */
   min-height: 0;               /* Critical to allow flex-items to shrink */
 }
 

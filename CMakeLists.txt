@@ -67,6 +67,7 @@ add_subdirectory(tfm_frontend)
 add_subdirectory(test)
 add_subdirectory(mepcis)
 add_subdirectory(crv)
+add_subdirectory(cal)
 # Data
 
 cet_cmake_config()

@@ -8,8 +8,6 @@
 #include "iostream"
 #include "vector"
 
-#include "artdaq-core-mu2e/Overlays/Decoders/TrackerDataDecoder.hh"
-
 #include "DtcInterfaceCrv.hh"
 #include "otsdaq-mu2e-crv/FEInterfaces/ROC_Registers.h"
 #include "TString.h"    // includes ROOT's Form
