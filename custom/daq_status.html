@@ -146,6 +146,9 @@
               if (dtc_subsystem == 'tracker') {
                 cell.innerHTML = `<button onclick="dtc_control('${hostname}',${idtc})">DTC${idtc}</button>`;
               }
+              else if (dtc_subsystem == 'calorimeter') {
+                cell.innerHTML = `<button onclick="dtc_control_cal('${hostname}',${idtc})">DTC${idtc}</button>`;
+              }
               else if (dtc_subsystem == 'CRV') {
                 cell.innerHTML = `<button onclick="dtc_control_crv('${hostname}',${idtc})">DTC${idtc}</button>`;
               }
