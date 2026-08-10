@@ -893,9 +893,15 @@ int TEqTrkDtc::HandlePeriodic() {
           total[1]  = float(rates[loc  ])+(int(rates[loc+1]) << 16); // hv - check the order with Vadim
           total[0]  = float(rates[loc+2])+(int(rates[loc+3]) << 16); // cal
 
+          uint16_t panel_ch_mask[96];
+          std::string mask_odb_path = std::format("Link{:d}/DetectorElement/ch_mask",ilink);
+          _odb_i->GetArray(_handle,mask_odb_path.data(),TID_WORD,panel_ch_mask,96);
+
           float trate = 0;
           float denom = (total[0]+total[1])/2.*clock_tick;
           for (int ich=0; ich<96; ich++) {
+            if (panel_ch_mask[ich] == 0) continue;
+
             loc               = 6*ich;
             // int   counts_hv   = int((*Rates)[loc  ])+(int((*Rates)[loc+1]) << 16);
             // int   counts_cal  = int((*Rates)[loc+2])+(int((*Rates)[loc+3]) << 16);
