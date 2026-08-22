@@ -1,17 +1,17 @@
 //////////////////////////////////////////////////////////////////////////////
 // equipment name is the short node name, i.e. 'mu2edaq22'
 //////////////////////////////////////////////////////////////////////////////
-#include "cfo_frontend/TEqHardwareCfo.hh"
+#include "cfo_frontend/TEqTimeChainManager.hh"
 #include "utils/utils.hh"
 #include "TString.h"
 
 #include "odbxx.h"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEqHardwareCfo"
+#define  TRACE_NAME "TEqTimeChainManager"
 
 //-----------------------------------------------------------------------------
-TEqHardwareCfo::TEqHardwareCfo(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Cfo):
+TEqTimeChainManager::TEqTimeChainManager(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Cfo):
   TMu2eEqBase(Name,Title,TMu2eEqBase::kDaq) {
   // fEqConfEventID          = 3;
   // fEqConfPeriodMilliSec   = 30000;  // 30 sec ?
@@ -21,19 +21,19 @@ TEqHardwareCfo::TEqHardwareCfo(const char* Name, const char* Title, HNDLE H_RunC
   TLOG(TLVL_DEBUG) << "-- START";
   
   _handle = H_Cfo;
-  _cfo_i  = nullptr;
+  //  _cfo_i  = nullptr;
   Init();
   
   TLOG(TLVL_DEBUG) << "-- END";
 }
 
 //-----------------------------------------------------------------------------
-TEqHardwareCfo::~TEqHardwareCfo() {
+TEqTimeChainManager::~TEqTimeChainManager() {
 }
 //-----------------------------------------------------------------------------
 // overloaded function of TMFeEquipment : 2 DTCs
 //-----------------------------------------------------------------------------
-TMFeResult TEqHardwareCfo::Init() {
+TMFeResult TEqTimeChainManager::Init() {
 
   // fEqConfReadOnlyWhenRunning = false;
   // fEqConfWriteEventsToOdb    = true;
@@ -50,24 +50,24 @@ TMFeResult TEqHardwareCfo::Init() {
 // the CFO is disabled in the run configuration
 // an emulated CFO configuration includs a link to the DTC
 //-----------------------------------------------------------------------------
-  _pcie_addr            = _odb_i->GetInteger(_handle,"pcie_addr"); // needed by the boardreader
-  int timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
-  int event_mode        = _odb_i->GetInteger(_handle,"event_mode");
-  int ja_mode           = _odb_i->GetInteger(_handle,"ja_mode");
+  // _pcie_addr            = _odb_i->GetInteger(_handle,"pcie_addr"); // needed by the boardreader
+  // int timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
+  // int event_mode        = _odb_i->GetInteger(_handle,"event_mode");
+  // int ja_mode           = _odb_i->GetInteger(_handle,"ja_mode");
   
-  TLOG(TLVL_DEBUG) << std::format("event_mode:{} pcie_addr:{} timing_chain_mask:0x{:08x}",event_mode,_pcie_addr,timing_chain_mask);
+  //  TLOG(TLVL_DEBUG) << std::format("event_mode:{} pcie_addr:{} timing_chain_mask:0x{:08x}",event_mode,_pcie_addr,timing_chain_mask);
 
-  _cfo_i                 = trkdaq::CfoInterface::Instance(_pcie_addr,timing_chain_mask);
+  // _cfo_i                 = trkdaq::CfoInterface::Instance(_pcie_addr,timing_chain_mask);
   
-  _cfo_i->fJAMode        = ja_mode;
-  _cfo_i->SetEventMode(event_mode);
+  // _cfo_i->fJAMode        = ja_mode;
+  // _cfo_i->SetEventMode(event_mode);
  
-  int enabled  = _odb_i->GetEnabled(_handle);
-  if (enabled == 0) {
-    std::string msg("CFO disabled, return ERROR");
-    TLOG(TLVL_ERROR) << msg;
-    return TMFeErrorMessage(msg); 
-  }
+  // int enabled  = _odb_i->GetEnabled(_handle);
+  // if (enabled == 0) {
+  //   std::string msg("CFO disabled, return ERROR");
+  //   TLOG(TLVL_ERROR) << msg;
+  //   return TMFeErrorMessage(msg); 
+  // }
 //-----------------------------------------------------------------------------
 // hotlinks - start from one function handling both DTCs
 // command processor : 'ProcessCommand' function
@@ -87,12 +87,6 @@ TMFeResult TEqHardwareCfo::Init() {
   //EqSetStatus("Started...", "white");
   //fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
 
-  std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
-  std::string run_plan          = _odb_i->GetCfoRunPlan(_handle);
-  std::string run_plan_fn       = run_plan_dir+'/'+run_plan+".bin";
-  
-  _cfo_i->InitReadout(run_plan_fn,timing_chain_mask);
-
   int rc(0);
 
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
@@ -104,7 +98,7 @@ TMFeResult TEqHardwareCfo::Init() {
 //-----------------------------------------------------------------------------
 // HW CFO : do nothing
 //-----------------------------------------------------------------------------
-int TEqHardwareCfo::HandlePeriodic() {
+int TEqTimeChainManager::HandlePeriodic() {
   int rc(0);
 
   TLOG(TLVL_DEBUG+1) << "-- START";
@@ -119,29 +113,57 @@ int TEqHardwareCfo::HandlePeriodic() {
 // at begin rum, the CFO starts executing the run plan
 // assume that from run to run the configuration can change
 //-----------------------------------------------------------------------------
-int TEqHardwareCfo::BeginRun(int RunNumber)  {
+int TEqTimeChainManager::BeginRun(int RunNumber)  {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << std::format("-- START: run_number:{}",RunNumber);
 //-----------------------------------------------------------------------------
 // in 'external' mode, [re-]initialize and start executing the run plan
 //-----------------------------------------------------------------------------
-  std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
-  std::string run_plan          = _odb_i->GetCfoRunPlan(_handle);
-  std::string run_plan_fn       = run_plan_dir+'/'+run_plan+".bin";
-  int         timing_chain_mask = _odb_i->GetUInt32(_handle,"timing_chain_mask");  // timing_chain_mask is a UINT32
+  // std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
+  // std::string run_plan          = _odb_i->GetCfoRunPlan(_handle);
+  // std::string run_plan_fn       = run_plan_dir+'/'+run_plan+".bin";
 
-  TLOG(TLVL_DEBUG) << std::format("run_plan_fn:{} timing_chain_mask:0x{:08x}",run_plan_fn,timing_chain_mask);
+  
+  // execute CFO 'init_readout' command
 
-  // _cfo_i->InitReadout(run_plan_fn,timing_chain_mask);
-  _cfo_i->fCfo->SoftReset();
-  _cfo_i->SetRunPlan(run_plan_fn);
-  usleep(10);
+  midas::odb  cfo_command ("/Mu2e/Commands/DAQ/CFO");
+  
+  cfo_command["Name"         ] = "init_readout";
+  cfo_command["ParameterPath"] = "/Mu2e/Commands/DAQ/CFO/init_readout";
+  cfo_command["logfile"      ] = "mu2e-calo-13-cfo1";
+  cfo_command["Finished"     ] = 0;
+  cfo_command["Run"          ] = 1;
 
-  sleep(2);
-  _cfo_i->LaunchRunPlan();
+  // wait for completion, the wait should not break the bank
 
-  TLOG(TLVL_DEBUG) << std::format("-- END: launched run plan:{} rc:{}",run_plan_fn,rc);
+  int max_wait_time_ms(5000);
+  int wait_time_ms(0);
+
+  using clock = std::chrono::steady_clock;
+
+  auto t0 = clock::now();
+
+  while (wait_time_ms < max_wait_time_ms) {
+    int finished = cfo_command["Finished"];
+    if (finished == 1) {
+      rc = cfo_command["ReturnCode"];
+      break;
+    }
+    cm_yield(1000);
+
+    auto t1      = clock::now();
+    wait_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+  }
+
+  if (rc == 0) {                        // check timeout
+    if (wait_time_ms >= max_wait_time_ms) {
+      TLOG(TLVL_ERROR) << std::format("CFO initialization timed out after {} ms",max_wait_time_ms);
+      rc = -1;
+    }
+  }
+
+  TLOG(TLVL_DEBUG) << std::format("-- END: wait_time:{} max_wait_time:{} rc:{}",wait_time_ms, max_wait_time_ms,rc);
 
   return rc;
 };
@@ -150,34 +172,40 @@ int TEqHardwareCfo::BeginRun(int RunNumber)  {
 // for now , the run number is not actually used, can fake for testing
 // faking means calling ::EndRun interactively
 //-----------------------------------------------------------------------------
-int TEqHardwareCfo::EndRun(int RunNumber)  {
+int TEqTimeChainManager::EndRun(int RunNumber)  {
   int rc(0);
   
   TLOG(TLVL_DEBUG) << std::format("-- START: run_number:{}",RunNumber);
-//-----------------------------------------------------------------------------
-// in 'external' mode, [re-]initialize and start executing the run plan
-//-----------------------------------------------------------------------------
-  _cfo_i->Cfo()->DisableLinks();
-  _cfo_i->Halt();
-  _cfo_i->Cfo()->SoftReset();
-                                        // this stops sending the HB's
-                                        // at this point, load a "null HB" run plan
-  
-  std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
-  std::string null_hb_plan_fn   = run_plan_dir+'/'+"null_hb.bin";
- 
-  _cfo_i->fCfo->SoftReset();
-  _cfo_i->SetRunPlan(null_hb_plan_fn);
-  // _cfo_i->InitReadout(null_hb_plan_fn);
-
-  _cfo_i->LaunchRunPlan();
-                                        // and end it correctly
-  _cfo_i->Cfo()->DisableLinks();
-  _cfo_i->Halt();
-  _cfo_i->Cfo()->SoftReset();
-
   TLOG(TLVL_DEBUG) << std::format("-- END: rc:{}",rc);
 
   return rc;
 };
+
+//-----------------------------------------------------------------------------
+void TEqTimeChainManager::ProcessCommand(int hDB, int hKey, void* Info) {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << "-- START:";
+  TLOG(TLVL_DEBUG) << "-- END:";
+}
+
+
+//-----------------------------------------------------------------------------
+// for single-link commands aim for a 1 line output,
+// tracker always has station, plane, panel
+//-----------------------------------------------------------------------------
+int TEqTimeChainManager::StartMessage(HNDLE H_Cmd, std::stringstream& Stream) {
+
+  std::string cmd_name = _odb_i->GetString (H_Cmd,"Name"   );
+  // int         station  = _odb_i->GetInteger(H_Cmd,"station");
+  // int         plane    = _odb_i->GetInteger(H_Cmd,"plane"  );
+  // int         mnid     = _odb_i->GetInteger(H_Cmd,"mnid"   );
+
+  auto now = std::chrono::system_clock::now();
+
+  // {:%Y-%m-%d %H:%M:%S} uses standard strftime-style flags
+  std::string s_now = std::format("{:%Y-%m-%d %H:%M:%S}", now);
+
+  Stream << std::format("{} -- TEqTimeChainManager: cmd:{} WHY IS IT CALLED\n", s_now,cmd_name);
+  return 0;
+}
 

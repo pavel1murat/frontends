@@ -137,6 +137,10 @@ TMFeResult NodeFrontend::HandleFrontendInit(const std::vector<std::string>& args
   eqm->AddEquipmentItem(eq_disk); // _eq_list.emplace_back(eq_disk);
   
   FeAddEquipment(eqm);
+//-----------------------------------------------------------------------------
+// 4. node_frontend uses the default transition sequence - 500 -
+// for both begin and end run transitions
+//-----------------------------------------------------------------------------
 
   TLOG(TLVL_INFO) << "-- END";
   return TMFeOk();

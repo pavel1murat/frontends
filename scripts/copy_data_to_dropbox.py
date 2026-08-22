@@ -97,45 +97,48 @@ class CopyDataToDropbox:
             list_of_runs = d1000[k1000]
             for run_number in list_of_runs:
                 run = list_of_runs[run_number]
-                TRACE.INFO(f'  - run:{run_number} saved:{run["saved"]}')
-                if (run['saved'] == False):
-                    TRACE.INFO(f'saving run {run_number} data')
+                # dont always need to print this info
+                TRACE.DEBUG(0,f'  - run:{run_number} saved:{run["saved"]}')
+                if (run['saved'] == True): continue
+                
+                TRACE.INFO(f'saving run {run_number} data')
 
-                    pattern = os.path.join(source_dir, f'raw.mu2e.trk.vst.{run_number:06}_*.art')
-                    matches = glob.glob(pattern)
-                    if matches:
-                        nfiles   = len(matches)
-                        n_copied = 0
-                        for src_file in matches:
-                            bn = Path(src_file).name
-                            dest_file = os.path.join(dest_dir,bn);
-                            print(f'run {run_number}: copying {src_file} to {dest_file}')
-                            try:
-                                out = "test"
-                                if (not args.dry_run):
-                                    out = shutil.copyfile(src_file, dest_file)
-                                    
-                                print(f"SUCCESS: {src_file} copied to {out}")
-                                n_copied += 1
+                pattern = os.path.join(source_dir, f'raw.mu2e.trk.vst.{run_number:06}_*.art')
+                matches = glob.glob(pattern)
+                
+                if matches:
+                    nfiles   = len(matches)
+                    n_copied = 0
+                    for src_file in matches:
+                        bn = Path(src_file).name
+                        dest_file = os.path.join(dest_dir,bn);
+                        print(f'run {run_number}: copying {src_file} to {dest_file}')
+                        try:
+                            out = "test"
+                            if (not args.dry_run):
+                                out = shutil.copyfile(src_file, dest_file)
                                 
-                            except OSError as e:
-                                print(f"ERROR: copy of {src_file} failed:", e)
+                            print(f"SUCCESS: {src_file} copied to {out}")
+                            n_copied += 1
+                            
+                        except OSError as e:
+                            print(f"ERROR: copy of {src_file} failed:", e)
 
-                        TRACE.INFO(f'nfiles:{nfiles} n_copied:{n_copied}')
+                    TRACE.INFO(f'nfiles:{nfiles} n_copied:{n_copied}')
 
-                        if (n_copied == nfiles):
-                            if (1): # not args.dry_run):
-                                odb_path = f'{base}/{k1000}/{run_number}'
-                                saved = True
-                                
-                                TRACE.INFO(f'saving saved:{saved} to odb_path:{odb_path}')
+                    if (n_copied == nfiles):
+                        if (not args.dry_run):
+                            odb_path = f'{base}/{k1000}/{run_number}'
+                            saved = True
+                            
+                            TRACE.INFO(f'saving saved:{saved} to odb_path:{odb_path}')
 
-                                self.record_saved(odb_path,saved);
-                                
-                                TRACE.INFO(f'run:{run_number} is saved')
-                            else:
-                                TRACE.INFO(f'DRY_RUN: run:{run_number} is saved')
-                        
+                            self.record_saved(odb_path,saved);
+                            
+                            TRACE.INFO(f'run:{run_number} is saved')
+                        else:
+                            TRACE.INFO(f'DRY_RUN: run:{run_number} is saved')
+                    
                     else:
                         print(f'{run}: WARNING: no matching files found: {pattern}')
 

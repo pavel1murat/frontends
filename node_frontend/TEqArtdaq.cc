@@ -444,9 +444,11 @@ int TEqArtdaq::HandlePeriodic() {
     }
   }
     
-  int nbr = _list_of_ac.size();
-  for (int i=0; i<nbr; i++) {
+  int nac = _list_of_ac.size();
+  TLOG(TLVL_DEBUG+1) << std::format("-- nac:{}",nac);
+  for (int i=0; i<nac; i++) {
     ArtdaqComponent_t* ac = &_list_of_ac[i];
+    TLOG(TLVL_DEBUG+1) << std::format("-- ac->name:{} ac->type:{}",ac->name,ac->type);
     if      (ac->type == kBoardReader ) ReadBrMetrics(ac);
     else if (ac->type == kEventBuilder) ReadDrMetrics(ac);
     else if (ac->type == kDataLogger  ) ReadDrMetrics(ac);

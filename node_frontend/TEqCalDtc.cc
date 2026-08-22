@@ -3,11 +3,11 @@
 #include "odbxx.h"
 
 #include "utils/OdbInterface.hh"
-#include "node_frontend/TEqCrvDtc.hh"
+#include "node_frontend/TEqCalDtc.hh"
 #include "utils/TEquipmentManager.hh"
 
 #include "TRACE/tracemf.h"
-#define  TRACE_NAME "TEqCrvDtc"
+#define  TRACE_NAME "TEqCalDtc"
 namespace {
 //                                            Temp, VCCINT, VCCAUX, VCBRAM
   std::initializer_list<int>  DtcRegHist = { 0x9010, 0x9014, 0x9018, 0x901c };
@@ -44,15 +44,15 @@ namespace {
 };
 
 //-----------------------------------------------------------------------------
-TEqCrvDtc::TEqCrvDtc(const char* Name, const char* Title) : TMu2eEqBase(Name,Title,TMu2eEqBase::kTracker) {
+TEqCalDtc::TEqCalDtc(const char* Name, const char* Title) : TMu2eEqBase(Name,Title,TMu2eEqBase::kTracker) {
 }
 
 //-----------------------------------------------------------------------------
-TEqCrvDtc::~TEqCrvDtc() {
+TEqCalDtc::~TEqCalDtc() {
 }
 
 //-----------------------------------------------------------------------------
-TEqCrvDtc::TEqCrvDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Dtc): TMu2eEqBase(Name,Title,TMu2eEqBase::kTracker)
+TEqCalDtc::TEqCalDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Dtc): TMu2eEqBase(Name,Title,TMu2eEqBase::kTracker)
 {
   TLOG(TLVL_DEBUG) << "-- START: H_RunConf:" << H_RunConf << " H_Dtc:" << H_Dtc;
   
@@ -76,9 +76,9 @@ TEqCrvDtc::TEqCrvDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
   TLOG(TLVL_DEBUG) << "link_mask:0x" << std::hex << link_mask << " pcie_addr:" << pcie_addr;
   
   std::string subsystem = _odb_i->GetString(H_Dtc,"Subsystem");
-  if (subsystem == "CRV") {
-    _dtc_i = (mu2edaq::DtcInterfaceBase*) DtcInterfaceCrv::Instance(pcie_addr,link_mask,skip_dtc_init);
-    _dtc_i->fSubsystem = mu2edaq::kCRV;
+  if (subsystem == "CAL") {
+    _dtc_i = (mu2edaq::DtcInterfaceBase*) DtcInterfaceCal::Instance(pcie_addr,link_mask,skip_dtc_init);
+    _dtc_i->fSubsystem = mu2edaq::kCAL;
   }
   else {
     TLOG(TLVL_ERROR) << std::format("cant be true");
@@ -196,7 +196,7 @@ TEqCrvDtc::TEqCrvDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
 //-----------------------------------------------------------------------------
 // can afford printing every time - once per run
 //-----------------------------------------------------------------------------
-int TEqCrvDtc::BeginRun(int RunNumber) {
+int TEqCalDtc::BeginRun(int RunNumber) {
   int rc(0);
     
   TLOG(TLVL_DEBUG) << std::format("-- START: host:{} DTC:{}" ,HostLabel(),_dtc_i->PcieAddr());
@@ -231,7 +231,7 @@ int TEqCrvDtc::BeginRun(int RunNumber) {
 // in the end of run, read out ROC registers and dump them
 // for now, dump $DAQ_OUTPUT_TOP/logs/node_frontend/{:6d}_registers.txt
 //-----------------------------------------------------------------------------
-int TEqCrvDtc::EndRun(int RunNumber) {
+int TEqCalDtc::EndRun(int RunNumber) {
   int rc(0);
 
     
@@ -244,14 +244,14 @@ int TEqCrvDtc::EndRun(int RunNumber) {
 }
 
 //-----------------------------------------------------------------------------
-TMFeResult TEqCrvDtc::Init() {
+TMFeResult TEqCalDtc::Init() {
   return TMFeOk();
 }
 
 //-----------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------
-int TEqCrvDtc::InitVarNames() {
+int TEqCalDtc::InitVarNames() {
 
   TLOG(TLVL_DEBUG) << "-- START HostLabel:" << HostLabel();
   
@@ -262,7 +262,7 @@ int TEqCrvDtc::InitVarNames() {
 //-----------------------------------------------------------------------------
 // is called only if ::MonitoringLevel() > 0
 //-----------------------------------------------------------------------------
-int TEqCrvDtc::HandlePeriodic() {
+int TEqCalDtc::HandlePeriodic() {
   int rc(0);
   TLOG(TLVL_DEBUG+1) << std::format("-- START: host:{} DTC:{}",HostLabel(),_dtc_i->PcieAddr());
   TLOG(TLVL_DEBUG+1) << "-- END";
@@ -273,7 +273,7 @@ int TEqCrvDtc::HandlePeriodic() {
 //----------------------------------------------------------------------------------------
 // it is helpful to redefine the monitoring level during the run - teh function is called rare enough
 //----------------------------------------------------------------------------------------
-int TEqCrvDtc::MonitoringLevel() {
+int TEqCalDtc::MonitoringLevel() {
   int level = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/DTC");
   return level;
 }
@@ -281,7 +281,7 @@ int TEqCrvDtc::MonitoringLevel() {
 //------------------------------------------------------------------------------
 // set ODB status if a link 'Link'
 //-----------------------------------------------------------------------------
-void TEqCrvDtc::SetLinkStatus(int Link, int Status) {
+void TEqCalDtc::SetLinkStatus(int Link, int Status) {
   std::string link_status_path = std::format("Link{}/Status",Link);
   _odb_i->SetInteger(_handle,link_status_path.data(),Status);
 }

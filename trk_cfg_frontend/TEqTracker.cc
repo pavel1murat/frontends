@@ -112,6 +112,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
   else if (cmd == "pulser_off"      ) cmd_type = kCmdDtc;
   else if (cmd == "read"            ) cmd_type = kCmdDtc;  // "read" loads channel masks
   else if (cmd == "print_digis"     ) cmd_type = kCmdDtc;
+  else if (cmd == "print_dtc_status") cmd_type = kCmdDtc;  // print status of all tracker DTCs
   else if (cmd == "print_status"    ) cmd_type = kCmdTracker;
   else if (cmd == "reset_lv"        ) cmd_type = kCmdRpi;
   else if (cmd == "reset_output"    ) {
@@ -124,6 +125,7 @@ void TEqTracker::ProcessCommand(int hDB, int hKey, void* Info) {
     return;
   }
   else if (cmd == "set_thresholds"  ) cmd_type = kCmdDtc;
+  else if (cmd == "setup_cfo_link"  ) cmd_type = kCmdDtc;
   else if (cmd == "test_command"    ) cmd_type = kCmdTracker;
   else                                cmd_type = kCmdUndefined;
 //-----------------------------------------------------------------------------

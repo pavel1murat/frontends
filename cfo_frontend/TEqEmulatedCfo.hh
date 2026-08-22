@@ -27,7 +27,7 @@ public:
   HNDLE                          _h_dtc;
   HNDLE                          _h_cfo;
   trkdaq::CfoInterface*          _cfo_i;           // 
-  mu2edaq::DtcInterface*         _dtc_i;           //
+  mu2edaq::DtcInterfaceBase*     _dtc_i;           //
   int                            _enabled;
   int                            _event_mode;
   int                            _emulated_mode;   // 0:external CFO, 1: emulated CFO

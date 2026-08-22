@@ -24,9 +24,14 @@ int TEqTracker::ExecuteDtcCommand(HNDLE H_Cmd) { // const std::string& Cmd) {
   int rc(0);
 
   HNDLE h_panel(0);
-                                        // need output of this command to end up in the tracker logfile
+                                        // the output of this command ends up split into multiple DTC logfiles - do they?
   
   std::string cmd     = _odb_i->GetString (H_Cmd,"Name"   );
+
+  // for print_status, the command names are different - the tracker has its own 'print_status'
+  if (cmd == "print_dtc_status") cmd = "print_status";
+
+  
   std::string logfile = _odb_i->GetString (H_Cmd,"logfile");
   int station         = _odb_i->GetInteger(H_Cmd,"station");
   int plane           = _odb_i->GetInteger(H_Cmd,"plane"  );

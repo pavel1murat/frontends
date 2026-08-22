@@ -23,7 +23,7 @@ namespace {
 };
 
 //-----------------------------------------------------------------------------  
-DtcInterfaceCrv::DtcInterfaceCrv(DTCLib::DTC* Dtc) : mu2edaq::DtcInterface(Dtc) {
+DtcInterfaceCrv::DtcInterfaceCrv(DTCLib::DTC* Dtc) : mu2edaq::DtcInterfaceBase(Dtc) {
   // initialization of the interface data members is done externally
   // nothing should happen here
 }
@@ -32,7 +32,10 @@ DtcInterfaceCrv::DtcInterfaceCrv(DTCLib::DTC* Dtc) : mu2edaq::DtcInterface(Dtc) 
 // default ROC readout mode:0
 //-----------------------------------------------------------------------------
 DtcInterfaceCrv::DtcInterfaceCrv(int PcieAddr, uint LinkMask, bool SkipInit) 
-  : mu2edaq::DtcInterface(PcieAddr, LinkMask, SkipInit) {
+  : mu2edaq::DtcInterfaceBase(PcieAddr, LinkMask, SkipInit) {
+
+  fEnableClockMarkers = 0;
+  
   if (not initialized) {
     initialized = true;
   }
@@ -132,6 +135,8 @@ int DtcInterfaceCrv::InitRocReadoutMode(std::ostream& Stream) {
                                         // so the return codes looked like are -201 etc and it would
                                         // be possible to identify the source
   if (rc != 0) rc = rc_err | rc;
+
+  fDtc->SoftReset();
 
   TLOG(TLVL_DEBUG) << std::format("-- END rc:0x{:08x}",rc);
   

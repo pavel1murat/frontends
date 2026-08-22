@@ -1,28 +1,28 @@
 //-----------------------------------------------------------------------------
 // Tracker DTC 
 //-----------------------------------------------------------------------------
-#ifndef __TEqCrvDtc_hh__
-#define __TEqCrvDtc_hh__
+#ifndef __TEqCalDtc_hh__
+#define __TEqCalDtc_hh__
 
 #include <ctime>
 #include "midas.h"
 
-// #include "frontends/crv/DtcInterfaceCrv.hh"
-#include "crv/DtcInterfaceCrv.hh"
+// #include "frontends/cal/DtcInterfaceCal.hh"
+#include "cal/DtcInterfaceCal.hh"
 #include "utils/TMu2eEqBase.hh"
 
-class TEqCrvDtc: public TMu2eEqBase {
+class TEqCalDtc: public TMu2eEqBase {
   enum {
     kNRegHist    =  4,
     kNRegNonHist = 15,     
   } ;
  
 public:
-  HNDLE                      _h_dtc;
+  HNDLE                  _h_dtc;
   mu2edaq::DtcInterfaceBase* _dtc_i;
-  int                        _monitorRocRegisters;
-  int                        _monitorRates;
-  int                        _monitorSPI;
+  int                    _monitorRocRegisters;
+  int                    _monitorRates;
+  int                    _monitorSPI;
 //-----------------------------------------------------------------------------
 // threads - perhaps, not needed any more
 //-----------------------------------------------------------------------------
@@ -45,9 +45,9 @@ public:
 //-----------------------------------------------------------------------------
 // functions
 //-----------------------------------------------------------------------------
-  TEqCrvDtc (const char* Name, const char* Title);
-  TEqCrvDtc (const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Dtc);
-  ~TEqCrvDtc();
+  TEqCalDtc (const char* Name, const char* Title);
+  TEqCalDtc (const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Dtc);
+  ~TEqCalDtc();
 
   mu2edaq::DtcInterfaceBase* Dtc_i() { return _dtc_i; }
 

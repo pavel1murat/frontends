@@ -133,18 +133,26 @@ TMFeResult TEquipmentManager::HandleBeginRun(int RunNumber)  {
 
   TLOG(TLVL_DEBUG) << " handle_begin_run:" << handle_begin_run;
   int rc(0);
-  
+
+  TMu2eEqBase* failed_eq(nullptr);
   if (handle_begin_run) {
     for (auto eq: _eq_list) {
                                         // begin run returns either 0 (success) or a negative number
       rc = eq->BeginRun(RunNumber);
+      if (rc < 0) {
+        failed_eq = eq;
+        break;
+      }
     }
   }
   
   TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
 
   if (rc == 0) return TMFeOk();
-  else         return TMFeResult(1,"failed to initialize the DTC readout");
+  else {
+    std::string msg = std::format("failed to initialize eq:{}",failed_eq->Name());
+    return TMFeResult(1,msg);
+  }
 };
 
 //-----------------------------------------------------------------------------
