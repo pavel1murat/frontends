@@ -165,16 +165,7 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
   uint32_t required_fw_version = _odb_i->GetRequiredFwVersion(H_Dtc);
   uint32_t fw_version          = _dtc_i->ReadRegister(0x9004);
 
-  if ((required_fw_version != 0) and (fw_version != required_fw_version)) {
-    std::string msg = std::format("DTC{}@{} has fw version:0x{:08x} different from required version:0x{:08x}",
-                                  _dtc_i->PcieAddr(),HostLabel(),fw_version,required_fw_version);
-    TLOG(TLVL_ERROR) << msg;
-                                       // and send an error message
-    cm_msg(MERROR, __func__,msg.data());
-    cm_msg_flush_buffer();
-    SetStatus(-1);
-  }
-  else {
+  if ((required_fw_version == 0) or (fw_version == required_fw_version)) {
     _dtc_i->fPcieAddr       = pcie_addr;
     _dtc_i->fEnabled        = dtc_enabled;
 
@@ -182,11 +173,12 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
     _dtc_i->fMacAddrByte    = _odb_i->GetDtcMacAddrByte(H_Dtc);
     _dtc_i->fEmulateCfo     = _odb_i->GetDtcEmulatesCfo(H_Dtc);
 //-----------------------------------------------------------------------------
-// use global sample edge mode from /Mu2e/ActiveRunConfiguration/DAQ/ForceCFOSampleEdgeSelect
+// use local sample edge mode from /Mu2e/ActiveRunConfiguration/DAQ/ForceCFOSampleEdgeSelect
+// - it is a per-DTC choice
 //-----------------------------------------------------------------------------
     // _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(H_Dtc);
-    HNDLE h_daq             = _odb_i->GetDaqConfigHandle(H_RunConf);
-    _dtc_i->fSampleEdgeMode = _odb_i->GetInteger(h_daq,"ForceCfoSampleEdgeSelect");
+    // HNDLE h_daq             = _odb_i->GetDaqConfigHandle(H_RunConf);
+    _dtc_i->fSampleEdgeMode = _odb_i->GetInteger(H_Dtc,"ForceCfoSampleEdgeSelect");
     
     _dtc_i->fEventMode      = _odb_i->GetEventMode        (H_RunConf);
     _dtc_i->fRocReadoutMode = _odb_i->GetRocReadoutMode   (H_RunConf);
@@ -325,12 +317,23 @@ TEqTrkDtc::TEqTrkDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
       SetStatus(-1);
     }
 //-----------------------------------------------------------------------------
-// if everything went well, init readout
+// if everything went well, init readout, once, and by default don't do it at begin run
 //-----------------------------------------------------------------------------
     InitReadout(_cmd_handle);
   }
-  
-//2026-04-09 PM  std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
+  else {
+//-----------------------------------------------------------------------------
+// wrong version, bail out
+//-----------------------------------------------------------------------------
+    std::string msg = std::format("DTC{}@{} has fw version:0x{:08x} different from required version:0x{:08x}",
+                                  _dtc_i->PcieAddr(),HostLabel(),fw_version,required_fw_version);
+    TLOG(TLVL_ERROR) << msg;
+                                       // and send an error message
+    cm_msg(MERROR, __func__,msg.data());
+    cm_msg_flush_buffer();
+    SetStatus(-1);
+  }
+                                        // this may not be even necessary
   std::string data_dir = _odb_i->GetString(0,"/Logger/Data dir");
   _logfile             = std::format("{}/logs/{}_{}.log",data_dir,HostLabel(),_dtc_i->PcieAddr());
 
@@ -345,6 +348,8 @@ int TEqTrkDtc::BeginRun(int RunNumber) {
   int rc(0);
     
   TLOG(TLVL_DEBUG) << std::format("-- START: host:{} DTC:{}" ,HostLabel(),_dtc_i->PcieAddr());
+
+  SetStatus(1);                         // busy
  
   int   run_type          = _odb_i->GetRunType       (_h_active_run_conf);
   int   event_mode        = _odb_i->GetEventMode     (_h_active_run_conf);
@@ -362,13 +367,24 @@ int TEqTrkDtc::BeginRun(int RunNumber) {
 // sample edge select is common for all DTCs and comes from DAQ/ForceCfoSampleEdgeSelect
     _dtc_i->fSampleEdgeMode = _odb_i->GetDtcSampleEdgeMode(_h_active_run_conf);
 //-----------------------------------------------------------------------------
-// at begin run, initialize the readout
+// at begin run, only do soft reset and check the CFO link
 //-----------------------------------------------------------------------------
-    if (_dtc_i->fSubsystem == mu2edaq::kTracker) {
-      InitReadout(_cmd_handle);
+    // if (_dtc_i->fSubsystem == mu2edaq::kTracker) {
+    //   // comment out for the moment InitReadout(_cmd_handle);
+    // }
+    
+    // this is generic
+    rc = _dtc_i->SetupCfoLink();
+    if (rc < 0) {
+      TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} failed to initialize the CFO link",
+                                      HostLabel(),_dtc_i->PcieAddr());
     }
+    
+    _dtc_i->fDtc->SoftReset();
   }
   
+  SetStatus(0);  // TODO - when stable enough, set status to RC
+
   TLOG(TLVL_DEBUG) << "-- END rc:" << rc;
   return rc;
 }
@@ -702,7 +718,11 @@ int TEqTrkDtc::HandlePeriodic() {
   int running_state          = o_runinfo["State"];
   int transition_in_progress = o_runinfo["Transition in progress"];
 
-  try {
+  std::string node_eq_path  = std::format("/Equipment/{}",HostLabel());
+  std::string node_var_path = std::format("/Equipment/{}/Variables",HostLabel());
+    
+  int monitor_dtc_registers = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/DTC");
+  if (monitor_dtc_registers) {
     std::vector<float> dtc_tv;
     for (const int reg : DtcRegHist) {
       uint32_t val;
@@ -713,7 +733,7 @@ int TEqTrkDtc::HandlePeriodic() {
         else                     fval = (val/4095.)*3.;                 // voltage
       }
       catch(...) {
-        TLOG(TLVL_ERROR) << "failed to read register:" << reg;
+        TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} failed to read DTC register:",HostLabel(),_dtc_i->PcieAddr(),reg);
         fval = -1;
       }
       
@@ -723,144 +743,141 @@ int TEqTrkDtc::HandlePeriodic() {
     char dtc_name[16];
     sprintf(dtc_name,"dtc%i",pcie_addr);
     midas::odb odb_dtc_tv = {{dtc_name,{1.0f, 1.0f, 1.0f, 1.0f}}};
-
-    std::string node_eq_path  = std::format("/Equipment/{}",HostLabel());
-    std::string node_var_path = std::format("/Equipment/{}/Variables",HostLabel());
-
+    
     odb_dtc_tv.connect(node_var_path);    
     odb_dtc_tv[dtc_name] = dtc_tv;
 //-----------------------------------------------------------------------------
 // non-history registers : 'dtr' = "DTcRegisters"
 //-----------------------------------------------------------------------------
     ReadNonHistRegisters();
+  }
 //-----------------------------------------------------------------------------
 // for each enabled DTC, loop over its ROCs and read ROC registers
-// this part can depend on on the type of the ROC
+// this part depends on the ROC firmware, so the TRK, CAL, and CRV need different treatment
 // do it for the tracker
 // don't use 'link' - ROOT doesn't like 'link' for a variable name
 //-----------------------------------------------------------------------------
-    std::vector<float> total_rate(6,-1.);
+  std::vector<float> total_rate(6,-1.);
     
-    for (int ilink=0; ilink<6; ilink++) {
+  for (int ilink=0; ilink<6; ilink++) {
       
-      TLOG(TLVL_DEBUG+1) << std::format("link:{} enabled:{} locked:{} status:{}",
-                                        ilink,_dtc_i->LinkEnabled(ilink),_dtc_i->LinkLocked(ilink),_dtc_i->LinkStatus(ilink));
+    TLOG(TLVL_DEBUG+1) << std::format("link:{} enabled:{} locked:{} status:{}",
+                                      ilink,_dtc_i->LinkEnabled(ilink),_dtc_i->LinkLocked(ilink),_dtc_i->LinkStatus(ilink));
                                         
-      if (_dtc_i->LinkEnabled(ilink) == 0) continue;
-                                        // skip links which status has been set to -1
-      if (_dtc_i->LinkStatus(ilink)  != 0) continue;
-      if (not _dtc_i->LinkLocked(ilink)) {
-        std::string msg = std::format("{}:DTC{} link:{} enabled but not locked, set link status to -1",
-                                      HostLabel(),_dtc_i->PcieAddr(),ilink);
-        TLOG(TLVL_ERROR) << msg;
-                                        // send message to MIDAS
-        cm_msg(MERROR, __func__,msg.data());
-        cm_msg_flush_buffer();
-                                        // links with status < 0 should be displayed in red and skipped w/o extra messaging -
-                                        // a message has been sent once when the link status has been changed
-        _dtc_i->SetLinkStatus(ilink,-1);
-        SetStatus(-1);
-        continue;
-      }
+    if (_dtc_i->LinkEnabled(ilink) == 0) continue;
+    // skip links which status has been set to -1
+    if (_dtc_i->LinkStatus(ilink)  != 0) continue;
+    if (not _dtc_i->LinkLocked(ilink)) {
+      std::string msg = std::format("{}:DTC{} link:{} enabled but not locked, set link status to -1",
+                                    HostLabel(),_dtc_i->PcieAddr(),ilink);
+      TLOG(TLVL_ERROR) << msg;
+      // send message to MIDAS
+      cm_msg(MERROR, __func__,msg.data());
+      cm_msg_flush_buffer();
+      // links with status < 0 should be displayed in red and skipped w/o extra messaging -
+      // a message has been sent once when the link status has been changed
+      _dtc_i->SetLinkStatus(ilink,-1);
+      SetStatus(-1);
+      continue;
+    }
       
-      TLOG(TLVL_INFO) << std::format("{}:DTC{} link:{} : proceed with the monitoring: roc_regs:{} spi:{} rates:{}",
-                                     HostLabel(),_dtc_i->PcieAddr(),ilink,_monitorRocRegisters,_monitorSPI,_monitorRates);
+    TLOG(TLVL_INFO) << std::format("{}:DTC{} link:{} : proceed with the monitoring: roc_regs:{} spi:{} rates:{}",
+                                   HostLabel(),_dtc_i->PcieAddr(),ilink,_monitorRocRegisters,_monitorSPI,_monitorRates);
       
-      if (_monitorRocRegisters > 0) {
+    if (_monitorRocRegisters > 0) {
         
-        std::vector<uint32_t>  roc_reg;
-        roc_reg.reserve(RocRegisters.size());
-            
-        rc = ReadRocRegisters(ilink,RocRegisters,roc_reg);
-
-        if (rc == 0) {
-          char buf[100];
-          sprintf(buf,"%s/DTC%i/ROC%i",node_eq_path.data(),_dtc_i->PcieAddr(),ilink);
-          
-          midas::odb roc = {{"RegData",{1u}}};
-          roc.connect(buf);
-          roc["RegData"] = roc_reg;
-        }
+      std::vector<uint32_t>  roc_reg;
+      roc_reg.reserve(RocRegisters.size());
+        
+      rc = ReadRocRegisters(ilink,RocRegisters,roc_reg);
+      
+      if (rc == 0) {
+        char buf[100];
+        sprintf(buf,"%s/DTC%i/ROC%i",node_eq_path.data(),_dtc_i->PcieAddr(),ilink);
+        
+        midas::odb roc = {{"RegData",{1u}}};
+        roc.connect(buf);
+        roc["RegData"] = roc_reg;
       }
+    }
 //-----------------------------------------------------------------------------
 // SPI - an ODB change should be sufficient
 //-----------------------------------------------------------------------------
-      _monitorSPI          = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/SPI"  );
-      if (_monitorSPI > 0) {
-        TLOG(TLVL_DEBUG+1) << "saving ROC:" << ilink << " SPI data";
+    _monitorSPI          = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/SPI"  );
+    if (_monitorSPI > 0) {
+      TLOG(TLVL_DEBUG+1) << "saving ROC:" << ilink << " SPI data";
         
-        struct trkdaq::TrkSpiData_t   spi;
-        int rc = _dtc_i->ControlRoc_ReadSpi_1(&spi,ilink,0);
-        if (rc == 0) {
-              
-          std::vector<float> roc_spi;
-          for (int iw=0; iw<trkdaq::TrkSpiDataNWords; iw++) {
-            roc_spi.emplace_back(spi.Data(iw));
-          }
+      struct trkdaq::TrkSpiData_t   spi;
+      int rc = _dtc_i->ControlRoc_ReadSpi_1(&spi,ilink,0);
+      if (rc == 0) {
+        
+        std::vector<float> roc_spi;
+        for (int iw=0; iw<trkdaq::TrkSpiDataNWords; iw++) {
+          roc_spi.emplace_back(spi.Data(iw));
+        }
 //-----------------------------------------------------------------------------
 // read key data
 //-----------------------------------------------------------------------------
-          std::vector<uint16_t> key_data;
-          int print_level(0);
-          rc = _dtc_i->ControlRoc_GetKey(key_data,ilink,print_level);
-          if (rc == 0) {
-            // for now, do it 'brute force' way, improve later
-            float temp     = float(key_data[0])/4096.*3300./10;
-            float v2p5     = float(key_data[1])/4096*3.355;
-            float v5p1     = float(key_data[2])/4096.*3.355*2;
-            float dcdctemp = float(key_data[3])/4096*3300/10;
-
-            roc_spi.emplace_back(temp);
-            roc_spi.emplace_back(v2p5);
-            roc_spi.emplace_back(v5p1);
-            roc_spi.emplace_back(dcdctemp);
-          }
-          else {
-            for (int i=0; i<trkdaq::TrkKeyDataNWords; i++) roc_spi.emplace_back(-1.);
-          }
+        std::vector<uint16_t> key_data;
+        int print_level(0);
+        rc = _dtc_i->ControlRoc_GetKey(key_data,ilink,print_level);
+        if (rc == 0) {
+          // for now, do it 'brute force' way, improve later
+          float temp     = float(key_data[0])/4096.*3300./10;
+          float v2p5     = float(key_data[1])/4096*3.355;
+          float v5p1     = float(key_data[2])/4096.*3.355*2;
+          float dcdctemp = float(key_data[3])/4096*3300/10;
+          
+          roc_spi.emplace_back(temp);
+          roc_spi.emplace_back(v2p5);
+          roc_spi.emplace_back(v5p1);
+          roc_spi.emplace_back(dcdctemp);
+        }
+        else {
+          for (int i=0; i<trkdaq::TrkKeyDataNWords; i++) roc_spi.emplace_back(-1.);
+        }
 //-----------------------------------------------------------------------------
 // read ILP data
 //-----------------------------------------------------------------------------
-          std::vector<uint16_t> ilp_data;
-          rc = _dtc_i->ControlRoc_ReadIlp(ilp_data,ilink,print_level);
-          if (rc == 0) {
-            int   ilp_id   = ilp_data[0];
-            float temp     = float(ilp_data[1])/100.;
-            float pressure = float(int(ilp_data[3]) << 16 | int(ilp_data[2]))/524288.;
-            roc_spi.emplace_back(float(ilp_id));
-            roc_spi.emplace_back(temp);
-            roc_spi.emplace_back(pressure);
-          }
-          else {
-            for (int i=0; i<trkdaq::TrkIlpDataNWords; i++) roc_spi.emplace_back(-1.);
-          }
-          
-          char buf[100];
-          sprintf(buf,"rc%i%i",_dtc_i->PcieAddr(),ilink);
-            
-          midas::odb xx = {{buf,{1.0f}}};
-          xx.connect(node_var_path);
-
-          int nw = trkdaq::TrkSpiDataNWords+trkdaq::TrkKeyDataNWords+trkdaq::TrkIlpDataNWords;
-          xx[buf].resize(nw);
-          xx[buf] = roc_spi;
-              
-          TLOG(TLVL_DEBUG+1) << std::format("host:{} DTC:{} link:{} : saved N(SPI+KEY+ILP) words:{}",
-                                            HostLabel(),_dtc_i->PcieAddr(),ilink,nw);
+        std::vector<uint16_t> ilp_data;
+        rc = _dtc_i->ControlRoc_ReadIlp(ilp_data,ilink,print_level);
+        if (rc == 0) {
+          int   ilp_id   = ilp_data[0];
+          float temp     = float(ilp_data[1])/100.;
+          float pressure = float(int(ilp_data[3]) << 16 | int(ilp_data[2]))/524288.;
+          roc_spi.emplace_back(float(ilp_id));
+          roc_spi.emplace_back(temp);
+          roc_spi.emplace_back(pressure);
         }
         else {
-          std::string msg = std::format("host:{} DTC:{} link:{} : failed to read SPI, set link status to -1",
-                                        HostLabel(),_dtc_i->PcieAddr(),ilink);
-          TLOG(TLVL_ERROR) << msg;
-                                        // send message to MIDAS
-          cm_msg(MERROR, __func__,msg.data());
-          cm_msg_flush_buffer();
-//-----------------------------------------------------------------------------
-// set ROC? DTC? (try DTC first) status to -1 and do not try to read it...
-//-----------------------------------------------------------------------------
-          SetLinkStatus(ilink,-1);
-          SetStatus(-1);
+          for (int i=0; i<trkdaq::TrkIlpDataNWords; i++) roc_spi.emplace_back(-1.);
         }
+        
+        char buf[100];
+        sprintf(buf,"rc%i%i",_dtc_i->PcieAddr(),ilink);
+        
+        midas::odb xx = {{buf,{1.0f}}};
+        xx.connect(node_var_path);
+        
+        int nw = trkdaq::TrkSpiDataNWords+trkdaq::TrkKeyDataNWords+trkdaq::TrkIlpDataNWords;
+        xx[buf].resize(nw);
+        xx[buf] = roc_spi;
+        
+        TLOG(TLVL_DEBUG+1) << std::format("host:{} DTC:{} link:{} : saved N(SPI+KEY+ILP) words:{}",
+                                          HostLabel(),_dtc_i->PcieAddr(),ilink,nw);
+      }
+      else {
+        std::string msg = std::format("host:{} DTC:{} link:{} : failed to read SPI, set link status to -1",
+                                      HostLabel(),_dtc_i->PcieAddr(),ilink);
+        TLOG(TLVL_ERROR) << msg;
+        // send message to MIDAS
+        cm_msg(MERROR, __func__,msg.data());
+        cm_msg_flush_buffer();
+        //-----------------------------------------------------------------------------
+        // set ROC? DTC? (try DTC first) status to -1 and do not try to read it...
+        //-----------------------------------------------------------------------------
+        SetLinkStatus(ilink,-1);
+        SetStatus(-1);
       }
 //-----------------------------------------------------------------------------
 // ROC rates
@@ -868,32 +885,45 @@ int TEqTrkDtc::HandlePeriodic() {
 // need to find the right place to set marker_clock to 0 (and may be recover in the end),
 // will do it right later
 // don't cache , get directrly from ODB
+// reading teh rates out requires changing the clock, so even when the rate monitoring is enabled,
+// do it only when not taking data
 //-----------------------------------------------------------------------------
       int monitor_rates  = _odb_i->GetInteger(_h_daq_host_conf,"Monitor/Rates");
       if ((monitor_rates > 0) and (transition_in_progress == 0) and (running_state != STATE_RUNNING)) {
         TLOG(TLVL_DEBUG+1) << "MONITOR RATES link:" << ilink;
-//-----------------------------------------------------------------------------
-// for monitoring, want to read ALL channels.
-// 1. run read command enabling the internal clock and setting the read mask to read all channels
-// 2. run rates command with all channels enabled
-// 3. run read command restoring the clock marker (source of the clock) and the read mask
-//    which someone may rely on
-//----------------------------------------------------------------------------
+        //-----------------------------------------------------------------------------
+        // for monitoring, want to read ALL channels.
+        // 1. run read command enabling the internal clock and setting the read mask to read all channels
+        // 2. run rates command with all channels enabled
+        // 3. run read command restoring the clock marker (source of the clock) and the read mask
+        //    which someone may rely on
+        //----------------------------------------------------------------------------
         midas::odb o_read_cmd;
         o_read_cmd.connect("/Mu2e/Commands/Tracker/read");
 
-        trkdaq::ControlRoc_Read_Input_t0 pread;                // ch_mask is set to all oxffff
-                                                               // save the read command ch_mask
+        trkdaq::ControlRoc_Read_Input_t0 pread;
+        // channel mask of the panel from ODB
+        uint16_t panel_ch_mask[96];
+        std::string mask_odb_path = std::format("Link{:d}/DetectorElement/ch_mask",ilink);
+        _odb_i->GetArray(_handle,mask_odb_path.data(),TID_WORD,panel_ch_mask,96);
+    
+        // channel mask of this panel stored in ODB, to be restored
         uint16_t saved_ch_mask[6];
-        for (int i=0; i<6; ++i) saved_ch_mask[i] = o_read_cmd["ch_mask"][i];
+        for (int i=0; i<6; ++i) {
+          saved_ch_mask[i] = 0;
+          for (int bit=0; bit<16; bit++) {
+            int loc = 16*i+bit;
+            saved_ch_mask[i] |= (panel_ch_mask[loc] << bit);
+          }
+        }
             
         pread.adc_mode        = o_read_cmd["adc_mode"     ];   // -a
         pread.tdc_mode        = o_read_cmd["tdc_mode"     ];   // -t 
         pread.num_lookback    = o_read_cmd["num_lookback" ];   // -l 
-        
+    
         pread.num_samples     = o_read_cmd["num_samples"  ];   // -s
-        pread.num_triggers[0] = o_read_cmd["num_triggers"][0]; // -T 10
-        pread.num_triggers[1] = o_read_cmd["num_triggers"][1]; //
+        pread.num_triggers[0] = o_read_cmd["num_triggers" ][0]; // -T 10
+        pread.num_triggers[1] = o_read_cmd["num_triggers" ][1]; //
 //-----------------------------------------------------------------------------
 // this is a tricky place: rely on that the READ command ODB record
 // stores the -p value used during the data taking
@@ -902,13 +932,13 @@ int TEqTrkDtc::HandlePeriodic() {
         pread.marker_clock    = 0;                             // to read the rates, enable internal clock
         pread.mode            = o_read_cmd["mode"         ];   // 
         pread.clock           = o_read_cmd["clock"        ];   //
-          
+    
         int print_level       = 0;
-
+    
         TLOG(TLVL_DEBUG+1) << std::format("before ControlRoc_Read");
                                           
-        _dtc_i->ControlRoc_Read(&pread,ilink,print_level);
-
+        rc = _dtc_i->ControlRoc_Read(&pread,ilink,print_level);
+      
         std::vector<uint16_t> rates;
         trkdaq::ControlRoc_Rates_t* par(nullptr); // defaults are OK - read all channels
         std::ostream null_stream(nullptr);
@@ -917,11 +947,12 @@ int TEqTrkDtc::HandlePeriodic() {
         int rc = _dtc_i->ControlRoc_Rates(ilink,&rates,print_level,par,null_stream);
         TLOG(TLVL_DEBUG+1) << std::format("node:{} DTC:{} link:{} after reading rates",HostLabel(),_dtc_i->PcieAddr(),ilink);
 //-----------------------------------------------------------------------------
-// and restore the READ command mask and the clock
+// and restore the READ command mask and the clock.
+// the primary source of the channel mask is the panel record in ODB
 //-----------------------------------------------------------------------------
         pread.marker_clock    = o_read_cmd["marker_clock" ];   // restore the marker_clock mode
         for (int i=0; i<6; ++i) pread.ch_mask[i] = saved_ch_mask[i];
-        _dtc_i->ControlRoc_Read(&pread,ilink,print_level);
+        rc = _dtc_i->ControlRoc_Read(&pread,ilink,print_level);
 //-----------------------------------------------------------------------------
 // in ODB, store the total coincidence rate , on number per ROC
 //-----------------------------------------------------------------------------
@@ -937,15 +968,15 @@ int TEqTrkDtc::HandlePeriodic() {
           total[1]  = float(rates[loc  ])+(int(rates[loc+1]) << 16); // hv - check the order with Vadim
           total[0]  = float(rates[loc+2])+(int(rates[loc+3]) << 16); // cal
 
-          uint16_t panel_ch_mask[96];
-          std::string mask_odb_path = std::format("Link{:d}/DetectorElement/ch_mask",ilink);
-          _odb_i->GetArray(_handle,mask_odb_path.data(),TID_WORD,panel_ch_mask,96);
+          // uint16_t panel_ch_mask[96];
+          // std::string mask_odb_path = std::format("Link{:d}/DetectorElement/ch_mask",ilink);
+          // _odb_i->GetArray(_handle,mask_odb_path.data(),TID_WORD,panel_ch_mask,96);
 
           float trate = 0;
           float denom = (total[0]+total[1])/2.*clock_tick;
           for (int ich=0; ich<96; ich++) {
             if (panel_ch_mask[ich] == 0) continue;
-
+            
             loc               = 6*ich;
             // int   counts_hv   = int((*Rates)[loc  ])+(int((*Rates)[loc+1]) << 16);
             // int   counts_cal  = int((*Rates)[loc+2])+(int((*Rates)[loc+3]) << 16);
@@ -955,8 +986,14 @@ int TEqTrkDtc::HandlePeriodic() {
             // float rate_cal    = counts_cal/total[ifpga]/clock_tick/1000.;
             trate               += counts_coin;
           }
-          total_rate[ilink] = trate/denom/1.e3;  // kHz
-          TLOG(TLVL_ERROR) << "failed to read rates DTC:" << _dtc_i->PcieAddr() << " ROC:" << ilink;
+          // there could be cases when the denominator is equal to zero
+          if (denom <= 0) {
+            total_rate[ilink] = -1.;  // make it obvious
+          }
+          else {
+            total_rate[ilink] = trate/denom/1.e3;  // kHz
+          }
+          //  TLOG(TLVL_ERROR) << "failed to read rates DTC:" << _dtc_i->PcieAddr() << " ROC:" << ilink;
         }
         else {
           TLOG(TLVL_ERROR) << "failed to read rates DTC:" << _dtc_i->PcieAddr() << " ROC:" << ilink;
@@ -967,16 +1004,20 @@ int TEqTrkDtc::HandlePeriodic() {
         }
       }
     }
-
+  }
+    
+  try {
+  
     char buf[16];
     sprintf(buf,"dtc%d_rates",_dtc_i->PcieAddr());
-          
+  
     midas::odb vars(node_var_path);
     vars[buf] = total_rate;
     TLOG(TLVL_DEBUG+1) << std::format(" saved rates: {} {} {} {} {} {} to {}" ,
                                       total_rate[0],total_rate[1],total_rate[2],total_rate[3],total_rate[4],total_rate[5],
                                       node_var_path);
   }
+    
   catch (...) {
     TLOG(TLVL_ERROR) << "failed to read DTC:" << _dtc_i->PcieAddr() << " registers";
 //-----------------------------------------------------------------------------
@@ -985,7 +1026,7 @@ int TEqTrkDtc::HandlePeriodic() {
     SetStatus(-1);
     // TODO
   }
-
+  
   TLOG(TLVL_DEBUG+1) << "-- END";
   return rc;
 }

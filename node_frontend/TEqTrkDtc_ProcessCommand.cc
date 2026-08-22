@@ -292,10 +292,17 @@ void TEqTrkDtc::ProcessCommand(int hDB, int hKey, void* Info) {
     t.detach();
   }
 //-----------------------------------------------------------------------------
-// LOASET_THRESHOLDS
+// SET_THRESHOLDS
 //-----------------------------------------------------------------------------
   else if (cmd == "set_thresholds") {
     std::thread t(&TEqTrkDtc::SetThresholds,eq,h_cmd);
+    t.detach();
+  }
+//-----------------------------------------------------------------------------
+// SETUP_CFO_LINK
+//-----------------------------------------------------------------------------
+  else if (cmd == "setup_cfo_link") {
+    std::thread t(&TEqTrkDtc::SetupCfoLink,eq,h_cmd);
     t.detach();
   }
   else if (cmd == "soft_reset") {

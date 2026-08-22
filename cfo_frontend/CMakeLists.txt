@@ -34,9 +34,19 @@ cet_make_exec(NAME      cfo_emu_frontend
                       
 cet_make_exec(NAME      cfo_frontend
               SOURCE    cfo_frontend.cc 
-                        TEqEmulatedCfo.cc 
+                        TEqEmulatedCfo.cc
                         TEqHardwareCfo.cc TEqHardwareCfo_ProcessCommand.cc TEqHardwareCfo_Commands.cc 
-                        #                      TEquipmentCfo_Rpc.cc 
+              LIBRARIES frontends_utils
+                        otsdaq-mu2e-tracker::Ui
+                        mu2e-pcie-utils::CFOInterface
+                        mu2e-pcie-utils::DTCInterface
+                        midas
+                        stdc++ m util pthread rt
+)
+cet_make_exec(NAME      cfo_tc_frontend
+              SOURCE    cfo_tc_frontend.cc 
+                        TEqTimeChainManager.cc
+                        #
               LIBRARIES frontends_utils
                         otsdaq-mu2e-tracker::Ui
                         mu2e-pcie-utils::CFOInterface

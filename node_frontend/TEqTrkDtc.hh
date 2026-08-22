@@ -107,6 +107,7 @@ public:
   int         SetCalDac        (HNDLE H_Cmd);
   int         SetRocDelay      (HNDLE H_Cmd);
   int         SetThresholds    (HNDLE H_Cmd);                 // load thresholds from ODB to firmware
+  int         SetupCfoLink     (HNDLE H_Cmd);                 // load thresholds from ODB to firmware
   int         SoftReset        (HNDLE H_Cmd);
   int         TestCommand      (HNDLE H_Cmd);
   int         WriteRegister    (HNDLE H_Cmd);

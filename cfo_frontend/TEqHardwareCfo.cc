@@ -86,7 +86,13 @@ TMFeResult TEqHardwareCfo::Init() {
   
   //EqSetStatus("Started...", "white");
   //fMfe->Msg(MINFO, "HandleInit", std::format("Init {}","+ Ok!").data());
+
+  std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
+  std::string run_plan          = _odb_i->GetCfoRunPlan(_handle);
+  std::string run_plan_fn       = run_plan_dir+'/'+run_plan+".bin";
   
+  _cfo_i->InitReadout(run_plan_fn,timing_chain_mask);
+
   int rc(0);
 
   TLOG(TLVL_DEBUG) << std::format("-- END rc:{}",rc);
@@ -127,7 +133,10 @@ int TEqHardwareCfo::BeginRun(int RunNumber)  {
 
   TLOG(TLVL_DEBUG) << std::format("run_plan_fn:{} timing_chain_mask:0x{:08x}",run_plan_fn,timing_chain_mask);
 
-  _cfo_i->InitReadout(run_plan_fn,timing_chain_mask);
+  // _cfo_i->InitReadout(run_plan_fn,timing_chain_mask);
+  _cfo_i->fCfo->SoftReset();
+  _cfo_i->SetRunPlan(run_plan_fn);
+  usleep(10);
 
   sleep(2);
   _cfo_i->LaunchRunPlan();
@@ -157,7 +166,10 @@ int TEqHardwareCfo::EndRun(int RunNumber)  {
   std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
   std::string null_hb_plan_fn   = run_plan_dir+'/'+"null_hb.bin";
  
-  _cfo_i->InitReadout(null_hb_plan_fn);
+  _cfo_i->fCfo->SoftReset();
+  _cfo_i->SetRunPlan(null_hb_plan_fn);
+  // _cfo_i->InitReadout(null_hb_plan_fn);
+
   _cfo_i->LaunchRunPlan();
                                         // and end it correctly
   _cfo_i->Cfo()->DisableLinks();

@@ -432,6 +432,23 @@ int TEqTrkDtc::InitReadout(HNDLE H_Cmd) { // std::ostream& Stream) {
     return rc;
   }
 //-----------------------------------------------------------------------------
+// try to get links locked
+//-----------------------------------------------------------------------------
+  for (int i=0; i<10; i++) {
+    rc = _dtc_i->SetupCfoLink();
+    if (rc == 0) break;
+  }
+  
+  if (rc < 0) {
+    TLOG(TLVL_ERROR) << std::format("node:{} DTC:{} : failed to initialize the DTC readout. BAIL OUT",
+                                    HostLabel(),_dtc_i->PcieAddr());
+    
+    int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+    SetCommandFinished(H_Cmd,rc);
+    TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} log_rc:{}",rc,log_rc);
+    return rc;
+  }
+//-----------------------------------------------------------------------------
 // things we don't do by default, but need for the data taking
 //-----------------------------------------------------------------------------
   for (int i=0; i<6; i++) {
@@ -2309,6 +2326,49 @@ int TEqTrkDtc::SetThresholds(HNDLE H_Cmd) {
 }
 
 //-----------------------------------------------------------------------------
+int TEqTrkDtc::SetupCfoLink(HNDLE H_Cmd) { // std::ostream& Stream) {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << std::format("-- START:");
+  SetStatus(1);
+  
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  SetStatus(1); 
+
+  HNDLE       h_cmd_par = _odb_i->GetCmdParameterHandle(H_Cmd);
+  
+  int         link      = _odb_i->GetInteger(H_Cmd,"link"    );
+  std::string logfile   = _odb_i->GetString (H_Cmd,"logfile" );
+  if (logfile == "default") {
+    logfile = std::format("{}_dtc{}",HostLabel(),_dtc_i->PcieAddr());
+  }
+
+  int    print_level    = _odb_i->GetInteger (h_cmd_par,"print_level");
+//-----------------------------------------------------------------------------
+// TODO : max_iter to come from ODB ?
+//-----------------------------------------------------------------------------
+  int max_iter = 10;
+  for (int i=0; i<max_iter; i++) {
+    rc = _dtc_i->SetupCfoLink(print_level,sstr);
+    if (rc == 0) break;
+  }
+
+  if (rc < 0) {
+    TLOG(TLVL_ERROR) << std::format("host:{} DTC:{} failed to initialize the CFO link",
+                                    HostLabel(),_dtc_i->PcieAddr());
+  }
+
+  int log_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+
+  // do not set the status to error - too many problems
+  SetCommandFinished(H_Cmd,0); 
+  
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} log_rc:{}",rc,log_rc);
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
 // SOFT RESET
 //-----------------------------------------------------------------------------
 int TEqTrkDtc::SoftReset(HNDLE H_Cmd) {
@@ -2329,7 +2389,7 @@ int TEqTrkDtc::SoftReset(HNDLE H_Cmd) {
     _dtc_i->Dtc()->SoftReset();
     _dtc_i->Dtc()->ClearRXCDRUnlockCount(DTCLib::DTC_Link_CFO);
     _dtc_i->Dtc()->ClearJitterAttenuatorUnlockCount();
-    _dtc_i->Dtc()->ClearJitterAttenuatorRecoeveredClockLOSCount(); // a new one
+    _dtc_i->Dtc()->ClearJitterAttenuatorRecoveredClockLOSCount(); // a new one
     _dtc_i->Dtc()->ClearJitterAttenuatorExternalClockLOSCount();
 
     sstr << " soft reset OK" << std::endl;

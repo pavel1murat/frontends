@@ -363,6 +363,14 @@
        btn = mu2e_make_exec_button_B(cmd);
        td.appendChild(btn);
        
+       cmd = new Command_B('print_dtc_status','print_dtc_status',trk_cmd_all_stations_B,'cmd_params', trk_cmd_path,logfile);
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
+       
+       cmd = new Command_B('setup_cfo_link','setup_cfo_link',trk_cmd_all_stations_B,'cmd_params', trk_cmd_path,logfile);
+       btn = mu2e_make_exec_button_B(cmd);
+       td.appendChild(btn);
+       
        tr.appendChild(td);
        thead.appendChild(tr);
        

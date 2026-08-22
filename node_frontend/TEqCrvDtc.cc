@@ -77,7 +77,7 @@ TEqCrvDtc::TEqCrvDtc(const char* Name, const char* Title, HNDLE H_RunConf, HNDLE
   
   std::string subsystem = _odb_i->GetString(H_Dtc,"Subsystem");
   if (subsystem == "CRV") {
-    _dtc_i = (mu2edaq::DtcInterface*) DtcInterfaceCrv::Instance(pcie_addr,link_mask,skip_dtc_init);
+    _dtc_i = (mu2edaq::DtcInterfaceBase*) DtcInterfaceCrv::Instance(pcie_addr,link_mask,skip_dtc_init);
     _dtc_i->fSubsystem = mu2edaq::kCRV;
   }
   else {

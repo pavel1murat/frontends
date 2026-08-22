@@ -18,11 +18,11 @@ class TEqCrvDtc: public TMu2eEqBase {
   } ;
  
 public:
-  HNDLE                  _h_dtc;
-  mu2edaq::DtcInterface* _dtc_i;
-  int                    _monitorRocRegisters;
-  int                    _monitorRates;
-  int                    _monitorSPI;
+  HNDLE                      _h_dtc;
+  mu2edaq::DtcInterfaceBase* _dtc_i;
+  int                        _monitorRocRegisters;
+  int                        _monitorRates;
+  int                        _monitorSPI;
 //-----------------------------------------------------------------------------
 // threads - perhaps, not needed any more
 //-----------------------------------------------------------------------------
@@ -49,7 +49,7 @@ public:
   TEqCrvDtc (const char* Name, const char* Title, HNDLE H_RunConf, HNDLE H_Dtc);
   ~TEqCrvDtc();
 
-  mu2edaq::DtcInterface* Dtc_i() { return _dtc_i; }
+  mu2edaq::DtcInterfaceBase* Dtc_i() { return _dtc_i; }
 
   void ReadNonHistRegisters();
   

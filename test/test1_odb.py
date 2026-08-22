@@ -47,7 +47,7 @@ class Test:
         
         node            = socket.gethostname().split('.')[0];
         experiment_name = "tracker";
-        self.client          = midas.client.MidasClient("test",node,experiment_name,None)
+        self.client     = midas.client.MidasClient('test','localhost',experiment_name,None)
         
 # ---------------------------------------------------------------------
     def Print(self,Name,level,Message):
@@ -66,7 +66,7 @@ class Test:
         parser = argparse.ArgumentParser()
 
         parser.add_argument("--diag_level"      , type=int, default=0,          help="Path to the configuration file")
-        parser.add_argument('-t', '--test'       , type=int, default=0,          help="test number")
+        parser.add_argument('-t', '--test'      , type=int, default=0,          help="test number")
 
         args = parser.parse_args()
 
@@ -108,7 +108,7 @@ class Test:
             for (c1_hkey, c1_key) in c1_keys:
                 print(f'c1_key:{c1_key}')
                 c1_name = f'{c1_key.name.decode("utf-8")}'
-                print(f'name:{c1_name}')
+                # print(f'name:{c1_name}')
 
                 if ('DTC' in c1_name) and (c1_name.index('DTC') == 0):
                     # check if DTC is  '/Enabled'

@@ -23,7 +23,7 @@
 
 #include "otsdaq-mu2e-tracker/Ui/DtcInterfaceBase.hh"
 
-class DtcInterfaceCrv : public mu2edaq::DtcInterface { 
+class DtcInterfaceCrv : public mu2edaq::DtcInterfaceBase { 
 private:
   DtcInterfaceCrv(int PcieAddr, uint LinkMask, bool SkipInit);
 public:
@@ -38,7 +38,7 @@ public:
 // functions
 //-----------------------------------------------------------------------------
 public:
-  static  DtcInterfaceCrv* Instance  (int PcieAddr, uint LinkMask = 0x11, bool SkipInit = false);
+  static  DtcInterfaceCrv* Instance  (int PcieAddr, uint LinkMask = 0x11, bool SkipInit = true /*false*/);
 
   virtual int           InitRocReadoutMode(std::ostream& Stream = std::cout)      override;
 //-----------------------------------------------------------------------------

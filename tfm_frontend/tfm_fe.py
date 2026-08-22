@@ -182,7 +182,7 @@ class TfmFrontend(midas.frontend.FrontendBase):
         self.client.set_transition_sequence(midas.TR_START,510)
 #------------------------------------------------------------------------------
 # register hotlink
-# try to change priority by re-registering the same callback
+# try to change the priority by re-registering the same callback
 #------------------------------------------------------------------------------
         self.client.odb_watch(self.tfm_cmd_odb_path+'/Run', self.process_command)
         # self.client.register_transition_callback(midas.TR_START, 502, self._tr_start_callback)
