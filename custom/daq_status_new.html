@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>DAQ nodes</title>
+    <link rel="stylesheet" href="midas.css">
+    <link rel="stylesheet" href="mu2edaq.css">
+    <link rel="stylesheet" href="tracker_style.css">
+    <script src="controls.js"></script>
+    <script src="midas.js"></script>
+    <script src="mhttpd.js"></script>
+    <script src="filesrw.js"></script>
+    
+    <script src="global_variables.js"></script>
+    <script src="mu2edaq.js"></script>
+
+    <script>
+    // Keep timer IDs so we can clear/rebuild safely on reload
+    const _pollTimers = [];
+
+    function clearAllPollTimers() {
+      while (_pollTimers.length) {
+        clearInterval(_pollTimers.pop());
+      }
+    }
+
+    function addPolling(path, cell, periodMs = 2000) {
+      // initial color update
+      set_colors(path, cell);
+      // periodic updates
+      const id = setInterval(() => set_colors(path, cell), periodMs);
+      _pollTimers.push(id);
+    }
+
+    async function dbGet(path) {
+      const rpc = await mjsonrpc_db_get_values([path]);
+      return rpc?.result?.data ? rpc.result.data[0] : null;
+    }
+
+    async function dbGet2(path1, path2) {
+      const rpc = await mjsonrpc_db_get_values([path1, path2]);
+      const d = rpc?.result?.data || [null, null];
+      return [d[0], d[1]];
+    }
+
+    function makeButtonCell(label, onclickJs) {
+      const td = document.createElement("td");
+      td.className = "status-cell";
+      td.innerHTML = `<button onclick="${onclickJs}">${label}</button>`;
+      return td;
+    }
+
+
+    async function fillNodesTable(tableId, titleText, nodesPath) {
+      const table = document.getElementById(tableId);
+      table.innerHTML = `
+        <thead>
+          <tr><th colspan="12"><div class="mtableheader">${titleText}</div></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div>node</div></td>
+            <td colspan="2"><div>DTCs</div></td>
+            <td colspan="8"><div>Processes</div></td>
+          </tr>
+        </tbody>
+      `;
+      const tbody = table.querySelector("tbody");
+
+      const nodesObj = await dbGet(nodesPath);
+      if (!nodesObj || typeof nodesObj !== "object") return;
+
+      const hostnames = Object.keys(nodesObj).filter(k => {
+        if (k.endsWith("/key")) return false;
+        const v = nodesObj[k];
+        return v && typeof v === "object";
+      });
+
+      for (const hostname of hostnames) {
+        // reuse your existing row-building logic here
+        // nodePath = `${nodesPath}/${hostname}` ...
+        // append row to tbody
+      }
+    }
+
+
+    async function loadPage() {
+      clearAllPollTimers();
+
+      // --------------------------------------------------------------------------
+      // TFM/CFO table
+      // --------------------------------------------------------------------------
+      const tfmStatusTable = document.getElementById("tfm_status_table");
+      tfmStatusTable.innerHTML = `
+        <thead>
+          <tr><td colspan="2"><div class="mtableheader">CFO and TFM status</div></td></tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      const tfmBody = tfmStatusTable.querySelector("tbody");
+      const tfmRow = document.createElement("tr");
+
+      const tfmPath = `/Mu2e/ActiveRunConfiguration/DAQ/Tfm`;
+      const tfmCell = makeButtonCell("TFM", `tfm_control()`);
+      addPolling(tfmPath, tfmCell);
+      tfmRow.appendChild(tfmCell);
+
+      const cfoPathTop = `/Mu2e/ActiveRunConfiguration/DAQ/CFO`;
+      const cfoCellTop = makeButtonCell("CFO", `cfo_control()`);
+      addPolling(cfoPathTop, cfoCellTop);
+      tfmRow.appendChild(cfoCellTop);
+
+      tfmBody.appendChild(tfmRow);
+
+      // --------------------------------------------------------------------------
+      // DAQ nodes table
+      // --------------------------------------------------------------------------
+      const title = document.querySelector("#table-title");
+      title.textContent = "DAQ status";
+
+      const daqNodesTable = document.getElementById("daq_nodes_table");
+      daqNodesTable.innerHTML = `
+        <thead>
+          <tr><th colspan="12"><div class="mtableheader">DAQ nodes status</div></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div>node</div></td>
+            <td colspan="2"><div>DTCs</div></td>
+            <td colspan="8"><div>Processes</div></td>
+          </tr>
+        </tbody>
+      `;
+      const tbody = daqNodesTable.querySelector("tbody");
+
+      const nodesPath = `/Mu2e/ActiveRunConfiguration0/DAQ/Nodes`;
+      let nodesObj = null;
+      try {
+        nodesObj = await dbGet(nodesPath);
+      } catch (e) {
+        console.error("Error fetching nodes:", e);
+        return;
+      }
+      if (!nodesObj || typeof nodesObj !== "object") return;
+
+      // const hostnames = Object.keys(nodesObj);
+      
+      const hostnames = Object.keys(nodesObj).filter(k => {
+        if (k.endsWith("/key")) return false;              // skip ODB metadata entries
+        const v = nodesObj[k];
+        return v && typeof v === "object";                 // keep real node subtrees
+      });
+
+      for (let i = 0; i < hostnames.length; i++) {
+        const hostname = hostnames[i];
+        const nodePath = `${nodesPath}/${hostname}`;
+        const artdaqPath = `${nodePath}/Artdaq`;
+
+        const row = document.createElement("tr");
+
+        // Node cell
+        const nodeCell = makeButtonCell(hostname, `tfm_control('${hostname}')`);
+        addPolling(nodePath, nodeCell);
+        row.appendChild(nodeCell);
+
+        // DTC0/1 or CFO0/1 cells
+        for (let idtc = 0; idtc < 2; idtc++) {
+          const cell = document.createElement("td");
+          cell.className = "status-cell";
+
+          const dtcPath = `${nodePath}/DTC${idtc}`;
+          const cfoPath = `${nodePath}/CFO${idtc}`;
+
+          try {
+            const [dtcObj, cfoObj] = await dbGet2(dtcPath, cfoPath);
+
+            if (dtcObj != null) {
+              // check the DTC type and dispatch to a proper DTC control page
+              const dtc_subsystem = await dbGet(dtcPath+'/Subsystem');
+              if (dtc_subsystem == 'tracker') {
+                cell.innerHTML = `<button onclick="dtc_control('${hostname}',${idtc})">DTC${idtc}</button>`;
+              }
+              else if (dtc_subsystem == 'CRV') {
+                cell.innerHTML = `<button onclick="dtc_control_crv('${hostname}',${idtc})">DTC${idtc}</button>`;
+              }
+              addPolling(dtcPath, cell);
+            }
+            else if (cfoObj != null) {
+              cell.innerHTML =
+                `<button onclick="cfo_control()">CFO${idtc}</button>`;
+              addPolling(cfoPath, cell);
+            } else {
+              cell.innerHTML = ``; // empty slot
+            }
+          } catch (e) {
+            console.error(`Error fetching DTC/CFO for ${hostname} ${idtc}:`, e);
+          }
+
+          row.appendChild(cell);
+        }
+
+        // Process cells
+        try {
+          const artdaqObj = await dbGet(artdaqPath);
+          if (artdaqObj && typeof artdaqObj === "object") {
+            const values = Object.values(artdaqObj);
+
+            for (const v of values) {
+              const processLabel = v;
+              if (
+                typeof processLabel === "string" &&
+                processLabel !== "Enabled" &&
+                processLabel !== "Status"
+              ) {
+                const cell = makeButtonCell(
+                  processLabel,
+                  `tfm_control('${hostname}','${processLabel}')`
+                );
+                const p = `${artdaqPath}/${processLabel}`;
+                addPolling(p, cell);
+                row.appendChild(cell);
+              }
+            }
+          }
+        } catch (e) {
+          console.error(`Error fetching processes for ${hostname}:`, e);
+        }
+
+        tbody.appendChild(row);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadPage);
+    </script>
+  </head>
+
+  <body class="mcss" onload="mhttpd_init('DAQ nodes');">
+    <div id="mheader"></div>
+    <div id="msidenav"></div>
+    <div id="mmain">
+      <h1 id="table-title">DAQ nodes</h1>
+      
+      <table class="mtable" id="tfm_status_table">  <!-- TFM status -->
+      </table>
+      <!-- 
+      <table class="mtable" id="daq_nodes_table"> 
+      </table>
+      -->
+      
+      <div class="nodes-row">
+        <table class="mtable" id="daq_nodes_table"></table>
+        <table class="mtable" id="calo_nodes_table"></table>
+      </div>
+
+    </div>
+  </body>
+</html>
+
+<!--
+    emacs
+    Local Variables:
+    mode: web
+    tab-width: 8
+    c-basic-offset: 2
+    js-indent-level: 0
+    indent-tabs-mode: nil
+    End:
+  -->
