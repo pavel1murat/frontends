@@ -36,7 +36,7 @@ public:
   virtual int  BeginRun      (int RunNumber) override;
   virtual int  EndRun        (int RunNumber) override;
 
-  int          InitReadout      (HNDLE H_Cmd);
+  int          InitReadout   (HNDLE H_Cmd);
 
   static  void ProcessCommand(int hDB, int hKey, void* Info);
   virtual int  StartMessage  (HNDLE h_Cmd, std::stringstream& Stream) override;

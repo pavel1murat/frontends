@@ -95,6 +95,16 @@ void TEqHardwareCfo::ProcessCommand(int hDB, int hKey, void* Info) {
     t.detach();
   }
 //-----------------------------------------------------------------------------
+// init_timing_chain - initalization is just a dispatch , happens quickly
+// executeion by the DTCs can take some time, thus - WaitForCompletion is executed
+// in a thread
+//-----------------------------------------------------------------------------
+  else if (cmd == "init_timing_chain") {
+    eq->InitTimingChain(h_cmd);
+    std::thread t(&TEqHardwareCfo::WaitForCompletion,eq,h_cmd);
+    t.detach();
+  }
+//-----------------------------------------------------------------------------
 // LAUNCH_RUN_PLAN
 //-----------------------------------------------------------------------------
   else if (cmd == "launch_run_plan") {

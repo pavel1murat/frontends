@@ -180,4 +180,3 @@ int TEqHardwareCfo::EndRun(int RunNumber)  {
 
   return rc;
 };
-

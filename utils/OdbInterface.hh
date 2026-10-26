@@ -54,7 +54,9 @@ public:
   
   HNDLE       GetCfoCmdHandle         (HNDLE h_RunConf);
   HNDLE       GetCfoConfHandle        (HNDLE h_RunConf);
-
+  HNDLE       GetCfoCmdParameterHandle(const std::string& Cmd);
+  std::string GetCfoCmdParameterPath  (const std::string& Cmd);
+  
   uint64_t    GetNEvents              (HNDLE h_DB, HNDLE h_DTC);
   int         GetEWLength             (HNDLE h_CFO);
   //  uint64_t    GetFirstEWTag       (HNDLE h_DB, HNDLE h_DTC);

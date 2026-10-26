@@ -89,6 +89,15 @@ int TEqHardwareCfo::CompileRunPlan(HNDLE H_Cmd) {
 }
 
 //-----------------------------------------------------------------------------
+int TEqHardwareCfo::GetTimingChainTopology() {
+  int rc(0);
+  TLOG(TLVL_DEBUG) << "-- START";
+  // initializes _timing_chain
+  
+  TLOG(TLVL_DEBUG) << std::format("-- END : rc:{}",rc);
+  return rc;
+}
+//-----------------------------------------------------------------------------
 // HALT execution of run plan
 //-----------------------------------------------------------------------------
 int TEqHardwareCfo::Halt(HNDLE H_Cmd) {
@@ -174,6 +183,85 @@ int TEqHardwareCfo::InitReadout(HNDLE H_Cmd) {
 
   if (rc < 0) {
     std::string msg = std::format("failed to initialize the CFO readout for run_plan_fn:{}",run_plan_fn);
+    cm_msg(MERROR,__func__,msg.data());
+    cm_msg_flush_buffer();
+    TLOG(TLVL_ERROR) << msg;
+  }
+ 
+  int cmd_rc = TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+  SetCommandFinished(H_Cmd,rc); 
+  
+  TLOG(TLVL_DEBUG) << std::format("-- END; rc:{} cmd_rc:{}",rc,cmd_rc);
+  
+  return rc;
+}
+
+//-----------------------------------------------------------------------------
+// from the DTC configuration
+// run plan alwys comes from the CFO ODB configuration - can change on the fly
+//-----------------------------------------------------------------------------
+int TEqHardwareCfo::InitTimingChain(HNDLE H_Cmd) {
+  int rc(0);
+
+  TLOG(TLVL_DEBUG) << std::format("-- START: H_Cmd:{}",H_Cmd);
+  SetStatus(1); 
+
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+ 
+  std::string cmd               = _odb_i->GetString (H_Cmd,"Name" );   // better be "init_timing_chain"
+  std::string logfile           = _odb_i->GetString (H_Cmd,"logfile" );
+  std::string run_plan_dir      = _odb_i->GetCfoRunPlanDir();
+  std::string run_plan          = _odb_i->GetString (_handle,"run_plan"         );
+  //  int         timing_chain_mask = _odb_i->GetUInt32 (_handle,"timing_chain_mask");
+
+  // std::string run_plan_fn = run_plan_dir+'/'+run_plan+".bin";
+  // TLOG(TLVL_DEBUG) << std::format("run_plan_fn:{}",run_plan_fn);
+  
+  std::string cmd_parameter_path = _odb_i->GetCfoCmdParameterPath(cmd);
+  // sstr << std::endl;
+
+  // 1. get topology of the timing chain from ODB
+  GetTimingChainTopology();
+  
+  // 2. initial: process the chains sequentially, initialize tthe DTC's in the right order
+  // a chain is a vector of strings : 'nodename:dtci'
+  // the whole thing is a vector of timing chains
+
+  //  int print_level = _odb_i->GetInteger(H_Cmd,"print_level");
+
+  for (int i=0; i<8; i++) {
+    if (not _cfo_i->LinkEnabled(i)) continue;
+    std::vector<time_chain_node_t>* chain = &_timing_chain[i];
+    
+    for (auto chain_node : *chain) {
+      // split node and dtc id, for example
+      std::string node = "aaaaa";
+      std::string pcie_addr  = "0" ;
+      // send a 'fix_cfo_edge" ("setup_cfo_link") command to the DTC
+      std::string dtc_cmd_path = std::format("/Mu2e/Commands/DAQ/Nodes/{}/DTC{}",node,pcie_addr);
+      HNDLE h_dtc_cmd          = _odb_i->GetHandle(0,dtc_cmd_path);
+      // 
+      // HNDLE h_cmd              = _odb_i->GetHandle(h_dtc_cmd,"setup_cfo_link");
+      
+      _odb_i->SetString (h_dtc_cmd,"logfile"      ,"default");
+      //      _odb_i->SetInteger(h_dtc_cmd,"link"         ,lnk); // don't need links
+      _odb_i->SetString (h_dtc_cmd,"ParameterPath",cmd_parameter_path);
+      _odb_i->SetInteger(h_dtc_cmd,"Finished"     , 0);
+      _odb_i->SetInteger(h_dtc_cmd,"ReturnCode"   , 0);
+//-----------------------------------------------------------------------------
+// and trigger the execution of a 'per-DTC' command
+//-----------------------------------------------------------------------------
+        _odb_i->SetInteger(h_dtc_cmd,"Run"          , 1);
+    }
+  }
+  
+  // at this point need to go into a wait mode
+  
+  rc = WaitForCompletion(H_Cmd);
+                                     
+  if (rc < 0) {
+    std::string msg = std::format("failed to initialize the CFO timing chain");
     cm_msg(MERROR,__func__,msg.data());
     cm_msg_flush_buffer();
     TLOG(TLVL_ERROR) << msg;
@@ -391,4 +479,77 @@ int TEqHardwareCfo::StartMessage(HNDLE h_Cmd, std::stringstream& Stream) {
   
   Stream << std::format("{} CFO cmd:{} label:{} pcie_addr:{}\n",s_now,cmd,HostLabel(),_cfo_i->PcieAddr());
   return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+// this is mot a static function
+//-----------------------------------------------------------------------------
+int TEqHardwareCfo::WaitForCompletion(HNDLE H_Cmd) {
+  int return_code(0);
+  TLOG(TLVL_DEBUG) << std::format("--- START: hCmd:{}",H_Cmd);
+
+  HNDLE h_cmd_par     = _odb_i->GetCmdParameterHandle(H_Cmd);
+  std::string cmd     = _odb_i->GetString (H_Cmd    ,"Name"      );
+  std::string logfile = _odb_i->GetString (H_Cmd    ,"logfile"   );
+  int timeout_ms      = _odb_i->GetInteger(h_cmd_par,"timeout_ms");
+
+  TLOG(TLVL_DEBUG) << std::format("cmd:{} timeout_ms:{}",cmd,timeout_ms);
+  
+  std::stringstream sstr;
+  StartMessage(H_Cmd,sstr);
+
+  int wait_time_ms(0), n_not_finished(100);
+
+  while ((n_not_finished > 0) and (wait_time_ms < timeout_ms)) {
+    ss_sleep(100);
+    wait_time_ms  += 100;
+    n_not_finished = 0;
+    
+    for (int i=0; i<8; i++) {
+      if (not _cfo_i->LinkEnabled(i)) continue;
+      std::vector<time_chain_node_t>* chain = &_timing_chain[i];
+
+      for (auto chain_node : *chain) {
+
+        if (chain_node.finished == 1) continue;
+      
+        // split node and dtc id, for example
+        std::string node      = "aaaaa";
+        std::string pcie_addr = "0" ;
+        // send a 'fix_cfo_edge" ("setup_cfo_link") command to the DTC
+        std::string dtc_cmd_path = std::format("/Mu2e/Commands/DAQ/Nodes/{}/DTC{}",node,pcie_addr);
+        HNDLE h_dtc_cmd          = _odb_i->GetHandle(0,dtc_cmd_path);
+
+        chain_node.finished = _odb_i->GetInteger(h_dtc_cmd,"Finished");
+        if (chain_node.finished) {
+          int rcc = _odb_i->GetInteger(h_dtc_cmd,"ReturnCode");
+          if (rcc < 0) {
+            return_code  += rcc;
+          }
+        }
+        else {
+          n_not_finished += 1;
+        }
+      }
+    }
+  }
+
+  if (return_code == 0) {
+    if (n_not_finished > 0) return_code = 1; // (BUSY) ... timeout
+  }
+  
+  
+  std::string msg = std::format("n_not_finished:{} return_code:{}",n_not_finished,return_code);
+  sstr << msg << std::endl;
+  TMu2eEqBase::WriteOutput(sstr.str(),logfile,1);
+
+
+//-----------------------------------------------------------------------------
+// until the error handling is understood, always set status to zero
+//-----------------------------------------------------------------------------
+  SetCommandFinished(H_Cmd,0); // return_code);
+
+  TLOG(TLVL_DEBUG) << std::format("-- END: {}",msg);
+  return return_code;
 }

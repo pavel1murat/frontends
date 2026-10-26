@@ -265,6 +265,21 @@ HNDLE OdbInterface::GetArtdaqCmdHandle(const std::string& Host) {
 }
 
 //-----------------------------------------------------------------------------
+// in most cases, but not always, parameter path = "/Mu2e/Commands/Tracker"+"/"+Cmd
+//-----------------------------------------------------------------------------
+HNDLE OdbInterface::GetCfoCmdParameterHandle(const std::string& Cmd) {
+  HNDLE       h_cmd = GetHandle(0,"/Mu2e/Commands/DAQ/CFO");
+  std::string path  = GetString(h_cmd,"ParameterPath");
+  return GetHandle(0,path);
+}
+
+//-----------------------------------------------------------------------------
+std::string OdbInterface::GetCfoCmdParameterPath(const std::string& Cmd) {
+  std::string path = std::format("/Mu2e/Commands/DAQ/CFO/{}",Cmd);
+  return path;
+}
+
+//-----------------------------------------------------------------------------
 HNDLE OdbInterface::GetCfoCmdHandle(HNDLE h_RunConf) {
   return GetHandle(0,"/Mu2e/Commands/DAQ/CFO");
 }
